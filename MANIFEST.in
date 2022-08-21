@@ -1,3 +1,2 @@
-graft nl2sca
 recursive-inlucde doc *
 global-exclude *.py[cod]
