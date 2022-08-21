@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="nl2sca",
-    version="0.0.7",
+    version="0.0.8",
     author="TAN Long",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/NeoL2SCA",
