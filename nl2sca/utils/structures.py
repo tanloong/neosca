@@ -83,10 +83,16 @@ class Structures:
         "(VP <# MD|VBP|VBZ|VBD)])]))",
     )
     CP = Structure("CP", "coordinate phrases", "ADJP|ADVP|NP|VP < CC")
-    fields = (
-        "Filename,W,S,VP,C,T,DC,CT,CP,CN,"
-        "MLS,MLT,MLC,C/S,VP/T,C/T,DC/C,DC/T,T/S,CT/T,CP/T,CP/C,CN/T,CN/C"
-    )
+
+    # a list of tregex patterns for various structures
+    to_search_for = (S, VP1, VP2, C1, C2, T1, T2, CN1, CN2, CN3, DC, CT, CP)
+    if os.name == "nt":
+        for structure in to_search_for:
+            structure.pat = '"' + structure.pat + '"'
+    else:
+        # for Linux & MacOS
+        for structure in to_search_for:
+            structure.pat = "'" + structure.pat + "'"
 
     VP = Structure("VP", "verb phrases")
     C = Structure("C", "clauses")
@@ -108,16 +114,10 @@ class Structures:
     CNpT = Structure("CNpT", "complex nominals per T-unit")
     CNpC = Structure("CNpC", "complex nominals per clause")
 
-    # a list of tregex patterns for various structures
-    to_search_for = (S, VP1, VP2, C1, C2, T1, T2, CN1, CN2, CN3, DC, CT, CP)
-
-    if os.name == "nt":
-        for structure in to_search_for:
-            structure.pat = '"' + structure.pat + '"'
-    else:
-        # for Linux & MacOS
-        for structure in to_search_for:
-            structure.pat = "'" + structure.pat + "'"
+    fields = (
+        "Filename,W,S,VP,C,T,DC,CT,CP,CN,"
+        "MLS,MLT,MLC,C/S,VP/T,C/T,DC/C,DC/T,T/S,CT/T,CP/T,CP/C,CN/T,CN/C"
+    )
 
     def __init__(self, fn_input):
         self.fn_input = fn_input

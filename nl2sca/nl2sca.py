@@ -1,14 +1,3 @@
-"""CAUTION: DON'T manually modify parsedFile"""
-
-"""
-Name: L2SCA 4.2.0-0.1
-Desc: A rewrite of Professor Xiaofei Lu's project, with some extended features.
-      See README-L2SCA-fork.txt for details.
-Author: TAN Long
-Email: tanloong@foxmail.com
-Date: 17 Aug 2022
-"""
-
 from .utils.arg_processer import ArgProcessor
 from .utils.analyzer import Analyzer
 from .utils.writer import write_match_output
