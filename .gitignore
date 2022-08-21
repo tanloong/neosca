@@ -7,3 +7,5 @@ doc
 nl2sca/__pycache__
 nl2sca.bat_
 setup.py_
+
+build/lib/nl2sca

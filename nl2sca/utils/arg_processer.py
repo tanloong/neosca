@@ -81,14 +81,6 @@ class ArgProcessor:
                     f" files: \n\n{f}"
                 )
         args.fn_inputs = valid_fn_inputs
-        # invalid_files = "\n".join(
-        #     filter(lambda f: not path.isfile(f), args.fn_inputs)
-        # )
-        # if invalid_files:
-        #     sys.exit(
-        #         "The following files either do not exist or are not regular"
-        #         f" files: \n\n{invalid_files}"
-        #     )
 
         args.fn_freq_output = path.abspath(args.fn_freq_output)
         args.dir_match_output = path.splitext(args.fn_freq_output)[0]
@@ -102,19 +94,4 @@ class ArgProcessor:
         if args.dir_tregex is None:
             sys.exit("Error: Tregex not found.")
 
-        # curdir = path.dirname(__file__)
-        # if args.dir_parser is None:
-        # try:
-        #     args.dir_parser = glob.glob(
-        #         path.join(curdir, "stanford-parser*", "")
-        #     )[0]
-        # except IndexError:
-        #     sys.exit("Error: Stanford Parser not found under src/.")
-        # if args.dir_tregex is None:
-        #     try:
-        #         args.dir_tregex = glob.glob(
-        #             path.join(curdir, "stanford-tregex*", "")
-        #         )[0]
-        #     except IndexError:
-        #         sys.exit('Error: Tregex not found under "src/".')
         return args
