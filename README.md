@@ -65,7 +65,7 @@ pressing `Windows` and typing in `path`.
 + Linux/MacOS:
 
 ```
-export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2022-11-17/*:
+export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17/*:
 export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
 ```
 
