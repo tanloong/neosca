@@ -2,8 +2,6 @@
 dist
 nl2sca/utils/__pycache__
 nl2sca.egg-info
-MANIFEST.in
-setup.py
 README.md_
 doc
 nl2sca/__pycache__
