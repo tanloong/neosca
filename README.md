@@ -55,7 +55,7 @@ pip install nl2sca
 In the Environment Variables window:
 
 ```
-STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2022-11-17/*:
+STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17/*:
 STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
 ```
 
