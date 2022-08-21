@@ -12,7 +12,6 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 | runs only under its own home directory | runs under any directory |
 | outputs only final results, i.e. frequencies of the "9+14" linguistic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
 
-
 ## Usage
 
 1. Single input:
@@ -29,8 +28,13 @@ python l2sca-analyzer.py ./samples/sample1.txt ./samples/sample2.txt ./samples/o
 ```
 python l2sca-analyzer.py ./samples/*.txt ./samples/output.csv
 ```
+For Windows users,
+wildcards do not work in the cmd window,
+use them in PowerShell instead.
 
-4. Use `--reserve-parsed`/`-rp`, `--reserve-match`/`-rm` to reserve parsing results of Stanford Parser and match result of Tregex, respectively:
+4. Use 
+`--reserve-parsed`/`-rp`, `--reserve-match`/`-rm`
+to reserve parsing results of Stanford Parser and match result of Tregex, respectively:
 
 ```
 python l2sca-analyzer.py ./samples/sample1.txt ./samples/output.csv -rm -rp
@@ -57,6 +61,9 @@ In the Environment Variables window:
 STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2022-11-17/*:
 STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
 ```
+
+The Environment Variables windows can be opened through 
+pressing `Windows` and searching for `environment variables`.
 
 + Linux/MacOS:
 
