@@ -1,5 +1,8 @@
 from distutils.core import setup
+from os import path
 
+cur_dir = path.dirname(__file__)
+readme = open(path.join(cur_dir,'README.md'),'r').read()
 setup(
     name="nl2sca",
     version="0.0.11",
@@ -8,12 +11,7 @@ setup(
     url="https://github.com/tanloong/NeoL2SCA",
     packages=["nl2sca", "nl2sca.utils", "nl2sca.samples"],
     description="New L2 Syntactic Complexity Analyzer",
-    long_description=(
-        "NeoL2SCA performs syntactic complexity analysis of written English"
-        " language samples. It is a rewrite of"
-        " [L2SCA](http://personal.psu.edu/xxl13/downloads/l2sca.html), with"
-        " extended functionalities."
-    ),
+    long_description=readme,
     long_description_content_type="text/markdown",
     install_requires=[],
     classifiers=[
