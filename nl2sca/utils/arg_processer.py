@@ -1,6 +1,6 @@
 import argparse
 
-# import glob
+import glob
 from os import path
 import os
 import sys
@@ -69,14 +69,26 @@ class ArgProcessor:
         args = self.get_args()
 
         args.fn_inputs = list(map(path.abspath, args.fn_inputs))
-        invalid_files = "\n".join(
-            filter(lambda f: not path.isfile(f), args.fn_inputs)
-        )
-        if invalid_files:
-            sys.exit(
-                "The following files either do not exist or are not regular"
-                f" files: \n\n{invalid_files}"
-            )
+        valid_fn_inputs = []
+        for f in args.fn_inputs:
+            if path.isfile(f):
+                valid_fn_inputs.append(f)
+            elif glob.glob(f):
+                valid_fn_inputs.extend(glob.glob(f))
+            else:
+                sys.exit(
+                    "The following files either do not exist or are not regular"
+                    f" files: \n\n{f}"
+                )
+        args.fn_inputs = valid_fn_inputs
+        # invalid_files = "\n".join(
+        #     filter(lambda f: not path.isfile(f), args.fn_inputs)
+        # )
+        # if invalid_files:
+        #     sys.exit(
+        #         "The following files either do not exist or are not regular"
+        #         f" files: \n\n{invalid_files}"
+        #     )
 
         args.fn_freq_output = path.abspath(args.fn_freq_output)
         args.dir_match_output = path.splitext(args.fn_freq_output)[0]
