@@ -98,7 +98,7 @@ class Analyzer:
         """
         result = ""
         pattern = r"([^\s)]+)\)"
-        for subtree in subtrees.split("\n\n"):
+        for subtree in re.split(r"(?:\r?\n){2,}", subtrees):
             terminals = " ".join(re.findall(pattern, subtree))
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
