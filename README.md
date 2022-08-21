@@ -60,7 +60,7 @@ STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
 ```
 
 The Environment Variables windows can be opened through 
-pressing `Windows` and searching for `environment variables`.
+pressing `Windows` and typing in `path`.
 
 + Linux/MacOS:
 
