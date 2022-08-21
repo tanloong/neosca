@@ -28,9 +28,6 @@ python l2sca-analyzer.py ./samples/sample1.txt ./samples/sample2.txt ./samples/o
 ```
 python l2sca-analyzer.py ./samples/*.txt ./samples/output.csv
 ```
-For Windows users,
-wildcards do not work in the cmd window,
-use them in PowerShell instead.
 
 4. Use 
 `--reserve-parsed`/`-rp`, `--reserve-match`/`-rm`
