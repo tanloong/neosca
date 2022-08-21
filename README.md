@@ -16,17 +16,18 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 
 1. Single input:
 ```
-python l2sca-analyzer.py ./samples/sample1.txt ./samples/output.csv
+python -m nl2sca sample1.txt output.csv
 ```
 
 2. Multiple input:
 ```
-python l2sca-analyzer.py ./samples/sample1.txt ./samples/sample2.txt ./samples/output.csv
+python -m nl2sca sample1.txt sample2.txt output.csv
 ```
 
 3. Wildcard characters are also supported:
 ```
-python l2sca-analyzer.py ./samples/*.txt ./samples/output.csv
+python -m nl2sca *.txt output.csv
+python -m nl2sca sample[1-10].txt output.csv
 ```
 
 4. Use 
@@ -34,7 +35,7 @@ python l2sca-analyzer.py ./samples/*.txt ./samples/output.csv
 to reserve parsing results of Stanford Parser and match result of Tregex, respectively:
 
 ```
-python l2sca-analyzer.py ./samples/sample1.txt ./samples/output.csv -rm -rp
+python -m nl2sca sample1.txt output.csv -rm -rp
 ```
 
 ## Installation
