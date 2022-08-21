@@ -47,20 +47,23 @@ pip install nl2sca
 
 3. Download [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml#Download) and [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html#Download)
 
-4. Include directories of the two in your `CLASSPATH`
+4. Set `STANFORD_PARSER_HOME` and `STANFORD_TREGEX_HOME`
+
++ Windows:
+
+In the Environment Variables window:
+
+```
+STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2022-11-17/*:
+STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
+```
 
 + Linux/MacOS:
 
 ```
-export CLASSPATH=$CLASSPATH:/path/to/stanford-parser-full-2022-11-17/*:
-export CLASSPATH=$CLASSPATH:/path/to/stanford-tregex-4.2.0/*:
+export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2022-11-17/*:
+export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17/*:
 ```
-
-+ Windows:
-
-Create or Edit `CLASSPATH` in the Environment Variables window.
-
-`CLASSPATH=%CLASSPATH%;/path/to/stanford-parser-full-2022-11-17/*;/path/to/stanford-tregex-4.2.0/*;`
 
 ## License
 The same as L2SCA, NeoL2SCA is licensed under the GNU General Public License, version 2 or later.

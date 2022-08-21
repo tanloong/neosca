@@ -8,15 +8,15 @@ from .structures import Structures
 
 
 class Analyzer:
-    # def __init__(self, dir_parser, dir_tregex):
-    #     """
-    #     :param dir_parser: directory to Stanford Parser
-    #     :param dir_tregex: directory to Tregex
-    #     """
-    #     self.classpath_parser = '"' + dir_parser + os.sep + "*" + '"'
-    #     self.classpath_tregex = (
-    #         '"' + dir_tregex + os.sep + "stanford-tregex.jar" + '"'
-    #     )
+    def __init__(self, dir_parser, dir_tregex):
+        """
+        :param dir_parser: directory to Stanford Parser
+        :param dir_tregex: directory to Tregex
+        """
+        self.classpath_parser = '"' + dir_parser + os.sep + "*" + '"'
+        self.classpath_tregex = (
+            '"' + dir_tregex + os.sep + "stanford-tregex.jar" + '"'
+        )
 
     def _parse(self, fn_input: str, fn_parsed: str):
         """
@@ -29,8 +29,7 @@ class Analyzer:
         method = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
         model = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
         cmd = (
-            # f"java -mx1500m -cp {self.classpath_parser} {method} "
-            f"java -mx1500m {method} "
+            f"java -mx1500m -cp {self.classpath_parser} {method} "
             f"-outputFormat penn {model} {fn_input} > {fn_parsed}"
         )
         if not path.exists(fn_parsed):  # if FILE does not exist
@@ -59,9 +58,8 @@ class Analyzer:
         """
         method = "edu.stanford.nlp.trees.tregex.TregexPattern"
         cmd = (
-            # "java -mx100m -cp"
-            # f" {self.classpath_tregex} {method} {pattern} {fn_parsed} -o"
-            f"java -mx100m {method} {pattern} {fn_parsed} -o"
+            "java -mx100m -cp"
+            f" {self.classpath_tregex} {method} {pattern} {fn_parsed} -o"
         )
         p = subprocess.run(cmd, shell=True, capture_output=True)
         freq_match = re.search(

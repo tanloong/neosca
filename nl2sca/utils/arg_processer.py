@@ -3,7 +3,6 @@ import argparse
 # import glob
 from os import path
 import os
-import re
 import sys
 
 
@@ -30,26 +29,26 @@ class ArgProcessor:
             type=str,
             help="output filename",
         )
-        # my_argparser.add_argument(
-        #     "--parser",
-        #     type=str,
-        #     dest="dir_parser",
-        #     help=(
-        #         "directory to Stanford Parser, defaults to"
-        #         # " <parent_dir_of_this_script>/src/stanford-parser-*"
-        #         " STANFORD_PARSER_HOME"
-        #     ),
-        # )
-        # my_argparser.add_argument(
-        #     "--tregex",
-        #     type=str,
-        #     dest="dir_tregex",
-        #     help=(
-        #         "directory to Tregex, defaults to"
-        #         # " <parent_dir_of_this_script>/src/stanford-tregex-*"
-        #         " STANFORD_TREGEX_HOME"
-        #     ),
-        # )
+        my_argparser.add_argument(
+            "--parser",
+            type=str,
+            dest="dir_parser",
+            help=(
+                "directory to Stanford Parser, defaults to"
+                # " <parent_dir_of_this_script>/src/stanford-parser-*"
+                " STANFORD_PARSER_HOME"
+            ),
+        )
+        my_argparser.add_argument(
+            "--tregex",
+            type=str,
+            dest="dir_tregex",
+            help=(
+                "directory to Tregex, defaults to"
+                # " <parent_dir_of_this_script>/src/stanford-tregex-*"
+                " STANFORD_TREGEX_HOME"
+            ),
+        )
         my_argparser.add_argument(
             "-rp",
             "--reserve-parsed",
@@ -82,14 +81,14 @@ class ArgProcessor:
         args.fn_freq_output = path.abspath(args.fn_freq_output)
         args.dir_match_output = path.splitext(args.fn_freq_output)[0]
 
-        # if args.dir_parser is None:
-        #     args.dir_parser = os.getenv("STANFORD_PARSER_HOME")
-        # if args.dir_parser is None:
-        #     sys.exit("Error: Stanford Parser not found.")
-        # if args.dir_tregex is None:
-        #     args.dir_tregex = os.getenv("STANFORD_TREGEX_HOME")
-        # if args.dir_tregex is None:
-        #     sys.exit("Error: Tregex not found.")
+        if args.dir_parser is None:
+            args.dir_parser = os.getenv("STANFORD_PARSER_HOME")
+        if args.dir_parser is None:
+            sys.exit("Error: Stanford Parser not found.")
+        if args.dir_tregex is None:
+            args.dir_tregex = os.getenv("STANFORD_TREGEX_HOME")
+        if args.dir_tregex is None:
+            sys.exit("Error: Tregex not found.")
 
         # curdir = path.dirname(__file__)
         # if args.dir_parser is None:

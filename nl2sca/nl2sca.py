@@ -17,8 +17,7 @@ from .utils.writer import write_freq_output
 
 def main():
     args = ArgProcessor().process_args()
-    # analyzer = Analyzer(args.dir_parser, args.dir_tregex)
-    analyzer = Analyzer()
+    analyzer = Analyzer(args.dir_parser, args.dir_tregex)
 
     structures_list = list(
         analyzer.perform_analysis(args.fn_inputs, args.is_reserve_parsed)
