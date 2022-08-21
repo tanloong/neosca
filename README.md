@@ -7,7 +7,7 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 
 | L2SCA | L2SCA-fork |
 |-|-|
-| runs on Linux and MacOS | runs on Linux, MacOS, and **Windows** |
+| runs on MacOS and Linux | runs on **Windows**, MacOS, and Linux |
 | single input and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
 | outputs only final results, i.e. frequencies of the "9+14" linguistic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
