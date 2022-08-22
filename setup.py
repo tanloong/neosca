@@ -5,7 +5,7 @@ cur_dir = path.dirname(__file__)
 readme = open(path.join(cur_dir,'README.md'),'r').read()
 setup(
     name="nl2sca",
-    version="0.0.12",
+    version="0.0.13",
     author="TAN Long",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/NeoL2SCA",
