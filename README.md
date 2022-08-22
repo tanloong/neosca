@@ -173,5 +173,21 @@ The full download of TeX Live is quite large and time-consuming.
 You can compile them online using [Overleaf](https://www.overleaf.com/project).
 -->
 
+## Cite
+
+
+```BibTeX
+@article{lu2010automatic,
+title={Automatic analysis of syntactic complexity in second language writing},
+author={Lu, Xiaofei},
+journal={International journal of corpus linguistics},
+volume={15},
+number={4},
+pages={474--496},
+year={2010},
+publisher={John Benjamins}
+}
+```
+
 ## License
 The same as L2SCA, NeoL2SCA is licensed under the GNU General Public License, version 2 or later.
