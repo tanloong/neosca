@@ -32,7 +32,7 @@ python -m nl2sca sample[1-10].txt output.csv
 
 4. Use 
 `--reserve-parsed`/`-rp` to reserve parsed files of Stanford Parser. Use `--reserve-match`/`-rm`
- to reserve match results of Tregex:
+ to reserve match results of Tregex.
 
 ```
 python -m nl2sca sample1.txt output.csv -rm -rp
@@ -56,8 +56,8 @@ pip install nl2sca
 In the Environment Variables window:
 
 ```
-STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
-STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
+STANFORD_PARSER_HOME=\path\to\stanford-parser-full-2020-11-17
+STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 ```
 
 The Environment Variables windows can be opened through 
@@ -103,7 +103,7 @@ gives the phrase structure tree:
 
 The tree can be visualized as follows, with quotation marks eliminated.
 
-<img src="https://github.com/tanloong/NeoL2SCA/blob/master/nl2sca/src/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="300">
+<img src="https://github.com/tanloong/NeoL2SCA/blob/master/nl2sca/src/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
 
 In this tree,
 the starting symbol is the label "ROOT" at the root level of the tree,
