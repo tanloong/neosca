@@ -7,7 +7,7 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 
 | L2SCA | L2SCA-fork |
 |-|-|
-| runs on MacOS and Linux | runs on **Windows**, MacOS, and Linux |
+| runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single input and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
 | outputs only final results, i.e. frequencies of the "9+14" linguistic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
@@ -63,7 +63,7 @@ STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 The Environment Variables windows can be opened through 
 pressing `Windows` and typing in `path`.
 
-+ Linux/MacOS:
++ Linux/macOS:
 
 ```
 export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
@@ -114,10 +114,10 @@ located between the starting symbol and the terminal symbols,
 include a number of labels for different clausal,
 phrasal,
 and lexical categories.
-For example, the non-terminal symbol "NP" indicates "Noun Phrase".
+For example, the non-terminal symbol "NP" indicates the phrasal category "Noun Phrase".
 
-When parsing input files, NeoL2SCA runs the above command,
-and, if you have specified the `-rp` option,
+When parsing input files, NeoL2SCA runs the above command and,
+if you have specified the `-rp` option,
 saves phrase structure trees like the one above in files with `.parsed` extension.
 
 + Stanford Tregex
@@ -173,8 +173,19 @@ The full download of TeX Live is quite large and time-consuming.
 You can compile them online using [Overleaf](https://www.overleaf.com/project).
 -->
 
-## Cite
+## Citing
 
+Please use the following citation if you use NeoL2SCA in your work:
+```BibTeX
+@misc{neol2sca,
+author = {Tan, Long},
+title = {NeoL2SCA},
+howpublished = {\url{https://github.com/tanloong/NeoL2SCA}},
+year = {2022}
+}
+```
+
+Also, you need to cite Lu's article describing L2SCA:
 
 ```BibTeX
 @article{lu2010automatic,
