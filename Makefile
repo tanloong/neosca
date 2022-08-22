@@ -7,7 +7,7 @@ build: clean
 	python setup.py sdist --formats=zip
 
 release: build
-	twine upload --repository testpypi dist/*
+	twine upload dist/*
 
 install: build
 	sudo python setup.py install
