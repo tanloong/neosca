@@ -40,7 +40,7 @@ class Tree2Tex:
         """
         trees_tex = re.findall(r"\r?\n\s*(?:\([^\r\n]*|\r?\n)", self.trees)
         # find (1) lines with '(' as the first non-blank character, and
-        #      (2) black lines
+        #      (2) blank lines
         trees_tex = "".join(trees_tex).strip()
         trees_tex = re.sub(r"(\r?\n) +", r"\1", trees_tex)
         # remove whitespaces at the beginning of each line
@@ -68,7 +68,7 @@ class Tree2Tex:
         # add '\Tree' at the beginning of each tree
 
         trees_tex = re.sub(r"#", r"\#", trees_tex)
-        # escape special symbols in LaTeX, see
+        # escape special symbols, see
         # https://www.tug.org/tutorials/tugindia/chap02-scr.pdf, 2.3 Characters
         trees_tex = re.sub(r"\$", "\\$", trees_tex)  # ibid
         trees_tex = re.sub(r"%", "\\%", trees_tex)  # ibid
