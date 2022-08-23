@@ -5,7 +5,7 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 
 ## Comparison
 
-| L2SCA | L2SCA-fork |
+| L2SCA | NeoL2SCA |
 |-|-|
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single input and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
