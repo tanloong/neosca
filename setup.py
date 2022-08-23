@@ -10,7 +10,7 @@ setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/NeoL2SCA",
     packages=["nl2sca", "nl2sca.utils", "nl2sca.samples"],
-    description="New L2 Syntactic Complexity Analyzer",
+    description="NeoL2SCA is a rewrite of Xiaofei Lu's L2 Syntactic Complexity Analyzer",
     long_description=readme,
     long_description_content_type="text/markdown",
     install_requires=[],
