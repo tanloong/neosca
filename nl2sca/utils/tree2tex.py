@@ -56,28 +56,28 @@ class Tree2Tex:
 
         trees_tex = re.sub(r"\(\W[^)]*\)", r"", trees_tex)
         # remove punctuation marks
-        trees_tex = re.sub(r"\(([A-Z]+)", r"[.\1", trees_tex)
+        trees_tex = trees_tex.replace("(", "[.").replace(")", " ]")
         # replace parentheses with square brackets
-        trees_tex = re.sub(r"\)", r" ]", trees_tex)
         # Closing brackets should be preceded by a whitespace, otherwise LaTeX
         # will report an error. This might be a bug of Qtree, if not an
         # intended design.
 
-        trees_tex = re.sub(r"(\r?\n)([^\r\n])", r"\1\\Tree \2", trees_tex)
-        trees_tex = re.sub(r"^", r"\\Tree ", trees_tex)
-        # add '\Tree' at the beginning of each tree
-
-        trees_tex = re.sub(r"#", r"\#", trees_tex)
+        trees_tex = trees_tex.replace('\\', '\\textbackslash')
         # escape special symbols, see
         # https://www.tug.org/tutorials/tugindia/chap02-scr.pdf, 2.3 Characters
-        trees_tex = re.sub(r"\$", "\\$", trees_tex)  # ibid
-        trees_tex = re.sub(r"%", "\\%", trees_tex)  # ibid
-        trees_tex = re.sub(r"&", "\\&", trees_tex)  # ibid
-        trees_tex = re.sub(r"\{", "\\{", trees_tex)  # ibid
-        trees_tex = re.sub(r"\}", "\\}", trees_tex)  # ibid
-        trees_tex = re.sub(r"_", "\\_", trees_tex)  # ibid
-        trees_tex = re.sub(r"\^", "\\^{}", trees_tex)  # ibid
-        trees_tex = re.sub(r"~", "\\~{}", trees_tex)  # ibid
+        trees_tex = trees_tex.replace("#", "\\#")
+        trees_tex = trees_tex.replace("$", "\\$")  # ibid
+        trees_tex = trees_tex.replace("%", "\\%")  # ibid
+        trees_tex = trees_tex.replace("\\^", "\\^{}")  # ibid
+        trees_tex = trees_tex.replace("_", "\\_")  # ibid
+        trees_tex = trees_tex.replace("&", "\\&")  # ibid
+        trees_tex = trees_tex.replace("{", "\\{")  # ibid
+        trees_tex = trees_tex.replace("}", "\\}")  # ibid
+        trees_tex = trees_tex.replace("~", "\\textasciitilde")  # ibid
+
+        trees_tex = re.sub(r"(\r?\n)([^\r\n])", r"\1\\Tree \2", trees_tex)
+        trees_tex = "\\Tree " + trees_tex
+        # add '\Tree' at the beginning of each tree
 
         trees_tex = re.sub(r" {2,}", " ", trees_tex)
         return re.split(r"(?:\r?\n){2,}", trees_tex)
