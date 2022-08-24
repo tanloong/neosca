@@ -3,6 +3,38 @@ NeoL2SCA
 
 NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html), with extended functionalities.
 
+## Description
+
+The analyzer takes a written English language
+sample in plain text format as input, and
+counts the frequency of the following 9
+structures in the text:
+words (W),
+sentences (S),
+verb phrases (VP),
+clauses (C),
+T-units (T),
+dependent clauses (DC),
+complex T-units (CT),
+coordinate phrases (CP),
+and complex nominals (CN),
+and computes the following
+14 syntactic complexity indices of the text:
+mean length of sentence (MLS),
+mean length of T-unit (MLT),
+mean length of clause (MLC),
+clauses per sentence (C/S),
+verb phrases per T-unit (VP/T),
+clauses per T-unit (C/T),
+dependent clauses per clause (DC/C),
+dependent clauses per T-unit (DC/T),
+T-units per sentence (T/S),
+complex T-unit ratio (CT/T),
+coordinate phrases per T-unit (CP/T),
+coordinate phrases per clause (CP/C),
+complex nominals per T-unit (CN/T),
+and complex nominals per clause (CP/C).
+
 ## Comparison
 
 | L2SCA | NeoL2SCA |
