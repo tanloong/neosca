@@ -6,34 +6,35 @@ NeoL2SCA is a rewrite of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'
 ## Description
 
 The analyzer takes a written English language
-sample in plain text format as input, and
+sample in plain text format as input,
 counts the frequency of the following 9
 structures in the text:
-words (W),
-sentences (S),
-verb phrases (VP),
-clauses (C),
-T-units (T),
-dependent clauses (DC),
-complex T-units (CT),
-coordinate phrases (CP),
-and complex nominals (CN),
+1. words (W),
+2. sentences (S)
+3. verb phrases (VP)
+4. clauses (C)
+5. T-units (T)
+6. dependent clauses (DC)
+7. complex T-units (CT)
+8. coordinate phrases (CP)
+9. complex nominals (CN)
+
 and computes the following
 14 syntactic complexity indices of the text:
-mean length of sentence (MLS),
-mean length of T-unit (MLT),
-mean length of clause (MLC),
-clauses per sentence (C/S),
-verb phrases per T-unit (VP/T),
-clauses per T-unit (C/T),
-dependent clauses per clause (DC/C),
-dependent clauses per T-unit (DC/T),
-T-units per sentence (T/S),
-complex T-unit ratio (CT/T),
-coordinate phrases per T-unit (CP/T),
-coordinate phrases per clause (CP/C),
-complex nominals per T-unit (CN/T),
-and complex nominals per clause (CP/C).
+1. mean length of sentence (MLS)
+2. mean length of T-unit (MLT)
+3. mean length of clause (MLC)
+4. clauses per sentence (C/S)
+5. verb phrases per T-unit (VP/T)
+6. clauses per T-unit (C/T)
+7. dependent clauses per clause (DC/C)
+8. dependent clauses per T-unit (DC/T)
+9. T-units per sentence (T/S)
+10. complex T-unit ratio (CT/T)
+11. coordinate phrases per T-unit (CP/T)
+12. coordinate phrases per clause (CP/C)
+13. complex nominals per T-unit (CN/T)
+14. complex nominals per clause (CP/C)
 
 ## Comparison
 
@@ -42,7 +43,7 @@ and complex nominals per clause (CP/C).
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single input and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
-| outputs only final results, i.e. frequencies of the "9+14" linguistic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
+| outputs only final results, i.e. frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
 
 ## Usage
 
