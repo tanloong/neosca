@@ -25,10 +25,10 @@ def write_match_output(structures: Structures, dir_match_output: str):
         fn_match_output = path.join(subdir_match_output, bn_match_output)
         fn_tex_output = path.join(subdir_match_output, bn_tex_output)
         if structure.matches:
-            with open(fn_match_output, "w") as f:
+            with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)
             tex = Tree2Tex(structure.matches).to_latex()
-            with open(fn_tex_output, "w") as f:
+            with open(fn_tex_output, "w", encoding="utf-8") as f:
                 f.write(tex)
     print(f"Match output was saved to {subdir_match_output}")
 
@@ -38,6 +38,6 @@ def write_freq_output(freq_output: str, fn_output: str):
     :param freq_output: comma-separated frequency output
     :param fn_output: where to save the frequency output
     """
-    with open(fn_output, "w") as f:
+    with open(fn_output, "w", encoding="utf-8") as f:
         f.write(f"{Structures.fields}\n{freq_output}")
     print(f"Frequency output was saved to {fn_output}. Done.")
