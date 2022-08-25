@@ -1,8 +1,7 @@
 from distutils.core import setup
-from os import path
 
-cur_dir = path.dirname(__file__)
-readme = open(path.join(cur_dir,'README.md'),'r').read()
+with open('./README.md') as f:
+    long_description = f.read()
 setup(
     name="nl2sca",
     version="0.0.13",
