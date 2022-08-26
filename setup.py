@@ -18,14 +18,22 @@ setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/NeoL2SCA",
     packages=["nl2sca", "nl2sca.utils", "nl2sca.samples"],
-    description="NeoL2SCA is a rewrite of Xiaofei Lu's L2 Syntactic Complexity Analyzer",
+    description="A rewrite of L2 Syntactic Complexity Analyzer",
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
+        "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v2 or later"
         " (GPLv2+)",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
     ],
+    entry_points = {
+        "console_scripts": [
+            "nl2sca = nl2sca:main"
+        ]
+    }
 )
