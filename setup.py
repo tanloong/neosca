@@ -33,7 +33,7 @@ setuptools.setup(
     ],
     entry_points = {
         "console_scripts": [
-            "nl2sca = nl2sca:main.main"
+            "nl2sca = nl2sca:main"
         ]
     }
 )
