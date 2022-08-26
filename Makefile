@@ -12,5 +12,5 @@ build:
 release:
 	twine upload dist/*
 
-	sudo python setup.py install
 install:
+	pip install dist/*.whl
