@@ -14,7 +14,7 @@ samples in plain text format as input,
 counts the frequency of the following 9
 structures in the text:
 
-1. words (W),
+1. words (W)
 2. sentences (S)
 3. verb phrases (VP)
 4. clauses (C)
@@ -49,12 +49,12 @@ and computes the following
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
-| outputs only final results, i.e. frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
+| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results |
 
 ## Usage
 
 1. Single input:
-```
+```sh
 nl2sca sample1.txt 
 # output will be saved in result.csv
 nl2sca sample1.txt -o sample1.csv 
@@ -62,7 +62,7 @@ nl2sca sample1.txt -o sample1.csv
 ```
 
 2. Multiple input:
-```
+```sh
 nl2sca sample1.txt sample2.txt
 nl2sca sample*.txt 
 # wildcard characters are also supported
@@ -74,14 +74,14 @@ to reserve parsed files of Stanford Parser.
 Use `-m`/`--reserve-match`
 to reserve match results of Stanford Tregex.
 
-```
+```sh
 nl2sca sample1.txt -p -m
 ```
 
 ## Installation
 
 1. Install nl2sca
-```
+```sh
 pip install nl2sca
 ```
 
@@ -104,7 +104,7 @@ STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 
 + Linux/macOS:
 
-```
+```sh
 export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
 export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 ```
@@ -130,7 +130,7 @@ This is an example.
 
 This command:
 
-```
+```sh
 java -mx1500m -cp "/path/to/stanford-parser-full-2020-11-17/*" edu.stanford.nlp.parser.lexparser.LexicalizedParser -outputFormat penn edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz /path/to/sample.txt
 ```
 
@@ -191,7 +191,7 @@ Assume a `sample.parsed` has:
 ```
 
 This command:
-```
+```sh
 java -mx100m -cp "/path/to/stanford-tregex-2020-11-17/stanford-tregex.jar" edu.stanford.nlp.trees.tregex.TregexPattern "NP" sample.parsed -o
 ```
 
