@@ -28,7 +28,7 @@ class UI:
         parser = argparse.ArgumentParser(
             prog="nl2sca",
             formatter_class=lambda prog: argparse.HelpFormatter(
-                prog, max_help_position=30, width=100
+                prog, max_help_position=50, width=100
             ),
         )
         parser.add_argument(
