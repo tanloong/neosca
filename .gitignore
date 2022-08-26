@@ -9,3 +9,5 @@ nl2sca.bat_
 setup.py_
 
 build/lib/nl2sca
+.vscode
+note.txt
