@@ -1,4 +1,6 @@
-.PHONY: clean build release install
+.PHONY: refresh clean build release install
+
+refresh: clean build install
 
 clean:
 	rm -rf build
