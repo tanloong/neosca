@@ -1,4 +1,4 @@
-from distutils.core import setup
+import setuptools
 
 with open('./README.md') as f:
     long_description = f.read()
@@ -11,7 +11,7 @@ with open('./nl2sca/__init__.py') as f:
     else:
         print("Can't find version! Stop Here!")
         exit(1)
-setup(
+setuptools.setup(
     name="nl2sca",
     version=version,
     author="TAN Long",
