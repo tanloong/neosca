@@ -15,7 +15,6 @@ class UI:
     def __init__(self):
         self.parser = self.create_parser()
 
-        self.ifile_list = []
         self.ofile_freq = "result.csv"
         self.dir_stanford_parser = os.getenv("STANFORD_PARSER_HOME")
         self.dir_stanford_tregex = os.getenv("STANFORD_TREGEX_HOME")
@@ -36,12 +35,6 @@ class UI:
             action="store_true",
             default=False,
             help="show version of NeoL2SCA",
-        )
-        parser.add_argument(
-            "input",
-            nargs="+",
-            default=None,
-            help="one or more input files",
         )
         parser.add_argument(
             "-o",
@@ -81,24 +74,7 @@ class UI:
 
     def parse(self, argv: List[str]):
         args = argv[1:] if argv[1:] else ['--help']
-        options, command = self.parser.parse_known_args(args)
-
-        if options.input:
-            self.ifile_list = options.input
-        else:
-            return False, "Input files are not provided."
-        valid_ifile_list = []
-        for f in self.ifile_list:
-            if path.isfile(f):
-                valid_ifile_list.append(f)
-            elif glob.glob(f):
-                valid_ifile_list.extend(glob.glob(f))
-            else:
-                return (
-                    False,
-                    f"The following file either does not exist or is not a regular file: \n\n{f}",
-                )
-        self.ifile_list = valid_ifile_list
+        options, ifile_list = self.parser.parse_known_args(args)
 
         if options.output:
             self.ofile_freq = options.output
@@ -118,10 +94,27 @@ class UI:
             self.reserve_parsed = options.reserve_parsed
         if options.reserve_match:
             self.reserve_match = options.reserve_match
-        self.options, self.command = options, command
+
+        self.options, self.ifile_list = options, ifile_list
+
+        valid_ifile_list = []
+        for f in self.ifile_list:
+            if path.isfile(f):
+                valid_ifile_list.append(f)
+            elif glob.glob(f):
+                valid_ifile_list.extend(glob.glob(f))
+            else:
+                return (
+                    False,
+                    f"The following file either does not exist or is not a regular file: \n\n{f}",
+                )
+        self.ifile_list = valid_ifile_list
+
         return True, None
 
     def run_analyzer(self):
+        if not self.ifile_list:
+            return False, "Input files are not provided."
         analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
         structures_list = list(
             analyzer.perform_analysis(self.ifile_list, self.reserve_parsed)
@@ -135,6 +128,7 @@ class UI:
         if self.reserve_match:
             for structures in structures_list:
                 write_match_output(structures, self.odir_match)
+
         return True, None
 
     def run(self):
