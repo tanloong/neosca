@@ -1,7 +1,10 @@
 .PHONY: clean build release install
 
 clean:
-	rm -rf build dist nl2sca.egg-info 
+	rm -rf build
+	rm -rf dist
+	rm -rf nl2sca.egg-info
+	pip uninstall -y nl2sca
 
 build: clean
 	python setup.py sdist --formats=zip
