@@ -95,15 +95,12 @@ pip install nl2sca
 
 + Windows:
 
-In the Environment Variables window:
+In the Environment Variables window (`Windows`+`s`, type *env*, and press `Enter`):
 
 ```
 STANFORD_PARSER_HOME=\path\to\stanford-parser-full-2020-11-17
 STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 ```
-
-The Environment Variables windows can be found through 
-pressing `Windows+s` and typing in `env`.
 
 + Linux/macOS:
 
