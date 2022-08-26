@@ -52,7 +52,7 @@ class UI:
             "--tregex",
             dest="dir_stanford_tregex",
             default=None,
-            help=("directory to Tregex, defaults to STANFORD_TREGEX_HOME"),
+            help=("directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"),
         )
         parser.add_argument(
             "-p",
@@ -68,7 +68,7 @@ class UI:
             dest="reserve_match",
             default=False,
             action="store_true",
-            help="option to reserve match results by Tregex",
+            help="option to reserve match results by Stanford Tregex",
         )
         return parser
 
