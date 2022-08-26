@@ -1,2 +1,7 @@
+include LICENSE.txt
+include README.md
+include setup.py
+
 recursive-inlucde doc *
+
 global-exclude *.py[cod]
