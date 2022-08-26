@@ -2,8 +2,6 @@ from .utils.arg_processer import ArgProcessor
 from .utils.analyzer import Analyzer
 from .utils.writer import write_match_output
 from .utils.writer import write_freq_output
-
-
 def main():
     args = ArgProcessor().process_args()
     analyzer = Analyzer(args.dir_parser, args.dir_tregex)
