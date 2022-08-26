@@ -4,7 +4,7 @@ NeoL2SCA
 NeoL2SCA is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
-supporting Windows.
+supporting Windows, macOS, and Linux.
 
 ## Description
 
@@ -55,27 +55,24 @@ and computes the following
 
 1. Single input:
 ```
-nl2sca sample1.txt output.csv
+nl2sca sample1.txt # output will be saved in result.csv
+nl2sca sample1.txt -o sample1.csv
 ```
 
 2. Multiple input:
 ```
-nl2sca sample1.txt sample2.txt output.csv
+nl2sca sample1.txt sample2.txt
+nl2sca sample*.txt # wildcard characters are also supported
+nl2sca sample[1-10].txt
 ```
 
-3. Wildcard characters are also supported:
-```
-nl2sca sample*.txt output.csv
-nl2sca sample[1-10].txt output.csv
-```
-
-4. Use `--reserve-parsed`/`-rp` 
+3. Use `-p`/`--reserve-parsed` 
 to reserve parsed files of Stanford Parser.
-Use `--reserve-match`/`-rm`
-to reserve match results of Tregex.
+Use `-m`/`--reserve-match`
+to reserve match results of Stanford Tregex.
 
 ```
-nl2sca sample1.txt output.csv -rm -rp
+nl2sca sample1.txt -p -m
 ```
 
 ## Installation
@@ -95,7 +92,7 @@ pip install nl2sca
 
 + Windows:
 
-In the Environment Variables window (`Windows`+`s`, type *env*, and press `Enter`):
+In the Environment Variables window (press `Windows`+`s`, type *env*, and press `Enter`):
 
 ```
 STANFORD_PARSER_HOME=\path\to\stanford-parser-full-2020-11-17
