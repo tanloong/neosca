@@ -8,21 +8,21 @@ from .structures import Structures
 
 
 class Analyzer:
-    def __init__(self, dir_parser, dir_tregex):
+    def __init__(self, dir_stanford_parser, dir_stanford_tregex):
         """
         :param dir_parser: directory to Stanford Parser
         :param dir_tregex: directory to Tregex
         """
-        self.classpath_parser = '"' + dir_parser + os.sep + "*" + '"'
+        self.classpath_parser = '"' + dir_stanford_parser + os.sep + "*" + '"'
         self.classpath_tregex = (
-            '"' + dir_tregex + os.sep + "stanford-tregex.jar" + '"'
+            '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
         )
 
-    def _parse(self, fn_input: str, fn_parsed: str):
+    def _parse(self, ifile: str, fn_parsed: str):
         """
         Call Stanford Parser
 
-        :param fn_input: file to parse
+        :param ifile: file to parse
         :param fn_parsed: where to save the parsed results
         :return: None
         """
@@ -30,22 +30,22 @@ class Analyzer:
         model = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
         cmd = (
             f"java -mx1500m -cp {self.classpath_parser} {method} "
-            f"-outputFormat penn {model} {fn_input} > {fn_parsed}"
+            f"-outputFormat penn {model} {ifile} > {fn_parsed}"
         )
         if not path.exists(fn_parsed):  # if FILE does not exist
             # print(f"{fn_parsed} does not exist, running Stanford Parser...")
             subprocess.run(cmd, shell=True, capture_output=True)
             return
-        mt_input = path.getmtime(fn_input)  # get the last modification time
+        mt_input = path.getmtime(ifile)  # get the last modification time
         mt_parsed = path.getmtime(fn_parsed)
         if mt_input > mt_parsed:
             # print(
-            #     f"{fn_parsed} is older than {fn_input}, "
+            #     f"{fn_parsed} is older than {ifile}, "
             #     + "running Stanford Parser..."
             # )
             subprocess.run(cmd, shell=True, capture_output=True)
         # else:
-        #     print(f"{fn_parsed} is newer than {fn_input}, parsing is skipped.")
+        #     print(f"{fn_parsed} is newer than {ifile}, parsing is skipped.")
 
     def _query(self, pattern: str, fn_parsed: str):
         """
@@ -103,19 +103,19 @@ class Analyzer:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def _analyze_text(self, fn_input, is_reserve_parsed):
+    def _analyze_text(self, ifile, reserve_parsed):
         """
         Analyze a text file
 
-        :param fn_input: which file to analyze
-        :param is_reserve_parsed: option to reserve Stanford Parser's
+        :param ifile: which file to analyze
+        :param reserve_parsed: option to reserve Stanford Parser's
          parsing results
         :return structures: an instance of Structures
         """
-        fn_parsed = path.splitext(fn_input)[0] + ".parsed"
-        self._parse(fn_input, fn_parsed)
+        fn_parsed = path.splitext(ifile)[0] + ".parsed"
+        self._parse(ifile, fn_parsed)
 
-        structures = Structures(path.basename(fn_input))
+        structures = Structures(path.basename(ifile))
         for structure in structures.to_search_for:
             print(
                 f'\t[Tregex] Querying "{structure.desc}" against '
@@ -129,21 +129,21 @@ class Analyzer:
             re.findall(r"\([A-Z]+\$? [^()]+\)", open(fn_parsed, "r").read())
         )
         structures.compute_SC_indicies()
-        if not is_reserve_parsed:
+        if not reserve_parsed:
             os.remove(fn_parsed)
         return structures
 
-    def perform_analysis(self, fn_inputs: list, is_reserve_parsed: bool):
+    def perform_analysis(self, ifiles: list, reserve_parsed: bool):
         """
-        :param fn_inputs: list of input files
-        :param is_reserve_parsed: option to reserve Stanford Parser's
+        :param ifiles: list of input files
+        :param reserve_parsed: option to reserve Stanford Parser's
          parsing results
         """
-        total = len(fn_inputs)
-        for i, fn_input in enumerate(fn_inputs):
+        total = len(ifiles)
+        for i, ifile in enumerate(ifiles):
             print(
                 "[L2SCA] Processing"
-                f" {path.basename(fn_input)} ({i+1}/{total})..."
+                f" {path.basename(ifile)} ({i+1}/{total})..."
             )
-            structures = self._analyze_text(fn_input, is_reserve_parsed)
+            structures = self._analyze_text(ifile, reserve_parsed)
             yield structures

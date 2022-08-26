@@ -5,17 +5,17 @@ from .structures import Structures
 from .tree2tex import Tree2Tex
 
 
-def write_match_output(structures: Structures, dir_match_output: str):
+def write_match_output(structures: Structures, odir_match: str):
     """
     Save Tregex's match output
 
     :param structures: an instance of Structures
     :param dir_match_output: where to save the match output
     """
-    bn_input = path.basename(structures.fn_input)
+    bn_input = path.basename(structures.ifile)
     bn_input_rstripped = path.splitext(bn_input)[0]
     # bn_input with the extension at the right side stripped
-    subdir_match_output = path.join(dir_match_output, bn_input_rstripped)
+    subdir_match_output = path.join(odir_match, bn_input_rstripped)
     if not path.isdir(subdir_match_output):
         # if not exists and is a directory
         os.makedirs(subdir_match_output)
@@ -33,11 +33,11 @@ def write_match_output(structures: Structures, dir_match_output: str):
     print(f"Match output was saved to {subdir_match_output}")
 
 
-def write_freq_output(freq_output: str, fn_output: str):
+def write_freq_output(freq_output: str, ofile_freq: str):
     """
     :param freq_output: comma-separated frequency output
     :param fn_output: where to save the frequency output
     """
-    with open(fn_output, "w", encoding="utf-8") as f:
+    with open(ofile_freq, "w", encoding="utf-8") as f:
         f.write(f"{Structures.fields}\n{freq_output}")
-    print(f"Frequency output was saved to {fn_output}. Done.")
+    print(f"Frequency output was saved to {ofile_freq}. Done.")

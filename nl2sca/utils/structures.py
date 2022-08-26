@@ -86,7 +86,8 @@ class Structures:
 
     # a list of tregex patterns for various structures
     to_search_for = (S, VP1, VP2, C1, C2, T1, T2, CN1, CN2, CN3, DC, CT, CP)
-    if os.name == "nt":
+    if os.name == "nt": 
+        # for Windows
         for structure in to_search_for:
             structure.pat = '"' + structure.pat + '"'
     else:
@@ -119,8 +120,8 @@ class Structures:
         "MLS,MLT,MLC,C/S,VP/T,C/T,DC/C,DC/T,T/S,CT/T,CP/T,CP/C,CN/T,CN/C"
     )
 
-    def __init__(self, fn_input):
-        self.fn_input = fn_input
+    def __init__(self, ifile):
+        self.ifile = ifile
 
     def update_freqs(self):
         """
@@ -155,7 +156,7 @@ class Structures:
 
     def get_freqs(self):
         return (
-            "{0.fn_input},"
+            "{0.ifile},"
             "{0.W.freq},"
             "{0.S.freq},"
             "{0.VP.freq},"
