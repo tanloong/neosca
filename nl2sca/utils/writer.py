@@ -2,7 +2,6 @@ import os
 from os import path
 
 from .structures import Structures
-from .tree2tex import Tree2Tex
 
 
 def write_match_output(structures: Structures, odir_match: str):
@@ -27,9 +26,6 @@ def write_match_output(structures: Structures, odir_match: str):
         if structure.matches:
             with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)
-            tex = Tree2Tex(structure.matches).to_latex()
-            with open(fn_tex_output, "w", encoding="utf-8") as f:
-                f.write(tex)
     print(f"Match output was saved to {subdir_match_output}")
 
 
