@@ -8,6 +8,10 @@ from .structures import Structures
 
 
 class Analyzer:
+    method_parser = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
+    model_parser = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
+    method_tregex = "edu.stanford.nlp.trees.tregex.TregexPattern"
+
     def __init__(self, dir_stanford_parser, dir_stanford_tregex):
         """
         :param dir_parser: directory to Stanford Parser
@@ -26,11 +30,9 @@ class Analyzer:
         :param fn_parsed: where to save the parsed results
         :return: None
         """
-        method = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
-        model = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
         cmd = (
-            f"java -mx1500m -cp {self.classpath_parser} {method} "
-            f"-outputFormat penn {model} {ifile} > {fn_parsed}"
+            f"java -mx1500m -cp {self.classpath_parser} {self.method_parser} "
+            f"-outputFormat penn {self.model_parser} {ifile} > {fn_parsed}"
         )
         if not path.exists(fn_parsed):  # if FILE does not exist
             # print(f"{fn_parsed} does not exist, running Stanford Parser...")
@@ -56,20 +58,19 @@ class Analyzer:
         :return (int) frequency: frequency of the pattern
         :return (str) matched_subtreees: matched subtrees of the pattern
         """
-        method = "edu.stanford.nlp.trees.tregex.TregexPattern"
         cmd = (
             "java -mx100m -cp"
-            f" {self.classpath_tregex} {method} {pattern} {fn_parsed} -o"
+            f" {self.classpath_tregex} {self.method_tregex} {pattern} {fn_parsed} -o"
         )
         p = subprocess.run(cmd, shell=True, capture_output=True)
-        freq_match = re.search(
+        freq = re.search(
             r"There were (\d+) matches in total\.", p.stderr.decode()
         )
-        if freq_match:
-            freq = freq_match.group(1)
+        if freq:
+            freq = freq.group(1)
         else:
             os.remove(fn_parsed)
-            # Make sure parsing will not be skipped on next running.
+            # Remove fn_parsed make sure parsing will not be skipped on next running.
             sys.exit(
                 "Error: failed to obtain frequency. It is likely that\n(1) Java"
                 " is unavailable. Make sure you have Java 8 or later installed"
@@ -78,7 +79,7 @@ class Analyzer:
                 " sure that: on Windows, those patterns are enclosed by double"
                 " quotes; on Linux and MacOS they are surrounded by single"
                 " quotes.\n(3) Tregex's interface has changed. As a"
-                " workaround, try an older version, v4.2.0, for example. The"
+                " workaround, download an older version, v4.2.0, for example. If Tregex's interface does have changed, the"
                 " latest version of Tregex will be supported in next few"
                 " releases."
             )
