@@ -47,7 +47,7 @@ and computes the following
 | L2SCA | NeoL2SCA |
 |-|-|
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
-| single input and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
+| single and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
 | outputs only final results, i.e. frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results, and corresponding $\mathrm{\small \LaTeX}$ documents to visualize the two |
 
@@ -55,14 +55,17 @@ and computes the following
 
 1. Single input:
 ```
-nl2sca sample1.txt # output will be saved in result.csv
-nl2sca sample1.txt -o sample1.csv
+nl2sca sample1.txt 
+# output will be saved in result.csv
+nl2sca sample1.txt -o sample1.csv 
+# custom output file
 ```
 
 2. Multiple input:
 ```
 nl2sca sample1.txt sample2.txt
-nl2sca sample*.txt # wildcard characters are also supported
+nl2sca sample*.txt 
+# wildcard characters are also supported
 nl2sca sample[1-10].txt
 ```
 
