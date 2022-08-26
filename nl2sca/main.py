@@ -80,7 +80,8 @@ class UI:
         return parser
 
     def parse(self, argv: List[str]):
-        options, command = self.parser.parse_known_args(argv[1:])
+        args = argv[1:] if argv[1:] else ['--help']
+        options, command = self.parser.parse_known_args(args)
 
         if options.input:
             self.ifile_list = options.input
