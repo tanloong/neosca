@@ -55,18 +55,18 @@ and computes the following
 
 1. Single input:
 ```
-python -m nl2sca sample1.txt output.csv
+nl2sca sample1.txt output.csv
 ```
 
 2. Multiple input:
 ```
-python -m nl2sca sample1.txt sample2.txt output.csv
+nl2sca sample1.txt sample2.txt output.csv
 ```
 
 3. Wildcard characters are also supported:
 ```
-python -m nl2sca sample*.txt output.csv
-python -m nl2sca sample[1-10].txt output.csv
+nl2sca sample*.txt output.csv
+nl2sca sample[1-10].txt output.csv
 ```
 
 4. Use `--reserve-parsed`/`-rp` 
@@ -75,7 +75,7 @@ Use `--reserve-match`/`-rm`
 to reserve match results of Tregex.
 
 ```
-python -m nl2sca sample1.txt output.csv -rm -rp
+nl2sca sample1.txt output.csv -rm -rp
 ```
 
 ## Installation
