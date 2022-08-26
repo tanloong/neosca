@@ -150,7 +150,7 @@ gives the phrase structure tree:
 
 The tree can be visualized as follows, with quotation marks eliminated.
 
-<img src="https://github.com/tanloong/NeoL2SCA/blob/master/nl2sca/src/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
+<img src="https://github.com/tanloong/NeoL2SCA/blob/master/img/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
 
 In this tree,
 the starting symbol is 
