@@ -226,7 +226,7 @@ in files with `.matches` extension.
 
 Please use the following citation if you use NeoSCA in your work:
 ```BibTeX
-@misc{neol2sca,
+@misc{tan2022neosca,
 author = {Tan, Long},
 title = {NeoSCA},
 howpublished = {\url{https://github.com/tanloong/NeoSCA}},
