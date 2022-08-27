@@ -146,8 +146,7 @@ class Analyzer:
         total = len(ifiles)
         for i, ifile in enumerate(ifiles):
             print(
-                "[NeoSCA] Processing"
-                f" {path.basename(ifile)} ({i+1}/{total})..."
+                f"[NeoSCA] Processing {path.basename(ifile)} ({i+1}/{total})..."
             )
             structures = self._analyze_text(ifile, reserve_parsed)
             yield structures

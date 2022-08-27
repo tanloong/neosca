@@ -1,10 +1,10 @@
 import setuptools
 
-with open('./README.md') as f:
+with open("./README.md") as f:
     long_description = f.read()
-with open('./neosca/__init__.py') as f:
+with open("./neosca/__init__.py") as f:
     for line in f.readlines():
-        if line.startswith('__version__'):
+        if line.startswith("__version__"):
             delim = '"' if '"' in line else "'"
             version = line.split(delim)[1]
             break
@@ -18,7 +18,9 @@ setuptools.setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
     packages=["neosca", "neosca.utils"],
-    description="Syntactic complexity analyzer of written English language samples",
+    description=(
+        "Syntactic complexity analyzer of written English language samples"
+    ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[],
@@ -31,9 +33,5 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
     ],
-    entry_points = {
-        "console_scripts": [
-            "nsca = neosca:main"
-        ]
-    }
+    entry_points={"console_scripts": ["nsca = neosca:main"]},
 )

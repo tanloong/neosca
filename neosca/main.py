@@ -46,13 +46,17 @@ class UI:
             "--parser",
             dest="dir_stanford_parser",
             default=None,
-            help=("directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"),
+            help=(
+                "directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"
+            ),
         )
         parser.add_argument(
             "--tregex",
             dest="dir_stanford_tregex",
             default=None,
-            help=("directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"),
+            help=(
+                "directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"
+            ),
         )
         parser.add_argument(
             "-p",
@@ -73,7 +77,7 @@ class UI:
         return parser
 
     def parse(self, argv: List[str]):
-        args = argv[1:] if argv[1:] else ['--help']
+        args = argv[1:] if argv[1:] else ["--help"]
         options, ifile_list = self.parser.parse_known_args(args)
 
         if options.output:
@@ -82,12 +86,16 @@ class UI:
 
         if options.dir_stanford_parser:
             self.dir_stanford_parser = options.dir_stanford_parser
-        if self.dir_stanford_parser is None or not path.isdir(self.dir_stanford_parser):
+        if self.dir_stanford_parser is None or not path.isdir(
+            self.dir_stanford_parser
+        ):
             return False, "Stanford Parser not found."
 
         if options.dir_stanford_tregex:
             self.dir_stanford_tregex = options.dir_stanford_tregex
-        if self.dir_stanford_tregex is None or not path.isdir(self.dir_stanford_tregex):
+        if self.dir_stanford_tregex is None or not path.isdir(
+            self.dir_stanford_tregex
+        ):
             return False, "Stanford Tregex not found."
 
         if options.reserve_parsed:
@@ -106,7 +114,8 @@ class UI:
             else:
                 return (
                     False,
-                    f"The following file either does not exist or is not a regular file: \n\n{f}",
+                    "The following file either does not exist or is not a"
+                    f" regular file: \n\n{f}",
                 )
         self.ifile_list = valid_ifile_list
 

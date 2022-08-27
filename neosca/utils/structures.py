@@ -86,7 +86,7 @@ class Structures:
 
     # a list of tregex patterns for various structures
     to_search_for = (S, VP1, VP2, C1, C2, T1, T2, CN1, CN2, CN3, DC, CT, CP)
-    if os.name == "nt": 
+    if os.name == "nt":
         # for Windows
         for structure in to_search_for:
             structure.pat = '"' + structure.pat + '"'
