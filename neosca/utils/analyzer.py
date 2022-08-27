@@ -78,10 +78,10 @@ class Analyzer:
                 " You manually modified Tregex patterns in structures.py. Make"
                 " sure that: on Windows, those patterns are enclosed by double"
                 " quotes; on Linux and MacOS they are surrounded by single"
-                " quotes.\n(3) Tregex's interface has changed. As a"
-                " workaround, download an older version, v4.2.0, for example. If Tregex's interface does have changed, the"
-                " latest version of Tregex will be supported in next few"
-                " releases."
+                " quotes.\n(3) Tregex's interface has changed. As a workaround,"
+                " download an older version, v4.2.0, for example. If Tregex's"
+                " interface does have changed, the latest version of Tregex"
+                " will be supported in next few releases."
             )
         matched_subtrees = p.stdout.decode()
         matched_subtrees = self._add_terms(matched_subtrees)
