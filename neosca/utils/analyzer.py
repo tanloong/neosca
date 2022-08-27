@@ -70,7 +70,7 @@ class Analyzer:
             freq = match_reslt.group(1)
         else:
             os.remove(fn_parsed)
-            # Remove fn_parsed make sure parsing will not be skipped on next running.
+            # Remove fn_parsed to make sure parsing will not be skipped on next running.
             sys.exit(
                 "Error: failed to obtain frequency. It is likely that\n(1) Java"
                 " is unavailable. Make sure you have Java 8 or later installed"
