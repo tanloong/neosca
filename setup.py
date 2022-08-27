@@ -2,7 +2,7 @@ import setuptools
 
 with open('./README.md') as f:
     long_description = f.read()
-with open('./nl2sca/__init__.py') as f:
+with open('./neosca/__init__.py') as f:
     for line in f.readlines():
         if line.startswith('__version__'):
             delim = '"' if '"' in line else "'"
@@ -12,12 +12,12 @@ with open('./nl2sca/__init__.py') as f:
         print("Can't find version! Stop Here!")
         exit(1)
 setuptools.setup(
-    name="nl2sca",
+    name="neosca",
     version=version,
     author="TAN Long",
     author_email="tanloong@foxmail.com",
-    url="https://github.com/tanloong/NeoL2SCA",
-    packages=["nl2sca", "nl2sca.utils", "nl2sca.samples"],
+    url="https://github.com/tanloong/neosca",
+    packages=["neosca", "neosca.utils"],
     description="Syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,7 +33,7 @@ setuptools.setup(
     ],
     entry_points = {
         "console_scripts": [
-            "nl2sca = nl2sca:main"
+            "nsca = neosca:main"
         ]
     }
 )

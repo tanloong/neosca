@@ -143,7 +143,7 @@ class Analyzer:
         total = len(ifiles)
         for i, ifile in enumerate(ifiles):
             print(
-                "[L2SCA] Processing"
+                "[NeoSCA] Processing"
                 f" {path.basename(ifile)} ({i+1}/{total})..."
             )
             structures = self._analyze_text(ifile, reserve_parsed)

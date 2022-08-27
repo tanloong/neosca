@@ -1,17 +1,17 @@
-NeoL2SCA
+NeoSCA
 ==========
 
 Syntactic complexity analyzer of written English language samples
 
 ## Description
 
-NeoL2SCA is a rewrite of
+NeoSCA is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
 
 The same as L2SCA,
-NeoL2SCA takes written English language
+NeoSCA takes written English language
 samples in plain text format as input,
 counts the frequency of the following 9
 structures in the text:
@@ -46,7 +46,7 @@ and computes the following
 
 ## Comparison
 
-| L2SCA | NeoL2SCA |
+| L2SCA | NeoSCA |
 |-|-|
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
@@ -57,18 +57,18 @@ and computes the following
 
 1. Single input:
 ```sh
-nl2sca sample1.txt 
+nsca sample1.txt 
 # output will be saved in result.csv
-nl2sca sample1.txt -o sample1.csv 
+nsca sample1.txt -o sample1.csv 
 # custom output file
 ```
 
 2. Multiple input:
 ```sh
-nl2sca sample1.txt sample2.txt
-nl2sca sample*.txt 
+nsca sample1.txt sample2.txt
+nsca sample*.txt 
 # wildcard characters are also supported
-nl2sca sample[1-10].txt
+nsca sample[1-10].txt
 ```
 
 3. Use `-p`/`--reserve-parsed` 
@@ -77,14 +77,15 @@ Use `-m`/`--reserve-match`
 to reserve match results of Stanford Tregex.
 
 ```sh
-nl2sca sample1.txt -p -m
+nsca sample1.txt -p -m
 ```
 
 ## Installation
 
-1. Install nl2sca
+1. Install neosca
+
 ```sh
-pip install nl2sca
+pip install neosca
 ```
 
 2. Install [Java](https://www.java.com/en/download) 8 or later
@@ -113,7 +114,7 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 ## Under the hood
 
-NeoL2SCA works as a wrapper of
+NeoSCA works as a wrapper of
 Stanford Parser and
 Stanford Tregex,
 so does L2SCA.
@@ -149,7 +150,7 @@ gives the phrase structure tree:
 
 The tree can be visualized as follows, with quotation marks eliminated.
 
-<img src="https://github.com/tanloong/NeoL2SCA/blob/master/img/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
+<img src="https://github.com/tanloong/NeoSCA/blob/master/img/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
 
 In this tree,
 the starting symbol is 
@@ -169,7 +170,7 @@ the non-terminal symbol "NP" indicates
 the phrasal category "Noun Phrase".
 
 When parsing input files,
-NeoL2SCA runs the above command and,
+NeoSCA runs the above command and,
 if you have specified the `-rp` option,
 saves phrase structure trees
 in files with `.parsed` extension.
@@ -213,7 +214,7 @@ There were 2 matches in total.
 ```
 
 When querying parsed files,
-NeoL2SCA runs the above command and remembers how many matches 
+NeoSCA runs the above command and remembers how many matches 
 for each of the pre-specified Tregex patterns.
 
 If you have specified the `-rm` option,
@@ -223,12 +224,12 @@ in files with `.matches` extension.
 
 ## Citing
 
-Please use the following citation if you use NeoL2SCA in your work:
+Please use the following citation if you use NeoSCA in your work:
 ```BibTeX
 @misc{neol2sca,
 author = {Tan, Long},
-title = {NeoL2SCA},
-howpublished = {\url{https://github.com/tanloong/NeoL2SCA}},
+title = {NeoSCA},
+howpublished = {\url{https://github.com/tanloong/NeoSCA}},
 year = {2022}
 }
 ```
@@ -249,4 +250,4 @@ publisher={John Benjamins}
 ```
 
 ## License
-The same as L2SCA, NeoL2SCA is licensed under the GNU General Public License, version 2 or later.
+The same as L2SCA, NeoSCA is licensed under the GNU General Public License, version 2 or later.

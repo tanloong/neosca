@@ -5,8 +5,8 @@ refresh: clean build install
 clean:
 	rm -rf build
 	rm -rf dist
-	rm -rf nl2sca.egg-info
-	pip uninstall -y nl2sca
+	rm -rf neosca.egg-info
+	pip uninstall -y neosca
 
 build:
 	python setup.py sdist bdist_wheel

@@ -25,7 +25,7 @@ class UI:
 
     def create_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
-            prog="nl2sca",
+            prog="nsca",
             formatter_class=lambda prog: argparse.HelpFormatter(
                 prog, max_help_position=50, width=100
             ),
@@ -34,7 +34,7 @@ class UI:
             "--version",
             action="store_true",
             default=False,
-            help="show version of NeoL2SCA",
+            help="show version of NeoSCA",
         )
         parser.add_argument(
             "-o",
