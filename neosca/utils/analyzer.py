@@ -126,9 +126,12 @@ class Analyzer:
                 structure.pat, fn_parsed
             )
         structures.update_freqs()
-        structures.W.freq = len(
-            re.findall(r"\([A-Z]+\$? [^()]+\)", open(fn_parsed, "r").read())
-        )
+
+        with open(fn_parsed) as f:
+            structures.W.freq = len(
+                re.findall(r"\([A-Z]+\$? [^()]+\)", f.read())
+            )
+
         structures.compute_SC_indicies()
         if not reserve_parsed:
             os.remove(fn_parsed)
