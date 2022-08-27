@@ -63,11 +63,11 @@ class Analyzer:
             f" {self.classpath_tregex} {self.method_tregex} {pattern} {fn_parsed} -o"
         )
         p = subprocess.run(cmd, shell=True, capture_output=True)
-        freq = re.search(
+        match_reslt = re.search(
             r"There were (\d+) matches in total\.", p.stderr.decode()
         )
-        if freq:
-            freq = freq.group(1)
+        if match_reslt:
+            freq = match_reslt.group(1)
         else:
             os.remove(fn_parsed)
             # Remove fn_parsed make sure parsing will not be skipped on next running.
