@@ -18,7 +18,7 @@ setuptools.setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/NeoL2SCA",
     packages=["nl2sca", "nl2sca.utils", "nl2sca.samples"],
-    description="A rewrite of L2 Syntactic Complexity Analyzer",
+    description="Syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[],
