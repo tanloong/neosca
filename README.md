@@ -225,11 +225,12 @@ in files with `.matches` extension.
 ## Citing
 
 Please use the following citation if you use NeoSCA in your work:
+
 ```BibTeX
 @misc{tan2022neosca,
 author = {Tan, Long},
 title = {NeoSCA},
-howpublished = {\url{https://github.com/tanloong/NeoSCA}},
+howpublished = {\url{https://github.com/tanloong/neosca}},
 year = {2022}
 }
 ```
