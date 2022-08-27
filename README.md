@@ -1,14 +1,13 @@
 NeoSCA
 ==========
 
-Syntactic complexity analyzer of written English language samples
-
-## Description
-
-NeoSCA is a rewrite of
+NeoSCA is a syntactic complexity analyzer of written English language samples.
+It is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
+
+## Description
 
 The same as L2SCA,
 NeoSCA takes written English language
