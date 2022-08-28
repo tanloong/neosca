@@ -20,9 +20,7 @@ def write_match_output(structures: Structures, odir_match: str):
         os.makedirs(subdir_match_output)
     for structure in structures.to_search_for:
         bn_match_output = bn_input_rstripped + "-" + structure.name + ".matches"
-        bn_tex_output = bn_input_rstripped + "-" + structure.name + ".tex"
         fn_match_output = path.join(subdir_match_output, bn_match_output)
-        fn_tex_output = path.join(subdir_match_output, bn_tex_output)
         if structure.matches:
             with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)
