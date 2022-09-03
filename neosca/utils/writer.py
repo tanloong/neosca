@@ -4,7 +4,7 @@ from os import path
 from .structures import Structures
 
 
-def write_match_output(structures: Structures, odir_match: str):
+def write_match_output(structures: Structures, odir_match: str) -> None:
     """
     Save Tregex's match output
 
@@ -27,7 +27,7 @@ def write_match_output(structures: Structures, odir_match: str):
     print(f"Match output was saved to {subdir_match_output}")
 
 
-def write_freq_output(freq_output: str, ofile_freq: str):
+def write_freq_output(freq_output: str, ofile_freq: str) -> None:
     """
     :param freq_output: comma-separated frequency output
     :param fn_output: where to save the frequency output

@@ -1,4 +1,5 @@
 import os
+from typing import Union, Sequence
 
 
 class Structure:
@@ -13,7 +14,7 @@ class Structure:
         self.desc = desc
         self.pat = pat
         self.matches = matches
-        self.freq = 0
+        self.freq: Union[float, int] = 0
 
 
 class Structures:
@@ -85,7 +86,21 @@ class Structures:
     CP = Structure("CP", "coordinate phrases", "ADJP|ADVP|NP|VP < CC")
 
     # a list of tregex patterns for various structures
-    to_search_for = (S, VP1, VP2, C1, C2, T1, T2, CN1, CN2, CN3, DC, CT, CP)
+    to_search_for: Sequence[Structure] = (
+        S,
+        VP1,
+        VP2,
+        C1,
+        C2,
+        T1,
+        T2,
+        CN1,
+        CN2,
+        CN3,
+        DC,
+        CT,
+        CP,
+    )
     if os.name == "nt":
         # for Windows
         for structure in to_search_for:
@@ -123,7 +138,7 @@ class Structures:
     def __init__(self, ifile):
         self.ifile = ifile
 
-    def update_freqs(self):
+    def update_freqs(self) -> None:
         """
         Update frequencies of complex nominals, clauses, verb phrases, and T-units
         """
@@ -132,7 +147,7 @@ class Structures:
         self.VP.freq = self.VP1.freq + self.VP2.freq
         self.T.freq = self.T1.freq + self.T2.freq
 
-    def _div(self, x, y):
+    def _div(self, x, y) -> Union[float, int]:
         return round(x / y, 4) if y else 0
 
     def compute_SC_indicies(self):

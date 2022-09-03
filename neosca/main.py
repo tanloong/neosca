@@ -3,23 +3,32 @@ import glob
 from os import path
 import os
 import sys
-from typing import List
+from typing import List, Tuple, Optional
 
 from . import __version__
 from .utils.analyzer import Analyzer
 from .utils.writer import write_match_output
 from .utils.writer import write_freq_output
 
+# For all the procedures in SCAUI, return a tuple as the result
+# The first element bool indicates whether the procedure succeeds
+# The second element is the error message if it fails.
+SCAProcedureResult = Tuple[bool, Optional[str]]
 
-class UI:
+
+class SCAUI:
     def __init__(self):
-        self.parser = self.create_parser()
+        self.parser: argparse.ArgumentParser = self.create_parser()
 
-        self.ofile_freq = "result.csv"
-        self.dir_stanford_parser = os.getenv("STANFORD_PARSER_HOME")
-        self.dir_stanford_tregex = os.getenv("STANFORD_TREGEX_HOME")
-        self.reserve_parsed = False
-        self.reserve_match = False
+        self.ofile_freq: str = "result.csv"
+        self.dir_stanford_parser: Optional[str] = os.getenv(
+            "STANFORD_PARSER_HOME"
+        )
+        self.dir_stanford_tregex: Optional[str] = os.getenv(
+            "STANFORD_TREGEX_HOME"
+        )
+        self.reserve_parsed: bool = False
+        self.reserve_match: bool = False
 
         self.options: argparse.Namespace = argparse.Namespace()
 
@@ -40,7 +49,7 @@ class UI:
             "-o",
             "--output",
             default=None,
-            help="output filename",
+            help="output file",
         )
         parser.add_argument(
             "--parser",
@@ -76,7 +85,7 @@ class UI:
         )
         return parser
 
-    def parse(self, argv: List[str]):
+    def parse(self, argv: List[str]) -> SCAProcedureResult:
         args = argv[1:] if argv[1:] else ["--help"]
         options, ifile_list = self.parser.parse_known_args(args)
 
@@ -121,7 +130,7 @@ class UI:
 
         return True, None
 
-    def run_analyzer(self):
+    def run_analyzer(self) -> SCAProcedureResult:
         if not self.ifile_list:
             return False, "Input files are not provided."
         analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
@@ -140,19 +149,19 @@ class UI:
 
         return True, None
 
-    def run(self):
+    def run(self) -> SCAProcedureResult:
         if self.options.version:
             return self.show_version()
         else:
             return self.run_analyzer()
 
-    def show_version(self):
+    def show_version(self) -> SCAProcedureResult:
         print(__version__)
         return True, None
 
 
 def main():
-    ui = UI()
+    ui = SCAUI()
     success, err_msg = ui.parse(sys.argv)
     if not success:
         print(err_msg)

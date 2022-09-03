@@ -3,6 +3,7 @@ from os import path
 import re
 import subprocess
 import sys
+from typing import Tuple, Generator
 
 from .structures import Structures
 
@@ -22,7 +23,7 @@ class Analyzer:
             '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
         )
 
-    def _parse(self, ifile: str, fn_parsed: str):
+    def _parse(self, ifile: str, fn_parsed: str) -> None:
         """
         Call Stanford Parser
 
@@ -34,7 +35,7 @@ class Analyzer:
             f"java -mx1500m -cp {self.classpath_parser} {self.method_parser} "
             f"-outputFormat penn {self.model_parser} {ifile} > {fn_parsed}"
         )
-        if not path.exists(fn_parsed):  # if FILE does not exist
+        if not path.exists(fn_parsed):
             # print(f"{fn_parsed} does not exist, running Stanford Parser...")
             subprocess.run(cmd, shell=True, capture_output=True)
             return
@@ -49,7 +50,7 @@ class Analyzer:
         # else:
         #     print(f"{fn_parsed} is newer than {ifile}, parsing is skipped.")
 
-    def _query(self, pattern: str, fn_parsed: str):
+    def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
         """
         Call Tregex to query {pattern} against {fn_parsed}
 
@@ -104,7 +105,7 @@ class Analyzer:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def _analyze_text(self, ifile, reserve_parsed):
+    def _analyze_text(self, ifile, reserve_parsed) -> Structures:
         """
         Analyze a text file
 
@@ -137,7 +138,9 @@ class Analyzer:
             os.remove(fn_parsed)
         return structures
 
-    def perform_analysis(self, ifiles: list, reserve_parsed: bool):
+    def perform_analysis(
+        self, ifiles: list, reserve_parsed: bool
+    ) -> Generator[Structures, None, None]:
         """
         :param ifiles: list of input files
         :param reserve_parsed: option to reserve Stanford Parser's
