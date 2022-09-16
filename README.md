@@ -175,7 +175,7 @@ the phrasal category "Noun Phrase".
 
 When parsing input files,
 NeoSCA runs the above command and,
-if you have specified the `-rp` option,
+if you have specified the `-p` option,
 saves phrase structure trees
 in files with `.parsed` extension.
 
@@ -221,7 +221,7 @@ When querying parsed files,
 NeoSCA runs the above command and remembers how many matches 
 for each of the pre-specified Tregex patterns.
 
-If you have specified the `-rm` option,
+If you have specified the `-m` option,
 it also saves the matches,
 the two `NP`s in our case,
 in files with `.matches` extension.
