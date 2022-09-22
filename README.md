@@ -2,7 +2,7 @@ NeoSCA
 ==========
 
 ![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
-[![pypi](https://img.shields.io/badge/pypi-v0.0.17-orange)](https://pypi.org/project/neosca)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.19-orange)](https://pypi.org/project/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
 [![license](https://img.shields.io/badge/license-GPL%20v2.0%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
