@@ -71,7 +71,7 @@ nsca sample1.txt -o sample1.csv
 ```sh
 nsca sample1.txt sample2.txt
 nsca sample*.txt 
-# wildcard characters are also supported
+# wildcard characters are supported
 nsca sample[1-10].txt
 ```
 
@@ -156,22 +156,19 @@ The tree can be visualized as follows, with quotation marks eliminated.
 
 <img src="https://github.com/tanloong/NeoSCA/blob/master/img/a-phrase-structure-tree.png?raw=true" alt="a phrase structure tree" width="250">
 
-In this tree,
-the starting symbol is 
-the label "ROOT" at
-the root level of the tree,
-and the 4 terminal symbols are
-the 4 words in the sentence,
-located at the bottom of
-the branches of the tree.
-The non-terminal symbols,
-located between the starting symbol and
-the terminal symbols,
-include a number of labels for different
-clausal, phrasal, and lexical categories.
-For example,
-the non-terminal symbol "NP" indicates 
-the phrasal category "Noun Phrase".
+> In this tree,
+> the starting symbol is 
+> the label "ROOT" at
+> the root level of the tree,
+> and the 4 terminal symbols are
+> the 4 words in the sentence,
+> located at the bottom of
+> the branches of the tree.
+> The non-terminal symbols,
+> located between the starting symbol and
+> the terminal symbols,
+> include a number of labels for different
+> clausal, phrasal, and lexical categories. (Lu 2014)
 
 When parsing input files,
 NeoSCA runs the above command and,
