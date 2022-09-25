@@ -118,10 +118,9 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 ## Under the hood
 
-NeoSCA works as a wrapper of
+Both NeoSCA and L2SCA rely on
 Stanford Parser and
-Stanford Tregex,
-so does L2SCA.
+Stanford Tregex.
 In case you are unfamiliar with the two dependencies,
 below are some quick examples.
 Detailed explanations can be found in the book
