@@ -57,33 +57,6 @@ and computes the following
 | runs only under its own home directory | runs under any directory |
 | outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results |
 
-## Usage
-
-1. Single input:
-```sh
-nsca sample1.txt 
-# output will be saved in result.csv
-nsca sample1.txt -o sample1.csv 
-# custom output file
-```
-
-2. Multiple input:
-```sh
-nsca sample1.txt sample2.txt
-nsca sample*.txt 
-# wildcard characters are supported
-nsca sample[1-10].txt
-```
-
-3. Use `-p`/`--reserve-parsed` 
-to reserve parsed files of Stanford Parser.
-Use `-m`/`--reserve-match`
-to reserve match results of Stanford Tregex.
-
-```sh
-nsca sample1.txt -p -m
-```
-
 ## Installation
 
 1. Install neosca
@@ -115,6 +88,52 @@ STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
 export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 ```
+
+## Usage
+
+1. Print help message:
+
+```sh
+nsca
+---
+usage: nsca [-h] [--version] [-o OUTPUT] [--parser DIR_STANFORD_PARSER]
+            [--tregex DIR_STANFORD_TREGEX] [-p] [-m]
+
+options:
+  -h, --help                    show this help message and exit
+  --version                     show version of NeoSCA
+  -o OUTPUT, --output OUTPUT    output file
+  --parser DIR_STANFORD_PARSER  directory to Stanford Parser, defaults to STANFORD_PARSER_HOME
+  --tregex DIR_STANFORD_TREGEX  directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME
+  -p, --reserve-parsed          option to reserve parsed files by Stanford Parser
+  -m, --reserve-match           option to reserve match results by Stanford Tregex
+```
+
+2. Single input:
+```sh
+nsca sample1.txt 
+# output will be saved in result.csv
+nsca sample1.txt -o sample1.csv 
+# custom output file
+```
+
+3. Multiple input:
+```sh
+nsca sample1.txt sample2.txt
+nsca sample*.txt 
+# wildcard characters are supported
+nsca sample[1-10].txt
+```
+
+4. Use `-p`/`--reserve-parsed` 
+to reserve parsed files of Stanford Parser.
+Use `-m`/`--reserve-match`
+to reserve match results of Stanford Tregex.
+
+```sh
+nsca sample1.txt -p -m
+```
+
 
 ## Under the hood
 
