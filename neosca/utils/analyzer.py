@@ -73,17 +73,16 @@ class Analyzer:
             os.remove(fn_parsed)
             # Remove fn_parsed to make sure parsing will not be skipped on next running.
             sys.exit(
-                "Error: failed to obtain frequency. It is likely that:\n(1)"
-                " Java is unavailable. Make sure you have Java 8 or later"
-                " installed and can access it in the cmd window by typing in"
-                " `java`.\n(2) You manually modified Tregex patterns in"
-                " structures.py. Make sure that: on Windows, those patterns are"
-                " enclosed by double quotes; on Linux and macOS they are"
-                " surrounded by single quotes.\n(3) Tregex's interface has"
+                "Error: failed to obtain frequency. It is likely that:\n"
+                "(1) Tregex's interface has"
                 " changed. As a workaround, download an older version, v4.2.0,"
                 " for example. If Tregex's interface does have changed, the"
                 " latest version of Tregex will be supported in next few"
-                " releases."
+                " releases.\n"
+                "(2) You manually modified Tregex patterns in"
+                " structures.py. Make sure that: on Windows, those patterns are"
+                " enclosed by double quotes; on Linux and macOS they are"
+                " surrounded by single quotes."
             )
         matched_subtrees = p.stdout.decode()
         matched_subtrees = self._add_terms(matched_subtrees)

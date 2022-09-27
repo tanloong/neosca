@@ -2,8 +2,9 @@ import argparse
 import glob
 from os import path
 import os
+import subprocess
 import sys
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from . import __version__
 from .utils.analyzer import Analyzer
@@ -130,7 +131,18 @@ class SCAUI:
 
         return True, None
 
+    def _has_java(self) -> bool:
+        p = subprocess.run("java --version", shell=True, capture_output=True)
+        return bool(p.stderr.decode())
+
     def run_analyzer(self) -> SCAProcedureResult:
+        if not self._has_java():
+            return (
+                False,
+                "Error: Java is unavailable. To install it, visit"
+                " https://www.java.com/en/download.\n\nAlso, Make sure you can"
+                " access it in the cmd window by typing in `java --version`.",
+            )
         if not self.ifile_list:
             return False, "Input files are not provided."
         analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
