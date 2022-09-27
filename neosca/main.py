@@ -132,16 +132,22 @@ class SCAUI:
         return True, None
 
     def _has_java(self) -> bool:
-        p = subprocess.run("java --version", shell=True, capture_output=True)
-        return bool(p.stderr.decode())
+        try:
+            subprocess.run(
+                "java --version", shell=True, check=True, capture_output=True
+            )
+        except subprocess.CalledProcessError:
+            return False
+        return True
 
     def run_analyzer(self) -> SCAProcedureResult:
         if not self._has_java():
             return (
                 False,
                 "Error: Java is unavailable. To install it, visit"
-                " https://www.java.com/en/download.\n\nAlso, Make sure you can"
-                " access it in the cmd window by typing in `java --version`.",
+                " https://www.java.com/en/download.\n\nAfter installing, make"
+                " sure you can access it in the cmd window by typing in `java"
+                " --version`.",
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
