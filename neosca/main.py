@@ -144,8 +144,8 @@ class SCAUI:
         if not self._has_java():
             return (
                 False,
-                "Error: Java is unavailable. To install it, visit"
-                " https://www.java.com/en/download.\n\nAfter installing, make"
+                "Error: Java is unavailable.\n\n1. To install it, visit"
+                " https://www.java.com/en/download.\n2. After installing, make"
                 " sure you can access it in the cmd window by typing in `java"
                 " --version`.",
             )
