@@ -1,6 +1,15 @@
 NeoSCA
 ==========
 
+![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.20-orange)](https://pypi.org/project/neosca)
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
+[![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
+
+<h5 align="center">NeoSCA is a syntactic complexity analyzer of written English language samples.</h5>
+
+![](img/testing-on-Windows.gif)
+
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
 
@@ -12,18 +21,12 @@ NeoSCA
 * [License](#license)
 
 <!-- vim-markdown-toc -->
-![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
-[![pypi](https://img.shields.io/badge/pypi-v0.0.20-orange)](https://pypi.org/project/neosca)
-![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
-[![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
+## <a name="description"></a> Description <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
-NeoSCA is a syntactic complexity analyzer of written English language samples.
-It is a rewrite of
+NeoSCA is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
-
-## <a name="description"></a> Description <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 The same as L2SCA,
 NeoSCA takes written English language
