@@ -6,7 +6,7 @@ NeoSCA
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
 [![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
-<h5 align="center">NeoSCA is a syntactic complexity analyzer of written English language samples.</h5>
+<h5 align="center">NeoSCA is another syntactic complexity analyzer of written English language samples.</h5>
 
 ![](img/testing-on-Windows.gif)
 
