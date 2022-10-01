@@ -1,6 +1,18 @@
 NeoSCA
 ==========
 
+## Table of Contents
+<!-- vim-markdown-toc GFM -->
+
+* [Description](#description-smallsuptop-supsmall)
+* [NeoSCA vs. L2SCA](#neosca-vs-l2sca-smallsuptop-supsmall)
+* [Installation](#installation-smallsuptop-supsmall)
+* [Usage](#usage-smallsuptop-supsmall)
+* [Under the hood](#under-the-hood-smallsuptop-supsmall)
+* [Citing](#citing-smallsuptop-supsmall)
+* [License](#license-smallsuptop-supsmall)
+
+<!-- vim-markdown-toc -->
 ![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
 [![pypi](https://img.shields.io/badge/pypi-v0.0.20-orange)](https://pypi.org/project/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
@@ -12,7 +24,7 @@ It is a rewrite of
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
 
-## Description
+## Description <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 The same as L2SCA,
 NeoSCA takes written English language
@@ -48,7 +60,7 @@ and computes the following
 13. complex nominals per T-unit (CN/T)
 14. complex nominals per clause (CP/C)
 
-## Comparison
+## NeoSCA vs. L2SCA <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 | L2SCA | NeoSCA |
 |-|-|
@@ -57,7 +69,7 @@ and computes the following
 | runs only under its own home directory | runs under any directory |
 | outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results |
 
-## Installation
+## Installation <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 1. Install neosca
 
@@ -89,7 +101,7 @@ export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
 export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 ```
 
-## Usage
+## Usage <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 1. Single input:
 ```sh
@@ -118,7 +130,7 @@ nsca sample1.txt -p -m
 
 4. Calling `nsca` without any arguments returns help message.
 
-## Under the hood
+## Under the hood <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 Both NeoSCA and L2SCA rely on
 Stanford Parser and
@@ -224,7 +236,7 @@ it also saves the matches,
 the two `NP`s in our case,
 in files with `.matches` extension.
 
-## Citing
+## Citing <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
 Please use the following citation if you use NeoSCA in your work:
 
@@ -252,5 +264,5 @@ publisher={John Benjamins}
 }
 ```
 
-## License
+## License <small><sup>[Top ▲](#table-of-contents)</sup></small>
 The same as L2SCA, NeoSCA is licensed under the GNU General Public License, version 2 or later.
