@@ -122,11 +122,7 @@ class SCAUI:
             elif glob.glob(f):
                 valid_ifile_list.extend(glob.glob(f))
             else:
-                return (
-                    False,
-                    "The following file either does not exist or is not a"
-                    f" regular file: \n\n{f}",
-                )
+                return (False, f"No such file as \n\n{f}")
         self.ifile_list = valid_ifile_list
 
         return True, None
