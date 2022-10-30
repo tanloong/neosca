@@ -69,7 +69,7 @@ and computes the following
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
-| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e. Stanford Parser's parsing results, Tregex's querying results |
+| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e., Stanford Parser's parsing results and Tregex's querying results |
 
 ## <a name="installation"></a> Installation <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
@@ -105,6 +105,8 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 ## <a name="usage"></a> Usage <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
+The NeoSCA runs via the command `nsca`.
+
 1. Single input:
 ```sh
 nsca sample1.txt 
@@ -121,16 +123,16 @@ nsca sample*.txt
 nsca sample[1-10].txt
 ```
 
-3. Use `-p`/`--reserve-parsed` 
+3. Use `-p/--reserve-parsed` 
 to reserve parsed files of Stanford Parser.
-Use `-m`/`--reserve-match`
+Use `-m/--reserve-match`
 to reserve match results of Stanford Tregex.
 
 ```sh
 nsca sample1.txt -p -m
 ```
 
-4. Calling `nsca` without any arguments returns help message.
+4. Calling `nsca` without any arguments returns the help message.
 
 ## <a name="citing"></a> Citing <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
