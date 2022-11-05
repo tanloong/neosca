@@ -1,8 +1,8 @@
 import setuptools
 
-with open("./README.md") as f:
+with open("./README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
-with open("./neosca/__init__.py") as f:
+with open("./neosca/__init__.py", "r", encoding="utf-8") as f:
     for line in f.readlines():
         if line.startswith("__version__"):
             delim = '"' if '"' in line else "'"
