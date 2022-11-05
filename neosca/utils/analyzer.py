@@ -128,7 +128,7 @@ class Analyzer:
             )
         structures.update_freqs()
 
-        with open(fn_parsed) as f:
+        with open(fn_parsed, "r", encoding="utf-8") as f:
             structures.W.freq = len(
                 re.findall(r"\([A-Z]+\$? [^()]+\)", f.read())
             )
