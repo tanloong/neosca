@@ -19,7 +19,7 @@ setuptools.setup(
     url="https://github.com/tanloong/neosca",
     packages=["neosca", "neosca.utils"],
     description=(
-        "Syntactic complexity analyzer of written English language samples"
+        "Another syntactic complexity analyzer of written English language samples"
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
