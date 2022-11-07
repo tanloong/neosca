@@ -130,7 +130,7 @@ class SCAUI:
     def _has_java(self) -> bool:
         try:
             subprocess.run(
-                "java --version", shell=True, check=True, capture_output=True
+                "java -version", shell=True, check=True, capture_output=True
             )
         except subprocess.CalledProcessError:
             return False
@@ -143,7 +143,7 @@ class SCAUI:
                 "Error: Java is unavailable.\n\n1. To install it, visit"
                 " https://www.java.com/en/download.\n2. After installing, make"
                 " sure you can access it in the cmd window by typing in `java"
-                " --version`.",
+                " -version`.",
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
