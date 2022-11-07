@@ -28,11 +28,14 @@ NeoSCA is a rewrite of
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
 
+<details>
+
+<summary>
 The same as L2SCA,
 NeoSCA takes written English language
 samples in plain text format as input,
-counts the frequency of the following 9
-structures in the text:
+counts the frequency of 9 structures in the text:
+</summary>
 
 1. words (W)
 2. sentences (S)
@@ -44,8 +47,13 @@ structures in the text:
 8. coordinate phrases (CP)
 9. complex nominals (CN)
 
-and computes the following
-14 syntactic complexity indices of the text:
+</details>
+
+<details>
+
+<summary>
+and computes 14 syntactic complexity indices of the text:
+</summary>
 
 1. mean length of sentence (MLS)
 2. mean length of T-unit (MLT)
@@ -61,6 +69,8 @@ and computes the following
 12. coordinate phrases per clause (CP/C)
 13. complex nominals per T-unit (CN/T)
 14. complex nominals per clause (CP/C)
+
+</details>
 
 ## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
