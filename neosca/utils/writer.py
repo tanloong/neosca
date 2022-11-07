@@ -12,14 +12,13 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
     :param dir_match_output: where to save the match output
     """
     bn_input = path.basename(structures.ifile)
-    bn_input_rstripped = path.splitext(bn_input)[0]
-    # bn_input with the extension at the right side stripped
-    subdir_match_output = path.join(odir_match, bn_input_rstripped)
+    bn_input_noext = path.splitext(bn_input)[0]
+    subdir_match_output = path.join(odir_match, bn_input_noext)
     if not path.isdir(subdir_match_output):
-        # if not exists and is a directory
+        # if not (exists and is a directory)
         os.makedirs(subdir_match_output)
     for structure in structures.to_search_for:
-        bn_match_output = bn_input_rstripped + "-" + structure.name + ".matches"
+        bn_match_output = bn_input_noext + "-" + structure.name + ".matches"
         fn_match_output = path.join(subdir_match_output, bn_match_output)
         if structure.matches:
             with open(fn_match_output, "w", encoding="utf-8") as f:

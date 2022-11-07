@@ -2,7 +2,7 @@ NeoSCA
 ==========
 
 ![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
-[![pypi](https://img.shields.io/badge/pypi-v0.0.21-orange)](https://pypi.org/project/neosca)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.22-orange)](https://pypi.org/project/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
 [![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
@@ -85,7 +85,11 @@ pip install neosca
 [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml#Download) and 
 [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html#Download)
 
+<details>
+
+<summary>
 4. Set `STANFORD_PARSER_HOME` and `STANFORD_TREGEX_HOME`
+</summary>
 
 + Windows:
 
@@ -102,6 +106,8 @@ STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
 export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 ```
+
+</details>
 
 ## <a name="usage"></a> Usage <small><sup>[Top ▲](#table-of-contents)</sup></small>
 
@@ -125,7 +131,7 @@ nsca sample[1-10].txt
 
 3. Use `-p/--reserve-parsed` 
 to reserve parsed files of Stanford Parser.
-Use `-m/--reserve-match`
+Use `-m/--reserve-match` 
 to reserve match results of Stanford Tregex.
 
 ```sh
