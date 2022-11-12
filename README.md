@@ -1,7 +1,7 @@
 NeoSCA
 ==========
 
-![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
+![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
 [![pypi](https://img.shields.io/badge/pypi-v0.0.22-orange)](https://pypi.org/project/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
 [![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
@@ -10,7 +10,7 @@ NeoSCA
 
 ![](img/testing-on-Windows.gif)
 
-## Table of Contents
+## Contents
 <!-- vim-markdown-toc GFM -->
 
 * [Description](#description)
@@ -21,7 +21,7 @@ NeoSCA
 * [License](#license)
 
 <!-- vim-markdown-toc -->
-## <a name="description"></a> Description <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="description"></a> Description <small><sup>[Top ▲](#contents)</sup></small>
 
 NeoSCA is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
@@ -72,7 +72,7 @@ and computes 14 syntactic complexity indices of the text:
 
 </details>
 
-## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#contents)</sup></small>
 
 | L2SCA | NeoSCA |
 |-|-|
@@ -81,7 +81,7 @@ and computes 14 syntactic complexity indices of the text:
 | runs only under its own home directory | runs under any directory |
 | outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e., Stanford Parser's parsing results and Tregex's querying results |
 
-## <a name="installation"></a> Installation <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="installation"></a> Installation <small><sup>[Top ▲](#contents)</sup></small>
 
 1. Install neosca
 
@@ -119,7 +119,7 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 </details>
 
-## <a name="usage"></a> Usage <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="usage"></a> Usage <small><sup>[Top ▲](#contents)</sup></small>
 
 The NeoSCA runs via the command `nsca`.
 
@@ -150,7 +150,7 @@ nsca sample1.txt -p -m
 
 4. Calling `nsca` without any arguments returns the help message.
 
-## <a name="citing"></a> Citing <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="citing"></a> Citing <small><sup>[Top ▲](#contents)</sup></small>
 
 Please use the following citation if you use NeoSCA in your work:
 
@@ -178,5 +178,5 @@ publisher={John Benjamins}
 }
 ```
 
-## <a name="license"></a> License <small><sup>[Top ▲](#table-of-contents)</sup></small>
+## <a name="license"></a> License <small><sup>[Top ▲](#contents)</sup></small>
 The same as L2SCA, NeoSCA is licensed under the GNU General Public License, version 2 or later.
