@@ -1,40 +1,38 @@
-NeoSCA
-==========
-
-![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
-[![pypi](https://img.shields.io/badge/pypi-v0.0.22-orange)](https://pypi.org/project/neosca)
-![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
-[![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
-
-<h5 align="center">NeoSCA is another syntactic complexity analyzer of written English language samples.</h5>
+<div align="center">
+ <h1> NeoSCA </h1>
+ <p>
+  <a>
+   <img alt="support-version" src="https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue" />
+  </a>
+  <a href="https://pypi.org/project/neosca">
+   <img alt="pypi" src="https://img.shields.io/badge/pypi-v0.0.22-orange" />
+  </a>
+  <a>
+   <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray" />
+  </a>
+  <a href="https://github.com/tanloong/neosca/blob/master/LICENSE.txt">
+   <img alt="license" src="https://img.shields.io/badge/license-GPL%20v2%2B-green"/>
+  </a>
+  <h4>
+   Another syntactic complexity analyzer of written English language samples.
+  </h4>
+ </p>
+</div>
 
 ![](img/testing-on-Windows.gif)
-
-## Contents
-<!-- vim-markdown-toc GFM -->
-
-* [Description](#description)
-* [NeoSCA vs. L2SCA](#neosca-vs-l2sca)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Citing](#citing)
-* [License](#license)
-
-<!-- vim-markdown-toc -->
-## <a name="description"></a> Description <small><sup>[Top ▲](#contents)</sup></small>
 
 NeoSCA is a rewrite of
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
 supporting Windows, macOS, and Linux.
+The same as L2SCA,
+NeoSCA takes written English language
+samples in plain text format as input, and computes:
 
 <details>
 
 <summary>
-The same as L2SCA,
-NeoSCA takes written English language
-samples in plain text format as input,
-counts the frequency of 9 structures in the text:
+the frequency of 9 structures in the text:
 </summary>
 
 1. words (W)
@@ -45,14 +43,14 @@ counts the frequency of 9 structures in the text:
 6. dependent clauses (DC)
 7. complex T-units (CT)
 8. coordinate phrases (CP)
-9. complex nominals (CN)
+9. complex nominals (CN), and
 
 </details>
 
 <details>
 
 <summary>
-and computes 14 syntactic complexity indices of the text:
+14 syntactic complexity indices of the text:
 </summary>
 
 1. mean length of sentence (MLS)
@@ -72,12 +70,27 @@ and computes 14 syntactic complexity indices of the text:
 
 </details>
 
+---
+
+## Contents
+<!-- vim-markdown-toc GFM -->
+
+* [NeoSCA vs. L2SCA](#neosca-vs-l2sca)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Citing](#citing)
+* [License](#license)
+
+<!-- vim-markdown-toc -->
+
+---
+
 ## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#contents)</sup></small>
 
 | L2SCA | NeoSCA |
 |-|-|
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
-| single and multiple input are handled respectively by two commands | one command for both cases, making your life easier |
+| single and multiple input are handled respectively by two commands | one command, `nsca`, for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
 | outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e., Stanford Parser's parsing results and Tregex's querying results |
 
