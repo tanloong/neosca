@@ -75,11 +75,11 @@ the frequency of 9 structures in the text:
 ## Contents
 <!-- vim-markdown-toc GFM -->
 
-* [NeoSCA vs. L2SCA](#neosca-vs-l2sca)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Citing](#citing)
-* [License](#license)
+* [<a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>Top ▲</sup></small>](#a-nameneosca-vs-l2scaa-neosca-vs-l2sca-smallsuptop-supsmall)
+* [<a name="installation"></a> Installation <small><sup>Top ▲</sup></small>](#a-nameinstallationa-installation-smallsuptop-supsmall)
+* [<a name="usage"></a> Usage <small><sup>Top ▲</sup></small>](#a-nameusagea-usage-smallsuptop-supsmall)
+* [<a name="citing"></a> Citing <small><sup>Top ▲</sup></small>](#a-namecitinga-citing-smallsuptop-supsmall)
+* [<a name="license"></a> License <small><sup>Top ▲</sup></small>](#a-namelicensea-license-smallsuptop-supsmall)
 
 <!-- vim-markdown-toc -->
 
@@ -100,6 +100,12 @@ the frequency of 9 structures in the text:
 
 ```sh
 pip install neosca
+```
+
+For uers inside of China:
+
+```
+pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 2. Install [Java](https://www.java.com/en/download) 8 or later
