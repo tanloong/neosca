@@ -36,19 +36,14 @@ class Analyzer:
             f"-outputFormat penn {self.model_parser} {ifile} > {fn_parsed}"
         )
         if not path.exists(fn_parsed):
-            # print(f"{fn_parsed} does not exist, running Stanford Parser...")
+            # fn_parsed does not exist, run Stanford Parser
             subprocess.run(cmd, shell=True, capture_output=True)
             return
         mt_input = path.getmtime(ifile)  # get the last modification time
         mt_parsed = path.getmtime(fn_parsed)
         if mt_input > mt_parsed:
-            # print(
-            #     f"{fn_parsed} is older than {ifile}, "
-            #     + "running Stanford Parser..."
-            # )
+            # fn_parsed is older than ifile, run Stanford Parser
             subprocess.run(cmd, shell=True, capture_output=True)
-        # else:
-        #     print(f"{fn_parsed} is newer than {ifile}, parsing is skipped.")
 
     def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
         """
