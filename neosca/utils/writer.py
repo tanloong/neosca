@@ -23,7 +23,7 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
         if structure.matches:
             with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)
-    print(f"Match output was saved to {subdir_match_output}")
+    print(f"Match output was saved to {path.abspath(subdir_match_output)}")
 
 
 def write_freq_output(freq_output: str, ofile_freq: str) -> None:
@@ -33,4 +33,4 @@ def write_freq_output(freq_output: str, ofile_freq: str) -> None:
     """
     with open(ofile_freq, "w", encoding="utf-8") as f:
         f.write(f"{Structures.fields}\n{freq_output}")
-    print(f"Frequency output was saved to {ofile_freq}. Done.")
+    print(f"Frequency output was saved to {path.abspath(ofile_freq)}. Done.")
