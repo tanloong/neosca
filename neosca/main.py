@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from typing import List, Optional, Tuple
+from itertools import tee
 
 from . import __version__
 from .utils.analyzer import Analyzer
@@ -96,17 +97,25 @@ class SCAUI:
 
         if options.dir_stanford_parser:
             self.dir_stanford_parser = options.dir_stanford_parser
-        if self.dir_stanford_parser is None or not path.isdir(
-            self.dir_stanford_parser
-        ):
-            return False, "Stanford Parser not found."
+        if self.dir_stanford_parser is None:
+            return (
+                False,
+                "You need to either set $STANFORD_PARSER_HOME or give the path"
+                " of Stanford Parser through the `--parser` option.",
+            )
+        if not path.isdir(self.dir_stanford_parser):
+            return False, f"{self.dir_stanford_parser} is invalid."
 
         if options.dir_stanford_tregex:
             self.dir_stanford_tregex = options.dir_stanford_tregex
-        if self.dir_stanford_tregex is None or not path.isdir(
-            self.dir_stanford_tregex
-        ):
-            return False, "Stanford Tregex not found."
+        if self.dir_stanford_tregex is None:
+            return (
+                False,
+                "You need to either set $STANFORD_PARSER_HOME or give the path"
+                " of Stanford Tregex through the `--tregex` option.",
+            )
+        if not path.isdir(self.dir_stanford_tregex):
+            return False, f"{self.dir_stanford_tregex} is invalid."
 
         if options.reserve_parsed:
             self.reserve_parsed = options.reserve_parsed
@@ -147,18 +156,23 @@ class SCAUI:
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
-        analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
-        structures_list = list(
-            analyzer.perform_analysis(self.ifile_list, self.reserve_parsed)
-        )  # list of instances of Structures, each for one corresponding input file
+        analyzer = Analyzer(
+            self.dir_stanford_parser,  # type: ignore
+            self.dir_stanford_tregex,  # type: ignore
+            ifiles=self.ifile_list,
+            reserve_parsed=self.reserve_parsed,
+        )
+        gen = analyzer.perform_analysis()
+        structures_generator1, structures_generator2 = tee(gen, 2)
+        # a generator of instances of Structures, each for one corresponding input file
 
         freq_output = ""
-        for structures in structures_list:
+        for structures in structures_generator1:
             freq_output += structures.get_freqs() + "\n"
         write_freq_output(freq_output, self.ofile_freq)
 
         if self.reserve_match:
-            for structures in structures_list:
+            for structures in structures_generator2:
                 write_match_output(structures, self.odir_match)
 
         return True, None
