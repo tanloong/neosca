@@ -32,7 +32,7 @@ class Analyzer:
         self.reserve_parsed = reserve_parsed
         self.skip_parsing = False
 
-    def _parse(self, ifile_escaped: str, fn_parsed_escaped: str) -> None:
+    def _parse(self, ifile: str, fn_parsed: str) -> None:
         """
         Call Stanford Parser
 
@@ -41,12 +41,12 @@ class Analyzer:
         :return: None
         """
         cmd = (
-            f"java -mx1500m -cp {self.classpath_parser} {self.method_parser} "
-            f"-outputFormat penn {self.model_parser} {ifile_escaped} > {fn_parsed_escaped}"
+            f'java -mx1500m -cp {self.classpath_parser} {self.method_parser} '
+            f'-outputFormat penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
         )
-        if path.exists(fn_parsed_escaped):
-            mt_input = path.getmtime(ifile_escaped)  # get the last modification time
-            mt_parsed = path.getmtime(fn_parsed_escaped)
+        if path.exists(fn_parsed):
+            mt_input = path.getmtime(ifile)  # get the last modification time
+            mt_parsed = path.getmtime(fn_parsed)
             if mt_input < mt_parsed:
                 self.skip_parsing = True
                 # skip parsing when {fn_parsed} already exists and
@@ -54,7 +54,7 @@ class Analyzer:
         if not self.skip_parsing:
             subprocess.run(cmd, shell=True, capture_output=True)
 
-    def _query(self, pattern: str, fn_parsed_escaped: str) -> Tuple[int, str]:
+    def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
         """
         Call Tregex to query {pattern} against {fn_parsed}
 
@@ -65,7 +65,7 @@ class Analyzer:
         """
         cmd = (
             "java -mx100m -cp"
-            f" {self.classpath_tregex} {self.method_tregex} {pattern} {fn_parsed_escaped} -o"
+            f' "{self.classpath_tregex}" {self.method_tregex} {pattern} "{fn_parsed}" -o'
         )
         p = subprocess.run(cmd, shell=True, capture_output=True)
         match_reslt = re.search(
@@ -74,7 +74,7 @@ class Analyzer:
         if match_reslt:
             freq = match_reslt.group(1)
         else:
-            os.remove(fn_parsed_escaped)
+            os.remove(fn_parsed)
             # Remove fn_parsed to make sure parsing will not be skipped on next running.
             sys.exit(
                 "Error: failed to obtain frequency. It is likely that:\n"
@@ -116,10 +116,8 @@ class Analyzer:
         :param ifile: which file to analyze
         :return structures: an instance of Structures
         """
-        ifile_escaped = ifile.replace(" ", "\\ ")
         fn_parsed = path.splitext(ifile)[0] + ".parsed"
-        fn_parsed_escaped = fn_parsed.replace(" ", "\\ ")
-        self._parse(ifile_escaped, fn_parsed_escaped)
+        self._parse(ifile, fn_parsed)
 
         structures = Structures(path.basename(ifile))
         for structure in structures.to_search_for:
@@ -128,7 +126,7 @@ class Analyzer:
                 f"{path.basename(fn_parsed)}..."
             )
             structure.freq, structure.matches = self._query(
-                structure.pat, fn_parsed_escaped
+                structure.pat, fn_parsed
             )
         structures.update_freqs()
 
