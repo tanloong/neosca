@@ -44,14 +44,14 @@ class Analyzer:
             f"java -mx1500m -cp {self.classpath_parser} {self.method_parser} "
             f"-outputFormat penn {self.model_parser} {ifile_escaped} > {fn_parsed_escaped}"
         )
-        if not path.exists(fn_parsed):
-            # fn_parsed does not exist, run Stanford Parser
-            subprocess.run(cmd, shell=True, capture_output=True)
-            return
-        mt_input = path.getmtime(ifile)  # get the last modification time
-        mt_parsed = path.getmtime(fn_parsed)
-        if mt_input > mt_parsed:
-            # fn_parsed is older than ifile, run Stanford Parser
+        if path.exists(fn_parsed_escaped):
+            mt_input = path.getmtime(ifile_escaped)  # get the last modification time
+            mt_parsed = path.getmtime(fn_parsed_escaped)
+            if mt_input < mt_parsed:
+                self.skip_parsing = True
+                # skip parsing when {fn_parsed} already exists and
+                # is newer than {ifile}
+        if not self.skip_parsing:
             subprocess.run(cmd, shell=True, capture_output=True)
 
     def _query(self, pattern: str, fn_parsed_escaped: str) -> Tuple[int, str]:
@@ -138,7 +138,7 @@ class Analyzer:
             )
 
         structures.compute_SC_indicies()
-        if not reserve_parsed:
+        if not self.reserve_parsed and not self.skip_parsing:
             os.remove(fn_parsed)
         return structures
 
