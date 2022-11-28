@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from typing import List, Optional, Tuple
+from itertools import tee
 
 from . import __version__
 from .utils.analyzer import Analyzer
@@ -157,15 +158,17 @@ class SCAUI:
             return False, "Input files are not provided."
         analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
         structures_generator = analyzer.perform_analysis(self.ifile_list, self.reserve_parsed)
+        gen = analyzer.perform_analysis()
+        structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
 
         freq_output = ""
-        for structures in structures_generator:
+        for structures in structures_generator1:
             freq_output += structures.get_freqs() + "\n"
         write_freq_output(freq_output, self.ofile_freq)
 
         if self.reserve_match:
-            for structures in structures_generator:
+            for structures in structures_generator2:
                 write_match_output(structures, self.odir_match)
 
         return True, None
