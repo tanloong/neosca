@@ -28,8 +28,11 @@ class Analyzer:
         self.classpath_tregex = (
             '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
         )
+        self.ifiles = ifiles
+        self.reserve_parsed = reserve_parsed
+        self.skip_parsing = False
 
-    def _parse(self, ifile: str, fn_parsed: str) -> None:
+    def _parse(self, ifile_escaped: str, fn_parsed_escaped: str) -> None:
         """
         Call Stanford Parser
 
@@ -39,7 +42,7 @@ class Analyzer:
         """
         cmd = (
             f"java -mx1500m -cp {self.classpath_parser} {self.method_parser} "
-            f"-outputFormat penn {self.model_parser} {ifile} > {fn_parsed}"
+            f"-outputFormat penn {self.model_parser} {ifile_escaped} > {fn_parsed_escaped}"
         )
         if not path.exists(fn_parsed):
             # fn_parsed does not exist, run Stanford Parser
@@ -51,7 +54,7 @@ class Analyzer:
             # fn_parsed is older than ifile, run Stanford Parser
             subprocess.run(cmd, shell=True, capture_output=True)
 
-    def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
+    def _query(self, pattern: str, fn_parsed_escaped: str) -> Tuple[int, str]:
         """
         Call Tregex to query {pattern} against {fn_parsed}
 
@@ -62,7 +65,7 @@ class Analyzer:
         """
         cmd = (
             "java -mx100m -cp"
-            f" {self.classpath_tregex} {self.method_tregex} {pattern} {fn_parsed} -o"
+            f" {self.classpath_tregex} {self.method_tregex} {pattern} {fn_parsed_escaped} -o"
         )
         p = subprocess.run(cmd, shell=True, capture_output=True)
         match_reslt = re.search(
@@ -71,7 +74,7 @@ class Analyzer:
         if match_reslt:
             freq = match_reslt.group(1)
         else:
-            os.remove(fn_parsed)
+            os.remove(fn_parsed_escaped)
             # Remove fn_parsed to make sure parsing will not be skipped on next running.
             sys.exit(
                 "Error: failed to obtain frequency. It is likely that:\n"
@@ -113,8 +116,10 @@ class Analyzer:
         :param ifile: which file to analyze
         :return structures: an instance of Structures
         """
+        ifile_escaped = ifile.replace(" ", "\\ ")
         fn_parsed = path.splitext(ifile)[0] + ".parsed"
-        self._parse(ifile, fn_parsed)
+        fn_parsed_escaped = fn_parsed.replace(" ", "\\ ")
+        self._parse(ifile_escaped, fn_parsed_escaped)
 
         structures = Structures(path.basename(ifile))
         for structure in structures.to_search_for:
@@ -123,7 +128,7 @@ class Analyzer:
                 f"{path.basename(fn_parsed)}..."
             )
             structure.freq, structure.matches = self._query(
-                structure.pat, fn_parsed
+                structure.pat, fn_parsed_escaped
             )
         structures.update_freqs()
 
