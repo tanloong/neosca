@@ -174,6 +174,7 @@ class SCAUI:
         if self.reserve_match:
             for structures in structures_generator2:
                 write_match_output(structures, self.odir_match)
+            print(f"Match output was saved to {path.abspath(self.odir_match)}.")
 
         return True, None
 
