@@ -13,7 +13,7 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
     """
     bn_input = path.basename(structures.ifile)
     bn_input_noext = path.splitext(bn_input)[0]
-    subdir_match_output = path.join(odir_match, bn_input_noext)
+    subdir_match_output = path.join(odir_match, bn_input_noext).strip()
     if not path.isdir(subdir_match_output):
         # if not (exists and is a directory)
         os.makedirs(subdir_match_output)
