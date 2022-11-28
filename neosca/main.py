@@ -156,8 +156,12 @@ class SCAUI:
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
-        analyzer = Analyzer(self.dir_stanford_parser, self.dir_stanford_tregex)
-        structures_generator = analyzer.perform_analysis(self.ifile_list, self.reserve_parsed)
+        analyzer = Analyzer(
+            self.dir_stanford_parser,  # type: ignore
+            self.dir_stanford_tregex,  # type: ignore
+            ifiles=self.ifile_list,
+            reserve_parsed=self.reserve_parsed,
+        )
         gen = analyzer.perform_analysis()
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
