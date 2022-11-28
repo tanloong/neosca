@@ -13,7 +13,13 @@ class Analyzer:
     model_parser = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
     method_tregex = "edu.stanford.nlp.trees.tregex.TregexPattern"
 
-    def __init__(self, dir_stanford_parser, dir_stanford_tregex):
+    def __init__(
+        self,
+        dir_stanford_parser: str,
+        dir_stanford_tregex: str,
+        ifiles: list,
+        reserve_parsed: bool,
+    ):
         """
         :param dir_parser: directory to Stanford Parser
         :param dir_tregex: directory to Tregex
@@ -100,13 +106,11 @@ class Analyzer:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def _analyze_text(self, ifile, reserve_parsed) -> Structures:
+    def _analyze_text(self, ifile) -> Structures:
         """
         Analyze a text file
 
         :param ifile: which file to analyze
-        :param reserve_parsed: option to reserve Stanford Parser's
-         parsing results
         :return structures: an instance of Structures
         """
         fn_parsed = path.splitext(ifile)[0] + ".parsed"
@@ -133,18 +137,16 @@ class Analyzer:
             os.remove(fn_parsed)
         return structures
 
-    def perform_analysis(
-        self, ifiles: list, reserve_parsed: bool
-    ) -> Generator[Structures, None, None]:
+    def perform_analysis(self) -> Generator[Structures, None, None]:
         """
         :param ifiles: list of input files
         :param reserve_parsed: option to reserve Stanford Parser's
          parsing results
         """
-        total = len(ifiles)
-        for i, ifile in enumerate(ifiles):
+        total = len(self.ifiles)
+        for i, ifile in enumerate(self.ifiles):
             print(
                 f"[NeoSCA] Processing {path.basename(ifile)} ({i+1}/{total})..."
             )
-            structures = self._analyze_text(ifile, reserve_parsed)
+            structures = self._analyze_text(ifile)
             yield structures
