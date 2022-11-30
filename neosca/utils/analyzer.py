@@ -48,12 +48,12 @@ class Analyzer:
                 # skip parsing when {fn_parsed} already exists and
                 # is newer than {ifile}
         if not self.skip_parsing:
+            print(f"\t[Parser] Parsing...")
             cmd = (
                 "java -mx1500m -cp"
                 f' {self.classpath_parser} "{self.method_parser}" -outputFormat'
                 f' penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
             )
-            print(f'\t[Parser] Parsing "{ifile}"...')
             try:
                 subprocess.run(cmd, shell=True, check=True, capture_output=True)
             except subprocess.CalledProcessError as err_msg:
@@ -71,9 +71,7 @@ class Analyzer:
         :return (int) frequency: frequency of the pattern
         :return (str) matched_subtreees: matched subtrees of the pattern
         """
-        print(
-            f'\t[Tregex] Querying "{structure.desc}" against "{fn_parsed}"...'
-        )
+        print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
             f'java -mx100m -cp "{self.classpath_tregex}"'
             f' {self.method_tregex} {structure.pat} "{fn_parsed}" -o'
