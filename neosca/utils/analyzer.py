@@ -118,7 +118,7 @@ class Analyzer:
         """
         self._parse(ifile, fn_parsed)
 
-        structures = Structures(path.basename(ifile))
+        structures = Structures(ifile)
         for structure in structures.to_search_for:
             print(
                 f'\t[Tregex] Querying "{structure.desc}" against '
@@ -148,7 +148,7 @@ class Analyzer:
         total = len(self.ifiles)
         for i, ifile in enumerate(self.ifiles):
             print(
-                f"[NeoSCA] Processing {path.basename(ifile)} ({i+1}/{total})..."
+                f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...'
             )
             fn_parsed = path.splitext(ifile)[0] + ".parsed"
             try:
