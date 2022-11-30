@@ -5,7 +5,7 @@ import subprocess
 import sys
 from typing import Tuple, Generator
 
-from .structures import Structures
+from .structures import Structure, Structures
 
 
 class Analyzer:
@@ -40,10 +40,6 @@ class Analyzer:
         :param fn_parsed: where to save the parsed results
         :return: None
         """
-        cmd = (
-            f'java -mx1500m -cp {self.classpath_parser} "{self.method_parser}" '
-            f'-outputFormat penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
-        )
         if path.exists(fn_parsed):
             mt_input = path.getmtime(ifile)  # get the last modification time
             mt_parsed = path.getmtime(fn_parsed)
@@ -52,6 +48,12 @@ class Analyzer:
                 # skip parsing when {fn_parsed} already exists and
                 # is newer than {ifile}
         if not self.skip_parsing:
+            cmd = (
+                "java -mx1500m -cp"
+                f' {self.classpath_parser} "{self.method_parser}" -outputFormat'
+                f' penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
+            )
+            print(f'\t[Parser] Parsing "{ifile}"...')
             try:
                 subprocess.run(cmd, shell=True, check=True, capture_output=True)
             except subprocess.CalledProcessError as err_msg:
@@ -60,7 +62,7 @@ class Analyzer:
                     os.remove(fn_parsed)
                 sys.exit(1)
 
-    def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
+    def _query(self, structure: Structure, fn_parsed: str) -> Tuple[int, str]:
         """
         Call Tregex to query {pattern} against {fn_parsed}
 
@@ -69,9 +71,12 @@ class Analyzer:
         :return (int) frequency: frequency of the pattern
         :return (str) matched_subtreees: matched subtrees of the pattern
         """
+        print(
+            f'\t[Tregex] Querying "{structure.desc}" against "{fn_parsed}"...'
+        )
         cmd = (
-            "java -mx100m -cp"
-            f' "{self.classpath_tregex}" {self.method_tregex} {pattern} "{fn_parsed}" -o'
+            f'java -mx100m -cp "{self.classpath_tregex}"'
+            f' {self.method_tregex} {structure.pat} "{fn_parsed}" -o'
         )
         try:
             p = subprocess.run(cmd, shell=True, check=True, capture_output=True)
@@ -130,12 +135,8 @@ class Analyzer:
 
         structures = Structures(ifile)
         for structure in structures.to_search_for:
-            print(
-                f'\t[Tregex] Querying "{structure.desc}" against '
-                f"{path.basename(fn_parsed)}..."
-            )
             structure.freq, structure.matches = self._query(
-                structure.pat, fn_parsed
+                structure, fn_parsed
             )
         structures.update_freqs()
 
@@ -157,9 +158,7 @@ class Analyzer:
         """
         total = len(self.ifiles)
         for i, ifile in enumerate(self.ifiles):
-            print(
-                f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...'
-            )
+            print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
             fn_parsed = path.splitext(ifile)[0] + ".parsed"
             try:
                 structures = self._analyze_text(ifile, fn_parsed)
