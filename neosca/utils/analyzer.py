@@ -40,13 +40,15 @@ class Analyzer:
         :param fn_parsed: where to save the parsed results
         :return: None
         """
-        if path.exists(fn_parsed):
+        if path.exists(fn_parsed) and path.getsize(fn_parsed) > 0:
             mt_input = path.getmtime(ifile)  # get the last modification time
             mt_parsed = path.getmtime(fn_parsed)
             if mt_input < mt_parsed:
                 self.skip_parsing = True
-                # skip parsing when {fn_parsed} already exists and
-                # is newer than {ifile}
+                print(
+                    f"\t[Parser] Parsing skipped: {fn_parsed} already exists,"
+                    f" and is non-empty and newer than {ifile}."
+                )
         if not self.skip_parsing:
             print(f"\t[Parser] Parsing...")
             cmd = (
