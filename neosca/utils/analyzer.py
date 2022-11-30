@@ -52,7 +52,13 @@ class Analyzer:
                 # skip parsing when {fn_parsed} already exists and
                 # is newer than {ifile}
         if not self.skip_parsing:
-            subprocess.run(cmd, shell=True, capture_output=True)
+            try:
+                subprocess.run(cmd, shell=True, check=True, capture_output=True)
+            except subprocess.CalledProcessError as err_msg:
+                print(err_msg)
+                if os.path.exists(fn_parsed):
+                    os.remove(fn_parsed)
+                sys.exit(1)
 
     def _query(self, pattern: str, fn_parsed: str) -> Tuple[int, str]:
         """
@@ -67,7 +73,11 @@ class Analyzer:
             "java -mx100m -cp"
             f' "{self.classpath_tregex}" {self.method_tregex} {pattern} "{fn_parsed}" -o'
         )
-        p = subprocess.run(cmd, shell=True, capture_output=True)
+        try:
+            p = subprocess.run(cmd, shell=True, check=True, capture_output=True)
+        except subprocess.CalledProcessError as err_msg:
+            print(err_msg)
+            sys.exit(1)
         match_reslt = re.search(
             r"There were (\d+) matches in total\.", p.stderr.decode()
         )
