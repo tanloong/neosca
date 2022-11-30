@@ -41,7 +41,7 @@ class Analyzer:
         :return: None
         """
         cmd = (
-            f'java -mx1500m -cp {self.classpath_parser} {self.method_parser} '
+            f'java -mx1500m -cp {self.classpath_parser} "{self.method_parser}" '
             f'-outputFormat penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
         )
         if path.exists(fn_parsed):
@@ -109,14 +109,13 @@ class Analyzer:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def _analyze_text(self, ifile) -> Structures:
+    def _analyze_text(self, ifile: str, fn_parsed: str) -> Structures:
         """
         Analyze a text file
 
         :param ifile: which file to analyze
         :return structures: an instance of Structures
         """
-        fn_parsed = path.splitext(ifile)[0] + ".parsed"
         self._parse(ifile, fn_parsed)
 
         structures = Structures(path.basename(ifile))
@@ -151,5 +150,11 @@ class Analyzer:
             print(
                 f"[NeoSCA] Processing {path.basename(ifile)} ({i+1}/{total})..."
             )
-            structures = self._analyze_text(ifile)
-            yield structures
+            fn_parsed = path.splitext(ifile)[0] + ".parsed"
+            try:
+                structures = self._analyze_text(ifile, fn_parsed)
+                yield structures
+            except KeyboardInterrupt:
+                if os.path.exists(fn_parsed):
+                    os.remove(fn_parsed)
+                sys.exit(1)
