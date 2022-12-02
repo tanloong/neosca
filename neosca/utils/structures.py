@@ -85,8 +85,28 @@ class Structures:
     )
     CP = Structure("CP", "coordinate phrases", "ADJP|ADVP|NP|VP < CC")
 
+    VP = Structure("VP", "verb phrases")
+    C = Structure("C", "clauses")
+    T = Structure("T", "T-units")
+    CN = Structure("CN", "complex nominals")
+
+    MLS = Structure("MLS", "mean length of sentence")
+    MLT = Structure("MLT", "mean length of T-unit")
+    MLC = Structure("MLC", "mean length of clause")
+    CpS = Structure("C/S", "clauses per sentence")
+    VPpT = Structure("VP/T", "verb phrases per T-unit")
+    CpT = Structure("C/T", "clauses per T-unit")
+    DCpC = Structure("DC/C", "dependent clauses per clause")
+    DCpT = Structure("DC/T", "dependent clauses per T-unit")
+    TpS = Structure("T/S", "T-units per sentence")
+    CTpT = Structure("CT/T", "complex T-unit ratio")
+    CPpT = Structure("CP/T", "coordinate phrases per T-unit")
+    CPpC = Structure("CP/C", "coordinate phrases per clause")
+    CNpT = Structure("CN/T", "complex nominals per T-unit")
+    CNpC = Structure("CN/C", "complex nominals per clause")
+
     # a list of tregex patterns for various structures
-    to_search_for: Sequence[Structure] = (
+    to_query: Sequence[Structure] = (
         S,
         VP1,
         VP2,
@@ -101,38 +121,41 @@ class Structures:
         CT,
         CP,
     )
+    to_report: Sequence[Structure] = (
+        S,
+        VP,
+        C,
+        T,
+        DC,
+        CT,
+        CP,
+        CN,
+        MLS,
+        MLT,
+        MLC,
+        CpS,
+        VPpT,
+        CpT,
+        DCpC,
+        DCpT,
+        TpS,
+        CTpT,
+        CPpT,
+        CPpC,
+        CNpT,
+        CNpC,
+    )
+
     if os.name == "nt":
         # for Windows
-        for structure in to_search_for:
+        for structure in to_query:
             structure.pat = '"' + structure.pat + '"'
     else:
         # for Linux & MacOS
-        for structure in to_search_for:
+        for structure in to_query:
             structure.pat = "'" + structure.pat + "'"
-
-    VP = Structure("VP", "verb phrases")
-    C = Structure("C", "clauses")
-    T = Structure("T", "T-units")
-    CN = Structure("CN", "complex nominals")
-
-    MLS = Structure("MLS", "mean length of sentence")
-    MLT = Structure("MLT", "mean length of T-unit")
-    MLC = Structure("MLC", "mean length of clause")
-    CpS = Structure("CpS", "clauses per sentence")
-    VPpT = Structure("VPpT", "verb phrases per T-unit")
-    CpT = Structure("CpT", "clauses per T-unit")
-    DCpC = Structure("DCpC", "dependent clauses per clause")
-    DCpT = Structure("DCpT", "dependent clauses per T-unit")
-    TpS = Structure("TpS", "T-units per sentence")
-    CTpT = Structure("CTpT", "complex T-unit ratio")
-    CPpT = Structure("CPpT", "coordinate phrases per T-unit")
-    CPpC = Structure("CPpC", "coordinate phrases per clause")
-    CNpT = Structure("CNpT", "complex nominals per T-unit")
-    CNpC = Structure("CNpC", "complex nominals per clause")
-
-    fields = (
-        "Filename,W,S,VP,C,T,DC,CT,CP,CN,"
-        "MLS,MLT,MLC,C/S,VP/T,C/T,DC/C,DC/T,T/S,CT/T,CP/T,CP/C,CN/T,CN/C"
+    fields = "Filename,W," + ",".join(
+        (structure.name for structure in to_report)
     )
 
     def __init__(self, ifile):
@@ -170,29 +193,6 @@ class Structures:
         self.CNpC.freq = self._div(self.CN.freq, self.C1.freq)
 
     def get_freqs(self):
-        return (
-            "{0.ifile},"
-            "{0.W.freq},"
-            "{0.S.freq},"
-            "{0.VP.freq},"
-            "{0.C.freq},"
-            "{0.T.freq},"
-            "{0.DC.freq},"
-            "{0.CT.freq},"
-            "{0.CP.freq},"
-            "{0.CN.freq},"
-            "{0.MLS.freq},"
-            "{0.MLT.freq},"
-            "{0.MLC.freq},"
-            "{0.CpS.freq},"
-            "{0.VPpT.freq},"
-            "{0.CpT.freq},"
-            "{0.DCpC.freq},"
-            "{0.DCpT.freq},"
-            "{0.TpS.freq},"
-            "{0.CTpT.freq},"
-            "{0.CPpT.freq},"
-            "{0.CPpC.freq},"
-            "{0.CNpT.freq},"
-            "{0.CNpC.freq}".format(self)
+        return f"{self.ifile},{self.W.freq}," + ",".join(
+            map(str, (structure.freq for structure in self.to_report))
         )

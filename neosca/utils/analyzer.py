@@ -134,7 +134,7 @@ class Analyzer:
         self._parse(ifile, fn_parsed)
 
         structures = Structures(ifile)
-        for structure in structures.to_search_for:
+        for structure in structures.to_query:
             structure.freq, structure.matches = self._query(
                 structure, fn_parsed
             )
