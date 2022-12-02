@@ -176,7 +176,7 @@ Please use the following citation if you use NeoSCA in your work:
 ```BibTeX
 @misc{tan2022neosca,
 author = {Tan, Long},
-title = {NeoSCA},
+title = {NeoSCA (version 0.0.27)},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year = {2022}
 }

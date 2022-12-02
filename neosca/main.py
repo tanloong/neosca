@@ -48,6 +48,13 @@ class SCAUI:
             help="show version of NeoSCA",
         )
         parser.add_argument(
+            "--list",
+            dest="list_fields",
+            action="store_true",
+            default=False,
+            help="list output fields",
+        )
+        parser.add_argument(
             "-o",
             "--output",
             default=None,
@@ -181,8 +188,18 @@ class SCAUI:
     def run(self) -> SCAProcedureResult:
         if self.options.version:
             return self.show_version()
+        elif self.options.list_fields:
+            return self.list_fields()
         else:
             return self.run_analyzer()
+
+    def list_fields(self) -> SCAProcedureResult:
+        from .utils.structures import Structures
+        field_info = "W: words"
+        for structure in Structures.to_report:
+            field_info += f"\n{structure.name}: {structure.desc}"
+        print(field_info)
+        return True, None
 
     def show_version(self) -> SCAProcedureResult:
         print(__version__)
