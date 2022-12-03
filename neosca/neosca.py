@@ -8,7 +8,7 @@ from typing import Tuple, Generator
 from .structures import Structure, Structures
 
 
-class Analyzer:
+class NeoSCA:
     method_parser = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
     model_parser = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
     method_tregex = "edu.stanford.nlp.trees.tregex.TregexPattern"

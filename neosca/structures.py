@@ -1,4 +1,4 @@
-import os
+import sys
 from typing import Union, Sequence
 
 
@@ -146,14 +146,13 @@ class Structures:
         CNpC,
     )
 
-    if os.name == "nt":
-        # for Windows
-        for structure in to_query:
-            structure.pat = '"' + structure.pat + '"'
+    if sys.platform == "win32":
+        quotation_mark = '"'
     else:
-        # for Linux & MacOS
-        for structure in to_query:
-            structure.pat = "'" + structure.pat + "'"
+        quotation_mark = "'"
+    for structure in to_query:
+        structure.pat = f"{quotation_mark}{structure.pat}{quotation_mark}"
+
     fields = "Filename,W," + ",".join(
         (structure.name for structure in to_report)
     )
