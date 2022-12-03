@@ -130,6 +130,12 @@ class SCAUI:
             self.reserve_match = options.reserve_match
 
         self.options, self.ifile_list = options, ifile_list
+        self.init_kwargs = {
+            "dir_stanford_parser": self.dir_stanford_parser,
+            "dir_stanford_tregex": self.dir_stanford_tregex,
+            "ifiles": self.ifile_list,
+            "reserve_parsed": self.reserve_parsed,
+        }
 
         valid_ifile_list = []
         for f in self.ifile_list:
@@ -163,12 +169,7 @@ class SCAUI:
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
-        analyzer = NeoSCA(
-            self.dir_stanford_parser,  # type: ignore
-            self.dir_stanford_tregex,  # type: ignore
-            ifiles=self.ifile_list,
-            reserve_parsed=self.reserve_parsed,
-        )
+        analyzer = NeoSCA(**self.init_kwargs)
         gen = analyzer.perform_analysis()
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
@@ -195,6 +196,7 @@ class SCAUI:
 
     def list_fields(self) -> SCAProcedureResult:
         from .structures import Structures
+
         field_info = "W: words"
         for structure in Structures.to_report:
             field_info += f"\n{structure.name}: {structure.desc}"
