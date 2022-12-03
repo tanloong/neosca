@@ -8,9 +8,9 @@ from typing import List, Optional, Tuple
 from itertools import tee
 
 from . import __version__
-from .utils.analyzer import Analyzer
-from .utils.writer import write_match_output
-from .utils.writer import write_freq_output
+from .neosca import NeoSCA
+from .writer import write_match_output
+from .writer import write_freq_output
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -163,7 +163,7 @@ class SCAUI:
             )
         if not self.ifile_list:
             return False, "Input files are not provided."
-        analyzer = Analyzer(
+        analyzer = NeoSCA(
             self.dir_stanford_parser,  # type: ignore
             self.dir_stanford_tregex,  # type: ignore
             ifiles=self.ifile_list,
@@ -194,7 +194,7 @@ class SCAUI:
             return self.run_analyzer()
 
     def list_fields(self) -> SCAProcedureResult:
-        from .utils.structures import Structures
+        from .structures import Structures
         field_info = "W: words"
         for structure in Structures.to_report:
             field_info += f"\n{structure.name}: {structure.desc}"
