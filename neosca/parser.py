@@ -9,8 +9,8 @@ class Parser:
     method_parser = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
     model_parser = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
 
-    def __init__(self, classpath: str):
-        self.classpath = classpath
+    def __init__(self, dir_stanford_parser: str):
+        self.classpath = '"' + dir_stanford_parser + os.sep + "*" + '"'
 
     def parse(self, ifile: str, fn_parsed: str) -> None:
         """
@@ -22,9 +22,9 @@ class Parser:
         """
         print(f"\t[Parser] Parsing...")
         cmd = (
-            "java -mx1500m -cp"
-            f' {self.classpath} "{self.method_parser}" -outputFormat'
-            f' penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
+            f'java -mx1500m -cp {self.classpath} "{self.method_parser}"'
+            f' -outputFormat penn -nthreads -1 {self.model_parser} "{ifile}" >'
+            f' "{fn_parsed}"'
         )
         try:
             subprocess.run(cmd, shell=True, check=True, capture_output=True)

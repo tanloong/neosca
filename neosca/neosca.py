@@ -23,10 +23,8 @@ class NeoSCA:
         :param reserve_parsed: option to reserve Stanford Parser's
          parsing results
         """
-        self.classpath_parser = '"' + dir_stanford_parser + os.sep + "*" + '"'
-        self.classpath_tregex = (
-            '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
-        )
+        self.parser = Parser(dir_stanford_parser)
+        self.querier = Querier(dir_stanford_tregex)
         self.ifiles = ifiles
         self.reserve_parsed = reserve_parsed
         self.skip_parsing = False
@@ -68,9 +66,6 @@ class NeoSCA:
         return structures
 
     def perform_analysis(self) -> Generator[Structures, None, None]:
-        self.parser = Parser(self.classpath_parser)
-        self.querier = Querier(self.classpath_tregex)
-
         total = len(self.ifiles)
         for i, ifile in enumerate(self.ifiles):
             print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')

@@ -12,8 +12,10 @@ from .structures import Structure
 class Querier:
     method_tregex = "edu.stanford.nlp.trees.tregex.TregexPattern"
 
-    def __init__(self, classpath: str):
-        self.classpath = classpath
+    def __init__(self, dir_stanford_tregex: str):
+        self.classpath = (
+            '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
+        )
 
     def query(self, structure: Structure, fn_parsed: str) -> Tuple[int, str]:
         """
