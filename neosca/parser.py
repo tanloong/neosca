@@ -12,7 +12,7 @@ class Parser:
     def __init__(self, dir_stanford_parser: str):
         self.classpath = '"' + dir_stanford_parser + os.sep + "*" + '"'
 
-    def parse(self, ifile: str, fn_parsed: str) -> None:
+    def parse(self, ifile: str, fn_parsed: str) -> str:
         """
         Call Stanford Parser
 
@@ -23,13 +23,13 @@ class Parser:
         print(f"\t[Parser] Parsing...")
         cmd = (
             f'java -mx1500m -cp {self.classpath} "{self.method_parser}"'
-            f' -outputFormat penn -nthreads -1 {self.model_parser} "{ifile}" >'
-            f' "{fn_parsed}"'
+            f' -outputFormat penn -nthreads -1 {self.model_parser} "{ifile}"'
         )
         try:
-            subprocess.run(cmd, shell=True, check=True, capture_output=True)
+            p = subprocess.run(cmd, shell=True, check=True, capture_output=True)
         except subprocess.CalledProcessError as err_msg:
             print(err_msg)
             if os.path.exists(fn_parsed):
                 os.remove(fn_parsed)
             sys.exit(1)
+        return p.stdout.decode()
