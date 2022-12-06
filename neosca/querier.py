@@ -17,7 +17,7 @@ class Querier:
             '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
         )
 
-    def query(self, trees: str, structure: Structure) -> Tuple[int, str]:
+    def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
         """
         Call Tregex to query {pattern} against {fn_parsed}
 
