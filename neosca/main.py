@@ -21,17 +21,6 @@ SCAProcedureResult = Tuple[bool, Optional[str]]
 class SCAUI:
     def __init__(self):
         self.parser: argparse.ArgumentParser = self.create_parser()
-
-        self.ofile_freq: str = "result.csv"
-        self.dir_stanford_parser: Optional[str] = os.getenv(
-            "STANFORD_PARSER_HOME"
-        )
-        self.dir_stanford_tregex: Optional[str] = os.getenv(
-            "STANFORD_TREGEX_HOME"
-        )
-        self.reserve_parsed: bool = False
-        self.reserve_match: bool = False
-
         self.options: argparse.Namespace = argparse.Namespace()
 
     def create_parser(self) -> argparse.ArgumentParser:
@@ -57,13 +46,15 @@ class SCAUI:
         parser.add_argument(
             "-o",
             "--output",
-            default=None,
+            metavar="OUTFILE",
+            dest="ofile_freq",
+            default="result.csv",
             help="output file",
         )
         parser.add_argument(
             "--parser",
             dest="dir_stanford_parser",
-            default=None,
+            default=os.getenv("STANFORD_PARSER_HOME"),
             help=(
                 "directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"
             ),
@@ -71,7 +62,7 @@ class SCAUI:
         parser.add_argument(
             "--tregex",
             dest="dir_stanford_tregex",
-            default=None,
+            default=os.getenv("STANFORD_TREGEX_HOME"),
             help=(
                 "directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"
             ),
@@ -94,58 +85,46 @@ class SCAUI:
         )
         return parser
 
-    def parse(self, argv: List[str]) -> SCAProcedureResult:
+    def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         args = argv[1:] if argv[1:] else ["--help"]
         options, ifile_list = self.parser.parse_known_args(args)
+        self.odir_match = path.splitext(options.ofile_freq)[0]
 
-        if options.output:
-            self.ofile_freq = options.output
-        self.odir_match = path.splitext(self.ofile_freq)[0]
-
-        if options.dir_stanford_parser:
-            self.dir_stanford_parser = options.dir_stanford_parser
-        if self.dir_stanford_parser is None:
+        if options.dir_stanford_parser is None:
             return (
                 False,
                 "You need to either set $STANFORD_PARSER_HOME or give the path"
                 " of Stanford Parser through the `--parser` option.",
             )
-        if not path.isdir(self.dir_stanford_parser):
-            return False, f"{self.dir_stanford_parser} is invalid."
+        if not path.isdir(options.dir_stanford_parser):
+            return False, f"{options.dir_stanford_parser} is invalid."
 
-        if options.dir_stanford_tregex:
-            self.dir_stanford_tregex = options.dir_stanford_tregex
-        if self.dir_stanford_tregex is None:
+        if options.dir_stanford_tregex is None:
             return (
                 False,
-                "You need to either set $STANFORD_PARSER_HOME or give the path"
+                "You need to either set $STANFORD_TREGEX_HOME or give the path"
                 " of Stanford Tregex through the `--tregex` option.",
             )
-        if not path.isdir(self.dir_stanford_tregex):
-            return False, f"{self.dir_stanford_tregex} is invalid."
+        if not path.isdir(options.dir_stanford_tregex):
+            return False, f"{options.dir_stanford_tregex} is invalid."
 
-        if options.reserve_parsed:
-            self.reserve_parsed = options.reserve_parsed
-        if options.reserve_match:
-            self.reserve_match = options.reserve_match
+        self.options = options
 
-        self.options, self.ifile_list = options, ifile_list
-        self.init_kwargs = {
-            "dir_stanford_parser": self.dir_stanford_parser,
-            "dir_stanford_tregex": self.dir_stanford_tregex,
-            "ifiles": self.ifile_list,
-            "reserve_parsed": self.reserve_parsed,
-        }
-
-        valid_ifile_list = []
-        for f in self.ifile_list:
+        verified_ifile_list = []
+        for f in ifile_list:
             if path.isfile(f):
-                valid_ifile_list.append(f)
+                verified_ifile_list.append(f)
             elif glob.glob(f):
-                valid_ifile_list.extend(glob.glob(f))
+                verified_ifile_list.extend(glob.glob(f))
             else:
                 return (False, f"No such file as \n\n{f}")
-        self.ifile_list = valid_ifile_list
+
+        self.init_kwargs = {
+            "dir_stanford_parser": options.dir_stanford_parser,
+            "dir_stanford_tregex": options.dir_stanford_tregex,
+            "ifiles": verified_ifile_list,
+            "reserve_parsed": options.reserve_parsed,
+        }
 
         return True, None
 
@@ -167,8 +146,6 @@ class SCAUI:
                 " sure you can access it in the cmd window by typing in `java"
                 " -version`.",
             )
-        if not self.ifile_list:
-            return False, "Input files are not provided."
         analyzer = NeoSCA(**self.init_kwargs)
         gen = analyzer.perform_analysis()
         structures_generator1, structures_generator2 = tee(gen, 2)
