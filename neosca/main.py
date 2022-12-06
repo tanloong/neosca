@@ -83,6 +83,13 @@ class SCAUI:
             action="store_true",
             help="option to reserve match results by Stanford Tregex",
         )
+        parser.add_argument(
+            "--no-query",
+            dest="no_query",
+            action="store_true",
+            default=False,
+            help="just parse input files and exit",
+        )
         return parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
@@ -107,6 +114,8 @@ class SCAUI:
             )
         if not path.isdir(options.dir_stanford_tregex):
             return False, f"{options.dir_stanford_tregex} is invalid."
+        if options.no_query:
+            options.reserve_parsed = True
 
         self.options = options
 
@@ -147,16 +156,20 @@ class SCAUI:
                 " -version`.",
             )
         analyzer = NeoSCA(**self.init_kwargs)
-        gen = analyzer.perform_analysis()
+
+        if self.options.no_query:
+            analyzer.parse_and_exit()
+            return True, None
+        gen = analyzer.parse_and_query()
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
 
         freq_output = ""
         for structures in structures_generator1:
             freq_output += structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.ofile_freq)
+        write_freq_output(freq_output, self.options.ofile_freq)
 
-        if self.reserve_match:
+        if self.options.reserve_match:
             for structures in structures_generator2:
                 write_match_output(structures, self.odir_match)
             print(f"Match output was saved to {path.abspath(self.odir_match)}.")
@@ -187,7 +200,7 @@ class SCAUI:
 
 def main():
     ui = SCAUI()
-    success, err_msg = ui.parse(sys.argv)
+    success, err_msg = ui.parse_args(sys.argv)
     if not success:
         print(err_msg)
         sys.exit(1)
