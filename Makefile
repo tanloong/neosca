@@ -1,4 +1,4 @@
-.PHONY: refresh clean build release install
+.PHONY: refresh clean build release install test
 
 refresh: clean build install
 
@@ -18,3 +18,6 @@ release:
 
 install:
 	python setup.py install --user
+
+test:
+	python -m unittest

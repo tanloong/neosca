@@ -5,6 +5,5 @@ build/
 dist
 doc
 note.txt
-tests
 test.py
 notes.md
