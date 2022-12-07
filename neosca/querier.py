@@ -18,14 +18,7 @@ class Querier:
         )
 
     def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
-        """
-        Call Tregex to query {pattern} against {fn_parsed}
-
-        :param trees: parsed trees to query against
-        :param structure: Structure
-        :return (int) frequency: frequency of the pattern
-        :return (str) matched_subtreees: matched subtrees of the pattern
-        """
+        """ Call Tregex to query {pattern} against {fn_parsed} """
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
             f'java -mx100m -cp "{self.classpath}"'
@@ -34,7 +27,7 @@ class Querier:
         try:
             p = subprocess.run(
                 cmd,
-                input=trees.encode(),
+                input=trees.encode("utf-8"),
                 shell=True,
                 check=True,
                 capture_output=True,
@@ -43,7 +36,7 @@ class Querier:
             print(err_msg)
             sys.exit(1)
         match_reslt = re.search(
-            r"There were (\d+) matches in total\.", p.stderr.decode()
+            r"There were (\d+) matches in total\.", p.stderr.decode("utf-8")
         )
         if match_reslt:
             freq = match_reslt.group(1)
@@ -60,7 +53,7 @@ class Querier:
                 " enclosed by double quotes; on Linux and macOS they are"
                 " surrounded by single quotes."
             )
-        matched_subtrees = p.stdout.decode()
+        matched_subtrees = p.stdout.decode("utf-8")
         matched_subtrees = self._add_terms(matched_subtrees)
         return int(freq), matched_subtrees
 

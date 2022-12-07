@@ -159,9 +159,9 @@ nsca sample[1-10].txt
 ```
 
 3. Use `-p/--reserve-parsed` 
-to reserve parsed files of Stanford Parser.
-Use `-m/--reserve-match` 
-to reserve match results of Stanford Tregex.
+to reserve parsed trees of Stanford Parser.
+Use `-m/--reserve-matched`
+to reserve matched subtrees of Stanford Tregex.
 
 ```sh
 nsca sample1.txt -p -m
