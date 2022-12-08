@@ -22,7 +22,7 @@ class Querier:
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
             f'java -mx100m -cp "{self.classpath}"'
-            f' {self.method_tregex} {structure.pat} "{trees}" -o -filter'
+            f' {self.method_tregex} {structure.pat} -o -filter'
         )
         try:
             p = subprocess.run(
