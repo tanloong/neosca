@@ -161,23 +161,28 @@ class SCAUI:
 
     def exit_routine(self):
         print("=" * 60)
+        i = 1
         if not self.options.no_query:
             print(
-                "Frequency output was saved to"
+                f"{i}. Frequency output was saved to"
                 f" {path.abspath(self.options.ofile_freq)}."
             )
+            i += 1
         if self.verified_ifile_list and self.options.reserve_parsed:
             print(
-                "Parsed trees were saved corresponding to input files,"
+                f"{i}. Parsed trees were saved corresponding to input files,"
                 ' with the same name but a ".parsed" extension.'
             )
+            i += 1
         if self.options.text is not None and self.options.reserve_parsed:
-            print("Parsed trees was saved to cmdline_text.parsed.")
+            print(f"{i}. Parsed trees were saved to cmdline_text.parsed.")
+            i += 1
         if self.options.reserve_matched:
             print(
-                "Matched subtrees was saved to"
+                f"{i}. Matched subtrees were saved to"
                 f" {path.abspath(self.odir_match)}."
             )
+            i += 1
         print("Done.")
 
     def run_tmpl(func):
