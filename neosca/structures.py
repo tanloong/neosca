@@ -172,7 +172,7 @@ class Structures:
     def _div(self, x, y) -> Union[float, int]:
         return round(x / y, 4) if y else 0
 
-    def compute_SC_indicies(self):
+    def compute_14_indicies(self):
         """
         Compute the 14 syntactic complexity indices
         """

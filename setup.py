@@ -17,7 +17,7 @@ setuptools.setup(
     author="TAN Long",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
-    packages=["neosca", "neosca.utils"],
+    packages=["neosca"],
     description=(
         "Another syntactic complexity analyzer of written English language samples"
     ),
@@ -37,5 +37,6 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
     ],
+    python_requires=">=3.7",
     entry_points={"console_scripts": ["nsca = neosca:main"]},
 )

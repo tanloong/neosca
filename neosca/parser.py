@@ -9,27 +9,37 @@ class Parser:
     method_parser = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
     model_parser = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
 
-    def __init__(self, classpath: str):
-        self.classpath = classpath
+    def __init__(self, dir_stanford_parser: str):
+        self.classpath = '"' + dir_stanford_parser + os.sep + "*" + '"'
 
-    def parse(self, ifile: str, fn_parsed: str) -> None:
-        """
-        Call Stanford Parser
-
-        :param ifile: file to parse
-        :param fn_parsed: where to save the parsed results
-        :return: None
-        """
+    def parse(self, fn_parsed:str, ifile=None, text=None) -> str:
+        """ Call Stanford Parser """
         print(f"\t[Parser] Parsing...")
-        cmd = (
-            "java -mx1500m -cp"
-            f' {self.classpath} "{self.method_parser}" -outputFormat'
-            f' penn {self.model_parser} "{ifile}" > "{fn_parsed}"'
+        cmd_base = (
+            f'java -mx1500m -cp {self.classpath} "{self.method_parser}"'
+            f" -outputFormat penn -nthreads -1 {self.model_parser} "
         )
+
+        if text is not None:
+            cmd = cmd_base + "-"
+            input = text.encode("utf-8")
+        elif ifile is not None:
+            cmd = cmd_base + f'"{ifile}"'
+            input = None
+        else:
+            print("Neither {ifile} nor {text} is provided.")
+            sys.exit(1)
         try:
-            subprocess.run(cmd, shell=True, check=True, capture_output=True)
+            p = subprocess.run(
+                cmd,
+                input=input,
+                shell=True,
+                check=True,
+                capture_output=True,
+            )
         except subprocess.CalledProcessError as err_msg:
             print(err_msg)
             if os.path.exists(fn_parsed):
                 os.remove(fn_parsed)
             sys.exit(1)
+        return p.stdout.decode("utf-8")

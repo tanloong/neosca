@@ -5,3 +5,5 @@ build/
 dist
 doc
 note.txt
+test.py
+notes.md
