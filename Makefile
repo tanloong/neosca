@@ -1,8 +1,10 @@
-.PHONY: refresh clean build release install
+.PHONY: refresh clean build release install test
 
 refresh: clean build install
 
 clean:
+	rm -rf __pychache__
+	rm -rf tests/__pychache__
 	rm -rf build
 	rm -rf dist
 	rm -rf neosca.egg-info
@@ -12,7 +14,10 @@ build:
 	python setup.py sdist bdist_wheel
 
 release:
-	twine upload dist/*
+	python -m twine upload dist/*
 
 install:
-	pip install dist/*.whl
+	python setup.py install --user
+
+test:
+	python -m unittest

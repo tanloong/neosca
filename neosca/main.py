@@ -20,179 +20,235 @@ SCAProcedureResult = Tuple[bool, Optional[str]]
 
 class SCAUI:
     def __init__(self):
-        self.parser: argparse.ArgumentParser = self.create_parser()
-
-        self.ofile_freq: str = "result.csv"
-        self.dir_stanford_parser: Optional[str] = os.getenv(
-            "STANFORD_PARSER_HOME"
-        )
-        self.dir_stanford_tregex: Optional[str] = os.getenv(
-            "STANFORD_TREGEX_HOME"
-        )
-        self.reserve_parsed: bool = False
-        self.reserve_match: bool = False
-
+        self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
 
-    def create_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(
+    def create_args_parser(self) -> argparse.ArgumentParser:
+        args_parser = argparse.ArgumentParser(
             prog="nsca",
             formatter_class=lambda prog: argparse.HelpFormatter(
                 prog, max_help_position=50, width=100
             ),
         )
-        parser.add_argument(
+        args_parser.add_argument(
             "--version",
             action="store_true",
             default=False,
             help="show version of NeoSCA",
         )
-        parser.add_argument(
+        args_parser.add_argument(
             "--list",
             dest="list_fields",
             action="store_true",
             default=False,
             help="list output fields",
         )
-        parser.add_argument(
-            "-o",
-            "--output",
+        args_parser.add_argument(
+            "--text",
+            "-t",
             default=None,
+            help="pass text through command line",
+        )
+        args_parser.add_argument(
+            "--output",
+            "-o",
+            metavar="OUTFILE",
+            dest="ofile_freq",
+            default="result.csv",
             help="output file",
         )
-        parser.add_argument(
+        args_parser.add_argument(
+            "--no-query",
+            dest="no_query",
+            action="store_true",
+            default=False,
+            help="just parse input files, save parsed trees, and exit",
+        )
+        args_parser.add_argument(
             "--parser",
             dest="dir_stanford_parser",
-            default=None,
+            default=os.getenv("STANFORD_PARSER_HOME"),
             help=(
                 "directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"
             ),
         )
-        parser.add_argument(
+        args_parser.add_argument(
             "--tregex",
             dest="dir_stanford_tregex",
-            default=None,
+            default=os.getenv("STANFORD_TREGEX_HOME"),
             help=(
                 "directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"
             ),
         )
-        parser.add_argument(
-            "-p",
+        args_parser.add_argument(
             "--reserve-parsed",
+            "-p",
             dest="reserve_parsed",
             action="store_true",
             default=False,
-            help="option to reserve parsed files by Stanford Parser",
+            help="option to reserve parsed trees by Stanford Parser",
         )
-        parser.add_argument(
+        args_parser.add_argument(
+            "--reserve-matched",
             "-m",
-            "--reserve-match",
-            dest="reserve_match",
+            dest="reserve_matched",
             default=False,
             action="store_true",
-            help="option to reserve match results by Stanford Tregex",
+            help="option to reserve matched subtrees by Stanford Tregex",
         )
-        return parser
+        return args_parser
 
-    def parse(self, argv: List[str]) -> SCAProcedureResult:
-        args = argv[1:] if argv[1:] else ["--help"]
-        options, ifile_list = self.parser.parse_known_args(args)
+    def parse_args(self, argv: List[str]) -> SCAProcedureResult:
+        options, ifile_list = self.args_parser.parse_known_args(argv[1:])
+        self.odir_match = path.splitext(options.ofile_freq)[0] + "_matches"
 
-        if options.output:
-            self.ofile_freq = options.output
-        self.odir_match = path.splitext(self.ofile_freq)[0]
-
-        if options.dir_stanford_parser:
-            self.dir_stanford_parser = options.dir_stanford_parser
-        if self.dir_stanford_parser is None:
+        if options.dir_stanford_parser is None:
             return (
                 False,
                 "You need to either set $STANFORD_PARSER_HOME or give the path"
                 " of Stanford Parser through the `--parser` option.",
             )
-        if not path.isdir(self.dir_stanford_parser):
-            return False, f"{self.dir_stanford_parser} is invalid."
+        if not path.isdir(options.dir_stanford_parser):
+            return False, f"{options.dir_stanford_parser} is invalid."
 
-        if options.dir_stanford_tregex:
-            self.dir_stanford_tregex = options.dir_stanford_tregex
-        if self.dir_stanford_tregex is None:
+        if options.dir_stanford_tregex is None:
             return (
                 False,
-                "You need to either set $STANFORD_PARSER_HOME or give the path"
+                "You need to either set $STANFORD_TREGEX_HOME or give the path"
                 " of Stanford Tregex through the `--tregex` option.",
             )
-        if not path.isdir(self.dir_stanford_tregex):
-            return False, f"{self.dir_stanford_tregex} is invalid."
+        if not path.isdir(options.dir_stanford_tregex):
+            return False, f"{options.dir_stanford_tregex} is invalid."
+        if options.no_query:
+            options.reserve_parsed = True
 
-        if options.reserve_parsed:
-            self.reserve_parsed = options.reserve_parsed
-        if options.reserve_match:
-            self.reserve_match = options.reserve_match
+        if options.text is None:
+            verified_ifile_list = []
+            for f in ifile_list:
+                if path.isfile(f):
+                    verified_ifile_list.append(f)
+                elif glob.glob(f):
+                    verified_ifile_list.extend(glob.glob(f))
+                else:
+                    return (False, f"No such file as \n\n{f}")
+        else:
+            print("Command-line text is given, input files will be ignored.")
+            verified_ifile_list = None
+        self.verified_ifile_list = verified_ifile_list
 
-        self.options, self.ifile_list = options, ifile_list
         self.init_kwargs = {
-            "dir_stanford_parser": self.dir_stanford_parser,
-            "dir_stanford_tregex": self.dir_stanford_tregex,
-            "ifiles": self.ifile_list,
-            "reserve_parsed": self.reserve_parsed,
+            "dir_stanford_parser": options.dir_stanford_parser,
+            "dir_stanford_tregex": options.dir_stanford_tregex,
+            "reserve_parsed": options.reserve_parsed,
         }
-
-        valid_ifile_list = []
-        for f in self.ifile_list:
-            if path.isfile(f):
-                valid_ifile_list.append(f)
-            elif glob.glob(f):
-                valid_ifile_list.extend(glob.glob(f))
-            else:
-                return (False, f"No such file as \n\n{f}")
-        self.ifile_list = valid_ifile_list
-
+        self.options = options
         return True, None
 
-    def _has_java(self) -> bool:
+    def check_java(self) -> SCAProcedureResult:
         try:
             subprocess.run(
                 "java -version", shell=True, check=True, capture_output=True
             )
         except subprocess.CalledProcessError:
-            return False
-        return True
-
-    def run_analyzer(self) -> SCAProcedureResult:
-        if not self._has_java():
             return (
                 False,
                 "Error: Java is unavailable.\n\n1. To install it, visit"
-                " https://www.java.com/en/download.\n2. After installing, make"
-                " sure you can access it in the cmd window by typing in `java"
-                " -version`.",
+                " https://www.java.com/en/download.\n2. After installing,"
+                " make sure you can access it in the cmd window by typing"
+                " in `java -version`.",
             )
-        if not self.ifile_list:
-            return False, "Input files are not provided."
+        return True, None
+
+    def exit_routine(self):
+        print("=" * 60)
+        i = 1
+        if not self.options.no_query:
+            print(
+                f"{i}. Frequency output was saved to"
+                f" {path.abspath(self.options.ofile_freq)}."
+            )
+            i += 1
+        if self.verified_ifile_list and self.options.reserve_parsed:
+            print(
+                f"{i}. Parsed trees were saved corresponding to input files,"
+                ' with the same name but a ".parsed" extension.'
+            )
+            i += 1
+        if self.options.text is not None and self.options.reserve_parsed:
+            print(f"{i}. Parsed trees were saved to cmdline_text.parsed.")
+            i += 1
+        if self.options.reserve_matched:
+            print(
+                f"{i}. Matched subtrees were saved to"
+                f" {path.abspath(self.odir_match)}."
+            )
+            i += 1
+        print("Done.")
+
+    def run_tmpl(func):
+        def wrapper(self, *args, **kwargs):
+            sucess, err_msg = self.check_java()
+            if not sucess:
+                return sucess, err_msg
+            func(self, *args, **kwargs)
+            self.exit_routine()
+            return True, None
+
+        return wrapper
+
+    @run_tmpl
+    def run_parse_text(self):
         analyzer = NeoSCA(**self.init_kwargs)
-        gen = analyzer.perform_analysis()
+        analyzer.parse_text(self.options.text)
+
+    @run_tmpl
+    def run_parse_text_and_query(self):
+        analyzer = NeoSCA(**self.init_kwargs)
+        structures = analyzer.parse_text_and_query(self.options.text)
+
+        freq_output = structures.get_freqs() + "\n"
+        write_freq_output(freq_output, self.options.ofile_freq)
+
+        if self.options.reserve_matched:
+            write_match_output(structures, self.odir_match)
+
+    @run_tmpl
+    def run_parse_ifiles(self):
+        analyzer = NeoSCA(**self.init_kwargs)
+        analyzer.parse_ifiles(self.verified_ifile_list)
+
+    @run_tmpl
+    def run_parse_ifiles_and_query(self):
+        analyzer = NeoSCA(**self.init_kwargs)
+        gen = analyzer.parse_ifiles_and_query(self.verified_ifile_list)
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
 
         freq_output = ""
         for structures in structures_generator1:
             freq_output += structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.ofile_freq)
+        write_freq_output(freq_output, self.options.ofile_freq)
 
-        if self.reserve_match:
+        if self.options.reserve_matched:
             for structures in structures_generator2:
                 write_match_output(structures, self.odir_match)
-            print(f"Match output was saved to {path.abspath(self.odir_match)}.")
-
-        return True, None
 
     def run(self) -> SCAProcedureResult:
         if self.options.version:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
+        elif self.options.text is not None and self.options.no_query:
+            return self.run_parse_text()
+        elif self.options.text is not None and not self.options.no_query:
+            return self.run_parse_text_and_query()
+        elif self.verified_ifile_list and self.options.no_query:
+            return self.run_parse_ifiles()
+        elif self.verified_ifile_list and not self.options.no_query:
+            return self.run_parse_ifiles_and_query()
         else:
-            return self.run_analyzer()
+            self.args_parser.print_help()
+            return True, None
 
     def list_fields(self) -> SCAProcedureResult:
         from .structures import Structures
@@ -210,7 +266,7 @@ class SCAUI:
 
 def main():
     ui = SCAUI()
-    success, err_msg = ui.parse(sys.argv)
+    success, err_msg = ui.parse_args(sys.argv)
     if not success:
         print(err_msg)
         sys.exit(1)
