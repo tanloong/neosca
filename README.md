@@ -102,9 +102,9 @@ the frequency of 9 structures in the text:
 pip install neosca
 ```
 
-For uers inside of China:
+For users inside of China:
 
-```
+```sh
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
@@ -117,14 +117,14 @@ pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 <details>
 
 <summary>
-4. Set `STANFORD_PARSER_HOME` and `STANFORD_TREGEX_HOME`
+4. Set environment variables `STANFORD_PARSER_HOME` and `STANFORD_TREGEX_HOME`
 </summary>
 
 + Windows:
 
 In the Environment Variables window (press `Windows`+`s`, type *env*, and press `Enter`):
 
-```
+```sh
 STANFORD_PARSER_HOME=\path\to\stanford-parser-full-2020-11-17
 STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
 ```
@@ -143,31 +143,90 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 The NeoSCA runs via the command `nsca`.
 
 1. Single input:
+
 ```sh
-nsca sample1.txt 
-# output will be saved in result.csv
-nsca sample1.txt -o sample1.csv 
-# custom output file
+nsca ./samples/sample1.txt 
+# frequency output: ./result.csv
+nsca ./samples/sample1.txt -o sample1.csv 
+# frequency output: ./sample1.csv
 ```
 
 2. Multiple input:
+
 ```sh
-nsca sample1.txt sample2.txt
-nsca sample*.txt 
+nsca ./samples/sample1.txt ./samples/sample2.txt
+nsca ./samples/sample*.txt 
 # wildcard characters are supported
-nsca sample[1-10].txt
+nsca ./samples/sample[1-1000].txt
 ```
 
-3. Use `-p/--reserve-parsed` 
+3. Use `--text` to pass text through command line.
+
+```sh
+nsca --text 'This is a test.'
+# frequency output: ./result.csv
+```
+
+4. Use `-p/--reserve-parsed` 
 to reserve parsed trees of Stanford Parser.
 Use `-m/--reserve-matched`
 to reserve matched subtrees of Stanford Tregex.
 
 ```sh
-nsca sample1.txt -p -m
+nsca samples/sample1.txt -p -m
+# frequency output: ./result.csv
+# parsed trees: ./samples/sample1.parsed
+# matched subtrees: ./result_matches/
 ```
 
-4. Calling `nsca` without any arguments returns the help message.
+<details>
+
+<summary>
+5. Use `--list` to print output fields.
+</summary>
+
+```sh
+nsca --list
+```
+
+```sh
+W: words
+S: sentences
+VP: verb phrases
+C: clauses
+T: T-units
+DC: dependent clauses
+CT: complex T-units
+CP: coordinate phrases
+CN: complex nominals
+MLS: mean length of sentence
+MLT: mean length of T-unit
+MLC: mean length of clause
+C/S: clauses per sentence
+VP/T: verb phrases per T-unit
+C/T: clauses per T-unit
+DC/C: dependent clauses per clause
+DC/T: dependent clauses per T-unit
+T/S: T-units per sentence
+CT/T: complex T-unit ratio
+CP/T: coordinate phrases per T-unit
+CP/C: coordinate phrases per clause
+CN/T: complex nominals per T-unit
+CN/C: complex nominals per clause
+```
+
+</details>
+
+6. Use `--no-query` to just save parsed trees and exit.
+
+```sh
+nsca samples/sample1.txt --no-query
+# parsed trees: samples/sample1.parsed
+nsca --text 'This is a test.' --no-query
+# parsed trees: ./cmdline_text.parsed
+```
+
+7. Calling `nsca` without any arguments returns the help message.
 
 ## <a name="citing"></a> Citing <small><sup>[Top ▲](#contents)</sup></small>
 
