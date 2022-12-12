@@ -18,11 +18,11 @@ class Querier:
         )
 
     def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
-        """ Call Tregex to query {pattern} against {fn_parsed} """
+        """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
             f'java -mx100m -cp "{self.classpath}"'
-            f' {self.method_tregex} {structure.pat} -o -filter'
+            f" {self.method_tregex} {structure.pat} -o -filter"
         )
         try:
             p = subprocess.run(

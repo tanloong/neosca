@@ -1,11 +1,11 @@
 import argparse
 import glob
+from itertools import tee
 from os import path
 import os
 import subprocess
 import sys
 from typing import List, Optional, Tuple
-from itertools import tee
 
 from . import __version__
 from .neosca import NeoSCA
