@@ -31,20 +31,20 @@ class SCAUI:
             "--version",
             action="store_true",
             default=False,
-            help="show version of NeoSCA",
+            help="show the version of NeoSCA",
         )
         args_parser.add_argument(
             "--list",
             dest="list_fields",
             action="store_true",
             default=False,
-            help="list output fields",
+            help="list the available output fields",
         )
         args_parser.add_argument(
             "--text",
             "-t",
             default=None,
-            help="pass text through command line",
+            help="pass text through the command line",
         )
         args_parser.add_argument(
             "--output-file",
@@ -52,14 +52,14 @@ class SCAUI:
             metavar="OUTFILE",
             dest="ofile_freq",
             default="result.csv",
-            help="output file",
+            help="specify an output file",
         )
         args_parser.add_argument(
             "--output-format",
             dest="oformat_freq",
             choices=["csv", "json"],
             default="csv",
-            help="output format, csv by default",
+            help="output format, the default is csv",
         )
         args_parser.add_argument(
             "--stdout",
@@ -67,8 +67,8 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "write the frequency output to stdout instead of saving it to a"
-                " file"
+                "write the frequency output to the stdout instead of"
+                " saving it to a file"
             ),
         )
         args_parser.add_argument(
@@ -76,15 +76,15 @@ class SCAUI:
             dest="no_query",
             action="store_true",
             default=False,
-            help="just parse input files, save parsed trees, and exit",
+            help="parse the input files, save the parsed trees, and exit",
         )
         args_parser.add_argument(
             "--parser",
             dest="dir_stanford_parser",
             default=os.getenv("STANFORD_PARSER_HOME"),
             help=(
-                "path to Stanford Parser, value of STANFORD_PARSER_HOME by"
-                " default"
+                "specify the path to Stanford Parser, the default is the value"
+                " of STANFORD_PARSER_HOME"
             ),
         )
         args_parser.add_argument(
@@ -92,8 +92,8 @@ class SCAUI:
             dest="dir_stanford_tregex",
             default=os.getenv("STANFORD_TREGEX_HOME"),
             help=(
-                "path to Stanford Tregex, value of STANFORD_TREGEX_HOME by"
-                " default"
+                "specify the path to Stanford Tregex, the default is the value"
+                " of STANFORD_TREGEX_HOME"
             ),
         )
         args_parser.add_argument(
@@ -102,7 +102,7 @@ class SCAUI:
             dest="reserve_parsed",
             action="store_true",
             default=False,
-            help="option to reserve parsed trees by Stanford Parser",
+            help="reserve the parsed trees produced by the Stanford Parser",
         )
         args_parser.add_argument(
             "--reserve-matched",
@@ -110,7 +110,7 @@ class SCAUI:
             dest="reserve_matched",
             default=False,
             action="store_true",
-            help="option to reserve matched subtrees by Stanford Tregex",
+            help="reserve the matched subtrees produced by the Stanford Tregex",
         )
         return args_parser
 
