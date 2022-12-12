@@ -23,14 +23,10 @@ class SCAUI:
     def __init__(self):
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
+        self.cwd = os.getcwd()
 
     def create_args_parser(self) -> argparse.ArgumentParser:
-        args_parser = argparse.ArgumentParser(
-            prog="nsca",
-            formatter_class=lambda prog: argparse.HelpFormatter(
-                prog, max_help_position=50, width=100
-            ),
-        )
+        args_parser = argparse.ArgumentParser(prog="nsca")
         args_parser.add_argument(
             "--version",
             action="store_true",
@@ -87,7 +83,8 @@ class SCAUI:
             dest="dir_stanford_parser",
             default=os.getenv("STANFORD_PARSER_HOME"),
             help=(
-                "directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"
+                "path to Stanford Parser, value of STANFORD_PARSER_HOME by"
+                " default"
             ),
         )
         args_parser.add_argument(
@@ -95,7 +92,8 @@ class SCAUI:
             dest="dir_stanford_tregex",
             default=os.getenv("STANFORD_TREGEX_HOME"),
             help=(
-                "directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"
+                "path to Stanford Tregex, value of STANFORD_TREGEX_HOME by"
+                " default"
             ),
         )
         args_parser.add_argument(
@@ -161,7 +159,7 @@ class SCAUI:
                 else:
                     return (False, f"No such file as \n\n{f}")
         else:
-            print("Command-line text is given, input files will be ignored.")
+            print(f"Command-line text: {options.text}")
             verified_ifile_list = None
         self.verified_ifile_list = verified_ifile_list
 
@@ -189,7 +187,7 @@ class SCAUI:
         return True, None
 
     def exit_routine(self):
-        print("=" * 60)
+        print("\n", "=" * 60, sep="")
         i = 1
         if not self.options.no_query and not self.options.stdout:
             print(f"{i}. Frequency output was saved to", end=" ")
@@ -211,27 +209,29 @@ class SCAUI:
             i += 1
         if self.options.reserve_matched:
             print(f"{i}. Matched subtrees were saved to", end=" ")
-            color_print("OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n")
+            color_print(
+                "OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n"
+            )
             i += 1
         print("Done.")
 
-    def run_tmpl(func):
+    def run_tmpl(func):  # type: ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_java()
             if not sucess:
                 return sucess, err_msg
-            func(self, *args, **kwargs)
+            func(self, *args, **kwargs)  # type: ignore
             self.exit_routine()
             return True, None
 
         return wrapper
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_text(self):
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.parse_text(self.options.text)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_text_and_query(self):
         analyzer = NeoSCA(**self.init_kwargs)
         structures = analyzer.parse_text_and_query(self.options.text)
@@ -243,12 +243,12 @@ class SCAUI:
         if self.options.reserve_matched:
             write_match_output(structures, self.odir_match)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_ifiles(self):
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.parse_ifiles(self.verified_ifile_list)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_ifiles_and_query(self):
         analyzer = NeoSCA(**self.init_kwargs)
         gen = analyzer.parse_ifiles_and_query(self.verified_ifile_list)
@@ -271,13 +271,13 @@ class SCAUI:
         elif self.options.list_fields:
             return self.list_fields()
         elif self.options.text is not None and self.options.no_query:
-            return self.run_parse_text()
+            return self.run_parse_text()  # type: ignore
         elif self.options.text is not None and not self.options.no_query:
-            return self.run_parse_text_and_query()
+            return self.run_parse_text_and_query()  # type: ignore
         elif self.verified_ifile_list and self.options.no_query:
-            return self.run_parse_ifiles()
+            return self.run_parse_ifiles()  # type: ignore
         elif self.verified_ifile_list and not self.options.no_query:
-            return self.run_parse_ifiles_and_query()
+            return self.run_parse_ifiles_and_query()  # type: ignore
         else:
             self.args_parser.print_help()
             return True, None
