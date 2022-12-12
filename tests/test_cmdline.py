@@ -11,7 +11,7 @@ class TestCommandLineBasic(CmdlineTmpl):
         #  Check for a few more arguments to ensure we hit the intended argumentParser
         self.assertIn("--parser", result_stdout)
         self.assertIn("--tregex", result_stdout)
-        self.assertIn("--output", result_stdout)
+        self.assertIn("--output-file", result_stdout)
 
     def test_help(self):
         """Test that all three options print the same help page"""
@@ -69,7 +69,7 @@ class TestCommandLineBasic(CmdlineTmpl):
 
     def test_outputfile(self):
         self.template(
-            "python -m neosca sample.txt --output result.csv --reserve-parsed"
+            "python -m neosca sample.txt --output-file result.csv --reserve-parsed"
             " --reserve-matched",
             expected_output_file=[
                 "result.csv",

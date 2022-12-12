@@ -51,12 +51,29 @@ class SCAUI:
             help="pass text through command line",
         )
         args_parser.add_argument(
-            "--output",
+            "--output-file",
             "-o",
             metavar="OUTFILE",
             dest="ofile_freq",
             default="result.csv",
             help="output file",
+        )
+        args_parser.add_argument(
+            "--output-format",
+            dest="oformat_freq",
+            choices=["csv", "json"],
+            default="csv",
+            help="output format, csv by default",
+        )
+        args_parser.add_argument(
+            "--stdout",
+            dest="stdout",
+            action="store_true",
+            default=False,
+            help=(
+                "write the frequency output to stdout instead of saving it to a"
+                " file"
+            ),
         )
         args_parser.add_argument(
             "--no-query",
@@ -122,6 +139,17 @@ class SCAUI:
             return False, f"{options.dir_stanford_tregex} is invalid."
         if options.no_query:
             options.reserve_parsed = True
+
+        if options.stdout:
+            options.ofile_freq = sys.stdout
+        else:
+            ofile_freq_stem, ofile_freq_ext = os.path.splitext(
+                options.ofile_freq
+            )
+            if ofile_freq_ext.lstrip(".") != options.oformat_freq:
+                options.ofile_freq = (
+                    ofile_freq_stem + "." + options.oformat_freq
+                )
 
         if options.text is None:
             verified_ifile_list = []
@@ -208,8 +236,9 @@ class SCAUI:
         analyzer = NeoSCA(**self.init_kwargs)
         structures = analyzer.parse_text_and_query(self.options.text)
 
-        freq_output = structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.options.ofile_freq)
+        write_freq_output(
+            [structures], self.options.ofile_freq, self.options.oformat_freq
+        )
 
         if self.options.reserve_matched:
             write_match_output(structures, self.odir_match)
@@ -226,10 +255,11 @@ class SCAUI:
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
 
-        freq_output = ""
-        for structures in structures_generator1:
-            freq_output += structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.options.ofile_freq)
+        write_freq_output(
+            structures_generator1,
+            self.options.ofile_freq,
+            self.options.oformat_freq,
+        )
 
         if self.options.reserve_matched:
             for structures in structures_generator2:
