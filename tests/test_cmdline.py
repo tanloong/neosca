@@ -83,7 +83,7 @@ class TestCommandLineBasic(CmdlineTmpl):
             "python -m neosca --version", text=None, expected_output_file=None
         )
         m = re.match(
-            r"[^.]*\.[^.]*\.[^.]*", result.stdout.decode("utf-8").strip()
+            r"[^.]+\.[^.]+\.[^.]+", result.stdout.decode("utf-8").strip()
         )
         self.assertNotEqual(m, None)
 
