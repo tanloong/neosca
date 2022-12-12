@@ -15,9 +15,9 @@ class Parser:
     def parse(self, fn_parsed:str, ifile=None, text=None) -> str:
         """ Call Stanford Parser """
         print(f"\t[Parser] Parsing...")
-        cmd_base = (
-            f'java -mx1500m -cp {self.classpath} "{self.method_parser}"'
-            f" -outputFormat penn -nthreads -1 {self.model_parser} "
+        cmd = (
+            f'java -mx3g -cp {self.classpath} "{self.parser_method}"'
+            f" -outputFormat penn -nthreads 2 {self.parser_model} -"
         )
 
         if text is not None:
