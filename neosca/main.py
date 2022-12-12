@@ -11,6 +11,7 @@ from . import __version__
 from .neosca import NeoSCA
 from .writer import write_match_output
 from .writer import write_freq_output
+from .util import color_print
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -162,10 +163,10 @@ class SCAUI:
     def exit_routine(self):
         print("=" * 60)
         i = 1
-        if not self.options.no_query:
-            print(
-                f"{i}. Frequency output was saved to"
-                f" {path.abspath(self.options.ofile_freq)}."
+        if not self.options.no_query and not self.options.stdout:
+            print(f"{i}. Frequency output was saved to", end=" ")
+            color_print(
+                "OKGREEN", f"{path.abspath(self.options.ofile_freq)}", end=".\n"
             )
             i += 1
         if self.verified_ifile_list and self.options.reserve_parsed:
@@ -175,13 +176,14 @@ class SCAUI:
             )
             i += 1
         if self.options.text is not None and self.options.reserve_parsed:
-            print(f"{i}. Parsed trees were saved to cmdline_text.parsed.")
+            print(f"{i}. Parsed trees were saved to", end=" ")
+            color_print(
+                "OKGREEN", f"{self.cwd}{os.sep}cmdline_text.parsed", end=".\n"
+            )
             i += 1
         if self.options.reserve_matched:
-            print(
-                f"{i}. Matched subtrees were saved to"
-                f" {path.abspath(self.odir_match)}."
-            )
+            print(f"{i}. Matched subtrees were saved to", end=" ")
+            color_print("OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n")
             i += 1
         print("Done.")
 
