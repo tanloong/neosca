@@ -70,9 +70,8 @@ the frequency of 9 structures in the text:
 
 </details>
 
----
-
 ## Contents
+
 <!-- vim-markdown-toc GFM -->
 
 * [NeoSCA vs. L2SCA](#neosca-vs-l2sca)
@@ -83,8 +82,6 @@ the frequency of 9 structures in the text:
 
 <!-- vim-markdown-toc -->
 
----
-
 ## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#contents)</sup></small>
 
 | L2SCA | NeoSCA |
@@ -92,11 +89,19 @@ the frequency of 9 structures in the text:
 | runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
 | single and multiple input are handled respectively by two commands | one command, `nsca`, for both cases, making your life easier |
 | runs only under its own home directory | runs under any directory |
-| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, i.e., Stanford Parser's parsing results and Tregex's querying results |
+| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, such as the results of parsing the text with Stanford Parser and matching patterns with Stanford Tregex |
 
 ## <a name="installation"></a> Installation <small><sup>[Top ▲](#contents)</sup></small>
 
 1. Install neosca
+
+To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you have Python installed by running the following command in your terminal:
+
+```sh
+python --version
+```
+
+If Python is not installed, you can download and install it from [Python website](https://www.python.org/downloads/). Once you have Python installed, you can install NeoSCA using `pip`:
 
 ```sh
 pip install neosca
@@ -140,7 +145,7 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 ## <a name="usage"></a> Usage <small><sup>[Top ▲](#contents)</sup></small>
 
-The NeoSCA runs via the command `nsca`.
+To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
 1. Single input:
 
@@ -163,7 +168,7 @@ nsca ./samples/sample[1-1000].txt
 3. Use `--text` to pass text through command line.
 
 ```sh
-nsca --text 'This is a test.'
+nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
@@ -230,7 +235,7 @@ nsca --text 'This is a test.' --no-query
 
 ## <a name="citing"></a> Citing <small><sup>[Top ▲](#contents)</sup></small>
 
-Please use the following citation if you use NeoSCA in your work:
+If you use NeoSCA in your research, please cite it using the following BibTeX entry:
 
 ```BibTeX
 @misc{tan2022neosca,
@@ -257,4 +262,5 @@ publisher={John Benjamins}
 ```
 
 ## <a name="license"></a> License <small><sup>[Top ▲](#contents)</sup></small>
-The same as L2SCA, NeoSCA is licensed under the GNU General Public License, version 2 or later.
+
+NeoSCA is licensed under the GNU General Public License version 2 or later.

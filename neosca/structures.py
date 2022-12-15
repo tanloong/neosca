@@ -191,7 +191,8 @@ class Structures:
         self.CNpT.freq = self._div(self.CN.freq, self.T.freq)
         self.CNpC.freq = self._div(self.CN.freq, self.C1.freq)
 
-    def get_freqs(self):
-        return f"{self.ifile},{self.W.freq}," + ",".join(
-            map(str, (structure.freq for structure in self.to_report))
-        )
+    def get_freqs(self) -> dict:
+        freq_dict = {"Filename": self.ifile, "W": self.W.freq}
+        for structure in self.to_report:
+            freq_dict[structure.name] = structure.freq
+        return freq_dict

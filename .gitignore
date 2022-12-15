@@ -1,6 +1,9 @@
 .vscode
 *.egg-info
 *__pycache__
+*.zip
+*.tar.gz
+*.parsed
 build/
 dist
 doc
