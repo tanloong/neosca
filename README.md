@@ -5,7 +5,7 @@
    <img alt="support-version" src="https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue" />
   </a>
   <a href="https://pypi.org/project/neosca">
-   <img alt="pypi" src="https://img.shields.io/badge/pypi-v0.0.29-orange" />
+   <img alt="pypi" src="https://img.shields.io/badge/pypi-v0.0.30-orange" />
   </a>
   <a>
    <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray" />
@@ -240,7 +240,7 @@ If you use NeoSCA in your research, please cite it using the following BibTeX en
 ```BibTeX
 @misc{tan2022neosca,
 author = {Tan, Long},
-title = {NeoSCA (version 0.0.29)},
+title = {NeoSCA (version 0.0.30)},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year = {2022}
 }
