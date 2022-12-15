@@ -1,6 +1,8 @@
 import os
 from os import path
+import sys
 
+from typing import Dict, Iterator, Sequence, Union
 from .structures import Structures
 
 
@@ -30,10 +32,32 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
                 f.write(structure.matches)
 
 
-def write_freq_output(freq_output: str, ofile_freq: str) -> None:
-    """
-    :param freq_output: comma-separated frequency output
-    :param fn_output: where to save the frequency output
-    """
-    with open(ofile_freq, "w", encoding="utf-8") as f:
-        f.write(f"{Structures.fields}\n{freq_output}")
+def write_freq_output(
+    multi_structures: Union[Iterator[Structures], Sequence[Structures]],
+    ofile_freq,
+    oformat_freq: str,
+) -> None:
+    if oformat_freq == "csv":
+        freq_output = Structures.fields
+        for structures in multi_structures:
+            freq_dict = structures.get_freqs()
+            freq_output += "\n" + ",".join(
+                str(freq) for freq in freq_dict.values()
+            )
+    elif oformat_freq == "json":
+        import json
+
+        combined_freq_dict: Dict[str, list[Dict]] = {"Files": []}
+        for structures in multi_structures:
+            freq_dict = structures.get_freqs()
+            combined_freq_dict["Files"].append(freq_dict)
+        freq_output = json.dumps(combined_freq_dict)
+    else:
+        print(f"Unexpected output format: {oformat_freq}")
+        sys.exit(1)
+
+    if ofile_freq is not sys.stdout:
+        with open(ofile_freq, "w", encoding="utf-8") as f:
+            f.write(freq_output)
+    else:
+        ofile_freq.write(freq_output)

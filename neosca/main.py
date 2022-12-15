@@ -1,16 +1,17 @@
 import argparse
 import glob
+from itertools import tee
 from os import path
 import os
 import subprocess
 import sys
 from typing import List, Optional, Tuple
-from itertools import tee
 
 from . import __version__
 from .neosca import NeoSCA
 from .writer import write_match_output
 from .writer import write_freq_output
+from .util import color_print
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -22,54 +23,68 @@ class SCAUI:
     def __init__(self):
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
+        self.cwd = os.getcwd()
 
     def create_args_parser(self) -> argparse.ArgumentParser:
-        args_parser = argparse.ArgumentParser(
-            prog="nsca",
-            formatter_class=lambda prog: argparse.HelpFormatter(
-                prog, max_help_position=50, width=100
-            ),
-        )
+        args_parser = argparse.ArgumentParser(prog="nsca")
         args_parser.add_argument(
             "--version",
             action="store_true",
             default=False,
-            help="show version of NeoSCA",
+            help="show the version of NeoSCA",
         )
         args_parser.add_argument(
             "--list",
             dest="list_fields",
             action="store_true",
             default=False,
-            help="list output fields",
+            help="list the available output fields",
         )
         args_parser.add_argument(
             "--text",
             "-t",
             default=None,
-            help="pass text through command line",
+            help="pass text through the command line",
         )
         args_parser.add_argument(
-            "--output",
+            "--output-file",
             "-o",
             metavar="OUTFILE",
             dest="ofile_freq",
             default="result.csv",
-            help="output file",
+            help="specify an output file",
+        )
+        args_parser.add_argument(
+            "--output-format",
+            dest="oformat_freq",
+            choices=["csv", "json"],
+            default="csv",
+            help="output format, the default is csv",
+        )
+        args_parser.add_argument(
+            "--stdout",
+            dest="stdout",
+            action="store_true",
+            default=False,
+            help=(
+                "write the frequency output to the stdout instead of"
+                " saving it to a file"
+            ),
         )
         args_parser.add_argument(
             "--no-query",
             dest="no_query",
             action="store_true",
             default=False,
-            help="just parse input files, save parsed trees, and exit",
+            help="parse the input files, save the parsed trees, and exit",
         )
         args_parser.add_argument(
             "--parser",
             dest="dir_stanford_parser",
             default=os.getenv("STANFORD_PARSER_HOME"),
             help=(
-                "directory to Stanford Parser, defaults to STANFORD_PARSER_HOME"
+                "specify the path to Stanford Parser, the default is the value"
+                " of STANFORD_PARSER_HOME"
             ),
         )
         args_parser.add_argument(
@@ -77,7 +92,8 @@ class SCAUI:
             dest="dir_stanford_tregex",
             default=os.getenv("STANFORD_TREGEX_HOME"),
             help=(
-                "directory to Stanford Tregex, defaults to STANFORD_TREGEX_HOME"
+                "specify the path to Stanford Tregex, the default is the value"
+                " of STANFORD_TREGEX_HOME"
             ),
         )
         args_parser.add_argument(
@@ -86,7 +102,7 @@ class SCAUI:
             dest="reserve_parsed",
             action="store_true",
             default=False,
-            help="option to reserve parsed trees by Stanford Parser",
+            help="reserve the parsed trees produced by the Stanford Parser",
         )
         args_parser.add_argument(
             "--reserve-matched",
@@ -94,7 +110,7 @@ class SCAUI:
             dest="reserve_matched",
             default=False,
             action="store_true",
-            help="option to reserve matched subtrees by Stanford Tregex",
+            help="reserve the matched subtrees produced by the Stanford Tregex",
         )
         return args_parser
 
@@ -122,6 +138,17 @@ class SCAUI:
         if options.no_query:
             options.reserve_parsed = True
 
+        if options.stdout:
+            options.ofile_freq = sys.stdout
+        else:
+            ofile_freq_stem, ofile_freq_ext = os.path.splitext(
+                options.ofile_freq
+            )
+            if ofile_freq_ext.lstrip(".") != options.oformat_freq:
+                options.ofile_freq = (
+                    ofile_freq_stem + "." + options.oformat_freq
+                )
+
         if options.text is None:
             verified_ifile_list = []
             for f in ifile_list:
@@ -132,7 +159,7 @@ class SCAUI:
                 else:
                     return (False, f"No such file as \n\n{f}")
         else:
-            print("Command-line text is given, input files will be ignored.")
+            print(f"Command-line text: {options.text}")
             verified_ifile_list = None
         self.verified_ifile_list = verified_ifile_list
 
@@ -160,12 +187,12 @@ class SCAUI:
         return True, None
 
     def exit_routine(self):
-        print("=" * 60)
+        print("\n", "=" * 60, sep="")
         i = 1
-        if not self.options.no_query:
-            print(
-                f"{i}. Frequency output was saved to"
-                f" {path.abspath(self.options.ofile_freq)}."
+        if not self.options.no_query and not self.options.stdout:
+            print(f"{i}. Frequency output was saved to", end=" ")
+            color_print(
+                "OKGREEN", f"{path.abspath(self.options.ofile_freq)}", end=".\n"
             )
             i += 1
         if self.verified_ifile_list and self.options.reserve_parsed:
@@ -175,59 +202,64 @@ class SCAUI:
             )
             i += 1
         if self.options.text is not None and self.options.reserve_parsed:
-            print(f"{i}. Parsed trees were saved to cmdline_text.parsed.")
+            print(f"{i}. Parsed trees were saved to", end=" ")
+            color_print(
+                "OKGREEN", f"{self.cwd}{os.sep}cmdline_text.parsed", end=".\n"
+            )
             i += 1
         if self.options.reserve_matched:
-            print(
-                f"{i}. Matched subtrees were saved to"
-                f" {path.abspath(self.odir_match)}."
+            print(f"{i}. Matched subtrees were saved to", end=" ")
+            color_print(
+                "OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n"
             )
             i += 1
         print("Done.")
 
-    def run_tmpl(func):
+    def run_tmpl(func):  # type: ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_java()
             if not sucess:
                 return sucess, err_msg
-            func(self, *args, **kwargs)
+            func(self, *args, **kwargs)  # type: ignore
             self.exit_routine()
             return True, None
 
         return wrapper
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_text(self):
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.parse_text(self.options.text)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_text_and_query(self):
         analyzer = NeoSCA(**self.init_kwargs)
         structures = analyzer.parse_text_and_query(self.options.text)
 
-        freq_output = structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.options.ofile_freq)
+        write_freq_output(
+            [structures], self.options.ofile_freq, self.options.oformat_freq
+        )
 
         if self.options.reserve_matched:
             write_match_output(structures, self.odir_match)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_ifiles(self):
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.parse_ifiles(self.verified_ifile_list)
 
-    @run_tmpl
+    @run_tmpl  # type: ignore
     def run_parse_ifiles_and_query(self):
         analyzer = NeoSCA(**self.init_kwargs)
         gen = analyzer.parse_ifiles_and_query(self.verified_ifile_list)
         structures_generator1, structures_generator2 = tee(gen, 2)
         # a generator of instances of Structures, each for one corresponding input file
 
-        freq_output = ""
-        for structures in structures_generator1:
-            freq_output += structures.get_freqs() + "\n"
-        write_freq_output(freq_output, self.options.ofile_freq)
+        write_freq_output(
+            structures_generator1,
+            self.options.ofile_freq,
+            self.options.oformat_freq,
+        )
 
         if self.options.reserve_matched:
             for structures in structures_generator2:
@@ -239,13 +271,13 @@ class SCAUI:
         elif self.options.list_fields:
             return self.list_fields()
         elif self.options.text is not None and self.options.no_query:
-            return self.run_parse_text()
+            return self.run_parse_text()  # type: ignore
         elif self.options.text is not None and not self.options.no_query:
-            return self.run_parse_text_and_query()
+            return self.run_parse_text_and_query()  # type: ignore
         elif self.verified_ifile_list and self.options.no_query:
-            return self.run_parse_ifiles()
+            return self.run_parse_ifiles()  # type: ignore
         elif self.verified_ifile_list and not self.options.no_query:
-            return self.run_parse_ifiles_and_query()
+            return self.run_parse_ifiles_and_query()  # type: ignore
         else:
             self.args_parser.print_help()
             return True, None

@@ -1,10 +1,10 @@
-.PHONY: refresh clean build release install test
+.PHONY: refresh clean build release install test lint
 
-refresh: clean build install
+refresh: lint clean build install
 
 clean:
-	rm -rf __pychache__
-	rm -rf tests/__pychache__
+	rm -rf __pycache__
+	rm -rf tests/__pycache__
 	rm -rf build
 	rm -rf dist
 	rm -rf neosca.egg-info
@@ -21,3 +21,7 @@ install:
 
 test:
 	python -m unittest
+
+lint:
+	black --line-length 80 --preview neosca/
+	mypy --check-untyped-defs neosca/
