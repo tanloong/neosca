@@ -22,10 +22,7 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
     for structure in structures.to_query:
         if structure.matches:
             bn_match_output = (
-                bn_input_noext
-                + "-"
-                + structure.name.replace("/", "p")
-                + ".matches"
+                bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
             )
             fn_match_output = path.join(subdir_match_output, bn_match_output)
             with open(fn_match_output, "w", encoding="utf-8") as f:
@@ -41,9 +38,7 @@ def write_freq_output(
         freq_output = Structures.fields
         for structures in multi_structures:
             freq_dict = structures.get_freqs()
-            freq_output += "\n" + ",".join(
-                str(freq) for freq in freq_dict.values()
-            )
+            freq_output += "\n" + ",".join(str(freq) for freq in freq_dict.values())
     elif oformat_freq == "json":
         import json
 

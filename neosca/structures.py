@@ -3,7 +3,7 @@ from typing import Union, Sequence
 
 
 class Structure:
-    def __init__(self, name: str, desc: str, pat="", matches=""):
+    def __init__(self, name: str, desc: str, pat="", matches="") -> None:
         """
         :param name: name of the structure
         :param desc: description of the structure
@@ -49,9 +49,7 @@ class Structures:
     T2 = Structure(
         "T2",
         "fragment T-units",
-        "FRAG > ROOT !<< "
-        "(S|SBARQ|SINV|SQ > ROOT | "
-        "[$-- S|SBARQ|SINV|SQ !>> SBAR|VP])",
+        "FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])",
     )
     CN1 = Structure(
         "CN1",
@@ -63,9 +61,7 @@ class Structures:
         "complex nominals, type 2",
         "SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]",
     )
-    CN3 = Structure(
-        "CN3", "complex nominals, type 3", "S < (VP <# VBG|TO) $+ VP"
-    )
+    CN3 = Structure("CN3", "complex nominals, type 3", "S < (VP <# VBG|TO) $+ VP")
     DC = Structure(
         "DC",
         "dependent clauses",
@@ -153,11 +149,9 @@ class Structures:
     for structure in to_query:
         structure.pat = f"{quotation_mark}{structure.pat}{quotation_mark}"
 
-    fields = "Filename,W," + ",".join(
-        (structure.name for structure in to_report)
-    )
+    fields = "Filename,W," + ",".join((structure.name for structure in to_report))
 
-    def __init__(self, ifile):
+    def __init__(self, ifile) -> None:
         self.ifile = ifile
 
     def update_freqs(self) -> None:
@@ -172,7 +166,7 @@ class Structures:
     def _div(self, x, y) -> Union[float, int]:
         return round(x / y, 4) if y else 0
 
-    def compute_14_indicies(self):
+    def compute_14_indicies(self) -> None:
         """
         Compute the 14 syntactic complexity indices
         """
