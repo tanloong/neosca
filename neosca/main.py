@@ -51,7 +51,7 @@ class SCAUI:
             "-o",
             metavar="OUTFILE",
             dest="ofile_freq",
-            default="result.csv",
+            default=None,
             help="specify an output file",
         )
         args_parser.add_argument(
@@ -116,7 +116,6 @@ class SCAUI:
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-        self.odir_match = path.splitext(options.ofile_freq)[0] + "_matches"
 
         if options.dir_stanford_parser is None:
             return (
@@ -138,16 +137,6 @@ class SCAUI:
         if options.no_query:
             options.reserve_parsed = True
 
-        if options.stdout:
-            options.ofile_freq = sys.stdout
-        else:
-            ofile_freq_stem, ofile_freq_ext = os.path.splitext(
-                options.ofile_freq
-            )
-            if ofile_freq_ext.lstrip(".") != options.oformat_freq:
-                options.ofile_freq = (
-                    ofile_freq_stem + "." + options.oformat_freq
-                )
 
         if options.text is None:
             verified_ifile_list = []
@@ -163,6 +152,22 @@ class SCAUI:
             verified_ifile_list = None
         self.verified_ifile_list = verified_ifile_list
 
+        self.odir_match = "result_matches"
+        if options.stdout:
+            options.ofile_freq = sys.stdout
+        elif options.ofile_freq is not None:
+            self.odir_match = os.path.splitext(options.ofile_freq)[0] + "_matches"
+            ofile_freq_ext = os.path.splitext(options.ofile_freq)[-1].lstrip(".")
+            if ofile_freq_ext not in ("csv", "json"):
+                return (
+                    False,
+                    f"The file extension {ofile_freq_ext} is not supported. Use one of"
+                    " the following:\n1. csv\n2. json",
+                )
+            if ofile_freq_ext != options.oformat_freq:
+                options.oformat_freq = ofile_freq_ext
+        else:
+            options.ofile_freq = "result." + options.oformat_freq
         self.init_kwargs = {
             "dir_stanford_parser": options.dir_stanford_parser,
             "dir_stanford_tregex": options.dir_stanford_tregex,
