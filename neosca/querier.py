@@ -10,19 +10,19 @@ from .structures import Structure
 
 
 class Querier:
-    method_tregex = "edu.stanford.nlp.trees.tregex.TregexPattern"
+    TREGEX_METHOD = "edu.stanford.nlp.trees.tregex.TregexPattern"
+    MAX_MEMORY = "100m"
 
-    def __init__(self, dir_stanford_tregex: str):
-        self.classpath = (
-            '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
-        )
+    def __init__(self, dir_stanford_tregex: str, max_memory=MAX_MEMORY) -> None:
+        self.classpath = '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
+        self.max_memory = max_memory
 
     def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
-            f'java -mx100m -cp "{self.classpath}"'
-            f" {self.method_tregex} {structure.pat} -o -filter"
+            f'java -mx{self.max_memory} -cp "{self.classpath}"'
+            f" {self.TREGEX_METHOD} {structure.pat} -o -filter"
         )
         try:
             p = subprocess.run(

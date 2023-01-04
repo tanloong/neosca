@@ -122,7 +122,7 @@ pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 <details>
 
 <summary>
-4. Set environment variables `STANFORD_PARSER_HOME` and `STANFORD_TREGEX_HOME`
+4. Set environment variables
 </summary>
 
 + Windows:

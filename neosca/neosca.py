@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from typing import Optional, Generator
+from typing import Tuple, Generator
 
 from .parser import Parser
 from .querier import Querier
@@ -14,11 +14,27 @@ class NeoSCA:
         dir_stanford_parser: str,
         dir_stanford_tregex: str,
         reserve_parsed: bool,
-    ):
-        self.parser = Parser(dir_stanford_parser)
-        self.querier = Querier(dir_stanford_tregex)
+        verbose: bool = False,
+    ) -> None:
+        self.nthreads, self.max_memory = self.set_nthreads_and_max_memory()
+        self.parser = Parser(dir_stanford_parser, self.nthreads, self.max_memory, verbose)
+        self.querier = Querier(dir_stanford_tregex, self.max_memory)
+
         self.reserve_parsed = reserve_parsed
         self.skip_parsing = False
+
+    def set_nthreads_and_max_memory(self) -> Tuple[int, str]:
+        cpu_count: int = os.cpu_count() if os.cpu_count() is not None else 1  # type: ignore
+        system_memory: float = (  # system memory in megabytes
+            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024**2)
+        )
+
+        nthreads: int = cpu_count - 1 if cpu_count > 1 else cpu_count
+        max_memory: int = nthreads * 1500  # assign 1.5 gigabytes to each thread
+        if max_memory > system_memory * 0.7:
+            max_memory = int(system_memory * 0.7)
+            nthreads = max_memory // 1500
+        return nthreads, f"{max_memory}m"
 
     def _parse_ifile(self, ifile: str, ofile_parsed: str) -> str:
         """Parse a single text file"""
@@ -44,13 +60,9 @@ class NeoSCA:
                 f.write(trees)
         return trees
 
-    def _query_against_trees(
-        self, trees: str, structures: Structures
-    ) -> Structures:
+    def _query_against_trees(self, trees: str, structures: Structures) -> Structures:
         for structure in structures.to_query:
-            structure.freq, structure.matches = self.querier.query(
-                structure, trees
-            )
+            structure.freq, structure.matches = self.querier.query(structure, trees)
 
         structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()]+\)", trees))
         structures.update_freqs()
@@ -69,9 +81,7 @@ class NeoSCA:
         structures = Structures("cmdline_text")
         return self._query_against_trees(trees, structures)
 
-    def parse_ifiles_and_query(
-        self, ifiles
-    ) -> Generator[Structures, None, None]:
+    def parse_ifiles_and_query(self, ifiles) -> Generator[Structures, None, None]:
         total = len(ifiles)
         for i, ifile in enumerate(ifiles):
             print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
