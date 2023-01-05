@@ -111,12 +111,6 @@ class SCAUI:
             default=False,
             help="parse the input files, save the parsed trees, and exit",
         )
-        args_parser.add_argument(
-            "--verbose",
-            action="store_true",
-            default=False,
-            help="print detailed log messages",
-        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
@@ -177,7 +171,6 @@ class SCAUI:
             "dir_stanford_parser": options.dir_stanford_parser,
             "dir_stanford_tregex": options.dir_stanford_tregex,
             "reserve_parsed": options.reserve_parsed,
-            "verbose": options.verbose,
         }
         self.options = options
         return True, None
