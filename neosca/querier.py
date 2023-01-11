@@ -21,7 +21,7 @@ class Querier:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
-            f'java -mx{self.max_memory} -cp "{self.classpath}"'
+            f"java -mx{self.max_memory} -cp {self.classpath}"
             f" {self.TREGEX_METHOD} {structure.pat} -o -filter"
         )
         try:
