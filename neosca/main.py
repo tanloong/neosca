@@ -11,12 +11,9 @@ from . import __version__
 from .neosca import NeoSCA
 from .writer import write_match_output
 from .writer import write_freq_output
+from .util import SCAProcedureResult
 from .util import color_print
-
-# For all the procedures in SCAUI, return a tuple as the result
-# The first element bool indicates whether the procedure succeeds
-# The second element is the error message if it fails.
-SCAProcedureResult = Tuple[bool, Optional[str]]
+from .util import try_write
 
 
 class SCAUI:
@@ -216,6 +213,10 @@ class SCAUI:
             sucess, err_msg = self.check_java()
             if not sucess:
                 return sucess, err_msg
+            if not self.options.stdout:
+                sucess, err_msg = try_write(self.options.ofile_freq, None)
+                if not sucess:
+                    return sucess, err_msg
             func(self, *args, **kwargs)  # type: ignore
             self.exit_routine()
             return True, None
