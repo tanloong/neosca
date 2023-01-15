@@ -72,6 +72,42 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "result_matches",
             ],
         )
+        self.template(
+            "python -m neosca sample.txt --output-format json --reserve-parsed"
+            " --reserve-matched",
+            expected_output_file=[
+                "result.json",
+                "sample.parsed",
+                "result_matches",
+            ],
+        )
+        self.template(
+            "python -m neosca sample.txt --output-file sample.csv --reserve-parsed"
+            " --reserve-matched",
+            expected_output_file=[
+                "sample.csv",
+                "sample.parsed",
+                "sample_matches",
+            ],
+        )
+        self.template(
+            "python -m neosca sample.txt --output-file sample.json --reserve-parsed"
+            " --reserve-matched",
+            expected_output_file=[
+                "sample.json",
+                "sample.parsed",
+                "sample_matches",
+            ],
+        )
+
+    def test_list_fields(self):
+        result = self.template(
+            "python -m neosca --list", text=None, expected_output_file=None
+        )
+        result_stdout = result.stdout.decode("utf-8")
+        ncorrect_lines = len(re.findall(r"^[A-Z/]+: .*$", result_stdout, re.MULTILINE))
+        self.assertEqual(result_stdout.count("\n"), 23)
+        self.assertEqual(ncorrect_lines, 23)
 
     def test_show_version(self):
         result = self.template(
