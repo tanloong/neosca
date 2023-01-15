@@ -5,7 +5,7 @@ from os import path
 import os
 import subprocess
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from . import __version__
 from .neosca import NeoSCA

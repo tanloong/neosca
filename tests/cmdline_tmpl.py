@@ -3,8 +3,6 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
-import time
 from .base_tmpl import BaseTmpl
 from typing import Union, Optional
 
@@ -94,7 +92,5 @@ class CmdlineTmpl(BaseTmpl):
                     check_func(data)
 
         if cleanup:
-            self.cleanup(
-                output_file=expected_output_file, ifile_name=ifile_name
-            )
+            self.cleanup(output_file=expected_output_file, ifile_name=ifile_name)
         return result
