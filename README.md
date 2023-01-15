@@ -7,6 +7,9 @@
   <a href="https://pypi.org/project/neosca">
    <img alt="pypi" src="https://img.shields.io/badge/pypi-v0.0.32-orange" />
   </a>
+ <a href="https://codecov.io/gh/tanloong/neosca">
+   <img src="https://codecov.io/gh/tanloong/neosca/branch/master/graph/badge.svg?token=M2MX1BSAEI"/>
+ </a>
   <a>
    <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray" />
   </a>

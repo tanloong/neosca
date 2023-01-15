@@ -8,6 +8,8 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf neosca.egg-info
+	rm -rf htmlcov
+	rm -rf coverage.xml
 	pip uninstall -y neosca
 
 build:
