@@ -23,5 +23,5 @@ test:
 	python -m unittest
 
 lint:
-	black --line-length 90 --preview neosca/
+	black --line-length 90 --preview neosca/ tests/
 	mypy --check-untyped-defs neosca/
