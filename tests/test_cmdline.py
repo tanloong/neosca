@@ -3,6 +3,7 @@ from .cmdline_tmpl import CmdlineTmpl
 
 cmdline_text = "This is a test."
 
+
 class TestCommandLineBasic(CmdlineTmpl):
     def test_no_file(self):
         result = self.template("python -m neosca", expected_output_file=None)
@@ -16,19 +17,13 @@ class TestCommandLineBasic(CmdlineTmpl):
     def test_help(self):
         """Test that all three options print the same help page"""
         result = self.template("python -m neosca", expected_output_file=None)
-        result_h = self.template(
-            "python -m neosca -h", expected_output_file=None
-        )
-        result_help = self.template(
-            "python -m neosca --help", expected_output_file=None
-        )
+        result_h = self.template("python -m neosca -h", expected_output_file=None)
+        result_help = self.template("python -m neosca --help", expected_output_file=None)
 
         self.assertEqual(
             result_h.stdout.decode("utf-8"), result_help.stdout.decode("utf-8")
         )
-        self.assertEqual(
-            result.stdout.decode("utf-8"), result_h.stdout.decode("utf-8")
-        )
+        self.assertEqual(result.stdout.decode("utf-8"), result_h.stdout.decode("utf-8"))
 
     def test_parse_text(self):
         self.template(
@@ -69,7 +64,7 @@ class TestCommandLineBasic(CmdlineTmpl):
 
     def test_outputfile(self):
         self.template(
-            "python -m neosca sample.txt --output-file result.csv --reserve-parsed"
+            "python -m neosca sample.txt --output-format csv --reserve-parsed"
             " --reserve-matched",
             expected_output_file=[
                 "result.csv",
