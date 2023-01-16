@@ -5,7 +5,7 @@ from os import path
 import os
 import subprocess
 import sys
-from typing import List, Tuple
+from typing import List
 
 from . import __version__
 from .neosca import NeoSCA
@@ -176,13 +176,19 @@ class SCAUI:
         try:
             subprocess.run("java -version", shell=True, check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            return (
-                False,
-                "Error: Java is unavailable.\n\n1. To install it, visit"
-                " https://www.java.com/en/download.\n2. After installing,"
-                " make sure you can access it in the cmd window by typing"
-                " in `java -version`.",
-            )
+            java_version = "18"
+            from .java_installer import java_installer
+            from .util import setenv
+
+            installer = java_installer()
+            sucess, err_msg = installer.install(version=java_version)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                path_java_bin = err_msg
+                setenv(path_java_bin, "PATH")  # type:ignore
+                current_PATH = os.environ.get("PATH", default="")
+                os.environ["PATH"] = current_PATH + os.pathsep + path_java_bin  # type:ignore
         return True, None
 
     def check_python(self) -> SCAProcedureResult:
