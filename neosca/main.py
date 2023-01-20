@@ -21,6 +21,8 @@ class SCAUI:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
         self.cwd = os.getcwd()
+        self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
+        self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(prog="nsca")
@@ -108,6 +110,16 @@ class SCAUI:
             default=False,
             help="parse the input files, save the parsed trees, and exit",
         )
+        args_parser.add_argument(
+            "--check-depends",
+            dest="check_depends",
+            action="store_true",
+            default=False,
+            help=(
+                "check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford"
+                " Tregex"
+            ),
+        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
@@ -176,19 +188,76 @@ class SCAUI:
         try:
             subprocess.run("java -version", shell=True, check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            java_version = "18"
-            from .java_installer import java_installer
+            from .depends_installer import depends_installer
+            from .depends_installer import JAVA
             from .util import setenv
 
-            installer = java_installer()
-            sucess, err_msg = installer.install(version=java_version)
+            installer = depends_installer()
+            sucess, err_msg = installer.install(JAVA)
             if not sucess:
                 return sucess, err_msg
             else:
                 path_java_bin = err_msg
-                setenv(path_java_bin, "PATH")  # type:ignore
+                setenv("PATH", path_java_bin, "a")  # type:ignore
                 current_PATH = os.environ.get("PATH", default="")
                 os.environ["PATH"] = current_PATH + os.pathsep + path_java_bin  # type:ignore
+        else:
+            print("Java has already been installed on your device.", end=" ")
+            color_print("OKGREEN", "✓")
+        return True, None
+
+    def check_stanford_parser(self) -> SCAProcedureResult:
+        try:
+            os.environ[self.STANFORD_PARSER_HOME]
+        except KeyError:
+            from .depends_installer import depends_installer
+            from .depends_installer import STANFORD_PARSER
+            from .util import setenv
+
+            installer = depends_installer()
+            sucess, err_msg = installer.install(STANFORD_PARSER)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                stanford_parser_home = err_msg
+                setenv(self.STANFORD_PARSER_HOME, stanford_parser_home, "w")  # type:ignore
+                os.environ[self.STANFORD_PARSER_HOME] = stanford_parser_home  # type:ignore
+        else:
+            print("Stanford Parser has already been installed on your device.", end=" ")
+            color_print("OKGREEN", "✓")
+        return True, None
+
+    def check_stanford_tregex(self) -> SCAProcedureResult:
+        try:
+            os.environ[self.STANFORD_TREGEX_HOME]
+        except KeyError:
+            from .depends_installer import depends_installer
+            from .depends_installer import STANFORD_TREGEX
+            from .util import setenv
+
+            installer = depends_installer()
+            sucess, err_msg = installer.install(STANFORD_TREGEX)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                stanford_parser_home = err_msg
+                setenv(self.STANFORD_TREGEX_HOME, stanford_parser_home, "w")  # type:ignore
+                os.environ[self.STANFORD_TREGEX_HOME] = stanford_parser_home  # type:ignore
+        else:
+            print("Stanford Tregex has already been installed on your device.", end=" ")
+            color_print("OKGREEN", "✓")
+        return True, None
+
+    def check_depends(self) -> SCAProcedureResult:
+        success, err_msg = self.check_java()
+        if not success:
+            return success, err_msg
+        success, err_msg = self.check_stanford_parser()
+        if not success:
+            return success, err_msg
+        success, err_msg = self.check_stanford_tregex()
+        if not success:
+            return success, err_msg
         return True, None
 
     def check_python(self) -> SCAProcedureResult:
@@ -230,7 +299,7 @@ class SCAUI:
             sucess, err_msg = self.check_python()
             if not sucess:
                 return sucess, err_msg
-            sucess, err_msg = self.check_java()
+            sucess, err_msg = self.check_depends()
             if not sucess:
                 return sucess, err_msg
             if not self.options.stdout:
@@ -287,6 +356,8 @@ class SCAUI:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
+        elif self.options.check_depends:
+            return self.check_depends()
         elif self.options.text is not None and self.options.no_query:
             return self.run_parse_text()  # type: ignore
         elif self.options.text is not None and not self.options.no_query:

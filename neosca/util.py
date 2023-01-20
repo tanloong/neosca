@@ -61,19 +61,26 @@ def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
         )
 
 
-def setenv(path: str, env_var: str) -> None:
+def setenv(env_var: str, path: str, mode: str) -> None:
     """append the given path to the an environment variable"""
+    if mode not in ("a", "w"):
+        print(f"Unexpected mode: {mode}")
+        sys.exit(1)
     current_value = os.environ.get(env_var, default="")
     if path not in current_value:
         if sys.platform == "win32":
-            subprocess.run(f"SETX PATH {current_value};{path}", shell=True)
+            if mode == "a":
+                subprocess.run(f'SETX {env_var} {current_value};"{path}"', shell=True)
+            else:
+                subprocess.run(f'SETX {env_var} "{path}"', shell=True)
         elif sys.platform in ("darwin", "linux"):
             shell = os.environ.get("SHELL")
             if shell is None:
                 print(
-                    f"Warning: can't detect current shell. Failed to permanently append {path} to"
-                    f" {env_var}."
+                    "Failed to permanently append {path} to {env_var}.\nReason: can't detect"
+                    " current shell."
                 )
+                sys.exit(1)
             else:
                 startup_file_dict = {
                     "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
@@ -88,12 +95,16 @@ def setenv(path: str, env_var: str) -> None:
                 startup_file = startup_file_dict.get(os.path.basename(shell), None)
                 if startup_file is None:
                     print(
-                        f"Warning: can't detect rc file for {shell}. Failed to permanently append"
-                        f" {path} to {env_var}."
+                        f"Failed to permanently append {path} to {env_var}.\nReason: can't detect"
+                        f" rc file for {shell}."
                     )
+                    sys.exit(1)
                 else:
                     with open(os.path.expanduser(startup_file), "a", encoding="utf-8") as f:
-                        f.write(f'\nexport {env_var}=${env_var}:"{path}"\n')
+                        if mode == "a":
+                            f.write(f'\nexport {env_var}=${env_var}:"{path}"\n')
+                        else:
+                            f.write(f'\nexport {env_var}="{path}"\n')
         else:
             print(f"Unsupported platform: {sys.platform}")
             sys.exit(1)
