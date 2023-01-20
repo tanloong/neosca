@@ -65,9 +65,7 @@ class SCAUI:
             dest="stdout",
             action="store_true",
             default=False,
-            help=(
-                "write the frequency output to the stdout instead of saving it to a file"
-            ),
+            help="write the frequency output to the stdout instead of saving it to a file",
         )
         args_parser.add_argument(
             "--parser",
@@ -132,7 +130,7 @@ class SCAUI:
                 " of Stanford Parser through the `--parser` option.",
             )
         if not path.isdir(options.dir_stanford_parser):
-            return False, f"{options.dir_stanford_parser} is invalid."
+            return False, f"{options.dir_stanford_parser} is not a directory."
 
         if options.dir_stanford_tregex is None:
             return (
@@ -141,7 +139,7 @@ class SCAUI:
                 " of Stanford Tregex through the `--tregex` option.",
             )
         if not path.isdir(options.dir_stanford_tregex):
-            return False, f"{options.dir_stanford_tregex} is invalid."
+            return False, f"{options.dir_stanford_tregex} is not a directory."
         if options.no_query:
             options.reserve_parsed = True
 
@@ -322,9 +320,7 @@ class SCAUI:
         analyzer = NeoSCA(**self.init_kwargs)
         structures = analyzer.parse_text_and_query(self.options.text)
 
-        write_freq_output(
-            [structures], self.options.ofile_freq, self.options.oformat_freq
-        )
+        write_freq_output([structures], self.options.ofile_freq, self.options.oformat_freq)
 
         if self.options.reserve_matched:
             write_match_output(structures, self.odir_match)

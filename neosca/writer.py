@@ -21,9 +21,7 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
         os.makedirs(subdir_match_output)
     for structure in structures.to_query:
         if structure.matches:
-            bn_match_output = (
-                bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
-            )
+            bn_match_output = bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
             fn_match_output = path.join(subdir_match_output, bn_match_output)
             with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)

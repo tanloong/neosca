@@ -221,22 +221,22 @@ class depends_installer:
             " NeoSCA install it for you?\nEnter [y]es or [n]o: "
         )
         while is_install not in ("y", "n", "Y", "N"):
-            is_install = input(f"Unexpected input: {is_install}. Enter [y]es or [n]o: ")
+            is_install = input(f"Unexpected input: {is_install}.\nEnter [y]es or [n]o: ")
         if is_install in ("n", "N"):
             prompt_dict = {
                 JAVA: (
-                    f"You will have to install {JAVA} manually.\n\nTo install it, visit"
+                    f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
                     f" {_URL_JAVA}.\n2. After installing, make sure you can access it in the cmd"
                     " window by typing in `java -version`."
                 ),
                 STANFORD_PARSER: (
-                    f"You will have to install {STANFORD_PARSER} manually.\n\nTo install it,"
+                    f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"
                     f" download and unzip the archive file at {_URL_STANFORD_PARSER}.\n2. Set an"
                     " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
                     " directory."
                 ),
                 STANFORD_TREGEX: (
-                    f"You will have to install {STANFORD_TREGEX} manually.\n\nTo install it,"
+                    f"You will have to install {STANFORD_TREGEX} manually.\n\n1. To install it,"
                     f" download and unzip the archive file at {_URL_STANFORD_TREGEX}.\n2. Set an"
                     " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
                     " directory."
@@ -261,7 +261,7 @@ class depends_installer:
         if not sucess:
             return sucess, err_msg
         print(
-            f"Installing {JAVA} {version} to {path}. It can take a few minutes, depending"
+            f'Installing {JAVA} {version} to "{path}". It can take a few minutes, depending'
             " on your network connection."
         )
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
@@ -269,22 +269,22 @@ class depends_installer:
             return sucess, err_msg
         else:
             url = err_msg
-        print(f"Downloading {JAVA} archive from {url}...")
+        print(f"Downloading the {JAVA} archive from {url}...")
         sucess, err_msg = self._download(url)
         if not sucess:
             return sucess, err_msg
         jdk_archive = err_msg
-        sucess, err_msg = _get_normalized_archive_ext(jdk_archive)  # type:ignore
+        sucess, err_msg = self._get_normalized_archive_ext(jdk_archive)  # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_ext = err_msg
         print(f"Decompressing {JAVA} archive...")
-        sucess, err_msg = _decompress_archive(jdk_archive, jdk_ext, path)  # type:ignore
+        sucess, err_msg = self._decompress_archive(jdk_archive, jdk_ext, path)  # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
         jdk_bin = path.join(jdk_dir, "bin")  # type:ignore
-        sucess, err_msg = _unpack_jars(jdk_dir, jdk_bin)  # type:ignore
+        sucess, err_msg = self._unpack_jars(jdk_dir, jdk_bin)  # type:ignore
         if not sucess:
             return sucess, err_msg
         if jdk_archive:
@@ -299,19 +299,19 @@ class depends_installer:
         if not sucess:
             return sucess, err_msg
         print(
-            f"Installing {name} to {path}. It can take a few minutes, depending"
-            " on your network connection."
+            f'Installing {name} to "{path}". It can take a few minutes, depending'
+            f" on your network connection.\nDownloading the {name} archive from {url}."
         )
         sucess, err_msg = self._download(url)
         if not sucess:
             return sucess, err_msg
         archive_file = err_msg
-        sucess, err_msg = _get_normalized_archive_ext(archive_file)  # type:ignore
+        sucess, err_msg = self._get_normalized_archive_ext(archive_file)  # type:ignore
         if not sucess:
             return sucess, err_msg
         archive_ext = err_msg
         print(f"Decompressing {name} archive...")
-        sucess, err_msg = _decompress_archive(archive_file, archive_ext, path)  # type:ignore
+        sucess, err_msg = self._decompress_archive(archive_file, archive_ext, path)  # type:ignore
         if not sucess:
             return sucess, err_msg
         unzipped_directory = err_msg

@@ -17,9 +17,7 @@ class TestMain(BaseTmpl):
 
     @mock.patch("subprocess.run")
     def test_check_java(self, mock_subprocess_run):
-        mock_subprocess_run.side_effect = subprocess.CalledProcessError(
-            returncode=1, cmd="bad"
-        )
+        mock_subprocess_run.side_effect = subprocess.CalledProcessError(returncode=1, cmd="bad")
         sucess, _ = self.ui.check_java()
         self.assertFalse(sucess)
 
