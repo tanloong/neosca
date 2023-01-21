@@ -97,10 +97,7 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
 def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
-        print(
-            "Failed to permanently append {path} to {env_var}.\nReason: can't detect"
-            " current shell."
-        )
+        print("Failed to permanently append {path} to {env_var}.\nReason: can't detect current shell.")
         sys.exit(1)
     else:
         startup_file_dict = {
@@ -116,17 +113,16 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
         startup_file = startup_file_dict.get(os.path.basename(shell), None)
         if startup_file is None:
             print(
-                "Failed to permanently set environment variables.\nReason: can't detect rc file"
-                f" for {shell}."
+                f"Failed to permanently set environment variables.\nReason: can't detect rc file for {shell}."
             )
             sys.exit(1)
         else:
             new_paths = ":".join(paths)
             with open(os.path.expanduser(startup_file), "a", encoding="utf-8") as f:
                 if refresh:
-                    f.write(f'\nexport {env_var}="{new_paths}"\n')
+                    f.write(f'\nexport {env_var}="{new_paths}"')
                 else:
-                    f.write(f'\nexport {env_var}=${env_var}:"{new_paths}"\n')
+                    f.write(f'\nexport {env_var}=${env_var}:"{new_paths}"')
 
 
 def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:

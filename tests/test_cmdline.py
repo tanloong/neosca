@@ -77,8 +77,7 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
         )
         self.template(
-            "python -m neosca sample.txt --output-file sample.csv --reserve-parsed"
-            " --reserve-matched",
+            "python -m neosca sample.txt --output-file sample.csv --reserve-parsed --reserve-matched",
             expected_output_file=[
                 "sample.csv",
                 "sample.parsed",
@@ -86,8 +85,7 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
         )
         self.template(
-            "python -m neosca sample.txt --output-file sample.json --reserve-parsed"
-            " --reserve-matched",
+            "python -m neosca sample.txt --output-file sample.json --reserve-parsed --reserve-matched",
             expected_output_file=[
                 "sample.json",
                 "sample.parsed",

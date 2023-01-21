@@ -74,9 +74,7 @@ class depends_installer:
             return sucess, err_msg
         else:
             version = err_msg  # type:ignore
-        url_template = (
-            "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
-        )
+        url_template = "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
         return True, url_template.format(version, operating_system, arch, impl)
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
@@ -91,9 +89,7 @@ class depends_installer:
         else:
             return False, f"Error: {file} has unexpected extension."
 
-    def _extract_files(
-        self, file: str, file_ending: str, destination_folder: str
-    ) -> SCAProcedureResult:
+    def _extract_files(self, file: str, file_ending: str, destination_folder: str) -> SCAProcedureResult:
         if not path.isfile(file):
             return False, f"Error: {file} is not a regular file."
 
@@ -175,8 +171,7 @@ class depends_installer:
         if m.get_param("filename") is None:
             return (
                 False,
-                f"Parsing the response from {download_url} failed.\nReason: can't detect the"
-                " filename.",
+                f"Parsing the response from {download_url} failed.\nReason: can't detect the filename.",
             )
         filename = m.get_param("filename")
         if not isinstance(filename, str):
