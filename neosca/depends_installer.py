@@ -167,7 +167,7 @@ class depends_installer:
         if "Content-Disposition" not in info:
             return (
                 False,
-                f"Parsing the response from {download_url} failed. Reason:"
+                f"Parsing the response from {download_url} failed. \nReason:"
                 ' "Content-Disposition" not in response.info().',
             )
         m = email.message.Message()
@@ -187,7 +187,7 @@ class depends_installer:
             )
         return True, filename
 
-    def _download(self, download_url, name=JAVA) -> SCAProcedureResult:
+    def _download(self, download_url:str, name:str) -> SCAProcedureResult:
         req = request.Request(download_url, headers={"User-Agent": "Mozilla/5.0"})
 
         filename = None
@@ -252,16 +252,16 @@ class depends_installer:
         operating_system: str,
         arch: str,
         impl: str,
-        path: str,
+        target_dir: str,
     ) -> SCAProcedureResult:
-        match = glob.glob(f"{path}{os.sep}jdk-{version}*{os.sep}bin")
+        match = glob.glob(f"{target_dir}{os.sep}jdk-{version}*{os.sep}bin")
         if match:
             return True, match[0]
         sucess, err_msg = self.ask_install(JAVA)
         if not sucess:
             return sucess, err_msg
         print(
-            f'Installing {JAVA} {version} to "{path}". It can take a few minutes, depending'
+            f'Installing {JAVA} {version} to "{target_dir}". It can take a few minutes, depending'
             " on your network connection."
         )
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
@@ -270,7 +270,7 @@ class depends_installer:
         else:
             url = err_msg
         print(f"Downloading the {JAVA} archive from {url}...")
-        sucess, err_msg = self._download(url)
+        sucess, err_msg = self._download(url, name=JAVA) # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_archive = err_msg
@@ -279,11 +279,11 @@ class depends_installer:
             return sucess, err_msg
         jdk_ext = err_msg
         print(f"Decompressing {JAVA} archive...")
-        sucess, err_msg = self._decompress_archive(jdk_archive, jdk_ext, path)  # type:ignore
+        sucess, err_msg = self._decompress_archive(jdk_archive, jdk_ext, target_dir)  # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
-        jdk_bin = path.join(jdk_dir, "bin")  # type:ignore
+        jdk_bin = target_dir.join(jdk_dir, "bin")  # type:ignore
         sucess, err_msg = self._unpack_jars(jdk_dir, jdk_bin)  # type:ignore
         if not sucess:
             return sucess, err_msg
@@ -291,18 +291,18 @@ class depends_installer:
             os.remove(jdk_archive)
         return True, jdk_bin
 
-    def install_stanford(self, name: str, url: str, path: str) -> SCAProcedureResult:
-        match = glob.glob(f"{path}{os.sep}{name.lower().replace(' ', '-')}*")
+    def install_stanford(self, name: str, url: str, target_dir: str) -> SCAProcedureResult:
+        match = glob.glob(f"{target_dir}{os.sep}{name.lower().replace(' ', '-')}*")
         if match:
             return True, match[0]
         sucess, err_msg = self.ask_install(name)
         if not sucess:
             return sucess, err_msg
         print(
-            f'Installing {name} to "{path}". It can take a few minutes, depending'
+            f'Installing {name} to "{target_dir}". It can take a few minutes, depending'
             f" on your network connection.\nDownloading the {name} archive from {url}."
         )
-        sucess, err_msg = self._download(url)
+        sucess, err_msg = self._download(url, name=name)
         if not sucess:
             return sucess, err_msg
         archive_file = err_msg
@@ -311,7 +311,7 @@ class depends_installer:
             return sucess, err_msg
         archive_ext = err_msg
         print(f"Decompressing {name} archive...")
-        sucess, err_msg = self._decompress_archive(archive_file, archive_ext, path)  # type:ignore
+        sucess, err_msg = self._decompress_archive(archive_file, archive_ext, target_dir)  # type:ignore
         if not sucess:
             return sucess, err_msg
         unzipped_directory = err_msg
@@ -326,13 +326,13 @@ class depends_installer:
         operating_system: str = OS,
         arch: str = ARCH,
         impl: str = Implementation.HOTSPOT,
-        path: str = _TARGET_DIR,  # type: ignore
+        target_dir: str = _TARGET_DIR,  # type: ignore
     ) -> SCAProcedureResult:
         if name == JAVA:
-            return self.install_java(version, operating_system, arch, impl, path)
+            return self.install_java(version, operating_system, arch, impl, target_dir)
         elif name == STANFORD_PARSER:
-            return self.install_stanford(name, _URL_STANFORD_PARSER, path)
+            return self.install_stanford(name, _URL_STANFORD_PARSER, target_dir)
         elif name == STANFORD_TREGEX:
-            return self.install_stanford(name, _URL_STANFORD_TREGEX, path)
+            return self.install_stanford(name, _URL_STANFORD_TREGEX, target_dir)
         else:
             return False, f"Unexpected name: {name}."

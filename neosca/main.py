@@ -68,24 +68,6 @@ class SCAUI:
             help="write the frequency output to the stdout instead of saving it to a file",
         )
         args_parser.add_argument(
-            "--parser",
-            dest="dir_stanford_parser",
-            default=os.getenv("STANFORD_PARSER_HOME"),
-            help=(
-                "specify the path to Stanford Parser, the default is the value"
-                " of STANFORD_PARSER_HOME"
-            ),
-        )
-        args_parser.add_argument(
-            "--tregex",
-            dest="dir_stanford_tregex",
-            default=os.getenv("STANFORD_TREGEX_HOME"),
-            help=(
-                "specify the path to Stanford Tregex, the default is the value"
-                " of STANFORD_TREGEX_HOME"
-            ),
-        )
-        args_parser.add_argument(
             "--reserve-parsed",
             "-p",
             dest="reserve_parsed",
@@ -113,33 +95,12 @@ class SCAUI:
             dest="check_depends",
             action="store_true",
             default=False,
-            help=(
-                "check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford"
-                " Tregex"
-            ),
+            help="check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford Tregex",
         )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-
-        if options.dir_stanford_parser is None:
-            return (
-                False,
-                "You need to either set $STANFORD_PARSER_HOME or give the path"
-                " of Stanford Parser through the `--parser` option.",
-            )
-        if not path.isdir(options.dir_stanford_parser):
-            return False, f"{options.dir_stanford_parser} is not a directory."
-
-        if options.dir_stanford_tregex is None:
-            return (
-                False,
-                "You need to either set $STANFORD_TREGEX_HOME or give the path"
-                " of Stanford Tregex through the `--tregex` option.",
-            )
-        if not path.isdir(options.dir_stanford_tregex):
-            return False, f"{options.dir_stanford_tregex} is not a directory."
         if options.no_query:
             options.reserve_parsed = True
 
@@ -175,8 +136,8 @@ class SCAUI:
             options.ofile_freq = "result." + options.oformat_freq
 
         self.init_kwargs = {
-            "dir_stanford_parser": options.dir_stanford_parser,
-            "dir_stanford_tregex": options.dir_stanford_tregex,
+            "dir_stanford_parser": "",
+            "dir_stanford_tregex": "",
             "reserve_parsed": options.reserve_parsed,
         }
         self.options = options
@@ -196,17 +157,17 @@ class SCAUI:
                 return sucess, err_msg
             else:
                 path_java_bin = err_msg
-                setenv("PATH", path_java_bin, "a")  # type:ignore
+                setenv("PATH", [path_java_bin], False)  # type:ignore
                 current_PATH = os.environ.get("PATH", default="")
                 os.environ["PATH"] = current_PATH + os.pathsep + path_java_bin  # type:ignore
         else:
-            print("Java has already been installed on your device.", end=" ")
+            print("Java has already been installed.", end=" ")
             color_print("OKGREEN", "✓")
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
         try:
-            os.environ[self.STANFORD_PARSER_HOME]
+            self.options.dir_stanford_parser = os.environ[self.STANFORD_PARSER_HOME]
         except KeyError:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_PARSER
@@ -218,16 +179,17 @@ class SCAUI:
                 return sucess, err_msg
             else:
                 stanford_parser_home = err_msg
-                setenv(self.STANFORD_PARSER_HOME, stanford_parser_home, "w")  # type:ignore
-                os.environ[self.STANFORD_PARSER_HOME] = stanford_parser_home  # type:ignore
+                setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
+                self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
         else:
-            print("Stanford Parser has already been installed on your device.", end=" ")
+            print("Stanford Parser has already been installed.", end=" ")
             color_print("OKGREEN", "✓")
+        self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
         return True, None
 
     def check_stanford_tregex(self) -> SCAProcedureResult:
         try:
-            os.environ[self.STANFORD_TREGEX_HOME]
+            self.options.dir_stanford_tregex = os.environ[self.STANFORD_TREGEX_HOME]
         except KeyError:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_TREGEX
@@ -238,12 +200,13 @@ class SCAUI:
             if not sucess:
                 return sucess, err_msg
             else:
-                stanford_parser_home = err_msg
-                setenv(self.STANFORD_TREGEX_HOME, stanford_parser_home, "w")  # type:ignore
-                os.environ[self.STANFORD_TREGEX_HOME] = stanford_parser_home  # type:ignore
+                stanford_tregex_home = err_msg
+                setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
+                self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
         else:
-            print("Stanford Tregex has already been installed on your device.", end=" ")
+            print("Stanford Tregex has already been installed.", end=" ")
             color_print("OKGREEN", "✓")
+        self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
         return True, None
 
     def check_depends(self) -> SCAProcedureResult:

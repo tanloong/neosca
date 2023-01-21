@@ -2,9 +2,8 @@
 # -*- coding=utf-8 -*-
 
 import os
-import subprocess
 import sys
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 
 # For all the procedures in SCAUI, return a tuple as the result
@@ -61,50 +60,81 @@ def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
         )
 
 
-def setenv(env_var: str, path: str, mode: str) -> None:
-    """append the given path to the an environment variable"""
-    if mode not in ("a", "w"):
-        print(f"Unexpected mode: {mode}")
+def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> None:
+    import winreg  # Allows access to the windows registry
+    import ctypes  # Allows interface with low-level C API's
+
+    with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as root:  # type:ignore
+        # Get the current user registry
+        with winreg.OpenKey(root, "Environment", 0, winreg.KEY_ALL_ACCESS) as key:  # type:ignore
+            # Go to the environment key
+            if refresh or os.environ.get(env_var) is None:
+                new_value = ";".join(paths)
+            else:
+                existing_value = os.environ.get(env_var)
+                new_value = existing_value + ";" + ";".join(paths)  # type:ignore
+                # Takes the current path value and appends the new program path
+            winreg.SetValueEx(key, env_var, 0, winreg.REG_EXPAND_SZ, new_value)  # type:ignore
+            # Updated the path with the updated path
+
+        # Tell other processes to update their environment
+        HWND_BROADCAST = 0xFFFF
+        WM_SETTINGCHANGE = 0x1A
+        SMTO_ABORTIFHUNG = 0x0002
+        result = ctypes.c_long()
+        SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW  # type:ignore
+        SendMessageTimeoutW(
+            HWND_BROADCAST,
+            WM_SETTINGCHANGE,
+            0,
+            "Environment",
+            SMTO_ABORTIFHUNG,
+            5000,
+            ctypes.byref(result),
+        )
+
+
+def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
+    shell = os.environ.get("SHELL")
+    if shell is None:
+        print(
+            "Failed to permanently append {path} to {env_var}.\nReason: can't detect"
+            " current shell."
+        )
         sys.exit(1)
-    current_value = os.environ.get(env_var, default="")
-    if path not in current_value:
-        if sys.platform == "win32":
-            if mode == "a":
-                subprocess.run(f'SETX {env_var} {current_value};"{path}"', shell=True)
-            else:
-                subprocess.run(f'SETX {env_var} "{path}"', shell=True)
-        elif sys.platform in ("darwin", "linux"):
-            shell = os.environ.get("SHELL")
-            if shell is None:
-                print(
-                    "Failed to permanently append {path} to {env_var}.\nReason: can't detect"
-                    " current shell."
-                )
-                sys.exit(1)
-            else:
-                startup_file_dict = {
-                    "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
-                    "zsh": "~/.zshrc",
-                    "ksh": "~/.kshrc",
-                    "tcsh": "~/.tcshrc",
-                    "csh": "~/.cshrc",
-                    "yash": "~/.yashrc",
-                    "fish": "~/.config/fish/config.fish",
-                    "ion": "~/.config/ion/initrc",
-                }
-                startup_file = startup_file_dict.get(os.path.basename(shell), None)
-                if startup_file is None:
-                    print(
-                        f"Failed to permanently append {path} to {env_var}.\nReason: can't detect"
-                        f" rc file for {shell}."
-                    )
-                    sys.exit(1)
-                else:
-                    with open(os.path.expanduser(startup_file), "a", encoding="utf-8") as f:
-                        if mode == "a":
-                            f.write(f'\nexport {env_var}=${env_var}:"{path}"\n')
-                        else:
-                            f.write(f'\nexport {env_var}="{path}"\n')
-        else:
-            print(f"Unsupported platform: {sys.platform}")
+    else:
+        startup_file_dict = {
+            "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
+            "zsh": "~/.zshrc",
+            "ksh": "~/.kshrc",
+            "tcsh": "~/.tcshrc",
+            "csh": "~/.cshrc",
+            "yash": "~/.yashrc",
+            "fish": "~/.config/fish/config.fish",
+            "ion": "~/.config/ion/initrc",
+        }
+        startup_file = startup_file_dict.get(os.path.basename(shell), None)
+        if startup_file is None:
+            print(
+                "Failed to permanently set environment variables.\nReason: can't detect rc file"
+                f" for {shell}."
+            )
             sys.exit(1)
+        else:
+            new_paths = ":".join(paths)
+            with open(os.path.expanduser(startup_file), "a", encoding="utf-8") as f:
+                if refresh:
+                    f.write(f'\nexport {env_var}="{new_paths}"\n')
+                else:
+                    f.write(f'\nexport {env_var}=${env_var}:"{new_paths}"\n')
+
+
+def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
+    assert sys.platform in ("win32", "darwin", "linux")
+    if sys.platform == "win32":
+        _setenv_windows(env_var, paths, refresh)
+    else:
+        _setenv_unix(env_var, paths, refresh)
+    print(f"Added the following path(s) to {env_var}:\n")
+    for path in paths:
+        print(path)
