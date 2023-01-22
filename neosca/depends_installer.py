@@ -262,16 +262,19 @@ class depends_installer:
                 return False, f"Requesting to {download_url} failed."
         return True, filename
 
-    def ask_install(self, name: str) -> SCAProcedureResult:
+    def ask_install(self, name: str, assume_yes: bool = False) -> SCAProcedureResult:
         reason_dict = {
             JAVA: f"values of PATH does not contain a {JAVA} bin folder",
             STANFORD_PARSER: f"the environment variable STANFORD_PARSER_HOME is not found",
             STANFORD_TREGEX: f"the environment variable STANFORD_TREGEX_HOME is not found",
         }
-        is_install = get_yes_or_no(
-            f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to let"
-            " NeoSCA install it for you?"
-        )
+        if assume_yes:
+            is_install = "y"
+        else:
+            is_install = get_yes_or_no(
+                f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to"
+                " let NeoSCA install it for you?"
+            )
         if is_install in ("n", "N"):
             manual_install_prompt_dict = {
                 JAVA: (
@@ -303,11 +306,12 @@ class depends_installer:
         arch: str,
         impl: str,
         target_dir: str,
+        assume_yes: bool = False,
     ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}jdk-{version}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(JAVA)
+        sucess, err_msg = self.ask_install(JAVA, assume_yes)
         if not sucess:
             return sucess, err_msg
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
@@ -337,11 +341,13 @@ class depends_installer:
             os.remove(jdk_archive)
         return True, jdk_dir
 
-    def install_stanford(self, name: str, url: str, target_dir: str) -> SCAProcedureResult:
+    def install_stanford(
+        self, name: str, url: str, target_dir: str, assume_yes: bool = False
+    ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}{name.lower().replace(' ', '-')}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(name)
+        sucess, err_msg = self.ask_install(name, assume_yes)
         if not sucess:
             return sucess, err_msg
         color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
@@ -365,6 +371,7 @@ class depends_installer:
     def install(
         self,
         name: str,
+        assume_yes: bool = False,
         version: str = _JAVA_VERSION,
         operating_system: str = OS,
         arch: str = ARCH,
@@ -372,10 +379,10 @@ class depends_installer:
         target_dir: str = _TARGET_DIR,  # type: ignore
     ) -> SCAProcedureResult:
         if name == JAVA:
-            return self.install_java(version, operating_system, arch, impl, target_dir)
+            return self.install_java(version, operating_system, arch, impl, target_dir, assume_yes)
         elif name == STANFORD_PARSER:
-            return self.install_stanford(name, self._URL_STANFORD_PARSER, target_dir)
+            return self.install_stanford(name, self._URL_STANFORD_PARSER, target_dir, assume_yes)
         elif name == STANFORD_TREGEX:
-            return self.install_stanford(name, self._URL_STANFORD_TREGEX, target_dir)
+            return self.install_stanford(name, self._URL_STANFORD_TREGEX, target_dir, assume_yes)
         else:
             return False, f"Unexpected name: {name}."

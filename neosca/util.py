@@ -162,6 +162,7 @@ def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
         end="\n\n",
     )
 
+
 def get_yes_or_no(prompt: str = "") -> str:
     prompt_options = "Enter [y]es or [n]o: "
     sep = "\n" if prompt else ""

@@ -29,14 +29,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-        yes | python -m neosca --check-depends
+        export SHELL=bash
+        python -m neosca --check-depends --yes
       shell: bash
     - name: Install dependencies on Windows
       if: matrix.os == 'windows-latest'
       run: |
         python -m pip install --upgrade pip
         if (Test-Path -Path '.\requirements-dev.txt' -PathType Leaf) {pip install -r requirements-dev.txt}
-        yes | python -m neosca --check-depends
+        python -m neosca --check-depends --yes
       shell: pwsh
     - name: Build dist and test with unittest on macOS and Linux
       if: matrix.os != 'windows-latest'

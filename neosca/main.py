@@ -97,6 +97,13 @@ class SCAUI:
             default=False,
             help="check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford Tregex",
         )
+        args_parser.add_argument(
+            "--yes",
+            dest="assume_yes",
+            action="store_true",
+            default=False,
+            help="assume the answer to all prompts is yes, used when installing dependencies",
+        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
@@ -152,7 +159,7 @@ class SCAUI:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(JAVA)
+            sucess, err_msg = installer.install(JAVA, assume_yes=self.options.assume_yes)
             if not sucess:
                 return sucess, err_msg
             else:
@@ -175,7 +182,7 @@ class SCAUI:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(STANFORD_PARSER)
+            sucess, err_msg = installer.install(STANFORD_PARSER, assume_yes=self.options.assume_yes)
             if not sucess:
                 return sucess, err_msg
             else:
@@ -196,7 +203,7 @@ class SCAUI:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(STANFORD_TREGEX)
+            sucess, err_msg = installer.install(STANFORD_TREGEX, assume_yes=self.options.assume_yes)
             if not sucess:
                 return sucess, err_msg
             else:
