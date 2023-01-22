@@ -216,16 +216,19 @@ class SCAUI:
         return True, None
 
     def check_depends(self) -> SCAProcedureResult:
-        success, err_msg = self.check_java()
-        if not success:
-            return success, err_msg
-        success, err_msg = self.check_stanford_parser()
-        if not success:
-            return success, err_msg
-        success, err_msg = self.check_stanford_tregex()
-        if not success:
-            return success, err_msg
-        return True, None
+        success_java, err_msg_java = self.check_java()
+        success_parser, err_msg_parser = self.check_stanford_parser()
+        success_tregex, err_msg_tregex = self.check_stanford_tregex()
+
+        sucesses = (success_java, success_parser, success_tregex)
+        err_msges = (err_msg_java, err_msg_parser, err_msg_tregex)
+        if all(sucesses):
+            return True, None
+        else:
+            err_msg = "\n\n".join(
+                map(lambda p: p[1] if not p[0] else "", zip(sucesses, err_msges))  # type:ignore
+            )
+            return False, err_msg.strip()
 
     def check_python(self) -> SCAProcedureResult:
         v_info = sys.version_info

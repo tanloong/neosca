@@ -104,7 +104,6 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
         print("Failed to permanently append {path} to {env_var}.\nReason: can't detect current shell.")
-        sys.exit(1)
     else:
         startup_file_dict = {
             "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
@@ -121,7 +120,6 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             print(
                 f"Failed to permanently set environment variables.\nReason: can't detect rc file for {shell}."
             )
-            sys.exit(1)
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
             startup_file = os.path.expanduser(startup_file)
