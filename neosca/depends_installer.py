@@ -10,10 +10,11 @@ from subprocess import run
 from sys import maxsize, platform
 import tarfile
 import tempfile
-from typing import Optional
+from typing import Optional, Union
 from urllib import request
 from urllib.error import URLError
 import zipfile
+from .util import same_line_print
 
 from .util import SCAProcedureResult
 
@@ -41,7 +42,7 @@ _JAVA_VERSION = "18"
 STANFORD_PARSER = "Stanford Parser"
 STANFORD_TREGEX = "Stanford Tregex"
 
-_URL_JAVA = "https://www.java.com/en/download"
+_URL_JAVA_TEMPLATE = "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
 _URL_STANFORD_PARSER = "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
 _URL_STANFORD_TREGEX = "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
 
@@ -55,12 +56,10 @@ class depends_installer:
     def normalize_version(self, version: str) -> SCAProcedureResult:
         if re.search(r"^\d+$", version):
             return True, version
-        else:
-            match = re.search(r"^\d+\.(\d+)$", version)
-            if match:
-                return True, match.group(1)
-            else:
-                return False, f"Error: Unexpected version format: {version}."
+        match = re.search(r"^\d+\.(\d+)$", version)
+        if match:
+            return True, match.group(1)
+        return False, f"Error: Unexpected version format: {version}."
 
     def get_java_download_url(
         self,
@@ -74,8 +73,7 @@ class depends_installer:
             return sucess, err_msg
         else:
             version = err_msg  # type:ignore
-        url_template = "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
-        return True, url_template.format(version, operating_system, arch, impl)
+        return True, _URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
         if file.endswith(_TAR):
@@ -182,12 +180,50 @@ class depends_installer:
             )
         return True, filename
 
-    def _download(self, download_url:str, name:str) -> SCAProcedureResult:
-        req = request.Request(download_url, headers={"User-Agent": "Mozilla/5.0"})
+    def _format_bytes(self, size: Union[int, float], precesion: int = 2):
+        power = 2**10  # 1024
+        n = 0
+        power_labels = {0: "", 1: "K", 2: "M", 3: "G", 4: "T"}
+        while size > power:
+            size /= power
+            n += 1
+        return round(size, precesion), f"{power_labels[n]}"
 
-        filename = None
-        try:
+    def _callbackfunc(self, block_num: int, block_size: int, total_size):
+        max_hash_num = 50  # print up to 50 hashes
+        precesion = 2
+        downloaded_size = block_num * block_size
+        if downloaded_size >= total_size:
+            downloaded_size = total_size
+        percent = int(100 * downloaded_size / total_size)
+        downloaded_size, downloaded_size_unit = self._format_bytes(downloaded_size, precesion)
+        total_size, total_size_unit = self._format_bytes(total_size, precesion)
+        hash_num = int(percent / 100 * max_hash_num)
+        s = (
+            f"{percent:3}% [{'#' * hash_num}{' '*(max_hash_num-hash_num)}]"
+            f" {downloaded_size:6} {downloaded_size_unit}/{total_size} {total_size_unit}"
+        )
+        same_line_print(s, width=100)
+
+    def _download(self, download_url: str, name: str) -> SCAProcedureResult:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        if name == JAVA:
+            req = request.Request(download_url, headers=headers)
             response = request.urlopen(req)
+            success, err_msg = self._get_java_filename(response)
+            if not success:
+                return success, err_msg
+            else:
+                filename = err_msg  # e.g., jdk-18.0.2
+        else:
+            filename = path.basename(download_url)
+            # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
+        filename = path.join(tempfile.gettempdir(), filename)  # type: ignore
+        try:
+            opener = request.build_opener()
+            opener.addheaders = list(headers.items())
+            request.install_opener(opener)
+            request.urlretrieve(download_url, filename, self._callbackfunc)
         except URLError as e:
             if hasattr(e, "reason"):
                 return (False, f"Requesting to {download_url} failed.\nReason: {e.reason}")
@@ -195,34 +231,26 @@ class depends_installer:
                 return (False, f"Requesting to {download_url} failed.\nReason: {e.code}")
             else:
                 return False, f"Requesting to {download_url} failed."
-        else:
-            if name == JAVA:
-                success, err_msg = self._get_java_filename(response)
-                if not success:
-                    return success, err_msg
-                else:
-                    filename = err_msg  # e.g., jdk-18.0.2
-            else:
-                filename = path.basename(download_url)
-                # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
-            filename = path.join(tempfile.gettempdir(), filename)  # type: ignore
-            with open(filename, "wb") as out_file:
-                shutil.copyfileobj(response, out_file)
-            return True, filename
+        return True, filename
 
     def ask_install(self, name: str) -> SCAProcedureResult:
+        reason_dict = {
+            JAVA: f"values of PATH does not contain a {JAVA} bin folder",
+            STANFORD_PARSER: f"environment variable STANFORD_PARSER_HOME is not found",
+            STANFORD_TREGEX: f"environment variable STANFORD_TREGEX_HOME is not found",
+        }
         is_install = input(
-            f"It seems that {name} has not been installed on your device. Do you want to let"
+            f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to let"
             " NeoSCA install it for you?\nEnter [y]es or [n]o: "
         )
         while is_install not in ("y", "n", "Y", "N"):
             is_install = input(f"Unexpected input: {is_install}.\nEnter [y]es or [n]o: ")
         if is_install in ("n", "N"):
-            prompt_dict = {
+            manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
-                    f" {_URL_JAVA}.\n2. After installing, make sure you can access it in the cmd"
-                    " window by typing in `java -version`."
+                    " https://www.java.com/en/download.\n2. After installing, make sure you can access it in"
+                    " the cmd window by typing in `java -version`."
                 ),
                 STANFORD_PARSER: (
                     f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"
@@ -237,7 +265,7 @@ class depends_installer:
                     " directory."
                 ),
             }
-            return (False, prompt_dict[name])
+            return (False, manual_install_prompt_dict[name])
         else:
             return True, None
 
@@ -264,8 +292,8 @@ class depends_installer:
             return sucess, err_msg
         else:
             url = err_msg
-        print(f"Downloading the {JAVA} archive from {url}...")
-        sucess, err_msg = self._download(url, name=JAVA) # type:ignore
+        print(f"Downloading {url}...")
+        sucess, err_msg = self._download(url, name=JAVA)  # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_archive = err_msg
@@ -295,7 +323,7 @@ class depends_installer:
             return sucess, err_msg
         print(
             f'Installing {name} to "{target_dir}". It can take a few minutes, depending'
-            f" on your network connection.\nDownloading the {name} archive from {url}."
+            f" on your network connection.\nDownloading {url}."
         )
         sucess, err_msg = self._download(url, name=name)
         if not sucess:

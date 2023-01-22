@@ -44,6 +44,11 @@ def color_print(color, s: str, **kwargs) -> None:
         print(s)
 
 
+def same_line_print(s: str, width=80, **kwargs) -> None:
+    print(f"\r{'':<{width}}", end="")  # clear the line
+    print(f"\r{s}", end="", **kwargs)
+
+
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
     try:
         with open(filename, "w", encoding="utf-8") as f:
@@ -131,6 +136,4 @@ def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
         _setenv_windows(env_var, paths, refresh)
     else:
         _setenv_unix(env_var, paths, refresh)
-    print(f"Added the following path(s) to {env_var}:\n")
-    for path in paths:
-        print(path)
+    print(f"Added the following path(s) to {env_var}:\n", "\n".join(paths), sep="")
