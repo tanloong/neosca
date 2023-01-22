@@ -170,7 +170,7 @@ class SCAUI:
                 current_PATH = os.environ.get("PATH", default="")
                 os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
         else:
-            color_print("OKGREEN", "✓", prefix="Java has already been installed. ")
+            print("Java has already been installed.")
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
@@ -190,7 +190,7 @@ class SCAUI:
                 setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
                 self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
         else:
-            color_print("OKGREEN", "✓", prefix="Stanford Parser has already been installed. ")
+            print("Stanford Parser has already been installed.")
         self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
         return True, None
 
@@ -211,7 +211,7 @@ class SCAUI:
                 setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
                 self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
         else:
-            color_print("OKGREEN", "✓", prefix="Stanford Tregex has already been installed. ")
+            print("Stanford Tregex has already been installed.")
         self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
         return True, None
 
