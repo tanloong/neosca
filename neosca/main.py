@@ -5,18 +5,15 @@ from os import path
 import os
 import subprocess
 import sys
-from typing import List, Optional, Tuple
+from typing import List
 
 from . import __version__
 from .neosca import NeoSCA
 from .writer import write_match_output
 from .writer import write_freq_output
+from .util import SCAProcedureResult
 from .util import color_print
-
-# For all the procedures in SCAUI, return a tuple as the result
-# The first element bool indicates whether the procedure succeeds
-# The second element is the error message if it fails.
-SCAProcedureResult = Tuple[bool, Optional[str]]
+from .util import try_write
 
 
 class SCAUI:
@@ -24,6 +21,8 @@ class SCAUI:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
         self.cwd = os.getcwd()
+        self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
+        self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(prog="nsca")
@@ -66,27 +65,7 @@ class SCAUI:
             dest="stdout",
             action="store_true",
             default=False,
-            help=(
-                "write the frequency output to the stdout instead of saving it to a file"
-            ),
-        )
-        args_parser.add_argument(
-            "--parser",
-            dest="dir_stanford_parser",
-            default=os.getenv("STANFORD_PARSER_HOME"),
-            help=(
-                "specify the path to Stanford Parser, the default is the value"
-                " of STANFORD_PARSER_HOME"
-            ),
-        )
-        args_parser.add_argument(
-            "--tregex",
-            dest="dir_stanford_tregex",
-            default=os.getenv("STANFORD_TREGEX_HOME"),
-            help=(
-                "specify the path to Stanford Tregex, the default is the value"
-                " of STANFORD_TREGEX_HOME"
-            ),
+            help="write the frequency output to the stdout instead of saving it to a file",
         )
         args_parser.add_argument(
             "--reserve-parsed",
@@ -111,28 +90,24 @@ class SCAUI:
             default=False,
             help="parse the input files, save the parsed trees, and exit",
         )
+        args_parser.add_argument(
+            "--check-depends",
+            dest="check_depends",
+            action="store_true",
+            default=False,
+            help="check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford Tregex",
+        )
+        args_parser.add_argument(
+            "--yes",
+            dest="assume_yes",
+            action="store_true",
+            default=False,
+            help="assume the answer to all prompts is yes, used when installing dependencies",
+        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-
-        if options.dir_stanford_parser is None:
-            return (
-                False,
-                "You need to either set $STANFORD_PARSER_HOME or give the path"
-                " of Stanford Parser through the `--parser` option.",
-            )
-        if not path.isdir(options.dir_stanford_parser):
-            return False, f"{options.dir_stanford_parser} is invalid."
-
-        if options.dir_stanford_tregex is None:
-            return (
-                False,
-                "You need to either set $STANFORD_TREGEX_HOME or give the path"
-                " of Stanford Tregex through the `--tregex` option.",
-            )
-        if not path.isdir(options.dir_stanford_tregex):
-            return False, f"{options.dir_stanford_tregex} is invalid."
         if options.no_query:
             options.reserve_parsed = True
 
@@ -168,8 +143,8 @@ class SCAUI:
             options.ofile_freq = "result." + options.oformat_freq
 
         self.init_kwargs = {
-            "dir_stanford_parser": options.dir_stanford_parser,
-            "dir_stanford_tregex": options.dir_stanford_tregex,
+            "dir_stanford_parser": "",
+            "dir_stanford_tregex": "",
             "reserve_parsed": options.reserve_parsed,
         }
         self.options = options
@@ -179,21 +154,103 @@ class SCAUI:
         try:
             subprocess.run("java -version", shell=True, check=True, capture_output=True)
         except subprocess.CalledProcessError:
+            from .depends_installer import depends_installer
+            from .depends_installer import JAVA
+            from .util import setenv
+
+            installer = depends_installer()
+            sucess, err_msg = installer.install(JAVA, assume_yes=self.options.assume_yes)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                java_home = err_msg
+                java_bin = os.path.join(java_home, "bin")  # type:ignore
+                setenv("JAVA_HOME", [java_home], True)  # type:ignore
+                setenv("PATH", [java_bin], False)  # type:ignore
+                current_PATH = os.environ.get("PATH", default="")
+                os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
+        else:
+            print("Java has already been installed.")
+        return True, None
+
+    def check_stanford_parser(self) -> SCAProcedureResult:
+        try:
+            self.options.dir_stanford_parser = os.environ[self.STANFORD_PARSER_HOME]
+        except KeyError:
+            from .depends_installer import depends_installer
+            from .depends_installer import STANFORD_PARSER
+            from .util import setenv
+
+            installer = depends_installer()
+            sucess, err_msg = installer.install(STANFORD_PARSER, assume_yes=self.options.assume_yes)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                stanford_parser_home = err_msg
+                setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
+                self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
+        else:
+            print("Stanford Parser has already been installed.")
+        self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
+        return True, None
+
+    def check_stanford_tregex(self) -> SCAProcedureResult:
+        try:
+            self.options.dir_stanford_tregex = os.environ[self.STANFORD_TREGEX_HOME]
+        except KeyError:
+            from .depends_installer import depends_installer
+            from .depends_installer import STANFORD_TREGEX
+            from .util import setenv
+
+            installer = depends_installer()
+            sucess, err_msg = installer.install(STANFORD_TREGEX, assume_yes=self.options.assume_yes)
+            if not sucess:
+                return sucess, err_msg
+            else:
+                stanford_tregex_home = err_msg
+                setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
+                self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
+        else:
+            print("Stanford Tregex has already been installed.")
+        self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
+        return True, None
+
+    def check_depends(self) -> SCAProcedureResult:
+        success_java, err_msg_java = self.check_java()
+        success_parser, err_msg_parser = self.check_stanford_parser()
+        success_tregex, err_msg_tregex = self.check_stanford_tregex()
+
+        sucesses = (success_java, success_parser, success_tregex)
+        err_msges = (err_msg_java, err_msg_parser, err_msg_tregex)
+        if all(sucesses):
+            return True, None
+        else:
+            err_msg = "\n\n".join(
+                map(lambda p: p[1] if not p[0] else "", zip(sucesses, err_msges))  # type:ignore
+            )
+            return False, err_msg.strip()
+
+    def check_python(self) -> SCAProcedureResult:
+        v_info = sys.version_info
+        if v_info.minor >= 7 and v_info.major == 3:
+            return True, None
+        else:
             return (
                 False,
-                "Error: Java is unavailable.\n\n1. To install it, visit"
-                " https://www.java.com/en/download.\n2. After installing,"
-                " make sure you can access it in the cmd window by typing"
-                " in `java -version`.",
+                f"Error: Python {v_info.major}.{v_info.minor} is too old."
+                " NeoSCA only supports Python 3.7 or higher.",
             )
-        return True, None
 
     def exit_routine(self) -> None:
         print("\n", "=" * 60, sep="")
         i = 1
         if not self.options.no_query and not self.options.stdout:
-            print(f"{i}. Frequency output was saved to", end=" ")
-            color_print("OKGREEN", f"{path.abspath(self.options.ofile_freq)}", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{path.abspath(self.options.ofile_freq)}",
+                prefix=f"{i}. Frequency output was saved to ",
+                postfix=".",
+            )
             i += 1
         if self.verified_ifile_list and self.options.reserve_parsed:
             print(
@@ -202,20 +259,35 @@ class SCAUI:
             )
             i += 1
         if self.options.text is not None and self.options.reserve_parsed:
-            print(f"{i}. Parsed trees were saved to", end=" ")
-            color_print("OKGREEN", f"{self.cwd}{os.sep}cmdline_text.parsed", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{self.cwd}{os.sep}cmdline_text.parsed",
+                prefix=f"{i}. Parsed trees were saved to ",
+                postfix=".",
+            )
             i += 1
         if self.options.reserve_matched:
-            print(f"{i}. Matched subtrees were saved to", end=" ")
-            color_print("OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{path.abspath(self.odir_match)}",
+                prefix=f"{i}. Matched subtrees were saved to ",
+                postfix=".",
+            )
             i += 1
         print("Done.")
 
     def run_tmpl(func):  # type: ignore
         def wrapper(self, *args, **kwargs):
-            sucess, err_msg = self.check_java()
+            sucess, err_msg = self.check_python()
             if not sucess:
                 return sucess, err_msg
+            sucess, err_msg = self.check_depends()
+            if not sucess:
+                return sucess, err_msg
+            if not self.options.stdout:
+                sucess, err_msg = try_write(self.options.ofile_freq, None)
+                if not sucess:
+                    return sucess, err_msg
             func(self, *args, **kwargs)  # type: ignore
             self.exit_routine()
             return True, None
@@ -232,9 +304,7 @@ class SCAUI:
         analyzer = NeoSCA(**self.init_kwargs)
         structures = analyzer.parse_text_and_query(self.options.text)
 
-        write_freq_output(
-            [structures], self.options.ofile_freq, self.options.oformat_freq
-        )
+        write_freq_output([structures], self.options.ofile_freq, self.options.oformat_freq)
 
         if self.options.reserve_matched:
             write_match_output(structures, self.odir_match)
@@ -266,6 +336,8 @@ class SCAUI:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
+        elif self.options.check_depends:
+            return self.check_depends()
         elif self.options.text is not None and self.options.no_query:
             return self.run_parse_text()  # type: ignore
         elif self.options.text is not None and not self.options.no_query:

@@ -21,8 +21,7 @@ class Querier:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = (
-            f"java -mx{self.max_memory} -cp {self.classpath}"
-            f" {self.TREGEX_METHOD} {structure.pat} -o -filter"
+            f"java -mx{self.max_memory} -cp {self.classpath} {self.TREGEX_METHOD} {structure.pat} -o -filter"
         )
         try:
             p = subprocess.run(
@@ -35,9 +34,7 @@ class Querier:
         except subprocess.CalledProcessError as err_msg:
             print(err_msg)
             sys.exit(1)
-        match_reslt = re.search(
-            r"There were (\d+) matches in total\.", p.stderr.decode("utf-8")
-        )
+        match_reslt = re.search(r"There were (\d+) matches in total\.", p.stderr.decode("utf-8"))
         if match_reslt:
             freq = match_reslt.group(1)
         else:

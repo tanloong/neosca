@@ -1,11 +1,25 @@
-.vscode
+# Byte-compiled / optimized / DLL files
+*__pycache__/
+
+# packaging
+build/
+dist/
 *.egg-info
-*__pycache__
+
+# unit test / coverage report
+htmlcov/
+.coverage
+coverage.xml
+
+# mypy
+.mypy_cache/
+
+# miscellaneous
+.vscode
 *.zip
 *.tar.gz
 *.parsed
-build/
-dist
+*.mp4
 doc
 note.txt
 test.py

@@ -2,7 +2,7 @@ import os
 from os import path
 import sys
 
-from typing import Dict, Iterator, Sequence, Union
+from typing import List, Dict, Iterator, Sequence, Union
 from .structures import Structures
 
 
@@ -21,9 +21,7 @@ def write_match_output(structures: Structures, odir_match: str) -> None:
         os.makedirs(subdir_match_output)
     for structure in structures.to_query:
         if structure.matches:
-            bn_match_output = (
-                bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
-            )
+            bn_match_output = bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
             fn_match_output = path.join(subdir_match_output, bn_match_output)
             with open(fn_match_output, "w", encoding="utf-8") as f:
                 f.write(structure.matches)
@@ -42,7 +40,7 @@ def write_freq_output(
     elif oformat_freq == "json":
         import json
 
-        combined_freq_dict: Dict[str, list[Dict]] = {"Files": []}
+        combined_freq_dict: Dict[str, List[Dict]] = {"Files": []}
         for structures in multi_structures:
             freq_dict = structures.get_freqs()
             combined_freq_dict["Files"].append(freq_dict)
