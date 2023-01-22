@@ -10,9 +10,9 @@ class TestCommandLineBasic(CmdlineTmpl):
         result_stdout = result.stdout.decode("utf8")
         self.assertIn("help", result_stdout)
         #  Check for a few more arguments to ensure we hit the intended argumentParser
-        self.assertIn("--parser", result_stdout)
-        self.assertIn("--tregex", result_stdout)
+        self.assertIn("--text", result_stdout)
         self.assertIn("--output-file", result_stdout)
+        self.assertIn("--no-query", result_stdout)
 
     def test_help(self):
         """Test that all three options print the same help page"""
@@ -44,9 +44,7 @@ class TestCommandLineBasic(CmdlineTmpl):
     def test_parse_ifiles(self):
         self.template(
             "python -m neosca sample.txt --no-query",
-            expected_output_file=[
-                "sample.parsed",
-            ],
+            expected_output_file=["sample.parsed"],
         )
 
     def test_parse_ifiles_and_query(self):
@@ -62,11 +60,7 @@ class TestCommandLineBasic(CmdlineTmpl):
     def test_outputfile(self):
         self.template(
             "python -m neosca sample.txt --output-format csv --reserve-parsed --reserve-matched",
-            expected_output_file=[
-                "result.csv",
-                "sample.parsed",
-                "result_matches",
-            ],
+            expected_output_file=["result.csv", "sample.parsed", "result_matches"],
         )
         self.template(
             "python -m neosca sample.txt --output-format json --reserve-parsed --reserve-matched",
