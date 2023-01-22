@@ -55,7 +55,7 @@ jobs:
       shell: pwsh
     - name: Generate coverage report
       run: |
-        coverage run --source viztracer --parallel-mode -m unittest
+        coverage run --source neosca --parallel-mode -m unittest
         coverage combine
         coverage xml -i
     - name: Upload report to Codecov
