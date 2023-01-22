@@ -2,9 +2,9 @@
 # -*- coding=utf-8 -*-
 
 import os
+import re
 import sys
-from typing import Optional, Tuple, List
-
+from typing import List, Optional, Tuple
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -37,11 +37,12 @@ if sys.platform == "win32":
         color_support = False
 
 
-def color_print(color, s: str, **kwargs) -> None:
+def color_print(color: str, s: str, prefix: str = "", postfix: str = "", **kwargs) -> None:
+    kwargs.update({"sep": ""})
     if color_support:
-        print(bcolors.__getattribute__(color) + s + bcolors.ENDC, **kwargs)
+        print(prefix, bcolors.__getattribute__(color) + s + bcolors.ENDC, postfix, **kwargs)
     else:  # pragma: no cover
-        print(s)
+        print(prefix, s, **kwargs)
 
 
 def same_line_print(s: str, width=80, **kwargs) -> None:
@@ -122,12 +123,29 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             )
             sys.exit(1)
         else:
-            new_paths = ":".join(paths)
-            with open(os.path.expanduser(startup_file), "a", encoding="utf-8") as f:
+            new_paths = '"' + '":"'.join(paths) + '"'
+            startup_file = os.path.expanduser(startup_file)
+            with open(startup_file, "r", encoding="utf-8") as f:
+                configs = [line.strip() for line in f.readlines()]
+            new_config = (
+                f"export {env_var}={new_paths}" if refresh else f"export {env_var}=${env_var}:{new_paths}"
+            )
+            duplicated_config_index = []
+            for i, config in enumerate(configs):
                 if refresh:
-                    f.write(f'\nexport {env_var}="{new_paths}"')
+                    if config.startswith(f"export {env_var}"):
+                        duplicated_config_index.append(i)
                 else:
-                    f.write(f'\nexport {env_var}=${env_var}:"{new_paths}"')
+                    if config == new_config:
+                        duplicated_config_index.append(i)
+            for i in duplicated_config_index:
+                del configs[i]
+            if duplicated_config_index:
+                configs.insert(duplicated_config_index[0], new_config)
+            else:
+                configs.append(new_config)
+            with open(startup_file, "w", encoding="utf-8") as f:
+                f.write("\n".join(configs))
 
 
 def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
@@ -136,4 +154,18 @@ def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
         _setenv_windows(env_var, paths, refresh)
     else:
         _setenv_unix(env_var, paths, refresh)
-    print(f"Added the following path(s) to {env_var}:\n", "\n".join(paths), sep="")
+    color_print(
+        "OKGREEN",
+        env_var,
+        prefix="Added the following path(s) to ",
+        postfix=":\n" + "\n".join(paths),
+        end="\n\n",
+    )
+
+def get_yes_or_no(prompt: str = "") -> str:
+    prompt_options = "Enter [y]es or [n]o: "
+    sep = "\n" if prompt else ""
+    answer = input(prompt + sep + prompt_options)
+    while answer not in ("y", "n", "Y", "N"):
+        answer = input(f"Unexpected input: {answer}.\nEnter [y]es or [n]o: ")
+    return answer

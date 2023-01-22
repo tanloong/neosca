@@ -156,13 +156,14 @@ class SCAUI:
             if not sucess:
                 return sucess, err_msg
             else:
-                path_java_bin = err_msg
-                setenv("PATH", [path_java_bin], False)  # type:ignore
+                java_home = err_msg
+                java_bin = os.path.join(java_home, "bin")  # type:ignore
+                setenv("JAVA_HOME", [java_home], True)  # type:ignore
+                setenv("PATH", [java_bin], False)  # type:ignore
                 current_PATH = os.environ.get("PATH", default="")
-                os.environ["PATH"] = current_PATH + os.pathsep + path_java_bin  # type:ignore
+                os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
         else:
-            print("Java has already been installed.", end=" ")
-            color_print("OKGREEN", "✓")
+            color_print("OKGREEN", "✓", prefix="Java has already been installed. ")
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
@@ -182,8 +183,7 @@ class SCAUI:
                 setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
                 self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
         else:
-            print("Stanford Parser has already been installed.", end=" ")
-            color_print("OKGREEN", "✓")
+            color_print("OKGREEN", "✓", prefix="Stanford Parser has already been installed. ")
         self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
         return True, None
 
@@ -204,8 +204,7 @@ class SCAUI:
                 setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
                 self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
         else:
-            print("Stanford Tregex has already been installed.", end=" ")
-            color_print("OKGREEN", "✓")
+            color_print("OKGREEN", "✓", prefix="Stanford Tregex has already been installed. ")
         self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
         return True, None
 
@@ -236,8 +235,12 @@ class SCAUI:
         print("\n", "=" * 60, sep="")
         i = 1
         if not self.options.no_query and not self.options.stdout:
-            print(f"{i}. Frequency output was saved to", end=" ")
-            color_print("OKGREEN", f"{path.abspath(self.options.ofile_freq)}", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{path.abspath(self.options.ofile_freq)}",
+                prefix=f"{i}. Frequency output was saved to ",
+                postfix=".",
+            )
             i += 1
         if self.verified_ifile_list and self.options.reserve_parsed:
             print(
@@ -246,12 +249,20 @@ class SCAUI:
             )
             i += 1
         if self.options.text is not None and self.options.reserve_parsed:
-            print(f"{i}. Parsed trees were saved to", end=" ")
-            color_print("OKGREEN", f"{self.cwd}{os.sep}cmdline_text.parsed", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{self.cwd}{os.sep}cmdline_text.parsed",
+                prefix=f"{i}. Parsed trees were saved to ",
+                postfix=".",
+            )
             i += 1
         if self.options.reserve_matched:
-            print(f"{i}. Matched subtrees were saved to", end=" ")
-            color_print("OKGREEN", f"{path.abspath(self.odir_match)}", end=".\n")
+            color_print(
+                "OKGREEN",
+                f"{path.abspath(self.odir_match)}",
+                prefix=f"{i}. Matched subtrees were saved to ",
+                postfix=".",
+            )
             i += 1
         print("Done.")
 

@@ -3,7 +3,6 @@ import email.message
 import glob
 import lzma
 import os
-from os import path
 import re
 import shutil
 from subprocess import run
@@ -13,9 +12,12 @@ import tempfile
 from typing import Optional, Union
 from urllib import request
 from urllib.error import URLError
+import urllib.parse
 import zipfile
-from .util import same_line_print
 
+from .util import same_line_print
+from .util import color_print
+from .util import get_yes_or_no
 from .util import SCAProcedureResult
 
 _IS_WINDOWS = os.name == "nt"
@@ -25,8 +27,8 @@ _UNPACK200_ARGS = '-r -v -l ""' if _IS_WINDOWS else ""
 if _IS_WINDOWS and os.environ.get("ProgramFiles") is not None:
     _TARGET_DIR = os.environ.get("ProgramFiles")
 else:
-    _USER_DIR = path.expanduser("~")
-    _TARGET_DIR = path.join(_USER_DIR, ".local", "share")
+    _USER_DIR = os.path.expanduser("~")
+    _TARGET_DIR = os.path.join(_USER_DIR, ".local", "share")
 
 OS = "windows" if _IS_WINDOWS else "mac" if _IS_DARWIN else platform
 ARCH = "x64" if maxsize > 2**32 else "x32"
@@ -38,13 +40,9 @@ _SEVEN_ZIP = ".7z"
 
 _Path = namedtuple("_Path", "dir base name ext")
 JAVA = "Java"
-_JAVA_VERSION = "18"
+_JAVA_VERSION = "8"
 STANFORD_PARSER = "Stanford Parser"
 STANFORD_TREGEX = "Stanford Tregex"
-
-_URL_JAVA_TEMPLATE = "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
-_URL_STANFORD_PARSER = "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
-_URL_STANFORD_TREGEX = "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
 
 
 class Implementation:
@@ -53,6 +51,15 @@ class Implementation:
 
 
 class depends_installer:
+    def __init__(self) -> None:
+        self._URL_JAVA_TEMPLATE = (
+            "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
+        )
+        self._URL_JAVA_TEMPLATE_CHINA = "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
+        self._URL_STANFORD_PARSER = "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
+        self._URL_STANFORD_TREGEX = "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+
     def normalize_version(self, version: str) -> SCAProcedureResult:
         if re.search(r"^\d+$", version):
             return True, version
@@ -73,7 +80,26 @@ class depends_installer:
             return sucess, err_msg
         else:
             version = err_msg  # type:ignore
-        return True, _URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
+        self.use_chinese_jdk_mirror = get_yes_or_no(
+            "Do you want to download Java from a Chinese mirror site?"
+            " If you are inside of China, you may want to use this for a faster network connection."
+        )
+        if self.use_chinese_jdk_mirror in ("n", "N"):
+            return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
+        else:
+            index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)
+            req = request.Request(index_url, headers=self.headers)
+            response = request.urlopen(req)
+            content = response.read().decode("utf-8")
+            match = re.search(r'"([^"]+\.(?:zip|tar\.gz|tar|7z))"', content)
+            if match:
+                filename = match.group(1)
+                return True, urllib.parse.urljoin(index_url, filename)
+            else:
+                return (
+                    False,
+                    f"Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at {index_url}.",
+                )
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
         if file.endswith(_TAR):
@@ -88,7 +114,7 @@ class depends_installer:
             return False, f"Error: {file} has unexpected extension."
 
     def _extract_files(self, file: str, file_ending: str, destination_folder: str) -> SCAProcedureResult:
-        if not path.isfile(file):
+        if not os.path.isfile(file):
             return False, f"Error: {file} is not a regular file."
 
         start_listing = set(os.listdir(destination_folder))
@@ -110,26 +136,26 @@ class depends_installer:
         end_listing = set(os.listdir(destination_folder))
         unzipped_directory = end_listing.difference(start_listing).pop()
 
-        return True, path.join(destination_folder, unzipped_directory)
+        return True, os.path.join(destination_folder, unzipped_directory)
 
     def _path_parse(self, file_path: str) -> _Path:
-        dirname = path.dirname(file_path)
-        base = path.basename(file_path)
-        name, ext = path.splitext(base)
+        dirname = os.path.dirname(file_path)
+        base = os.path.basename(file_path)
+        name, ext = os.path.splitext(base)
         return _Path(dir=dirname, base=base, name=name, ext=ext)
 
     def _unpack_jars(self, fs_path: str, java_bin_path: str) -> SCAProcedureResult:
-        if path.isdir(fs_path):
+        if os.path.isdir(fs_path):
             for f in os.listdir(fs_path):
-                current_path = path.join(fs_path, f)
+                current_path = os.path.join(fs_path, f)
                 self._unpack_jars(current_path, java_bin_path)
             return True, None
-        elif path.isfile(fs_path):
-            file_ext = path.splitext(fs_path)[-1]
+        elif os.path.isfile(fs_path):
+            file_ext = os.path.splitext(fs_path)[-1]
             if file_ext.endswith("pack"):
                 p = self._path_parse(fs_path)
-                name = path.join(p.dir, p.name)
-                tool_path = path.join(java_bin_path, _UNPACK200)
+                name = os.path.join(p.dir, p.name)
+                tool_path = os.path.join(java_bin_path, _UNPACK200)
                 run([tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"])
             return True, None
         else:
@@ -138,46 +164,51 @@ class depends_installer:
     def _decompress_archive(
         self, archive_path: str, file_ending: str, destination_folder: str
     ) -> SCAProcedureResult:
-        if not path.isdir(destination_folder):
+        if not os.path.isdir(destination_folder):
             os.mkdir(destination_folder)
 
-        archive_path = path.normpath(archive_path)
+        archive_path = os.path.normpath(archive_path)
 
-        if path.isfile(archive_path):
+        if os.path.isfile(archive_path):
             sucess, err_msg = self._extract_files(archive_path, file_ending, destination_folder)
             if not sucess:
                 return sucess, err_msg
             else:
                 unzipped_directory = err_msg
             return True, unzipped_directory
-        elif path.isdir(archive_path):
+        elif os.path.isdir(archive_path):
             return True, archive_path
         else:
             return False, f"Error: {archive_path} is neither a directory not a file."
 
-    def _get_java_filename(self, response) -> SCAProcedureResult:
-        info = response.info()
-        download_url = response.geturl()
-        if "Content-Disposition" not in info:
-            return (
-                False,
-                f"Parsing the response from {download_url} failed. \nReason:"
-                ' "Content-Disposition" not in response.info().',
-            )
-        m = email.message.Message()
-        m["content-type"] = info["Content-Disposition"]
-        if m.get_param("filename") is None:
-            return (
-                False,
-                f"Parsing the response from {download_url} failed.\nReason: can't detect the filename.",
-            )
-        filename = m.get_param("filename")
-        if not isinstance(filename, str):
-            return (
-                False,
-                f"Parsing the response from {download_url} failed.\nReason: the value of"
-                ' the attribute "filename" is not a str.',
-            )
+    def _get_java_filename(self, download_url) -> SCAProcedureResult:
+        if self.use_chinese_jdk_mirror:
+            filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
+        else:
+            req = request.Request(download_url, headers=self.headers)
+            response = request.urlopen(req)
+            info = response.info()
+            download_url = response.geturl()
+            if "Content-Disposition" not in info:
+                return (
+                    False,
+                    f"Parsing the response from {download_url} failed. \nReason:"
+                    ' "Content-Disposition" not in response.info().',
+                )
+            m = email.message.Message()
+            m["content-type"] = info["Content-Disposition"]
+            if m.get_param("filename") is None:
+                return (
+                    False,
+                    f"Parsing the response from {download_url} failed.\nReason: can't detect the filename.",
+                )
+            filename = m.get_param("filename")
+            if not isinstance(filename, str):
+                return (
+                    False,
+                    f"Parsing the response from {download_url} failed.\nReason: the value of"
+                    ' the attribute "filename" is not a str.',
+                )
         return True, filename
 
     def _format_bytes(self, size: Union[int, float], precesion: int = 2):
@@ -206,24 +237,22 @@ class depends_installer:
         same_line_print(s, width=100)
 
     def _download(self, download_url: str, name: str) -> SCAProcedureResult:
-        headers = {"User-Agent": "Mozilla/5.0"}
         if name == JAVA:
-            req = request.Request(download_url, headers=headers)
-            response = request.urlopen(req)
-            success, err_msg = self._get_java_filename(response)
+            success, err_msg = self._get_java_filename(download_url)
             if not success:
                 return success, err_msg
             else:
                 filename = err_msg  # e.g., jdk-18.0.2
         else:
-            filename = path.basename(download_url)
+            filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
             # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
-        filename = path.join(tempfile.gettempdir(), filename)  # type: ignore
+        filename = os.path.join(tempfile.gettempdir(), filename)  # type: ignore
         try:
             opener = request.build_opener()
-            opener.addheaders = list(headers.items())
+            opener.addheaders = list(self.headers.items())
             request.install_opener(opener)
             request.urlretrieve(download_url, filename, self._callbackfunc)
+            same_line_print("", width=100)
         except URLError as e:
             if hasattr(e, "reason"):
                 return (False, f"Requesting to {download_url} failed.\nReason: {e.reason}")
@@ -236,15 +265,13 @@ class depends_installer:
     def ask_install(self, name: str) -> SCAProcedureResult:
         reason_dict = {
             JAVA: f"values of PATH does not contain a {JAVA} bin folder",
-            STANFORD_PARSER: f"environment variable STANFORD_PARSER_HOME is not found",
-            STANFORD_TREGEX: f"environment variable STANFORD_TREGEX_HOME is not found",
+            STANFORD_PARSER: f"the environment variable STANFORD_PARSER_HOME is not found",
+            STANFORD_TREGEX: f"the environment variable STANFORD_TREGEX_HOME is not found",
         }
-        is_install = input(
+        is_install = get_yes_or_no(
             f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to let"
-            " NeoSCA install it for you?\nEnter [y]es or [n]o: "
+            " NeoSCA install it for you?"
         )
-        while is_install not in ("y", "n", "Y", "N"):
-            is_install = input(f"Unexpected input: {is_install}.\nEnter [y]es or [n]o: ")
         if is_install in ("n", "N"):
             manual_install_prompt_dict = {
                 JAVA: (
@@ -254,13 +281,13 @@ class depends_installer:
                 ),
                 STANFORD_PARSER: (
                     f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {_URL_STANFORD_PARSER}.\n2. Set an"
+                    f" download and unzip the archive file at {self._URL_STANFORD_PARSER}.\n2. Set an"
                     " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
                     " directory."
                 ),
                 STANFORD_TREGEX: (
                     f"You will have to install {STANFORD_TREGEX} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {_URL_STANFORD_TREGEX}.\n2. Set an"
+                    f" download and unzip the archive file at {self._URL_STANFORD_TREGEX}.\n2. Set an"
                     " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
                     " directory."
                 ),
@@ -277,22 +304,18 @@ class depends_installer:
         impl: str,
         target_dir: str,
     ) -> SCAProcedureResult:
-        match = glob.glob(f"{target_dir}{os.sep}jdk-{version}*{os.sep}bin")
+        match = glob.glob(f"{target_dir}{os.sep}jdk-{version}*")
         if match:
             return True, match[0]
         sucess, err_msg = self.ask_install(JAVA)
         if not sucess:
             return sucess, err_msg
-        print(
-            f'Installing {JAVA} {version} to "{target_dir}". It can take a few minutes, depending'
-            " on your network connection."
-        )
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
         if not sucess:
             return sucess, err_msg
         else:
             url = err_msg
-        print(f"Downloading {url}...")
+        color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
         sucess, err_msg = self._download(url, name=JAVA)  # type:ignore
         if not sucess:
             return sucess, err_msg
@@ -306,13 +329,13 @@ class depends_installer:
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
-        jdk_bin = target_dir.join(jdk_dir, "bin")  # type:ignore
+        jdk_bin = os.path.join(jdk_dir, "bin")  # type:ignore
         sucess, err_msg = self._unpack_jars(jdk_dir, jdk_bin)  # type:ignore
         if not sucess:
             return sucess, err_msg
         if jdk_archive:
             os.remove(jdk_archive)
-        return True, jdk_bin
+        return True, jdk_dir
 
     def install_stanford(self, name: str, url: str, target_dir: str) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}{name.lower().replace(' ', '-')}*")
@@ -321,10 +344,7 @@ class depends_installer:
         sucess, err_msg = self.ask_install(name)
         if not sucess:
             return sucess, err_msg
-        print(
-            f'Installing {name} to "{target_dir}". It can take a few minutes, depending'
-            f" on your network connection.\nDownloading {url}."
-        )
+        color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
         sucess, err_msg = self._download(url, name=name)
         if not sucess:
             return sucess, err_msg
@@ -354,8 +374,8 @@ class depends_installer:
         if name == JAVA:
             return self.install_java(version, operating_system, arch, impl, target_dir)
         elif name == STANFORD_PARSER:
-            return self.install_stanford(name, _URL_STANFORD_PARSER, target_dir)
+            return self.install_stanford(name, self._URL_STANFORD_PARSER, target_dir)
         elif name == STANFORD_TREGEX:
-            return self.install_stanford(name, _URL_STANFORD_TREGEX, target_dir)
+            return self.install_stanford(name, self._URL_STANFORD_TREGEX, target_dir)
         else:
             return False, f"Unexpected name: {name}."
