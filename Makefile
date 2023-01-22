@@ -8,6 +8,8 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf neosca.egg-info
+	rm -rf htmlcov
+	rm -rf coverage.xml
 	pip uninstall -y neosca
 
 build:
@@ -23,5 +25,5 @@ test:
 	python -m unittest
 
 lint:
-	black --line-length 90 --preview neosca/
+	black --line-length 110 --preview neosca/ tests/
 	mypy --check-untyped-defs neosca/

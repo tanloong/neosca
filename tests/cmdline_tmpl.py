@@ -3,8 +3,6 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
-import time
 from .base_tmpl import BaseTmpl
 from typing import Union, Optional
 
@@ -59,9 +57,7 @@ class CmdlineTmpl(BaseTmpl):
             self.build_ifile(text, ifile_name)
         timeout = 60
         try:
-            result = subprocess.run(
-                cmd_string, shell=True, capture_output=True, timeout=timeout
-            )
+            result = subprocess.run(cmd_string, shell=True, capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired as e:
             logging.error(f"stdout: {e.stdout}")
             logging.error(f"stderr: {e.stderr}")
@@ -85,16 +81,11 @@ class CmdlineTmpl(BaseTmpl):
                 self.assertRegex(result.stderr.decode("utf-8"), expected_stderr)
 
             if check_func:
-                assert (
-                    type(expected_output_file) is str
-                    and expected_output_file.split(".")[-1] == "csv"
-                )
+                assert type(expected_output_file) is str and expected_output_file.split(".")[-1] == "csv"
                 with open(expected_output_file) as f:
                     data = json.load(f)
                     check_func(data)
 
         if cleanup:
-            self.cleanup(
-                output_file=expected_output_file, ifile_name=ifile_name
-            )
+            self.cleanup(output_file=expected_output_file, ifile_name=ifile_name)
         return result

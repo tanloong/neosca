@@ -1,0 +1,9 @@
+# Build Packages
+setuptools
+wheel
+twine
+
+# Lint & Coverage
+black
+mypy
+coverage
