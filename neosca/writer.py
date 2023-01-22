@@ -2,7 +2,7 @@ import os
 from os import path
 import sys
 
-from typing import Dict, Iterator, Sequence, Union
+from typing import List, Dict, Iterator, Sequence, Union
 from .structures import Structures
 
 
@@ -40,7 +40,7 @@ def write_freq_output(
     elif oformat_freq == "json":
         import json
 
-        combined_freq_dict: Dict[str, list[Dict]] = {"Files": []}
+        combined_freq_dict: Dict[str, List[Dict]] = {"Files": []}
         for structures in multi_structures:
             freq_dict = structures.get_freqs()
             combined_freq_dict["Files"].append(freq_dict)
