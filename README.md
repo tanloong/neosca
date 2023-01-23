@@ -2,14 +2,14 @@
 
 [![build](https://github.com/tanloong/neosca/workflows/build/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3Abuild)
 [![lint](https://github.com/tanloong/neosca/workflows/lint/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3ALint)
-[![codecov](https://codecov.io/gh/tanloong/neosca/branch/master/graph/badge.svg?token=M2MX1BSAEI)](https://codecov.io/gh/tanloong/neosca)
+[![codecov](https://img.shields.io/codecov/c/github/tanloong/neosca)](https://codecov.io/gh/tanloong/neosca)
 [![pypi](https://img.shields.io/pypi/v/neosca)](https://pypi.org/project/neosca)
+[![commit](https://img.shields.io/github/last-commit/tanloong/neosca)](https://github.com/tanloong/neosca/commits/master)
 ![support-version](https://img.shields.io/pypi/pyversions/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
-[![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
-[![commit](https://img.shields.io/github/last-commit/tanloong/neosca)](https://github.com/tanloong/neosca/commits/master)
 [![downloads](https://img.shields.io/pypi/dm/neosca)](#install)
 ![](img/testing-on-Windows.gif)
+[![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
 NeoSCA is a rewrite of
 [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA),
