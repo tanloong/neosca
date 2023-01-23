@@ -3,10 +3,11 @@
 [![build](https://github.com/tanloong/neosca/workflows/build/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3Abuild)
 [![lint](https://github.com/tanloong/neosca/workflows/lint/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3ALint)
 [![codecov](https://codecov.io/gh/tanloong/neosca/branch/master/graph/badge.svg?token=M2MX1BSAEI)](https://codecov.io/gh/tanloong/neosca)
-[![pypi](https://img.shields.io/badge/pypi-v0.0.32-orange)](https://pypi.org/project/neosca)
-![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
+[![pypi](https://img.shields.io/pypi/v/neosca)](https://pypi.org/project/neosca)
+![support-version](https://img.shields.io/pypi/pyversions/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
-[![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
+[![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
+[![commit](https://img.shields.io/github/last-commit/tanloong/neosca)](https://github.com/tanloong/neosca/commits/master)
 
 ![](img/testing-on-Windows.gif)
 
@@ -309,4 +310,4 @@ MLA (9th edition):
 
 ## <a name="license"></a> License <small><sup>[Top ▲](#contents)</sup></small>
 
-NeoSCA is licensed under the [GNU General Public License version 2](https://github.com/tanloong/neosca/blob/master/LICENSE) or later.
+NeoSCA is licensed under the [GNU General Public License version 2](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) or later.
