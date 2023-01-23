@@ -8,7 +8,7 @@
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 [![commit](https://img.shields.io/github/last-commit/tanloong/neosca)](https://github.com/tanloong/neosca/commits/master)
-
+[![downloads](https://img.shields.io/pypi/dm/neosca)](#install)
 ![](img/testing-on-Windows.gif)
 
 NeoSCA is a rewrite of
