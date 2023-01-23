@@ -1,36 +1,21 @@
-<div align="center">
- <h1> NeoSCA </h1>
- <p>
-  <a>
-   <img alt="support-version" src="https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue" />
-  </a>
-  <a href="https://pypi.org/project/neosca">
-   <img alt="pypi" src="https://img.shields.io/badge/pypi-v0.0.32-orange" />
-  </a>
- <a href="https://codecov.io/gh/tanloong/neosca">
-   <img src="https://codecov.io/gh/tanloong/neosca/branch/master/graph/badge.svg?token=M2MX1BSAEI"/>
- </a>
-  <a>
-   <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray" />
-  </a>
-  <a href="https://github.com/tanloong/neosca/blob/master/LICENSE.txt">
-   <img alt="license" src="https://img.shields.io/badge/license-GPL%20v2%2B-green"/>
-  </a>
-  <h4>
-   Another syntactic complexity analyzer of written English language samples.
-  </h4>
- </p>
-</div>
+# NeoSCA
+
+[![build](https://github.com/tanloong/neosca/workflows/build/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3Abuild)
+[![lint](https://github.com/tanloong/neosca/workflows/lint/badge.svg)](https://github.com/tanloong/neosca/actions?query=workflow%3ALint)
+[![codecov](https://codecov.io/gh/tanloong/neosca/branch/master/graph/badge.svg?token=M2MX1BSAEI)](https://codecov.io/gh/tanloong/neosca)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.32-orange)](https://pypi.org/project/neosca)
+![support-version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
+[![license](https://img.shields.io/badge/license-GPL%20v2%2B-green)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
 ![](img/testing-on-Windows.gif)
 
 NeoSCA is a rewrite of
-[Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s 
-[L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html),
-supporting Windows, macOS, and Linux.
-The same as L2SCA,
-NeoSCA takes written English language
-samples in plain text format as input, and computes:
+[L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA),
+developed by
+[Xiaofei Lu](http://personal.psu.edu/xxl13/index.html),
+with added support for Windows and an improved command-line interface for easier usage.
+The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
 
 <details>
 
@@ -77,24 +62,21 @@ the frequency of 9 structures in the text:
 
 <!-- vim-markdown-toc GFM -->
 
-* [NeoSCA vs. L2SCA](#neosca-vs-l2sca)
-* [Installation](#installation)
+* [Highlights](#highlights)
+* [Install](#install)
 * [Usage](#usage)
 * [Citing](#citing)
 * [License](#license)
 
 <!-- vim-markdown-toc -->
 
-## <a name="neosca-vs-l2sca"></a> NeoSCA vs. L2SCA <small><sup>[Top ▲](#contents)</sup></small>
+## <a name="highlights"></a> Highlights <small><sup>[Top ▲](#contents)</sup></small>
 
-| L2SCA | NeoSCA |
-|-|-|
-| runs on macOS and Linux | runs on **Windows**, macOS, and Linux |
-| single and multiple input are handled respectively by two commands | one command, `nsca`, for both cases, making your life easier |
-| runs only under its own home directory | runs under any directory |
-| outputs only frequencies of the "9+14" syntactic structures | add options to reserve intermediate results, such as the results of parsing the text with Stanford Parser and matching patterns with Stanford Tregex |
+* Works on Windows/macOS/Linux
+* Improved command-line interface
+* Reserves intermediate results, i.e., parsed trees of Stanford Parser and matched subtrees of Stanford Tregex
 
-## <a name="installation"></a> Installation <small><sup>[Top ▲](#contents)</sup></small>
+## <a name="install"></a> Install <small><sup>[Top ▲](#contents)</sup></small>
 
 1. Install NeoSCA
 
@@ -150,7 +132,7 @@ export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
 
 To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
-1. To analyze a single text file, use the command `nsca` followed by the file path. The default output will be saved as `result.csv` in the current directory. To specify a different output file name, use the option `-o` followed by the desired file name. For example:
+To analyze a single text file, use the command `nsca` followed by the file path. The default output will be saved as `result.csv` in the current directory. To specify a different output file name, use the option `-o` followed by the desired file name. For example:
 
 ```sh
 nsca ./samples/sample1.txt 
@@ -159,15 +141,13 @@ nsca ./samples/sample1.txt -o sample1.csv
 # frequency output: ./sample1.csv
 ```
 
-2. When analyzing a text file with a file name that includes spaces, it is important to enclose the file path in double quotes. This ensures that the entire file name, including the spaces, is interpreted as a single argument. Here is an example of how to use the command for a file named `sample 1.txt`:
+When analyzing a text file with a file name that includes spaces, it is important to enclose the file path in double quotes. This ensures that the entire file name, including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail. Here is an example of how to use the command for a file named `sample 1.txt`:
 
 ```sh
 nsca "./samples/sample 1.txt"
 ```
 
-Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail.
-
-3. To analyze multiple text files at once, simply list them after the `nsca` command. You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once. For example:
+To analyze multiple text files at once, simply list them after the `nsca` command. You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once. For example:
 
 ```sh
 nsca ./samples/sample1.txt ./samples/sample2.txt
@@ -175,14 +155,14 @@ nsca ./samples/sample*.txt
 nsca ./samples/sample[1-100].txt
 ```
 
-4. If you want to analyze text that is passed directly through the command line, you can use the `--text` option followed by the text. For example:
+If you want to analyze text that is passed directly through the command line, you can use the `--text` option followed by the text. For example:
 
 ```sh
 nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-5. If you want to reserve the parsed trees and matched subtrees generated by Stanford Parser and Stanford Tregex, you can use the options `-p` or `--reserve-parsed` and `-m` or `--reserve-matched`. For example:
+If you want to reserve the parsed trees and matched subtrees generated by Stanford Parser and Stanford Tregex, you can use the options `-p` or `--reserve-parsed` and `-m` or `--reserve-matched`. For example:
 
 ```sh
 nsca samples/sample1.txt -p -m
@@ -191,7 +171,7 @@ nsca samples/sample1.txt -p -m
 # matched subtrees: ./result_matches/
 ```
 
-6. If you are not sure what the output fields represent, you can use the `--list` option to print a list of all the available output fields:
+If you are not sure what the output fields represent, you can use the `--list` option to print a list of all the available output fields:
 
 ```sh
 nsca --list
@@ -231,7 +211,7 @@ CN/C: complex nominals per clause
 
 </details>
 
-7. If you only want to save the parsed trees and exit, you can use the `--no-query` option. This can be useful if you want to use the parsed trees for other purposes. Here is an example of how to use the option:
+If you only want to save the parsed trees and exit, you can use the `--no-query` option. This can be useful if you want to use the parsed trees for other purposes. Here is an example of how to use the option:
 
 ```sh
 nsca samples/sample1.txt --no-query
@@ -240,7 +220,7 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
-8. If you call the `nsca` command without any arguments or options, it will return a help message.
+If you call the `nsca` command without any arguments or options, it will return a help message.
 
 ## <a name="citing"></a> Citing <small><sup>[Top ▲](#contents)</sup></small>
 
@@ -329,4 +309,4 @@ MLA (9th edition):
 
 ## <a name="license"></a> License <small><sup>[Top ▲](#contents)</sup></small>
 
-NeoSCA is licensed under the GNU General Public License version 2 or later.
+NeoSCA is licensed under the [GNU General Public License version 2](https://github.com/tanloong/neosca/blob/master/LICENSE) or later.
