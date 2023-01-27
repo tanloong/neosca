@@ -82,7 +82,7 @@ the frequency of 9 structures in the text:
 
 ## <a name="install"></a> Install <small><sup>[Top ▲](#contents)</sup></small>
 
-### Install NeoSCA
+### Install NeoSCA <small><sup>[Top ▲](#contents)</sup></small>
 
 To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you already have Python installed by running the following command in your terminal:
 
@@ -102,7 +102,7 @@ If you are in China and having trouble with slow download speeds or network issu
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Install Dependents
+### Install Dependents <small><sup>[Top ▲](#contents)</sup></small>
 
 NeoSCA depends on
 [Java](https://www.java.com/en/download/manual.jsp),
@@ -115,7 +115,7 @@ After you have NeoSCA installed, you can use `nsca --check-depends` to install t
 
 To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
-### Single Input
+### Single Input <small><sup>[Top ▲](#contents)</sup></small>
 
 To analyze a single text file, use the command `nsca` followed by the file path. 
 
@@ -145,7 +145,7 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 
 </details>
 
-### Multiple Input
+### Multiple Input <small><sup>[Top ▲](#contents)</sup></small>
 
 To analyze multiple text files at once, simply list them after the `nsca` command.
 
@@ -162,7 +162,7 @@ nsca ./samples/sample[1-100].txt
 
 ## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
 
-### Output Frequencies in Json Format
+### Output Frequencies in Json Format <small><sup>[Top ▲](#contents)</sup></small>
 
 You can generate a json file by:
 
@@ -178,7 +178,7 @@ nsca ./samples/sample1.txt -o sample1.json
 # frequency output: ./sample1.json
 ```
 
-### Pass Text Through the Command Line
+### Pass Text Through the Command Line <small><sup>[Top ▲](#contents)</sup></small>
 
 If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text.
 
@@ -187,7 +187,7 @@ nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-### Reserve Intermediate Results
+### Reserve Intermediate Results <small><sup>[Top ▲](#contents)</sup></small>
 
 <details>
 
@@ -210,7 +210,7 @@ nsca samples/sample1.txt -p -m
 
 </details>
 
-### Just Parse Texts and Exit
+### Just Parse Texts and Exit <small><sup>[Top ▲](#contents)</sup></small>
 
 If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
 
@@ -221,7 +221,7 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
-### List Output Fields
+### List Output Fields <small><sup>[Top ▲](#contents)</sup></small>
 
 If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields.
 
@@ -259,7 +259,7 @@ CN/C: complex nominals per clause
 
 </details>
 
-### Print the Help Message
+### Print the Help Message <small><sup>[Top ▲](#contents)</sup></small>
 
 If you call the `nsca` command without any arguments or options, it will return a help message.
 
