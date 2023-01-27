@@ -67,7 +67,8 @@ the frequency of 9 structures in the text:
 
 * [Highlights](#highlights)
 * [Install](#install)
-* [Usage](#usage)
+* [Basic Usage](#basic-usage)
+* [Advanced Usage](#advanced-usage)
 * [Citing](#citing)
 * [License](#license)
 
@@ -81,9 +82,9 @@ the frequency of 9 structures in the text:
 
 ## <a name="install"></a> Install <small><sup>[Top ▲](#contents)</sup></small>
 
-1. Install NeoSCA
+### Install NeoSCA
 
-To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you have Python installed by running the following command in your terminal:
+To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you already have Python installed by running the following command in your terminal:
 
 ```sh
 python --version
@@ -101,79 +102,74 @@ If you are in China and having trouble with slow download speeds or network issu
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-2. Install [Java](https://www.java.com/en/download) 8 or later
+### Install Dependents
 
-3. Download and unzip latest versions of
-[Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml#Download) and 
-[Stanford Tregex](https://nlp.stanford.edu/software/tregex.html#Download)
+NeoSCA depends on
+[Java](https://www.java.com/en/download/manual.jsp),
+[Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml),
+and
+[Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
+After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
 
-<details>
-
-<summary>
-4. Set environment variables
-</summary>
-
-+ Windows:
-
-In the Environment Variables window (press `Windows`+`s`, type *env*, and press `Enter`):
-
-```sh
-STANFORD_PARSER_HOME=\path\to\stanford-parser-full-2020-11-17
-STANFORD_TREGEX_HOME=\path\to\stanford-tregex-2020-11-17
-```
-
-+ Linux/macOS:
-
-```sh
-export STANFORD_PARSER_HOME=/path/to/stanford-parser-full-2020-11-17
-export STANFORD_TREGEX_HOME=/path/to/stanford-tregex-2020-11-17
-```
-
-</details>
-
-## <a name="usage"></a> Usage <small><sup>[Top ▲](#contents)</sup></small>
+## <a name="basic-usage"></a> Basic Usage <small><sup>[Top ▲](#contents)</sup></small>
 
 To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
-### Single input
+### Single Input
 
-To analyze a single text file, use the command `nsca` followed by the file path. The default output will be saved as `result.csv` in the current directory. To specify a different output file name, use the option `-o` followed by the desired file name. For example:
+To analyze a single text file, use the command `nsca` followed by the file path. 
 
 ```sh
 nsca ./samples/sample1.txt 
 # frequency output: ./result.csv
+```
+
+A `result.csv` file will be generated in the current directory. You can also specify a different output filenameusing `-o`.
+
+```sh
 nsca ./samples/sample1.txt -o sample1.csv 
 # frequency output: ./sample1.csv
 ```
 
-When analyzing a text file with a file name that includes spaces, it is important to enclose the file path in double quotes. This ensures that the entire file name, including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail. Here is an example of how to use the command for a file named `sample 1.txt`:
+When analyzing a text file with a filenamethat includes spaces, it is important to enclose the file path in double quotes. This ensures that the entire filename including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail. Here is an example of how to use the command for a `sample 1.txt`:
 
 ```sh
 nsca "./samples/sample 1.txt"
 ```
 
-### Multiple input
+### Multiple Input
 
-To analyze multiple text files at once, simply list them after the `nsca` command. You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once. For example:
+To analyze multiple text files at once, simply list them after the `nsca` command.
 
 ```sh
 nsca ./samples/sample1.txt ./samples/sample2.txt
+```
+
+You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once.
+
+```sh
 nsca ./samples/sample*.txt 
 nsca ./samples/sample[1-100].txt
 ```
 
-### Pass text through the command line
+## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
 
-If you want to analyze text that is passed directly through the command line, you can use the `--text` option followed by the text. For example:
+### Pass Text Through the Command Line
+
+If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text. For example:
 
 ```sh
 nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-### Reserve intermediate results
+### Reserve Intermediate Results
 
-If you want to reserve the parsed trees, use the option `-p` or `--reserve-parsed`. If you want to reserve matched subtrees, use `-m` or `--reserve-matched`.
+<details>
+
+<summary>
+To reserve the parsed trees, use <code>-p</code> or <code>--reserve-parsed</code>. To reserve matched subtrees, use <code>-m</code> or <code>--reserve-matched</code>.
+</summary>
 
 ```sh
 nsca samples/sample1.txt -p
@@ -188,18 +184,16 @@ nsca samples/sample1.txt -p -m
 # matched subtrees: ./result_matches/
 ```
 
-### List output fields
+</details>
 
-If you are not sure what the output fields represent, you can use the `--list` option to print a list of all the available output fields:
+### List Output Fields
 
-```sh
-nsca --list
-```
+If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields:
 
 <details>
 
 <summary>
-This will print a list of all the output fields that can be produced by NeoSCA.
+<code>nsca --list</code>
 </summary>
 
 ```sh
@@ -230,9 +224,9 @@ CN/C: complex nominals per clause
 
 </details>
 
-### Just parse texts and exit
+### Just Parse Texts and Exit
 
-If you only want to save the parsed trees and exit, you can use the `--no-query` option. This can be useful if you want to use the parsed trees for other purposes.
+If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
 
 ```sh
 nsca samples/sample1.txt --no-query
@@ -241,7 +235,7 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
-### Print a help message
+### Print the Help Message
 
 If you call the `nsca` command without any arguments or options, it will return a help message.
 
