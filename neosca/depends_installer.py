@@ -156,7 +156,14 @@ class depends_installer:
                 p = self._path_parse(fs_path)
                 name = os.path.join(p.dir, p.name)
                 tool_path = os.path.join(java_bin_path, _UNPACK200)
-                subprocess.run([tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"])
+                try:
+                    subprocess.run(
+                        [tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"],
+                        check=True,
+                        capture_output=True,
+                    )
+                except subprocess.CalledProcessError as e:
+                    return False, str(e)
             return True, None
         else:
             return False, f"Error: {fs_path} is neither a directory not a file."

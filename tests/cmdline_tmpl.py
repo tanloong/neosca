@@ -43,7 +43,7 @@ class CmdlineTmpl(BaseTmpl):
 
     def template(
         self,
-        cmd_string,
+        cmd,
         expected_output_file: Union[str, list, None] = "result.csv",
         success=True,
         text: Optional[str] = text,
@@ -57,7 +57,7 @@ class CmdlineTmpl(BaseTmpl):
             self.build_ifile(text, ifile_name)
         timeout = 60
         try:
-            result = subprocess.run(cmd_string, shell=True, capture_output=True, timeout=timeout)
+            result = subprocess.run(cmd, capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired as e:
             logging.error(f"stdout: {e.stdout}")
             logging.error(f"stderr: {e.stderr}")
