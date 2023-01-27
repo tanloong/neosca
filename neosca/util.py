@@ -42,7 +42,7 @@ def color_print(color: str, s: str, prefix: str = "", postfix: str = "", **kwarg
     if color_support:
         print(prefix, bcolors.__getattribute__(color) + s + bcolors.ENDC, postfix, **kwargs)
     else:  # pragma: no cover
-        print(prefix, s, **kwargs)
+        print(prefix, s, postfix, **kwargs)
 
 
 def same_line_print(s: str, width=80, **kwargs) -> None:
