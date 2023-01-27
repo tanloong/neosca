@@ -14,20 +14,26 @@ class Querier:
     MAX_MEMORY = "100m"
 
     def __init__(self, dir_stanford_tregex: str, max_memory=MAX_MEMORY) -> None:
-        self.classpath = '"' + dir_stanford_tregex + os.sep + "stanford-tregex.jar" + '"'
+        self.classpath = dir_stanford_tregex + os.sep + "stanford-tregex.jar"
         self.max_memory = max_memory
 
     def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
-        cmd = (
-            f"java -mx{self.max_memory} -cp {self.classpath} {self.TREGEX_METHOD} {structure.pat} -o -filter"
-        )
+        cmd = [
+            "java",
+            f"-mx{self.max_memory}",
+            "-cp",
+            self.classpath,
+            self.TREGEX_METHOD,
+            structure.pat,
+            "-o",
+            "-filter",
+        ]
         try:
             p = subprocess.run(
                 cmd,
                 input=trees.encode("utf-8"),
-                shell=True,
                 check=True,
                 capture_output=True,
             )

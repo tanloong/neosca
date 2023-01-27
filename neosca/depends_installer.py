@@ -5,14 +5,14 @@ import lzma
 import os
 import re
 import shutil
-from subprocess import run
+import subprocess
 from sys import maxsize, platform
 import tarfile
 import tempfile
 from typing import Optional, Union
-from urllib import request
 from urllib.error import URLError
 import urllib.parse
+import urllib.request
 import zipfile
 
 from .util import same_line_print
@@ -88,8 +88,8 @@ class depends_installer:
             return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
         else:
             index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)
-            req = request.Request(index_url, headers=self.headers)
-            response = request.urlopen(req)
+            req = urllib.request.Request(index_url, headers=self.headers)
+            response = urllib.request.urlopen(req)
             content = response.read().decode("utf-8")
             match = re.search(r'"([^"]+\.(?:zip|tar\.gz|tar|7z))"', content)
             if match:
@@ -156,7 +156,14 @@ class depends_installer:
                 p = self._path_parse(fs_path)
                 name = os.path.join(p.dir, p.name)
                 tool_path = os.path.join(java_bin_path, _UNPACK200)
-                run([tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"])
+                try:
+                    subprocess.run(
+                        [tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"],
+                        check=True,
+                        capture_output=True,
+                    )
+                except (FileNotFoundError, subprocess.CalledProcessError) as e:
+                    return False, str(e)
             return True, None
         else:
             return False, f"Error: {fs_path} is neither a directory not a file."
@@ -185,8 +192,8 @@ class depends_installer:
         if self.use_chinese_jdk_mirror:
             filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
         else:
-            req = request.Request(download_url, headers=self.headers)
-            response = request.urlopen(req)
+            req = urllib.request.Request(download_url, headers=self.headers)
+            response = urllib.request.urlopen(req)
             info = response.info()
             download_url = response.geturl()
             if "Content-Disposition" not in info:
@@ -248,10 +255,10 @@ class depends_installer:
             # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
         filename = os.path.join(tempfile.gettempdir(), filename)  # type: ignore
         try:
-            opener = request.build_opener()
+            opener = urllib.request.build_opener()
             opener.addheaders = list(self.headers.items())
-            request.install_opener(opener)
-            request.urlretrieve(download_url, filename, self._callbackfunc)
+            urllib.request.install_opener(opener)
+            urllib.request.urlretrieve(download_url, filename, self._callbackfunc)
             same_line_print("", width=100)
         except URLError as e:
             if hasattr(e, "reason"):
