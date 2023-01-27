@@ -120,22 +120,30 @@ To use NeoSCA, run the `nsca` command in your terminal, followed by the options 
 To analyze a single text file, use the command `nsca` followed by the file path. 
 
 ```sh
-nsca ./samples/sample1.txt 
+nsca ./samples/sample1.txt
 # frequency output: ./result.csv
 ```
 
-A `result.csv` file will be generated in the current directory. You can also specify a different output filenameusing `-o`.
+A `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o`.
 
 ```sh
-nsca ./samples/sample1.txt -o sample1.csv 
+nsca ./samples/sample1.txt -o sample1.csv
 # frequency output: ./sample1.csv
 ```
 
-When analyzing a text file with a filenamethat includes spaces, it is important to enclose the file path in double quotes. This ensures that the entire filename including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail. Here is an example of how to use the command for a `sample 1.txt`:
+<details>
+
+<summary>
+When analyzing a text file with a filename that includes spaces, it is important to enclose the file path in double quotes. Assume you have a <code>sample 1.txt</code> to analyze:
+</summary>
 
 ```sh
 nsca "./samples/sample 1.txt"
 ```
+
+This ensures that the entire filename including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail.
+
+</details>
 
 ### Multiple Input
 
@@ -154,9 +162,25 @@ nsca ./samples/sample[1-100].txt
 
 ## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
 
+### Output Frequencies in Json Format
+
+You can generate a json file by:
+
+```sh
+nsca ./samples/sample1.txt --output-format json
+# frequency output: ./result.json
+```
+
+Or
+
+```sh
+nsca ./samples/sample1.txt -o sample1.json
+# frequency output: ./sample1.json
+```
+
 ### Pass Text Through the Command Line
 
-If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text. For example:
+If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text.
 
 ```sh
 nsca --text 'The quick brown fox jumps over the lazy dog.'
@@ -186,9 +210,20 @@ nsca samples/sample1.txt -p -m
 
 </details>
 
+### Just Parse Texts and Exit
+
+If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
+
+```sh
+nsca samples/sample1.txt --no-query
+# parsed trees: samples/sample1.parsed
+nsca --text 'This is a test.' --no-query
+# parsed trees: ./cmdline_text.parsed
+```
+
 ### List Output Fields
 
-If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields:
+If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields.
 
 <details>
 
@@ -223,17 +258,6 @@ CN/C: complex nominals per clause
 ```
 
 </details>
-
-### Just Parse Texts and Exit
-
-If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
-
-```sh
-nsca samples/sample1.txt --no-query
-# parsed trees: samples/sample1.parsed
-nsca --text 'This is a test.' --no-query
-# parsed trees: ./cmdline_text.parsed
-```
 
 ### Print the Help Message
 
