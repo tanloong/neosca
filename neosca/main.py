@@ -152,7 +152,7 @@ class SCAUI:
 
     def check_java(self) -> SCAProcedureResult:
         try:
-            subprocess.run("java -version", shell=True, check=True, capture_output=True)
+            subprocess.run(["java", "-version"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             from .depends_installer import depends_installer
             from .depends_installer import JAVA

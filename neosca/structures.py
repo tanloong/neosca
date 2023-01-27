@@ -142,13 +142,6 @@ class Structures:
         CNpC,
     )
 
-    if sys.platform == "win32":
-        quotation_mark = '"'
-    else:
-        quotation_mark = "'"
-    for structure in to_query:
-        structure.pat = f"{quotation_mark}{structure.pat}{quotation_mark}"
-
     fields = "Filename,W," + ",".join((structure.name for structure in to_report))
 
     def __init__(self, ifile) -> None:
