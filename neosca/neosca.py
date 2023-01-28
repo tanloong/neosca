@@ -13,11 +13,12 @@ class NeoSCA:
         self,
         dir_stanford_parser: str,
         dir_stanford_tregex: str,
-        reserve_parsed: bool,
+        reserve_parsed: bool = False,
+        reserve_matched: bool = False,
         verbose: bool = True,
     ) -> None:
         self.parser = Parser(dir_stanford_parser, verbose=verbose)
-        self.querier = Querier(dir_stanford_tregex)
+        self.querier = Querier(dir_stanford_tregex, reserve_matched)
 
         self.reserve_parsed = reserve_parsed
         self.skip_parsing = False

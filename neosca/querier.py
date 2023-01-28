@@ -13,8 +13,11 @@ class Querier:
     TREGEX_METHOD = "edu.stanford.nlp.trees.tregex.TregexPattern"
     MAX_MEMORY = "100m"
 
-    def __init__(self, dir_stanford_tregex: str, max_memory=MAX_MEMORY) -> None:
+    def __init__(
+        self, dir_stanford_tregex: str, reserve_matched: bool = False, max_memory: str = MAX_MEMORY
+    ) -> None:
         self.classpath = dir_stanford_tregex + os.sep + "stanford-tregex.jar"
+        self.reserve_matched = reserve_matched
         self.max_memory = max_memory
 
     def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
@@ -57,7 +60,8 @@ class Querier:
                 " surrounded by single quotes."
             )
         matched_subtrees = p.stdout.decode("utf-8")
-        matched_subtrees = self._add_terms(matched_subtrees)
+        if self.reserve_matched:
+            matched_subtrees = self._add_terms(matched_subtrees)
         return int(freq), matched_subtrees
 
     def _add_terms(self, subtrees: str) -> str:
