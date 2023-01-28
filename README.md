@@ -210,7 +210,7 @@ nsca samples/sample1.txt -p -m
 
 </details>
 
-### Just Parse Texts and Exit <small><sup>[Top ▲](#contents)</sup></small>
+### Just Parse Text and Exit <small><sup>[Top ▲](#contents)</sup></small>
 
 If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
 
