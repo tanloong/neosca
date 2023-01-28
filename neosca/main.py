@@ -146,6 +146,7 @@ class SCAUI:
             "dir_stanford_parser": "",
             "dir_stanford_tregex": "",
             "reserve_parsed": options.reserve_parsed,
+            "reserve_matched": options.reserve_matched,
         }
         self.options = options
         return True, None
