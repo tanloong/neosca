@@ -51,7 +51,7 @@ class NeoSCA:
         for structure in structures.to_query:
             structure.freq, structure.matches = self.querier.query(structure, trees)
 
-        structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()-]+\)", trees))
+        structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
         structures.update_freqs()
         structures.compute_14_indicies()
         return structures
