@@ -354,10 +354,9 @@ class SCAUI:
     def list_fields(self) -> SCAProcedureResult:
         from .structures import Structures
 
-        field_info = "W: words"
+        print("W: words")
         for structure in Structures.to_report:
-            field_info += f"\n{structure.name}: {structure.desc}"
-        print(field_info)
+            print(f"{structure.name}: {structure.desc}")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
