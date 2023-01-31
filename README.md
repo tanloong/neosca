@@ -14,8 +14,8 @@
 ![](img/testing-on-Windows.gif)
 
 NeoSCA is a rewrite of
-[L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA),
-developed by
+[L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA)
+which is developed by
 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html),
 with added support for Windows and an improved command-line interface for easier usage.
 The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
@@ -110,6 +110,7 @@ NeoSCA depends on
 and
 [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
 After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
+Note that this command requires Administrative privileges if you are on Windows.
 
 ## <a name="basic-usage"></a> Basic Usage <small><sup>[Top ▲](#contents)</sup></small>
 
