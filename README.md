@@ -157,8 +157,9 @@ nsca ./samples/sample1.txt ./samples/sample2.txt
 You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once.
 
 ```sh
-nsca ./samples/sample*.txt 
-nsca ./samples/sample[1-100].txt
+nsca ./samples/sample*.txt     # every file whose name starts with "sample" and ends with ".txt"
+nsca ./samples/sample[1-9].txt # sample1.txt, sample2.txt, ..., sample9.txt
+nsca ./samples/sample1?.txt    # sample10.txt, sample11.txt, ..., sample19.txt
 ```
 
 ## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
@@ -199,13 +200,13 @@ To reserve the parsed trees, use <code>-p</code> or <code>--reserve-parsed</code
 ```sh
 nsca samples/sample1.txt -p
 # frequency output: ./result.csv
-# parsed trees: ./samples/sample1.parsed
+# parsed trees:     ./samples/sample1.parsed
 nsca samples/sample1.txt -m
 # frequency output: ./result.csv
 # matched subtrees: ./result_matches/
 nsca samples/sample1.txt -p -m
 # frequency output: ./result.csv
-# parsed trees: ./samples/sample1.parsed
+# parsed trees:     ./samples/sample1.parsed
 # matched subtrees: ./result_matches/
 ```
 
@@ -291,7 +292,7 @@ year         = {2022}
 APA (7th edition):
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer</i> (version 0.0.35) [Software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.35) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -301,7 +302,7 @@ APA (7th edition):
 MLA (9th edition):
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer</i>. version 0.0.35, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.35, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -335,7 +336,7 @@ doi       = {10.1075/ijcl.15.4.02lu},
 APA (7th edition):
 </summary>
 
-<pre>Lu, X. (2010). Automatic analysis of syntactic complexity in second language writing. <i>International Journal of Corpus Linguistics</i>, 15(4), 474-496.</pre>
+<pre>Lu, X. (2010). Automatic analysis of syntactic complexity in second language writing. <i>International Journal of Corpus Linguistics, 15</i>(4), 474-496.</pre>
 
 </details>
 
