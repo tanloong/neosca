@@ -40,6 +40,16 @@ class SCAUI:
             help="list the available output fields",
         )
         args_parser.add_argument(
+            "--expand-wildcards",
+            dest="expand_wildcards",
+            action="store_true",
+            default=False,
+            help=(
+                "expand wildcards and exit, this option is used to test whether or not the given wildcards"
+                " match all of the desired files"
+            ),
+        )
+        args_parser.add_argument(
             "--text",
             "-t",
             default=None,
@@ -95,7 +105,10 @@ class SCAUI:
             dest="check_depends",
             action="store_true",
             default=False,
-            help="check NeoSCA's dependencies, including Java, Stanford Parser, and Stanford Tregex",
+            help=(
+                "check and install NeoSCA's dependencies, including Java, Stanford Parser, and Stanford"
+                " Tregex"
+            ),
         )
         args_parser.add_argument(
             "--yes",
@@ -171,7 +184,7 @@ class SCAUI:
                 current_PATH = os.environ.get("PATH", default="")
                 os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
         else:
-            print("Java has already been installed.")
+            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
@@ -191,7 +204,7 @@ class SCAUI:
                 setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
                 self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
         else:
-            print("Stanford Parser has already been installed.")
+            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
         self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
         return True, None
 
@@ -212,7 +225,7 @@ class SCAUI:
                 setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
                 self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
         else:
-            print("Stanford Tregex has already been installed.")
+            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
         self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
         return True, None
 
@@ -337,6 +350,8 @@ class SCAUI:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
+        elif self.options.expand_wildcards:
+            return self.expand_wildcards()
         elif self.options.check_depends:
             return self.check_depends()
         elif self.options.text is not None and self.options.no_query:
@@ -357,6 +372,12 @@ class SCAUI:
         print("W: words")
         for structure in Structures.to_report:
             print(f"{structure.name}: {structure.desc}")
+        return True, None
+
+    def expand_wildcards(self) -> SCAProcedureResult:
+        if self.verified_ifile_list is not None:
+            for ifile in sorted(self.verified_ifile_list):
+                print(ifile)
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
