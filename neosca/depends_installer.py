@@ -228,7 +228,7 @@ class depends_installer:
         return round(size, precesion), f"{power_labels[n]}"
 
     def _callbackfunc(self, block_num: int, block_size: int, total_size):
-        max_hash_num = 50  # print up to 50 hashes
+        max_euqal_sign_num = 50  # print up to 50 hashes
         precesion = 2
         downloaded_size = block_num * block_size
         if downloaded_size >= total_size:
@@ -236,9 +236,9 @@ class depends_installer:
         percent = int(100 * downloaded_size / total_size)
         downloaded_size, downloaded_size_unit = self._format_bytes(downloaded_size, precesion)
         total_size, total_size_unit = self._format_bytes(total_size, precesion)
-        hash_num = int(percent / 100 * max_hash_num)
+        equal_sign_num = int(percent / 100 * max_euqal_sign_num)
         s = (
-            f"{percent:3}% [{'#' * hash_num}{' '*(max_hash_num-hash_num)}]"
+            f"{percent:3}% [{'=' * equal_sign_num}>{' '*(max_euqal_sign_num-equal_sign_num-1)}]"
             f" {downloaded_size:6} {downloaded_size_unit}/{total_size} {total_size_unit}"
         )
         same_line_print(s, width=100)

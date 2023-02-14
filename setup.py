@@ -23,7 +23,7 @@ setuptools.setup(
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=[],
+    install_requires=['JPype1'],
     classifiers=[
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",

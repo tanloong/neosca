@@ -37,7 +37,7 @@ class SCAUI:
             dest="list_fields",
             action="store_true",
             default=False,
-            help="list the available output fields",
+            help="list the output fields",
         )
         args_parser.add_argument(
             "--expand-wildcards",
@@ -45,8 +45,33 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "expand wildcards and exit, this option is used to test whether or not the given wildcards"
-                " match all of the desired files"
+                "expand wildcards and exit; Use this option see whether your wildcards"
+                " match all of the desired files."
+            ),
+        )
+        args_parser.add_argument(
+            "--max-length",
+            dest="max_length",
+            type=int,
+            default=None,
+            help=(
+                "set the maximum length sentence to parse (inclusively); Longer sentences are skipped, with a"
+                " message printed to stderr."
+            ),
+        )
+        args_parser.add_argument(
+            "--newline-break",
+            dest="newline_break",
+            choices=["never", "always", "two"],
+            default="never",
+            help=(
+                'whether to treat newlines as sentence breaks. This property has 3 legal values. "always"'
+                " means to treat a newline as a sentence break, but there still may be more than one"
+                ' sentences per line. "never" means to ignore newlines for the purpose of sentence splitting.'
+                " This is appropriate for continuous text with hard line breaks, when just the non-whitespace"
+                ' characters should be used to determine sentence breaks. "two" means to take two or more'
+                " consecutive newlines as a sentence break. This option is for text with hard line breaks and"
+                ' a blank line between paragraphs. The default is "never".'
             ),
         )
         args_parser.add_argument(
@@ -155,11 +180,17 @@ class SCAUI:
         else:
             options.ofile_freq = "result." + options.oformat_freq
 
+        is_max_length_given_and_lt_zero = options.max_length is not None and options.max_length < 0
+        if is_max_length_given_and_lt_zero or options.max_length == 0:
+            return False, 'The value of "--max-length" should be greater than 0.'
+
         self.init_kwargs = {
             "dir_stanford_parser": "",
             "dir_stanford_tregex": "",
             "reserve_parsed": options.reserve_parsed,
             "reserve_matched": options.reserve_matched,
+            "newline_break": options.newline_break,
+            "max_length": options.max_length,
         }
         self.options = options
         return True, None

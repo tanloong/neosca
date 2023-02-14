@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
-import re
 import os
-import sys
+import re
 import subprocess
+import sys
 from typing import Tuple
+
 from .structures import Structure
+from .structures import Structures
 
 
-class Querier:
+class StanfordTregex:
     TREGEX_METHOD = "edu.stanford.nlp.trees.tregex.TregexPattern"
     MAX_MEMORY = "100m"
 
@@ -20,7 +22,7 @@ class Querier:
         self.reserve_matched = reserve_matched
         self.max_memory = max_memory
 
-    def query(self, structure: Structure, trees: str) -> Tuple[int, str]:
+    def query_structure(self, structure: Structure, trees: str) -> Tuple[int, str]:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = [
@@ -63,6 +65,11 @@ class Querier:
         if self.reserve_matched:
             matched_subtrees = self._add_terms(matched_subtrees)
         return int(freq), matched_subtrees
+
+    def query(self, structures: Structures, trees: str):
+        for structure in structures.to_query:
+            structure.freq, structure.matches = self.query_structure(structure, trees)
+        return structures
 
     def _add_terms(self, subtrees: str) -> str:
         """

@@ -51,6 +51,8 @@ def same_line_print(s: str, width=80, **kwargs) -> None:
 
 
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
+    if not os.path.exists(filename):
+        return True, None
     try:
         with open(filename, "w", encoding="utf-8") as f:
             if content is not None:

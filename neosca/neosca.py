@@ -3,8 +3,8 @@ import re
 import sys
 from typing import Tuple, Generator
 
-from .parser import Parser
-from .querier import Querier
+from .parser import StanfordParser
+from .querier import StanfordTregex
 from .structures import Structures
 
 
@@ -13,22 +13,27 @@ class NeoSCA:
         self,
         dir_stanford_parser: str,
         dir_stanford_tregex: str,
-        reserve_parsed: bool = False,
-        reserve_matched: bool = False,
+        reserve_parsed: bool,
+        reserve_matched: bool,
+        newline_break: str,
+        max_length: int,
         verbose: bool = True,
     ) -> None:
-        self.parser = Parser(dir_stanford_parser, verbose=verbose)
-        self.querier = Querier(dir_stanford_tregex, reserve_matched)
+        self.parser = StanfordParser(
+            dir_stanford_parser, verbose=verbose, newline_break=newline_break, max_length=max_length
+        )
+        self.tregex = StanfordTregex(dir_stanford_tregex, reserve_matched)
 
         self.reserve_parsed = reserve_parsed
         self.skip_parsing = False
 
     def _parse_ifile(self, ifile: str, ofile_parsed: str) -> str:
         """Parse a single text file"""
-        if os.path.exists(ofile_parsed) and os.path.getsize(ofile_parsed) > 0:
-            mt_input = os.path.getmtime(ifile)  # get the last modification time
-            mt_parsed = os.path.getmtime(ofile_parsed)
-            if mt_input < mt_parsed:
+        is_exist = os.path.exists(ofile_parsed)
+        if is_exist:
+            is_not_empty = os.path.getsize(ofile_parsed) > 0
+            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(ifile)
+            if is_not_empty and is_parsed_newer_than_input:
                 self.skip_parsing = True
                 print(
                     f"\t[Parser] Parsing skipped: {ofile_parsed} already"
@@ -37,7 +42,7 @@ class NeoSCA:
         if not self.skip_parsing:
             with open(ifile, "r", encoding="utf-8") as f:
                 text = f.read()
-            trees = self.parser.parse(text, ofile_parsed)
+            trees = self.parser.parse(text)
         else:
             with open(ofile_parsed, "r", encoding="utf-8") as f:
                 trees = f.read()
@@ -48,16 +53,14 @@ class NeoSCA:
         return trees
 
     def _query_against_trees(self, trees: str, structures: Structures) -> Structures:
-        for structure in structures.to_query:
-            structure.freq, structure.matches = self.querier.query(structure, trees)
-
+        structures = self.tregex.query(structures, trees)
         structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
         structures.update_freqs()
         structures.compute_14_indicies()
         return structures
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
-        trees = self.parser.parse(text, ofile_parsed)
+        trees = self.parser.parse(text)
         if self.reserve_parsed:
             with open(ofile_parsed, "w", encoding="utf-8") as f:
                 f.write(trees)
