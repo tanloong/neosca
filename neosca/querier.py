@@ -16,10 +16,11 @@ class StanfordTregex:
     MAX_MEMORY = "100m"
 
     def __init__(
-        self, dir_stanford_tregex: str, reserve_matched: bool = False, max_memory: str = MAX_MEMORY
+        self, dir_stanford_tregex: str, reserve_matched: bool, odir_matched: str, max_memory: str = MAX_MEMORY
     ) -> None:
         self.classpath = dir_stanford_tregex + os.sep + "stanford-tregex.jar"
         self.reserve_matched = reserve_matched
+        self.odir_matched = odir_matched
         self.max_memory = max_memory
 
     def query_structure(self, structure: Structure, trees: str) -> Tuple[int, str]:
@@ -69,6 +70,8 @@ class StanfordTregex:
     def query(self, structures: Structures, trees: str):
         for structure in structures.to_query:
             structure.freq, structure.matches = self.query_structure(structure, trees)
+        if self.reserve_matched:
+            self.write_match_output(structures)
         return structures
 
     def _add_terms(self, subtrees: str) -> str:
@@ -87,3 +90,22 @@ class StanfordTregex:
             terminals = " ".join(re.findall(pattern, subtree))
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
+
+    def write_match_output(self, structures: Structures) -> None:
+        """
+        Save Tregex's match output
+
+        :param structures: an instance of Structures
+        """
+        bn_input = os.path.basename(structures.ifile)
+        bn_input_noext = os.path.splitext(bn_input)[0]
+        subdir_match_output = os.path.join(self.odir_matched, bn_input_noext).strip()
+        if not os.path.isdir(subdir_match_output):
+            # if not (exists and is a directory)
+            os.makedirs(subdir_match_output)
+        for structure in structures.to_query:
+            if structure.matches:
+                bn_match_output = bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
+                fn_match_output = os.path.join(subdir_match_output, bn_match_output)
+                with open(fn_match_output, "w", encoding="utf-8") as f:
+                    f.write(structure.matches)

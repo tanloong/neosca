@@ -1,16 +1,13 @@
 import argparse
 import glob
-from itertools import tee
 from os import path
 import os
 import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 from . import __version__
 from .neosca import NeoSCA
-from .writer import write_match_output
-from .writer import write_freq_output
 from .util import SCAProcedureResult
 from .util import color_print
 from .util import try_write
@@ -75,6 +72,15 @@ class SCAUI:
             ),
         )
         args_parser.add_argument(
+            "--combine-freqs",
+            "-c",
+            dest="subfile_lists",
+            default=None,
+            action="append",
+            nargs="+",
+            help="combine frequency output of multiple files",
+        )
+        args_parser.add_argument(
             "--text",
             "-t",
             default=None,
@@ -120,7 +126,7 @@ class SCAUI:
         )
         args_parser.add_argument(
             "--no-query",
-            dest="no_query",
+            dest="is_skip_querying",
             action="store_true",
             default=False,
             help="parse the input files, save the parsed trees, and exit",
@@ -145,11 +151,20 @@ class SCAUI:
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
-        options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-        if options.no_query:
+        idx: Optional[int] = None
+        if "--" in argv[1:]:
+            idx = argv.index("--")
+        if idx is not None:
+            options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1 :]
+        else:
+            options, ifile_list = self.args_parser.parse_known_args(argv[1:])
+        if options.is_skip_querying:
             options.reserve_parsed = True
 
-        if options.text is None:
+        if options.text is not None:
+            print(f"Command-line text: {options.text}")
+            verified_ifile_list = None
+        else:
             verified_ifile_list = []
             for f in ifile_list:
                 if path.isfile(f):
@@ -158,16 +173,27 @@ class SCAUI:
                     verified_ifile_list.extend(glob.glob(f))
                 else:
                     return (False, f"No such file as \n\n{f}")
-        else:
-            print(f"Command-line text: {options.text}")
-            verified_ifile_list = None
         self.verified_ifile_list = verified_ifile_list
 
-        self.odir_match = "result_matches"
+        if options.subfile_lists is not None:
+            verified_subfile_lists = []
+            for subfiles in options.subfile_lists:
+                verified_subfiles = []
+                for f in subfiles:
+                    if path.isfile(f):
+                        verified_subfiles.append(f)
+                    elif glob.glob(f):
+                        verified_subfiles.extend(glob.glob(f))
+                    else:
+                        return False, f"No such file as \n\n{f}"
+                verified_subfile_lists.append(verified_subfiles)
+            self.verified_subfile_lists = verified_subfile_lists
+
+        self.odir_matched = "result_matches"
         if options.stdout:
             options.ofile_freq = sys.stdout
         elif options.ofile_freq is not None:
-            self.odir_match = os.path.splitext(options.ofile_freq)[0] + "_matches"
+            self.odir_matched = os.path.splitext(options.ofile_freq)[0] + "_matches"
             ofile_freq_ext = os.path.splitext(options.ofile_freq)[-1].lstrip(".")
             if ofile_freq_ext not in ("csv", "json"):
                 return (
@@ -185,12 +211,16 @@ class SCAUI:
             return False, 'The value of "--max-length" should be greater than 0.'
 
         self.init_kwargs = {
+            "ofile_freq": options.ofile_freq,
+            "oformat_freq": options.oformat_freq,
             "dir_stanford_parser": "",
             "dir_stanford_tregex": "",
             "reserve_parsed": options.reserve_parsed,
             "reserve_matched": options.reserve_matched,
+            "odir_matched": self.odir_matched,
             "newline_break": options.newline_break,
             "max_length": options.max_length,
+            "is_skip_querying": options.is_skip_querying,
         }
         self.options = options
         return True, None
@@ -289,7 +319,7 @@ class SCAUI:
     def exit_routine(self) -> None:
         print("\n", "=" * 60, sep="")
         i = 1
-        if not self.options.no_query and not self.options.stdout:
+        if not self.options.is_skip_querying and not self.options.stdout:
             color_print(
                 "OKGREEN",
                 f"{path.abspath(self.options.ofile_freq)}",
@@ -314,7 +344,7 @@ class SCAUI:
         if self.options.reserve_matched:
             color_print(
                 "OKGREEN",
-                f"{path.abspath(self.odir_match)}",
+                f"{path.abspath(self.odir_matched)}",
                 prefix=f"{i}. Matched subtrees were saved to ",
                 postfix=".",
             )
@@ -340,41 +370,17 @@ class SCAUI:
         return wrapper
 
     @run_tmpl  # type: ignore
-    def run_parse_text(self) -> None:
+    def run_on_text(self) -> None:
         analyzer = NeoSCA(**self.init_kwargs)
-        analyzer.parse_text(self.options.text)
+        analyzer.run_on_text(self.options.text)
 
     @run_tmpl  # type: ignore
-    def run_parse_text_and_query(self) -> None:
+    def run_on_ifiles(self) -> None:
         analyzer = NeoSCA(**self.init_kwargs)
-        structures = analyzer.parse_text_and_query(self.options.text)
-
-        write_freq_output([structures], self.options.ofile_freq, self.options.oformat_freq)
-
-        if self.options.reserve_matched:
-            write_match_output(structures, self.odir_match)
-
-    @run_tmpl  # type: ignore
-    def run_parse_ifiles(self) -> None:
-        analyzer = NeoSCA(**self.init_kwargs)
-        analyzer.parse_ifiles(self.verified_ifile_list)
-
-    @run_tmpl  # type: ignore
-    def run_parse_ifiles_and_query(self) -> None:
-        analyzer = NeoSCA(**self.init_kwargs)
-        gen = analyzer.parse_ifiles_and_query(self.verified_ifile_list)
-        structures_generator1, structures_generator2 = tee(gen, 2)
-        # a generator of instances of Structures, each for one corresponding input file
-
-        write_freq_output(
-            structures_generator1,
-            self.options.ofile_freq,
-            self.options.oformat_freq,
-        )
-
-        if self.options.reserve_matched:
-            for structures in structures_generator2:
-                write_match_output(structures, self.odir_match)
+        analyzer.run_on_ifiles(self.verified_ifile_list)
+        if self.options.subfile_lists is not None:
+            for subfiles in self.verified_subfile_lists:
+                analyzer.run_on_ifiles(subfiles, is_combine=True)
 
     def run(self) -> SCAProcedureResult:
         if self.options.version:
@@ -385,14 +391,10 @@ class SCAUI:
             return self.expand_wildcards()
         elif self.options.check_depends:
             return self.check_depends()
-        elif self.options.text is not None and self.options.no_query:
-            return self.run_parse_text()  # type: ignore
-        elif self.options.text is not None and not self.options.no_query:
-            return self.run_parse_text_and_query()  # type: ignore
-        elif self.verified_ifile_list and self.options.no_query:
-            return self.run_parse_ifiles()  # type: ignore
-        elif self.verified_ifile_list and not self.options.no_query:
-            return self.run_parse_ifiles_and_query()  # type: ignore
+        elif self.options.text is not None:
+            return self.run_on_text()  # type: ignore
+        elif self.verified_ifile_list or self.options.subfile_lists is not None:
+            return self.run_on_ifiles()  # type: ignore
         else:
             self.args_parser.print_help()
             return True, None
@@ -401,7 +403,7 @@ class SCAUI:
         from .structures import Structures
 
         print("W: words")
-        for structure in Structures.to_report:
+        for structure in Structures("").to_report:
             print(f"{structure.name}: {structure.desc}")
         return True, None
 
