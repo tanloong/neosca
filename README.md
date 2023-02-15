@@ -8,7 +8,7 @@
 [![commit](https://img.shields.io/github/last-commit/tanloong/neosca)](https://github.com/tanloong/neosca/commits/master)
 ![support-version](https://img.shields.io/pypi/pyversions/neosca)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgray)
-[![downloads](https://img.shields.io/pypi/dm/neosca)](#install)
+[![downloads](https://static.pepy.tech/badge/neosca)](https://pepy.tech/project/neosca)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
 ![](img/testing-on-Windows.gif)
@@ -102,7 +102,7 @@ If you are in China and having trouble with slow download speeds or network issu
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Install Dependents <small><sup>[Top ▲](#contents)</sup></small>
+### Install Dependencies <small><sup>[Top ▲](#contents)</sup></small>
 
 NeoSCA depends on
 [Java](https://www.java.com/en/download/manual.jsp),
@@ -110,13 +110,15 @@ NeoSCA depends on
 and
 [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
 After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
-Note that this command requires Administrative privileges if you are on Windows.
+Note that this command requires administrative privileges if you are on Windows.
 
 ## <a name="basic-usage"></a> Basic Usage <small><sup>[Top ▲](#contents)</sup></small>
 
 To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
 ### Single Input <small><sup>[Top ▲](#contents)</sup></small>
+
+Suppose there is a directory called "samples" that contains 200 files named "sample1.txt" to "sample200.txt", and no other files are present in this directory.
 
 To analyze a single text file, use the command `nsca` followed by the file path. 
 
@@ -151,15 +153,17 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 To analyze multiple text files at once, simply list them after the `nsca` command.
 
 ```sh
-nsca ./samples/sample1.txt ./samples/sample2.txt
+cd ./samples/
+nsca sample1.txt sample2.txt
 ```
 
 You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/impnotes/wildcard.html#wildcard-syntax) to select multiple files at once.
 
 ```sh
-nsca ./samples/sample*.txt     # every file whose name starts with "sample" and ends with ".txt"
-nsca ./samples/sample[1-9].txt # sample1.txt, sample2.txt, ..., sample9.txt
-nsca ./samples/sample1?.txt    # sample10.txt, sample11.txt, ..., sample19.txt
+cd ./samples/
+nsca sample*.txt # every file whose name starts with "sample" and ends with ".txt"
+nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
+nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
 ## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
