@@ -175,7 +175,9 @@ class SCAUI:
                     return (False, f"No such file as \n\n{f}")
         self.verified_ifile_list = verified_ifile_list
 
-        if options.subfile_lists is not None:
+        if options.subfile_lists is None:
+            self.verified_subfile_lists = []
+        else:
             verified_subfile_lists = []
             for subfiles in options.subfile_lists:
                 verified_subfiles = []
@@ -186,6 +188,9 @@ class SCAUI:
                         verified_subfiles.extend(glob.glob(f))
                     else:
                         return False, f"No such file as \n\n{f}"
+                if len(verified_subfiles) < 2:
+                    print("Only 1 subfile provided. There should be 2 or more subfiles to combine.")
+                    sys.exit(1)
                 verified_subfile_lists.append(verified_subfiles)
             self.verified_subfile_lists = verified_subfile_lists
 
@@ -327,7 +332,7 @@ class SCAUI:
                 postfix=".",
             )
             i += 1
-        if self.verified_ifile_list and self.options.reserve_parsed:
+        if (self.verified_ifile_list or self.verified_subfile_lists) and self.options.reserve_parsed:
             print(
                 f"{i}. Parsed trees were saved corresponding to input files,"
                 ' with the same name but a ".parsed" extension.'
@@ -378,7 +383,7 @@ class SCAUI:
     def run_on_ifiles(self) -> None:
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_ifiles(self.verified_ifile_list)
-        if self.options.subfile_lists is not None:
+        if self.verified_subfile_lists:
             for subfiles in self.verified_subfile_lists:
                 analyzer.run_on_ifiles(subfiles, is_combine=True)
 

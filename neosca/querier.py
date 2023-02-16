@@ -16,23 +16,22 @@ class StanfordTregex:
     MAX_MEMORY = "100m"
 
     def __init__(
-        self, dir_stanford_tregex: str, reserve_matched: bool, odir_matched: str, max_memory: str = MAX_MEMORY
+        self,
+        dir_stanford_tregex: str = "",
+        max_memory: str = MAX_MEMORY,
     ) -> None:
         self.classpath = dir_stanford_tregex + os.sep + "stanford-tregex.jar"
-        self.reserve_matched = reserve_matched
-        self.odir_matched = odir_matched
         self.max_memory = max_memory
 
-    def query_structure(self, structure: Structure, trees: str) -> Tuple[int, str]:
+    def query_structure(self, pattern: str, trees: str, reserve_matched:bool=False) -> Tuple[int, str]:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
-        print(f'\t[Tregex] Querying "{structure.desc}"...')
         cmd = [
             "java",
             f"-mx{self.max_memory}",
             "-cp",
             self.classpath,
             self.TREGEX_METHOD,
-            structure.pat,
+            pattern,
             "-o",
             "-filter",
         ]
@@ -63,15 +62,16 @@ class StanfordTregex:
                 " surrounded by single quotes."
             )
         matched_subtrees = p.stdout.decode("utf-8")
-        if self.reserve_matched:
+        if reserve_matched:
             matched_subtrees = self._add_terms(matched_subtrees)
         return int(freq), matched_subtrees
 
-    def query(self, structures: Structures, trees: str):
+    def query(self, structures: Structures, trees: str, reserve_matched:bool=False, odir_matched:str=''):
         for structure in structures.to_query:
-            structure.freq, structure.matches = self.query_structure(structure, trees)
-        if self.reserve_matched:
-            self.write_match_output(structures)
+            print(f'\t[Tregex] Querying "{structure.desc}"...')
+            structure.freq, structure.matches = self.query_structure(structure.pat, trees, reserve_matched)
+        if reserve_matched:
+            self.write_match_output(structures, odir_matched)
         return structures
 
     def _add_terms(self, subtrees: str) -> str:
@@ -91,7 +91,7 @@ class StanfordTregex:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def write_match_output(self, structures: Structures) -> None:
+    def write_match_output(self, structures: Structures, odir_matched:str='') -> None:
         """
         Save Tregex's match output
 
@@ -99,7 +99,7 @@ class StanfordTregex:
         """
         bn_input = os.path.basename(structures.ifile)
         bn_input_noext = os.path.splitext(bn_input)[0]
-        subdir_match_output = os.path.join(self.odir_matched, bn_input_noext).strip()
+        subdir_match_output = os.path.join(odir_matched, bn_input_noext).strip()
         if not os.path.isdir(subdir_match_output):
             # if not (exists and is a directory)
             os.makedirs(subdir_match_output)

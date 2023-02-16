@@ -1,4 +1,5 @@
 import gc
+import glob
 import io
 import logging
 import os
@@ -6,8 +7,32 @@ import sys
 import time
 from unittest import TestCase
 
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+ifile_text = "There was no possibility of taking a walk that day."
+tree = """(ROOT
+  (S
+    (NP (EX There))
+    (VP (VBD was)
+      (NP
+        (NP (DT no) (NN possibility))
+        (PP (IN of)
+          (S
+            (VP (VBG taking)
+              (NP (DT a) (NN walk))
+              (NP (DT that) (NN day)))))))
+    (. .)))"""
+
+is_windows = sys.platform == "win32"
+dir_stanford_parser = (
+    glob.glob(os.path.join(os.environ["ProgramFiles"], "stanford-parser*"))[0]
+    if is_windows
+    else glob.glob(os.path.expanduser("~/.local/share/stanford-parser*"))[0]
+)
+dir_stanford_tregex = (
+    glob.glob(os.path.join(os.environ["ProgramFiles"], "stanford-tregex*"))[0]
+    if is_windows
+    else glob.glob(os.path.expanduser("~/.local/share/stanford-tregex*"))[0]
+)
 
 
 class BaseTmpl(TestCase):

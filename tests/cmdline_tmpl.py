@@ -55,7 +55,7 @@ class CmdlineTmpl(BaseTmpl):
     ):
         if text:
             self.build_ifile(text, ifile_name)
-        timeout = 60
+        timeout = 60000
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired as e:

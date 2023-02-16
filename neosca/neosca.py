@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from .parser import StanfordParser
 from .querier import StanfordTregex
@@ -12,15 +12,15 @@ class NeoSCA:
     def __init__(
         self,
         ofile_freq,  # str or sys.stdout
-        oformat_freq: str,
-        dir_stanford_parser: str,
-        dir_stanford_tregex: str,
-        reserve_parsed: bool,
-        reserve_matched: bool,
-        odir_matched: str,
-        newline_break: str,
-        max_length: int,
-        is_skip_querying: bool,
+        oformat_freq: str = "csv",
+        dir_stanford_parser: str = "",
+        dir_stanford_tregex: str = "",
+        reserve_parsed: bool = False,
+        reserve_matched: bool = False,
+        odir_matched: str = "",
+        newline_break: str = "never",
+        max_length: Optional[int] = None,
+        is_skip_querying: bool = False,
         verbose: bool = True,
     ) -> None:
         self.ofile_freq = ofile_freq
@@ -39,13 +39,9 @@ class NeoSCA:
         self.parser = StanfordParser(
             self.dir_stanford_parser,
             verbose=self.verbose,
-            newline_break=self.newline_break,
-            max_length=max_length,
         )
         self.tregex = StanfordTregex(
             dir_stanford_tregex=self.dir_stanford_tregex,
-            reserve_matched=self.reserve_matched,
-            odir_matched=self.odir_matched,
         )
 
     def _is_skip_parsing(self, ofile_parsed: str, ifile: str) -> bool:
@@ -66,14 +62,19 @@ class NeoSCA:
         return content
 
     def query_against_trees(self, trees: str, structures: Structures) -> Structures:
-        structures = self.tregex.query(structures, trees)
+        structures = self.tregex.query(
+            structures,
+            trees,
+            reserve_matched=self.reserve_matched,
+            odir_matched=self.odir_matched,
+        )
         structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
         structures.update_freqs()
         structures.compute_14_indicies()
         return structures
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
-        trees = self.parser.parse(text)
+        trees = self.parser.parse(text, self.max_length, self.newline_break)
         if self.reserve_parsed:
             with open(ofile_parsed, "w", encoding="utf-8") as f:
                 f.write(trees)
@@ -108,8 +109,7 @@ class NeoSCA:
         else:
             return trees
 
-    def parse_ifile_and_query(self, ifile: str, idx: int, total: int) -> Structures:
-        print(f'[NeoSCA] Processing "{ifile}" ({idx+1}/{total})...')
+    def parse_ifile_and_query(self, ifile: str) -> Structures:
         trees = self.parse_ifile(ifile)
         structures = Structures(ifile)
         return self.query_against_trees(trees, structures)
@@ -120,16 +120,22 @@ class NeoSCA:
             if is_combine:
                 parent_structures = Structures(ifile=None)
                 for i, ifile in enumerate(ifiles):
-                    structures = self.parse_ifile_and_query(ifile, i, total)
+                    print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                    structures = self.parse_ifile_and_query(ifile)
                     parent_structures += structures
                 parent_structures.update_freqs()
                 parent_structures.compute_14_indicies()
                 self.structures_lists.append(parent_structures)
             else:
                 for i, ifile in enumerate(ifiles):
-                    structures = self.parse_ifile_and_query(ifile, i, total)
+                    print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                    structures = self.parse_ifile_and_query(ifile)
                     self.structures_lists.append(structures)
             self.write_freq_output()
+        else:
+            for i, ifile in enumerate(ifiles):
+                print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                self.parse_ifile(ifile)
 
     def write_freq_output(self) -> None:
         if self.oformat_freq == "csv":
