@@ -25,5 +25,6 @@ test:
 	python -m unittest
 
 lint:
-	black --line-length 110 --preview neosca/ tests/
+	autopep8 neosca/ tests/ --in-place --recursive --max-line-length 97
+	flake8 neosca/ tests/ --count --max-line-length=97 --statistics
 	mypy --check-untyped-defs neosca/

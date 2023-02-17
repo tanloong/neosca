@@ -50,7 +50,9 @@ class NeoSCA:
         is_exist = os.path.exists(ofile_parsed)
         if is_exist:
             is_not_empty = os.path.getsize(ofile_parsed) > 0
-            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(ifile)
+            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(
+                ifile
+            )
             if is_not_empty and is_parsed_newer_than_input:
                 is_skip_parsing = True
         return is_skip_parsing

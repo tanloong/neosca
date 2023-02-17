@@ -9,7 +9,6 @@ from .base_tmpl import dir_stanford_tregex
 from .base_tmpl import tree
 
 
-
 class TestStanfordTregex(BaseTmpl):
     def setUp(self):
         self.structures = Structures(ifile=None)

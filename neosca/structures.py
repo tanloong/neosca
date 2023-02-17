@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import sys
 from typing import Sequence, Union
 
 
@@ -145,9 +144,9 @@ class Structures:
             self.CN_C,
         )
 
-        self.fields = "Filename,W," + ",".join((structure.name for structure in self.to_report)).replace(
-            "_", "/"
-        )
+        self.fields = "Filename,W," + ",".join(
+            (structure.name for structure in self.to_report)
+        ).replace("_", "/")
 
     def update_freqs(self) -> None:
         """
@@ -191,5 +190,8 @@ class Structures:
         new = Structures(new_ifile)
         new.W.freq = self.W.freq + other.W.freq
         for structure in self.to_query:
-            exec(f"new.{structure.name}.freq = self.{structure.name}.freq + other.{structure.name}.freq")
+            exec(
+                f"new.{structure.name}.freq = self.{structure.name}.freq +"
+                f" other.{structure.name}.freq"
+            )
         return new

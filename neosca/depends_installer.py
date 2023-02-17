@@ -52,12 +52,17 @@ class Implementation:
 
 class depends_installer:
     def __init__(self) -> None:
-        self._URL_JAVA_TEMPLATE = (
-            "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
+        self._URL_JAVA_TEMPLATE = ("https://api.adoptopenjdk.net/v3/binary/latest/"
+                                   "{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk")
+        self._URL_JAVA_TEMPLATE_CHINA = (
+            "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
         )
-        self._URL_JAVA_TEMPLATE_CHINA = "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
-        self._URL_STANFORD_PARSER = "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
-        self._URL_STANFORD_TREGEX = "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
+        self._URL_STANFORD_PARSER = (
+            "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
+        )
+        self._URL_STANFORD_TREGEX = (
+            "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
+        )
         self.headers = {"User-Agent": "Mozilla/5.0"}
 
     def normalize_version(self, version: str) -> SCAProcedureResult:
@@ -81,8 +86,8 @@ class depends_installer:
         else:
             version = err_msg  # type:ignore
         self.use_chinese_jdk_mirror = get_yes_or_no(
-            "Do you want to download Java from a Chinese mirror site?"
-            " If you are inside of China, you may want to use this for a faster network connection."
+            "Do you want to download Java from a Chinese mirror site? If you are inside of"
+            " China, you may want to use this for a faster network connection."
         )
         if self.use_chinese_jdk_mirror in ("n", "N"):
             return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
@@ -98,7 +103,8 @@ class depends_installer:
             else:
                 return (
                     False,
-                    f"Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at {index_url}.",
+                    "Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at"
+                    f" {index_url}.",
                 )
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
@@ -113,7 +119,9 @@ class depends_installer:
         else:
             return False, f"Error: {file} has unexpected extension."
 
-    def _extract_files(self, file: str, file_ending: str, destination_folder: str) -> SCAProcedureResult:
+    def _extract_files(
+        self, file: str, file_ending: str, destination_folder: str
+    ) -> SCAProcedureResult:
         if not os.path.isfile(file):
             return False, f"Error: {file} is not a regular file."
 
@@ -207,7 +215,8 @@ class depends_installer:
             if m.get_param("filename") is None:
                 return (
                     False,
-                    f"Parsing the response from {download_url} failed.\nReason: can't detect the filename.",
+                    f"Parsing the response from {download_url} failed.\nReason: can't detect"
+                    " the filename.",
                 )
             filename = m.get_param("filename")
             if not isinstance(filename, str):
@@ -272,34 +281,34 @@ class depends_installer:
     def ask_install(self, name: str, assume_yes: bool = False) -> SCAProcedureResult:
         reason_dict = {
             JAVA: f"values of PATH does not contain a {JAVA} bin folder",
-            STANFORD_PARSER: f"the environment variable STANFORD_PARSER_HOME is not found",
-            STANFORD_TREGEX: f"the environment variable STANFORD_TREGEX_HOME is not found",
+            STANFORD_PARSER: "the environment variable STANFORD_PARSER_HOME is not found",
+            STANFORD_TREGEX: "the environment variable STANFORD_TREGEX_HOME is not found",
         }
         if assume_yes:
             is_install = "y"
         else:
             is_install = get_yes_or_no(
-                f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to"
-                " let NeoSCA install it for you?"
+                f"It seems that {name} has not been installed, because {reason_dict[name]}. Do"
+                " you want to let NeoSCA install it for you?"
             )
         if is_install in ("n", "N"):
             manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
-                    " https://www.java.com/en/download.\n2. After installing, make sure you can access it in"
-                    " the cmd window by typing in `java -version`."
+                    " https://www.java.com/en/download.\n2. After installing, make sure you"
+                    " can access it in the cmd window by typing in `java -version`."
                 ),
                 STANFORD_PARSER: (
                     f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {self._URL_STANFORD_PARSER}.\n2. Set an"
-                    " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
-                    " directory."
+                    f" download and unzip the archive file at {self._URL_STANFORD_PARSER}.\n2."
+                    " Set an environment variable STANFORD_PARSER_HOME to the path of the"
+                    " unzipped directory."
                 ),
                 STANFORD_TREGEX: (
                     f"You will have to install {STANFORD_TREGEX} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {self._URL_STANFORD_TREGEX}.\n2. Set an"
-                    " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
-                    " directory."
+                    f" download and unzip the archive file at {self._URL_STANFORD_TREGEX}.\n2."
+                    " Set an environment variable STANFORD_PARSER_HOME to the path of the"
+                    " unzipped directory."
                 ),
             }
             return (False, manual_install_prompt_dict[name])
@@ -336,7 +345,8 @@ class depends_installer:
             return sucess, err_msg
         jdk_ext = err_msg
         print(f"Decompressing {JAVA} archive...")
-        sucess, err_msg = self._decompress_archive(jdk_archive, jdk_ext, target_dir)  # type:ignore
+        sucess, err_msg = self._decompress_archive(
+            jdk_archive, jdk_ext, target_dir)  # type:ignore
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
@@ -367,7 +377,8 @@ class depends_installer:
             return sucess, err_msg
         archive_ext = err_msg
         print(f"Decompressing {name} archive...")
-        sucess, err_msg = self._decompress_archive(archive_file, archive_ext, target_dir)  # type:ignore
+        sucess, err_msg = self._decompress_archive(
+            archive_file, archive_ext, target_dir)  # type:ignore
         if not sucess:
             return sucess, err_msg
         unzipped_directory = err_msg
@@ -386,10 +397,16 @@ class depends_installer:
         target_dir: str = _TARGET_DIR,  # type: ignore
     ) -> SCAProcedureResult:
         if name == JAVA:
-            return self.install_java(version, operating_system, arch, impl, target_dir, assume_yes)
+            return self.install_java(
+                version, operating_system, arch, impl, target_dir, assume_yes
+            )
         elif name == STANFORD_PARSER:
-            return self.install_stanford(name, self._URL_STANFORD_PARSER, target_dir, assume_yes)
+            return self.install_stanford(
+                name, self._URL_STANFORD_PARSER, target_dir, assume_yes
+            )
         elif name == STANFORD_TREGEX:
-            return self.install_stanford(name, self._URL_STANFORD_TREGEX, target_dir, assume_yes)
+            return self.install_stanford(
+                name, self._URL_STANFORD_TREGEX, target_dir, assume_yes
+            )
         else:
             return False, f"Unexpected name: {name}."

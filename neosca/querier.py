@@ -7,7 +7,6 @@ import subprocess
 import sys
 from typing import Tuple
 
-from .structures import Structure
 from .structures import Structures
 
 
@@ -23,7 +22,9 @@ class StanfordTregex:
         self.classpath = dir_stanford_tregex + os.sep + "stanford-tregex.jar"
         self.max_memory = max_memory
 
-    def query_structure(self, pattern: str, trees: str, reserve_matched:bool=False) -> Tuple[int, str]:
+    def query_structure(
+        self, pattern: str, trees: str, reserve_matched: bool = False
+    ) -> Tuple[int, str]:
         """Call Tregex to query {pattern} against {ofile_parsed}"""
         cmd = [
             "java",
@@ -45,7 +46,9 @@ class StanfordTregex:
         except subprocess.CalledProcessError as err_msg:
             print(err_msg)
             sys.exit(1)
-        match_reslt = re.search(r"There were (\d+) matches in total\.", p.stderr.decode("utf-8"))
+        match_reslt = re.search(
+            r"There were (\d+) matches in total\.", p.stderr.decode("utf-8")
+        )
         if match_reslt:
             freq = match_reslt.group(1)
         else:
@@ -66,10 +69,18 @@ class StanfordTregex:
             matched_subtrees = self._add_terms(matched_subtrees)
         return int(freq), matched_subtrees
 
-    def query(self, structures: Structures, trees: str, reserve_matched:bool=False, odir_matched:str=''):
+    def query(
+        self,
+        structures: Structures,
+        trees: str,
+        reserve_matched: bool = False,
+        odir_matched: str = "",
+    ):
         for structure in structures.to_query:
             print(f'\t[Tregex] Querying "{structure.desc}"...')
-            structure.freq, structure.matches = self.query_structure(structure.pat, trees, reserve_matched)
+            structure.freq, structure.matches = self.query_structure(
+                structure.pat, trees, reserve_matched
+            )
         if reserve_matched:
             self.write_match_output(structures, odir_matched)
         return structures
@@ -91,7 +102,7 @@ class StanfordTregex:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def write_match_output(self, structures: Structures, odir_matched:str='') -> None:
+    def write_match_output(self, structures: Structures, odir_matched: str = "") -> None:
         """
         Save Tregex's match output
 
@@ -105,7 +116,9 @@ class StanfordTregex:
             os.makedirs(subdir_match_output)
         for structure in structures.to_query:
             if structure.matches:
-                bn_match_output = bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
+                bn_match_output = (
+                    bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
+                )
                 fn_match_output = os.path.join(subdir_match_output, bn_match_output)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
                     f.write(structure.matches)

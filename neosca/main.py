@@ -52,8 +52,8 @@ class SCAUI:
             type=int,
             default=None,
             help=(
-                "set the maximum length sentence to parse (inclusively); Longer sentences are skipped, with a"
-                " message printed to stderr."
+                "set the maximum length sentence to parse (inclusively); Longer sentences are"
+                " skipped, with a message printed to stderr."
             ),
         )
         args_parser.add_argument(
@@ -62,13 +62,15 @@ class SCAUI:
             choices=["never", "always", "two"],
             default="never",
             help=(
-                'whether to treat newlines as sentence breaks. This property has 3 legal values. "always"'
-                " means to treat a newline as a sentence break, but there still may be more than one"
-                ' sentences per line. "never" means to ignore newlines for the purpose of sentence splitting.'
-                " This is appropriate for continuous text with hard line breaks, when just the non-whitespace"
-                ' characters should be used to determine sentence breaks. "two" means to take two or more'
-                " consecutive newlines as a sentence break. This option is for text with hard line breaks and"
-                ' a blank line between paragraphs. The default is "never".'
+                "whether to treat newlines as sentence breaks. This property has 3 legal"
+                ' values. "always" means to treat a newline as a sentence break, but there'
+                ' still may be more than one sentences per line. "never" means to ignore'
+                " newlines for the purpose of sentence splitting. This is appropriate for"
+                " continuous text with hard line breaks, when just the non-whitespace"
+                ' characters should be used to determine sentence breaks. "two" means to take'
+                " two or more consecutive newlines as a sentence break. This option is for text"
+                " with hard line breaks and a blank line between paragraphs. The default is"
+                ' "never".'
             ),
         )
         args_parser.add_argument(
@@ -137,8 +139,8 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "check and install NeoSCA's dependencies, including Java, Stanford Parser, and Stanford"
-                " Tregex"
+                "check and install NeoSCA's dependencies, including Java, Stanford Parser, and"
+                " Stanford Tregex"
             ),
         )
         args_parser.add_argument(
@@ -155,7 +157,7 @@ class SCAUI:
         if "--" in argv[1:]:
             idx = argv.index("--")
         if idx is not None:
-            options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1 :]
+            options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1:]
         else:
             options, ifile_list = self.args_parser.parse_known_args(argv[1:])
         if options.is_skip_querying:
@@ -189,7 +191,10 @@ class SCAUI:
                     else:
                         return False, f"No such file as \n\n{f}"
                 if len(verified_subfiles) < 2:
-                    print("Only 1 subfile provided. There should be 2 or more subfiles to combine.")
+                    print(
+                        "Only 1 subfile provided. There should be 2 or more subfiles to"
+                        " combine."
+                    )
                     sys.exit(1)
                 verified_subfile_lists.append(verified_subfiles)
             self.verified_subfile_lists = verified_subfile_lists
@@ -211,7 +216,9 @@ class SCAUI:
         else:
             options.ofile_freq = "result." + options.oformat_freq
 
-        is_max_length_given_and_lt_zero = options.max_length is not None and options.max_length < 0
+        is_max_length_given_and_lt_zero = (
+            options.max_length is not None and options.max_length < 0
+        )
         if is_max_length_given_and_lt_zero or options.max_length == 0:
             return False, 'The value of "--max-length" should be greater than 0.'
 
@@ -262,7 +269,9 @@ class SCAUI:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(STANFORD_PARSER, assume_yes=self.options.assume_yes)
+            sucess, err_msg = installer.install(
+                STANFORD_PARSER, assume_yes=self.options.assume_yes
+            )
             if not sucess:
                 return sucess, err_msg
             else:
@@ -283,7 +292,9 @@ class SCAUI:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(STANFORD_TREGEX, assume_yes=self.options.assume_yes)
+            sucess, err_msg = installer.install(
+                STANFORD_TREGEX, assume_yes=self.options.assume_yes
+            )
             if not sucess:
                 return sucess, err_msg
             else:
@@ -332,7 +343,9 @@ class SCAUI:
                 postfix=".",
             )
             i += 1
-        if (self.verified_ifile_list or self.verified_subfile_lists) and self.options.reserve_parsed:
+        if (
+            self.verified_ifile_list or self.verified_subfile_lists
+        ) and self.options.reserve_parsed:
             print(
                 f"{i}. Parsed trees were saved corresponding to input files,"
                 ' with the same name but a ".parsed" extension.'

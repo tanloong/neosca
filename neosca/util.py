@@ -2,7 +2,6 @@
 # -*- coding=utf-8 -*-
 
 import os
-import re
 import sys
 from typing import List, Optional, Tuple
 
@@ -105,7 +104,10 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
 def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
-        print("Failed to permanently append {path} to {env_var}.\nReason: can't detect current shell.")
+        print(
+            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current"
+            " shell."
+        )
     else:
         startup_file_dict = {
             "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
@@ -120,7 +122,8 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
         startup_file = startup_file_dict.get(os.path.basename(shell), None)
         if startup_file is None:
             print(
-                f"Failed to permanently set environment variables.\nReason: can't detect rc file for {shell}."
+                "Failed to permanently set environment variables.\nReason: can't detect rc"
+                f" file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
@@ -128,7 +131,9 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             with open(startup_file, "r", encoding="utf-8") as f:
                 configs = [line.strip() for line in f.readlines()]
             new_config = (
-                f"export {env_var}={new_paths}" if refresh else f"export {env_var}=${env_var}:{new_paths}"
+                f"export {env_var}={new_paths}"
+                if refresh
+                else f"export {env_var}=${env_var}:{new_paths}"
             )
             duplicated_config_index = []
             for i, config in enumerate(configs):
