@@ -61,28 +61,33 @@ the frequency of 9 structures in the text:
 
 </details>
 
+<a name="readme-top"></a>
+
 ## Contents
 
 <!-- vim-markdown-toc GFM -->
 
 * [Highlights](#highlights)
 * [Install](#install)
-* [Basic Usage](#basic-usage)
-* [Advanced Usage](#advanced-usage)
+* [Usage](#usage)
+    * [Basic Usage](#basic-usage)
+    * [Advanced Usage](#advanced-usage)
 * [Citing](#citing)
+* [Related Efforts](#related-efforts)
 * [License](#license)
+* [Contact](#contact)
 
 <!-- vim-markdown-toc -->
 
-## <a name="highlights"></a> Highlights <small><sup>[Top ▲](#contents)</sup></small>
+## Highlights
 
 * Works on Windows/macOS/Linux
 * Reserves intermediate results, i.e., parsed trees of Stanford Parser and matched subtrees of Stanford Tregex
 * An improved command-line interface
 
-## <a name="install"></a> Install <small><sup>[Top ▲](#contents)</sup></small>
+## Install
 
-### Install NeoSCA <small><sup>[Top ▲](#contents)</sup></small>
+### Install NeoSCA
 
 To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you already have Python installed by running the following command in your terminal:
 
@@ -102,7 +107,7 @@ If you are in China and having trouble with slow download speeds or network issu
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Install Dependencies <small><sup>[Top ▲](#contents)</sup></small>
+### Install Dependencies
 
 NeoSCA depends on
 [Java](https://www.java.com/en/download/manual.jsp),
@@ -112,11 +117,13 @@ and
 After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
 Note that this command requires administrative privileges if you are on Windows.
 
-## <a name="basic-usage"></a> Basic Usage <small><sup>[Top ▲](#contents)</sup></small>
+## Usage
+
+### Basic Usage
 
 To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
 
-### Single Input <small><sup>[Top ▲](#contents)</sup></small>
+#### Single Input
 
 Suppose there is a directory called "samples" that contains 200 files named "sample1.txt" to "sample200.txt", and no other files are present in this directory.
 
@@ -148,7 +155,7 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 
 </details>
 
-### Multiple Input <small><sup>[Top ▲](#contents)</sup></small>
+#### Multiple Input
 
 To analyze multiple text files at once, simply list them after the `nsca` command.
 
@@ -166,34 +173,9 @@ nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
-## <a name="advanced-usage"></a> Advanced Usage <small><sup>[Top ▲](#contents)</sup></small>
+### Advanced Usage
 
-### Output Frequencies in Json Format <small><sup>[Top ▲](#contents)</sup></small>
-
-You can generate a json file by:
-
-```sh
-nsca ./samples/sample1.txt --output-format json
-# frequency output: ./result.json
-```
-
-Or
-
-```sh
-nsca ./samples/sample1.txt -o sample1.json
-# frequency output: ./sample1.json
-```
-
-### Pass Text Through the Command Line <small><sup>[Top ▲](#contents)</sup></small>
-
-If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text.
-
-```sh
-nsca --text 'The quick brown fox jumps over the lazy dog.'
-# frequency output: ./result.csv
-```
-
-### Reserve Intermediate Results <small><sup>[Top ▲](#contents)</sup></small>
+#### Reserve Intermediate Results
 
 <details>
 
@@ -216,7 +198,32 @@ nsca samples/sample1.txt -p -m
 
 </details>
 
-### Just Parse Text and Exit <small><sup>[Top ▲](#contents)</sup></small>
+#### Pass Text Through the Command Line
+
+If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text.
+
+```sh
+nsca --text 'The quick brown fox jumps over the lazy dog.'
+# frequency output: ./result.csv
+```
+
+#### Output Frequencies in Json Format
+
+You can generate a json file by:
+
+```sh
+nsca ./samples/sample1.txt --output-format json
+# frequency output: ./result.json
+```
+
+Or
+
+```sh
+nsca ./samples/sample1.txt -o sample1.json
+# frequency output: ./sample1.json
+```
+
+#### Just Parse Text and Exit
 
 If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
 
@@ -227,7 +234,7 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
-### List Output Fields <small><sup>[Top ▲](#contents)</sup></small>
+#### List Output Fields
 
 If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields.
 
@@ -265,18 +272,18 @@ CN/C: complex nominals per clause
 
 </details>
 
-### Print the Help Message <small><sup>[Top ▲](#contents)</sup></small>
+#### Print the Help Message
 
 If you call the `nsca` command without any arguments or options, it will return a help message.
 
-## <a name="citing"></a> Citing <small><sup>[Top ▲](#contents)</sup></small>
+## Citing
 
 If you use NeoSCA in your research, please cite as follows.
 
 <details>
 
 <summary>
-BibTeX:
+BibTeX
 </summary>
 
 ```BibTeX
@@ -293,7 +300,7 @@ year         = {2022}
 <details>
 
 <summary>
-APA (7th edition):
+APA (7th edition)
 </summary>
 
 <pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.35) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
@@ -303,7 +310,7 @@ APA (7th edition):
 <details>
 
 <summary>
-MLA (9th edition):
+MLA (9th edition)
 </summary>
 
 <pre>Tan, Long. <i>NeoSCA</i>. version 0.0.35, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
@@ -315,7 +322,7 @@ Also, you need to cite Xiaofei's article describing L2SCA.
 <details>
 
 <summary>
-BibTeX:
+BibTeX
 </summary>
 
 ```BibTeX
@@ -337,7 +344,7 @@ doi       = {10.1075/ijcl.15.4.02lu},
 <details>
 
 <summary>
-APA (7th edition):
+APA (7th edition)
 </summary>
 
 <pre>Lu, X. (2010). Automatic analysis of syntactic complexity in second language writing. <i>International Journal of Corpus Linguistics, 15</i>(4), 474-496.</pre>
@@ -347,13 +354,27 @@ APA (7th edition):
 <details>
 
 <summary>
-MLA (9th edition):
+MLA (9th edition)
 </summary>
 
 <pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96.</pre>
 
 </details>
 
-## <a name="license"></a> License <small><sup>[Top ▲](#contents)</sup></small>
+## Related Efforts
 
-NeoSCA is licensed under the [GNU General Public License version 2](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) or later.
++ [L2SCA](https://sites.psu.edu/xxl13/l2sca/), the original implementation, by [Xiaofei Lu](https://sites.psu.edu/xxl13)
++ [L2SCA online](https://aihaiyang.com/software/l2sca/), by [Haiyang Ai](https://aihaiyang.com/)
++ [L2SCA included in TAASSC](https://www.linguisticanalysistools.org/taassc.html), by [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
++ [L2SCA written in R](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1), by [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat)
+
+## License
+
+Distributed under the terms of the [GNU General Public License version 2](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) or later.
+
+## Contact
+
+You can send bug reports, feature requests, and any other questions via:
+
++ [GitHub Issues](https://github.com/tanloong/neosca/issues)
++ tanloong@foxmail.com
