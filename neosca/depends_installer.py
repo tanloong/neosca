@@ -389,7 +389,7 @@ class depends_installer:
         operating_system: str = OS,
         arch: str = ARCH,
         impl: str = Implementation.HOTSPOT,
-        target_dir: str = _TARGET_DIR,  # type: ignore
+        target_dir: str = USER_SOFTWARE_DIR,  # type: ignore
     ) -> SCAProcedureResult:
         if name == JAVA:
             return self.install_java(
