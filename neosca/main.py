@@ -1,6 +1,5 @@
 import argparse
 import glob
-from os import path
 import os
 import subprocess
 import sys
@@ -22,19 +21,21 @@ class SCAUI:
         self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
-        args_parser = argparse.ArgumentParser(prog="nsca")
+        args_parser = argparse.ArgumentParser(
+            prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         args_parser.add_argument(
             "--version",
             action="store_true",
             default=False,
-            help="show the version of NeoSCA",
+            help="Show version and exit.",
         )
         args_parser.add_argument(
             "--list",
             dest="list_fields",
             action="store_true",
             default=False,
-            help="list the output fields",
+            help="List available measures.",
         )
         args_parser.add_argument(
             "--expand-wildcards",
@@ -42,18 +43,22 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "expand wildcards and exit; Use this option see whether your wildcards"
-                " match all of the desired files."
+                "Expand wildcards and exit. Use this option to see whether your wildcards"
+                " match the desired list of input filenames."
             ),
         )
         args_parser.add_argument(
             "--max-length",
+            metavar="<max_length>",
             dest="max_length",
             type=int,
             default=None,
             help=(
-                "set the maximum length sentence to parse (inclusively); Longer sentences are"
-                " skipped, with a message printed to stderr."
+                "Set the longest sentence to parse (inclusively). Sentences longer than"
+                " <max_length> will be skipped, with a message printed to stderr. When this is"
+                " not specified, the program will try to analyze sentences of any lengths, but"
+                " may run out of memory trying to do so"
+                " (https://nlp.stanford.edu/software/parser-faq.html#k)."
             ),
         )
         args_parser.add_argument(
@@ -62,76 +67,114 @@ class SCAUI:
             choices=["never", "always", "two"],
             default="never",
             help=(
-                "whether to treat newlines as sentence breaks. This property has 3 legal"
-                ' values. "always" means to treat a newline as a sentence break, but there'
-                ' still may be more than one sentences per line. "never" means to ignore'
-                " newlines for the purpose of sentence splitting. This is appropriate for"
-                " continuous text with hard line breaks, when just the non-whitespace"
-                ' characters should be used to determine sentence breaks. "two" means to take'
-                " two or more consecutive newlines as a sentence break. This option is for text"
-                " with hard line breaks and a blank line between paragraphs. The default is"
-                ' "never".'
+                "Whether to treat newlines as sentence breaks. This option has 3 legal values."
+                ' "never" means to ignore newlines for the purpose of sentence splitting, and is'
+                " appropriate for continuous text with hard line breaks when just the"
+                " non-whitespace characters should be used to determine sentence breaks."
+                ' "always" means to treat a newline as a sentence break, but there still may be'
+                ' more than one sentences per line. "two" means to take two or more consecutive'
+                " newlines as a sentence break, and is for text with hard line breaks and a"
+                ' blank line between paragraphs. The default is "never".'
             ),
         )
         args_parser.add_argument(
-            "--combine-freqs",
             "-c",
+            "--combine-files",
+            metavar="<subfile>",
             dest="subfile_lists",
             default=None,
-            action="append",
             nargs="+",
-            help="combine frequency output of multiple files",
+            help="Combine frequency output of multiple files.",
         )
         args_parser.add_argument(
-            "--text",
             "-t",
+            "--text",
+            metavar="<text>",
             default=None,
-            help="pass text through the command line",
+            help="Pass text through the command line.",
         )
         args_parser.add_argument(
-            "--output-file",
             "-o",
-            metavar="OUTFILE",
+            "--output-file",
+            metavar="<filename>",
             dest="ofile_freq",
             default=None,
-            help="specify an output file",
+            help='Specify an output file. The default is "result.csv".',
         )
         args_parser.add_argument(
             "--output-format",
             dest="oformat_freq",
             choices=["csv", "json"],
             default="csv",
-            help="output format, the default is csv",
+            help='Output format, the default is "csv".',
         )
         args_parser.add_argument(
             "--stdout",
-            dest="stdout",
+            dest="is_stdout",
             action="store_true",
             default=False,
-            help="write the frequency output to the stdout instead of saving it to a file",
+            help="Write the frequency output to the stdout instead of saving it to a file.",
         )
         args_parser.add_argument(
-            "--reserve-parsed",
+            "--select",
+            metavar="<measure>",
+            dest="selected_structures",
+            choices=[
+                "W",
+                "S",
+                "VP",
+                "C",
+                "T",
+                "DC",
+                "CT",
+                "CP",
+                "CN",
+                "MLS",
+                "MLT",
+                "MLC",
+                "C_S",
+                "VP_T",
+                "C_T",
+                "DC_C",
+                "DC_T",
+                "T_S",
+                "CT_T",
+                "CP_T",
+                "CP_C",
+                "CN_T",
+                "CN_C",
+            ],
+            default=None,
+            nargs="+",
+            help=(
+                "Select only some of the measures to analyze. The full list of measures include"
+                ' "W", "S", "VP", "C", "T", "DC", "CT", "CP", "CN", "MLS", "MLT", "MLC", "C_S",'
+                ' "VP_T", "C_T", "DC_C", "DC_T", "T_S", "CT_T", "CP_T", "CP_C", "CN_T", and'
+                ' "CN_C".'
+            ),
+        )
+        args_parser.add_argument(
             "-p",
+            "--reserve-parsed",
             dest="reserve_parsed",
             action="store_true",
             default=False,
-            help="reserve the parsed trees produced by the Stanford Parser",
+            help="Reserve the parsed trees produced by the Stanford Parser.",
         )
         args_parser.add_argument(
-            "--reserve-matched",
             "-m",
+            "--reserve-matched",
             dest="reserve_matched",
             default=False,
             action="store_true",
-            help="reserve the matched subtrees produced by the Stanford Tregex",
+            help="Reserve the matched subtrees produced by the Stanford Tregex.",
         )
         args_parser.add_argument(
             "--no-query",
             dest="is_skip_querying",
             action="store_true",
             default=False,
-            help="parse the input files, save the parsed trees, and exit",
+            help="Parse the input files, save the parsed trees and exit.",
         )
         args_parser.add_argument(
             "--check-depends",
@@ -139,8 +182,8 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "check and install NeoSCA's dependencies, including Java, Stanford Parser, and"
-                " Stanford Tregex"
+                "Check and install NeoSCA's dependencies: Java, Stanford Parser, and"
+                " Stanford Tregex."
             ),
         )
         args_parser.add_argument(
@@ -148,8 +191,47 @@ class SCAUI:
             dest="assume_yes",
             action="store_true",
             default=False,
-            help="assume the answer to all prompts is yes, used when installing dependencies",
+            help="Assume the answer to all prompts is yes, used when installing dependencies.",
         )
+        args_parser.epilog = """Examples:
+1. nsca sample1.txt
+2. nsca "sample 1.txt"
+    Filenames containing whitespace should be quoted.
+3. nsca sample1.txt -o sample1.csv
+    Customize the output filename instead of the default result.csv.
+4. nsca sample1.txt -p
+    Reserve parsing results generated by Stanford Parser.
+5. nsca sample1.txt -m
+    Reserve matching results generated by Stanford Tregex.
+6. nsca sample1.txt sample2.txt
+    Analyze a list of input files.
+7. nsca sample*.txt
+    Analyze files with name starting with "sample" and ending with ".txt"
+8. nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt
+    Analyze files ranging from sample101.txt to sample200.txt.
+9. nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
+    Expand the specified wildcards and exit.
+10. nsca sample1.txt --max-length 100
+    Only analyze sentences with lengths shorter than or equal to 100.
+11. nsca sample1.txt --newline-break always
+    Consider newlines as sentence breaks.
+12. nsca --select VP T DC_C -- sample1.txt
+    Select a subset of available measures to analyze. Use -- to separate input
+    filenames from the selected measures, or otherwise the program will take 
+    "sample1.txt" as a measure and then raise an error. Arguments other than 
+    input filenames should be specified at the left side of --.
+13. nsca -c sample1-sub1.txt sample1-sub2.txt
+    Add up frequencies of the 9 syntactic structures of the subfiles and compute
+    values of the 14 syntactic complexity indices for the imaginary parent file.
+14. nsca -c sample1-sub*.txt
+    Wildcards are supported for -c.
+15. nsca -c sample1-sub*.txt -- sample[2-9].txt
+    Use -- to separate input filenames from names of the subfiles.
+
+Contact:
+1. https://github.com/tanloong/neosca/issues
+2. tanloong@foxmail.com
+"""
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
@@ -157,7 +239,7 @@ class SCAUI:
         if "--" in argv[1:]:
             idx = argv.index("--")
         if idx is not None:
-            options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1:]
+            options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1 :]
         else:
             options, ifile_list = self.args_parser.parse_known_args(argv[1:])
         if options.is_skip_querying:
@@ -169,7 +251,7 @@ class SCAUI:
         else:
             verified_ifile_list = []
             for f in ifile_list:
-                if path.isfile(f):
+                if os.path.isfile(f):
                     verified_ifile_list.append(f)
                 elif glob.glob(f):
                     verified_ifile_list.extend(glob.glob(f))
@@ -184,7 +266,7 @@ class SCAUI:
             for subfiles in options.subfile_lists:
                 verified_subfiles = []
                 for f in subfiles:
-                    if path.isfile(f):
+                    if os.path.isfile(f):
                         verified_subfiles.append(f)
                     elif glob.glob(f):
                         verified_subfiles.extend(glob.glob(f))
@@ -192,15 +274,14 @@ class SCAUI:
                         return False, f"No such file as \n\n{f}"
                 if len(verified_subfiles) < 2:
                     print(
-                        "Only 1 subfile provided. There should be 2 or more subfiles to"
-                        " combine."
+                        "Only 1 subfile provided. There should be 2 or more subfiles to combine."
                     )
                     sys.exit(1)
                 verified_subfile_lists.append(verified_subfiles)
             self.verified_subfile_lists = verified_subfile_lists
 
         self.odir_matched = "result_matches"
-        if options.stdout:
+        if options.is_stdout:
             options.ofile_freq = sys.stdout
         elif options.ofile_freq is not None:
             self.odir_matched = os.path.splitext(options.ofile_freq)[0] + "_matches"
@@ -233,6 +314,7 @@ class SCAUI:
             "newline_break": options.newline_break,
             "max_length": options.max_length,
             "is_skip_querying": options.is_skip_querying,
+            "selected_structures": options.selected_structures,
         }
         self.options = options
         return True, None
@@ -335,10 +417,10 @@ class SCAUI:
     def exit_routine(self) -> None:
         print("\n", "=" * 60, sep="")
         i = 1
-        if not self.options.is_skip_querying and not self.options.stdout:
+        if not self.options.is_skip_querying and not self.options.is_stdout:
             color_print(
                 "OKGREEN",
-                f"{path.abspath(self.options.ofile_freq)}",
+                f"{os.path.abspath(self.options.ofile_freq)}",
                 prefix=f"{i}. Frequency output was saved to ",
                 postfix=".",
             )
@@ -362,7 +444,7 @@ class SCAUI:
         if self.options.reserve_matched:
             color_print(
                 "OKGREEN",
-                f"{path.abspath(self.odir_matched)}",
+                f"{os.path.abspath(self.odir_matched)}",
                 prefix=f"{i}. Matched subtrees were saved to ",
                 postfix=".",
             )
@@ -377,7 +459,7 @@ class SCAUI:
             sucess, err_msg = self.check_depends()
             if not sucess:
                 return sucess, err_msg
-            if not self.options.stdout:
+            if not self.options.is_stdout:
                 sucess, err_msg = try_write(self.options.ofile_freq, None)
                 if not sucess:
                     return sucess, err_msg
@@ -418,10 +500,9 @@ class SCAUI:
             return True, None
 
     def list_fields(self) -> SCAProcedureResult:
-        from .structures import Structures
+        from .structure_counter import StructureCounter
 
-        print("W: words")
-        for structure in Structures("").to_report:
+        for structure in StructureCounter().structures_to_report:
             print(f"{structure.name}: {structure.desc}")
         return True, None
 

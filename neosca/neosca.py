@@ -1,11 +1,10 @@
 import os
-import re
 import sys
 from typing import List, Dict, Optional
 
 from .parser import StanfordParser
 from .querier import StanfordTregex
-from .structures import Structures
+from .structure_counter import StructureCounter
 
 
 class NeoSCA:
@@ -21,6 +20,7 @@ class NeoSCA:
         newline_break: str = "never",
         max_length: Optional[int] = None,
         is_skip_querying: bool = False,
+        selected_structures: Optional[list] = None,
         verbose: bool = True,
     ) -> None:
         self.ofile_freq = ofile_freq
@@ -33,8 +33,9 @@ class NeoSCA:
         self.newline_break = newline_break
         self.max_length = max_length
         self.is_skip_querying = is_skip_querying
+        self.selected_structures = selected_structures
         self.verbose = verbose
-        self.structures_lists: List[Structures] = []
+        self.counter_lists: List[StructureCounter] = []
 
         self.parser = StanfordParser(
             self.dir_stanford_parser,
@@ -50,9 +51,7 @@ class NeoSCA:
         is_exist = os.path.exists(ofile_parsed)
         if is_exist:
             is_not_empty = os.path.getsize(ofile_parsed) > 0
-            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(
-                ifile
-            )
+            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(ifile)
             if is_not_empty and is_parsed_newer_than_input:
                 is_skip_parsing = True
         return is_skip_parsing
@@ -63,17 +62,14 @@ class NeoSCA:
             content = f.read()
         return content
 
-    def query_against_trees(self, trees: str, structures: Structures) -> Structures:
-        structures = self.tregex.query(
-            structures,
+    def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
+        counter = self.tregex.query(
+            counter,
             trees,
             reserve_matched=self.reserve_matched,
             odir_matched=self.odir_matched,
         )
-        structures.W.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
-        structures.update_freqs()
-        structures.compute_14_indicies()
-        return structures
+        return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
         trees = self.parser.parse(text, self.max_length, self.newline_break)
@@ -85,10 +81,9 @@ class NeoSCA:
     def run_on_text(self, text: str, ifile: str = "cmdline_text") -> None:
         trees = self.parse_text(text)
         if not self.is_skip_querying:
-            structures = Structures(ifile)
-            structures = self.query_against_trees(trees, structures)
-            self.structures_lists.append(structures)
-        if not self.is_skip_querying:
+            counter = StructureCounter(ifile, selected_structures=self.selected_structures)
+            counter = self.query_against_trees(trees, counter)
+            self.counter_lists.append(counter)
             self.write_freq_output()
 
     def parse_ifile(self, ifile: str) -> str:
@@ -111,28 +106,26 @@ class NeoSCA:
         else:
             return trees
 
-    def parse_ifile_and_query(self, ifile: str) -> Structures:
+    def parse_ifile_and_query(self, ifile: str) -> StructureCounter:
         trees = self.parse_ifile(ifile)
-        structures = Structures(ifile)
-        return self.query_against_trees(trees, structures)
+        counter = StructureCounter(ifile, selected_structures=self.selected_structures)
+        return self.query_against_trees(trees, counter)
 
     def run_on_ifiles(self, ifiles, is_combine=False) -> None:
         total = len(ifiles)
         if not self.is_skip_querying:
             if is_combine:
-                parent_structures = Structures(ifile=None)
+                parent_counter = StructureCounter(selected_structures=self.selected_structures)
                 for i, ifile in enumerate(ifiles):
                     print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
-                    structures = self.parse_ifile_and_query(ifile)
-                    parent_structures += structures
-                parent_structures.update_freqs()
-                parent_structures.compute_14_indicies()
-                self.structures_lists.append(parent_structures)
+                    child_counter = self.parse_ifile_and_query(ifile)
+                    parent_counter += child_counter
+                self.counter_lists.append(parent_counter)
             else:
                 for i, ifile in enumerate(ifiles):
                     print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
-                    structures = self.parse_ifile_and_query(ifile)
-                    self.structures_lists.append(structures)
+                    child_counter = self.parse_ifile_and_query(ifile)
+                    self.counter_lists.append(child_counter)
             self.write_freq_output()
         else:
             for i, ifile in enumerate(ifiles):
@@ -141,15 +134,15 @@ class NeoSCA:
 
     def write_freq_output(self) -> None:
         if self.oformat_freq == "csv":
-            freq_output = Structures("").fields
-            for structures in self.structures_lists:
+            freq_output = StructureCounter(selected_structures=self.selected_structures).fields
+            for structures in self.counter_lists:
                 freq_dict = structures.get_freqs()
                 freq_output += "\n" + ",".join(str(freq) for freq in freq_dict.values())
         elif self.oformat_freq == "json":
             import json
 
             final_freq_dict: Dict[str, List[Dict]] = {"Files": []}
-            for structures in self.structures_lists:
+            for structures in self.counter_lists:
                 freq_dict = structures.get_freqs()
                 final_freq_dict["Files"].append(freq_dict)
             freq_output = json.dumps(final_freq_dict)

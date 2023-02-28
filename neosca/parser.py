@@ -100,6 +100,7 @@ class StanfordParser:
     def parse(
         self, text: str, max_length: Optional[int] = None, newline_break: str = "never"
     ) -> str:
+        assert newline_break in ("never", "always", "two")
         if newline_break == "never":
             trees = self.parse_paragraph(text, max_length)
         else:

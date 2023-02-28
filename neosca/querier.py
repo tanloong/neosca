@@ -7,7 +7,7 @@ import subprocess
 import sys
 from typing import Tuple
 
-from .structures import Structures
+from .structure_counter import StructureCounter
 
 
 class StanfordTregex:
@@ -46,9 +46,7 @@ class StanfordTregex:
         except subprocess.CalledProcessError as err_msg:
             print(err_msg)
             sys.exit(1)
-        match_reslt = re.search(
-            r"There were (\d+) matches in total\.", p.stderr.decode("utf-8")
-        )
+        match_reslt = re.search(r"There were (\d+) matches in total\.", p.stderr.decode("utf-8"))
         if match_reslt:
             freq = match_reslt.group(1)
         else:
@@ -71,19 +69,24 @@ class StanfordTregex:
 
     def query(
         self,
-        structures: Structures,
+        counter: StructureCounter,
         trees: str,
         reserve_matched: bool = False,
         odir_matched: str = "",
     ):
-        for structure in structures.to_query:
+        for s in counter.structures_to_query:
+            print(s)
+        for structure in counter.structures_to_query:
             print(f'\t[Tregex] Querying "{structure.desc}"...')
+            if structure.name == "W":
+                structure.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
+                continue
             structure.freq, structure.matches = self.query_structure(
-                structure.pat, trees, reserve_matched
+                structure.pattern, trees, reserve_matched
             )
         if reserve_matched:
-            self.write_match_output(structures, odir_matched)
-        return structures
+            self.write_match_output(counter, odir_matched)
+        return counter
 
     def _add_terms(self, subtrees: str) -> str:
         """
@@ -102,19 +105,19 @@ class StanfordTregex:
             result += f"{terminals}\n{subtree}\n\n"
         return result.strip()
 
-    def write_match_output(self, structures: Structures, odir_matched: str = "") -> None:
+    def write_match_output(self, counter: StructureCounter, odir_matched: str = "") -> None:
         """
         Save Tregex's match output
 
         :param structures: an instance of Structures
         """
-        bn_input = os.path.basename(structures.ifile)
+        bn_input = os.path.basename(counter.ifile)
         bn_input_noext = os.path.splitext(bn_input)[0]
         subdir_match_output = os.path.join(odir_matched, bn_input_noext).strip()
         if not os.path.isdir(subdir_match_output):
             # if not (exists and is a directory)
             os.makedirs(subdir_match_output)
-        for structure in structures.to_query:
+        for structure in counter.structures_to_query:
             if structure.matches:
                 bn_match_output = (
                     bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"

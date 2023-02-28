@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 
 from neosca.querier import StanfordTregex
-from neosca.structures import Structures
+from neosca.structure_counter import StructureCounter
 
 from .base_tmpl import BaseTmpl
 from .base_tmpl import dir_stanford_tregex
@@ -11,12 +11,12 @@ from .base_tmpl import tree
 
 class TestStanfordTregex(BaseTmpl):
     def setUp(self):
-        self.structures = Structures(ifile=None)
+        self.counter = StructureCounter()
         self.tregex = StanfordTregex(dir_stanford_tregex)
         return super().setUp()
 
     def test_query(self):
-        structures = self.tregex.query(self.structures, tree)
+        structures = self.tregex.query(self.counter, tree)
         structures.update_freqs()
         self.assertEqual(1, structures.S.freq)
         self.assertEqual(2, structures.VP.freq)

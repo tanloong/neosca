@@ -72,6 +72,7 @@ the frequency of 9 structures in the text:
 * [Usage](#usage)
     * [Basic Usage](#basic-usage)
     * [Advanced Usage](#advanced-usage)
+    * [Misc](#misc)
 * [Citing](#citing)
 * [Related Efforts](#related-efforts)
 * [License](#license)
@@ -115,7 +116,6 @@ NeoSCA depends on
 and
 [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
 After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
-Note that this command requires administrative privileges if you are on Windows.
 
 ## Usage
 
@@ -125,9 +125,7 @@ To use NeoSCA, run the `nsca` command in your terminal, followed by the options 
 
 #### Single Input
 
-Suppose there is a directory called "samples" that contains 200 files named "sample1.txt" to "sample200.txt", and no other files are present in this directory.
-
-To analyze a single text file, use the command `nsca` followed by the file path. 
+To analyze a single text file, use the command `nsca` followed by the file path.
 
 ```sh
 nsca ./samples/sample1.txt
@@ -175,6 +173,50 @@ nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sa
 
 ### Advanced Usage
 
+#### Expand Wildcards
+
+Use `--expand-wildcards` to see whether they match all of the desired filenames and no unwanted filenames are included.
+
+```sh
+nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
+```
+
+#### Treat Newlines as Sentence Breaks
+
+```sh
+nsca sample1.txt --newline-break always
+```
+
+The `--newline-break` has 3 legal values: `never` (default), `always`, and `two`.
+
++ `never` means to ignore newlines for the purpose of sentence splitting.
+It is appropriate for continuous text with hard line breaks when just the non-whitespace characters should be used to determine sentence breaks.
++ `always` means to treat a newline as a sentence break, but there still may be
+more than one sentences per line.
++ `two` means to take two or more consecutive newlines as a sentence break.
+It is for text with hard line breaks and a blank line between paragraphs.
+
+#### Select Only a Subset of Available Measures
+
+Use `--select` to specify a whitespace-separated list of measures you are interested in.
+A full list of available measures can be obtained by `nsca --list`.
+
+```sh
+nsca --select VP T DC_C -- sample1.txt
+```
+
+The `--` is used to separate input filenames from the selected measures, or otherwise the program will take "sample1.txt" as a measure and then raise an error. All arguments after the `--` will be considered input filenames. Arguments other than input filenames should be specified at the left side of `--`.
+
+#### Combine Subfiles
+
+Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. The `--` should be used to separate input filenames from names of the subfiles.
+
+```sh
+nsca -c sample1-sub1.txt sample1-sub2.txt
+nsca -c sample1-sub*.txt
+nsca -c sample1-sub*.txt -- sample[2-9].txt
+```
+
 #### Reserve Intermediate Results
 
 <details>
@@ -197,6 +239,18 @@ nsca samples/sample1.txt -p -m
 ```
 
 </details>
+
+#### Skip Long Sentences
+
+Use `--max-length` to only analyze sentences with lengths shorter than or equal to 100, for example.
+
+```sh
+nsca sample1.txt --max-length 100
+```
+
+When the `--max-length` is not specified, the program will try to analyze sentences of any lengths, but may [run out of memory](https://nlp.stanford.edu/software/parser-faq.html#k) trying to do so.
+
+### Misc
 
 #### Pass Text Through the Command Line
 
@@ -366,7 +420,7 @@ MLA (9th edition)
 + [L2SCA](https://sites.psu.edu/xxl13/l2sca/), the original implementation, written in Python, by [Xiaofei Lu](https://sites.psu.edu/xxl13)
 + [L2SCA online](https://aihaiyang.com/software/l2sca/), by [Haiyang Ai](https://aihaiyang.com/)
 + [L2SCA included in TAASSC](https://www.linguisticanalysistools.org/taassc.html), written in Python, by [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
-+ [L2SCA written in R](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1), by [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat)
++ [L2SCA written in R](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1), by [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat), Anas Knefati, and Antoine Lafontaine
 + [FSCA](https://github.com/nvandeweerd/fsca) (French Syntactic Complexity Analyzer), written in R, by [Nate Vandeweerd](https://github.com/nvandeweerd)
 
 ## License
@@ -375,7 +429,7 @@ Distributed under the terms of the [GNU General Public License version 2](https:
 
 ## Contact
 
-You can send bug reports, feature requests, and any other questions via:
+You can send bug reports, feature requests, or any questions via:
 
 + [GitHub Issues](https://github.com/tanloong/neosca/issues)
 + tanloong@foxmail.com
