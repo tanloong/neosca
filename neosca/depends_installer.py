@@ -15,22 +15,17 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from .util import same_line_print
-from .util import color_print
-from .util import get_yes_or_no
 from .util import SCAProcedureResult
+from .util_platform_info import IS_DARWIN, IS_WINDOWS
+from .util_platform_info import USER_SOFTWARE_DIR
+from .util_print import same_line_print
+from .util_print import color_print
+from .util_print import get_yes_or_no
 
-_IS_WINDOWS = os.name == "nt"
-_IS_DARWIN = platform == "darwin"
-_UNPACK200 = "unpack200.exe" if _IS_WINDOWS else "unpack200"
-_UNPACK200_ARGS = '-r -v -l ""' if _IS_WINDOWS else ""
-if _IS_WINDOWS and os.environ.get("ProgramFiles") is not None:
-    _TARGET_DIR = os.environ.get("ProgramFiles")
-else:
-    _USER_DIR = os.path.expanduser("~")
-    _TARGET_DIR = os.path.join(_USER_DIR, ".local", "share")
+_UNPACK200 = "unpack200.exe" if IS_WINDOWS else "unpack200"
+_UNPACK200_ARGS = '-r -v -l ""' if IS_WINDOWS else ""
 
-OS = "windows" if _IS_WINDOWS else "mac" if _IS_DARWIN else platform
+OS = "windows" if IS_WINDOWS else "mac" if IS_DARWIN else platform
 ARCH = "x64" if maxsize > 2**32 else "x32"
 
 _TAR = ".tar"

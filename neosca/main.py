@@ -9,8 +9,8 @@ from typing import List, Optional
 from . import __version__
 from .neosca import NeoSCA
 from .util import SCAProcedureResult
-from .util import color_print
 from .util import try_write
+from .util_print import color_print
 
 
 class SCAUI:
