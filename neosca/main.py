@@ -218,8 +218,8 @@ class SCAUI:
     Consider newlines as sentence breaks.
 12. nsca --select VP T DC_C -- sample1.txt
     Select a subset of available measures to analyze. Use -- to separate input
-    filenames from the selected measures, or otherwise the program will take 
-    "sample1.txt" as a measure and then raise an error. Arguments other than 
+    filenames from the selected measures, or otherwise the program will take
+    "sample1.txt" as a measure and then raise an error. Arguments other than
     input filenames should be specified at the left side of --.
 13. nsca -c sample1-sub1.txt sample1-sub2.txt
     Add up frequencies of the 9 syntactic structures of the subfiles and compute
@@ -275,9 +275,10 @@ Contact:
                         verified_subfiles.extend(glob.glob(f))
                     else:
                         return False, f"No such file as \n\n{f}"
-                if len(verified_subfiles) < 2:
+                if len(verified_subfiles) == 1:
                     print(
-                        "Only 1 subfile provided. There should be 2 or more subfiles to combine."
+                        f"Only 1 subfile provided: ({verified_subfiles[0]}). There should be 2"
+                        " or more subfiles to combine."
                     )
                     sys.exit(1)
                 verified_subfile_lists.append(verified_subfiles)
@@ -510,9 +511,15 @@ Contact:
         return True, None
 
     def expand_wildcards(self) -> SCAProcedureResult:
-        if self.verified_ifile_list is not None:
+        if self.verified_ifile_list:
+            print("Input files:")
             for ifile in sorted(self.verified_ifile_list):
-                print(ifile)
+                print(f" {ifile}")
+        if self.verified_subfile_lists:
+            print("Input subfiles:")
+            for subfiles in self.verified_subfile_lists:
+                for subfile in subfiles:
+                    print(f" {subfile}")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:

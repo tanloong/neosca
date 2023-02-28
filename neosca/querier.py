@@ -74,8 +74,6 @@ class StanfordTregex:
         reserve_matched: bool = False,
         odir_matched: str = "",
     ):
-        for s in counter.structures_to_query:
-            print(s)
         for structure in counter.structures_to_query:
             print(f'\t[Tregex] Querying "{structure.desc}"...')
             if structure.name == "W":

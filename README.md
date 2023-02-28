@@ -83,7 +83,6 @@ the frequency of 9 structures in the text:
 ## Highlights
 
 * Works on Windows/macOS/Linux
-* Reserves intermediate results, i.e., parsed trees of Stanford Parser and matched subtrees of Stanford Tregex
 * An improved command-line interface
 
 ## Install
@@ -209,12 +208,13 @@ The `--` is used to separate input filenames from the selected measures, or othe
 
 #### Combine Subfiles
 
-Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. The `--` should be used to separate input filenames from names of the subfiles.
+Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. When `-c` is used multiple times, the program will combine different list of subfiles respectively. The `--` should be used to separate input filenames from names of the subfiles.
 
 ```sh
 nsca -c sample1-sub1.txt sample1-sub2.txt
 nsca -c sample1-sub*.txt
-nsca -c sample1-sub*.txt -- sample[2-9].txt
+nsca -c sample1-sub*.txt -c sample2-sub*.txt
+nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
 ```
 
 #### Reserve Intermediate Results
@@ -268,11 +268,6 @@ You can generate a json file by:
 ```sh
 nsca ./samples/sample1.txt --output-format json
 # frequency output: ./result.json
-```
-
-Or
-
-```sh
 nsca ./samples/sample1.txt -o sample1.json
 # frequency output: ./sample1.json
 ```
