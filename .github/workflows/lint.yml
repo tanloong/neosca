@@ -20,6 +20,8 @@ jobs:
       - name: Install dependency
         run: pip install black mypy
       - name: Run black
-        run: black --line-length 110 --preview neosca/ tests/ 
+        run: black neosca/ tests/ --line-length 97 --preview
+      - name: Run flake8
+        run: flake8 neosca/ tests/ --count --max-line-length=97 --statistics
       - name: Run mypy 
         run: mypy --check-untyped-defs neosca/
