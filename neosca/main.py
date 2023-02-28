@@ -82,6 +82,7 @@ class SCAUI:
             "--combine-files",
             metavar="<subfile>",
             dest="subfile_lists",
+            action="append",
             default=None,
             nargs="+",
             help="Combine frequency output of multiple files.",
@@ -225,7 +226,9 @@ class SCAUI:
     values of the 14 syntactic complexity indices for the imaginary parent file.
 14. nsca -c sample1-sub*.txt
     Wildcards are supported for -c.
-15. nsca -c sample1-sub*.txt -- sample[2-9].txt
+15. nsca -c sample1-sub*.txt -c sample2-sub*.txt
+    Use multiple -c to combine different lists of subfiles respectively.
+16. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
     Use -- to separate input filenames from names of the subfiles.
 
 Contact:
@@ -260,7 +263,7 @@ Contact:
         self.verified_ifile_list = verified_ifile_list
 
         if options.subfile_lists is None:
-            self.verified_subfile_lists = []
+            self.verified_subfile_lists: List[list] = []
         else:
             verified_subfile_lists = []
             for subfiles in options.subfile_lists:
