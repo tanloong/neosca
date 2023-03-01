@@ -174,7 +174,7 @@ nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sa
 
 #### Expand Wildcards
 
-Use `--expand-wildcards` to see whether they match all of the desired filenames and no unwanted filenames are included.
+Use the `--expand-wildcards` option to print all files that match your wildcard pattern. This can help you ensure that your pattern matches all desired files and excludes any unwanted ones. Note that files that do not exist on the computer will not be included in the output, even if they match the specified pattern.
 
 ```sh
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
@@ -195,20 +195,19 @@ more than one sentences per line.
 + `two` means to take two or more consecutive newlines as a sentence break.
 It is for text with hard line breaks and a blank line between paragraphs.
 
-#### Select Only a Subset of Available Measures
+#### Select a Subset of Measures
 
-Use `--select` to specify a whitespace-separated list of measures you are interested in.
-A full list of available measures can be obtained by `nsca --list`.
+If you're interested in analyzing only a subset of available measures, you can use the `--select` option followed by a whitespace-separated list of the measures you want to include. To see a full list of available measures, use the command nsca `--list`.
 
 ```sh
 nsca --select VP T DC_C -- sample1.txt
 ```
 
-The `--` is used to separate input filenames from the selected measures, or otherwise the program will take "sample1.txt" as a measure and then raise an error. All arguments after the `--` will be considered input filenames. Arguments other than input filenames should be specified at the left side of `--`.
+To avoid the program taking input filenames as a selected measure and raising an error, use the `--` option to separate them from the measures. All arguments after the `--` option will be considered input filenames. Make sure to specify arguments except for input filenames to the left side of `--`.
 
 #### Combine Subfiles
 
-Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. When `-c` is used multiple times, the program will combine different list of subfiles respectively. The `--` should be used to separate input filenames from names of the subfiles.
+Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. You can use this option multiple times to combine different lists of subfiles respectively. The `--` should be used to separate input filenames from input subfile-names.
 
 ```sh
 nsca -c sample1-sub1.txt sample1-sub2.txt

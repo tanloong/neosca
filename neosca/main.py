@@ -43,8 +43,10 @@ class SCAUI:
             action="store_true",
             default=False,
             help=(
-                "Expand wildcards and exit. Use this option to see whether your wildcards"
-                " match the desired list of input filenames."
+                "Print all files that match your wildcard pattern. This can help you ensure that"
+                " your pattern matches all desired files and excludes any unwanted ones. Note"
+                " that files that do not exist on the computer will not be included in the"
+                " output, even if they match the specified pattern."
             ),
         )
         args_parser.add_argument(
@@ -217,7 +219,7 @@ class SCAUI:
 11. nsca sample1.txt --newline-break always
     Consider newlines as sentence breaks.
 12. nsca --select VP T DC_C -- sample1.txt
-    Select a subset of available measures to analyze. Use -- to separate input
+    Select a subset of measures to analyze. Use -- to separate input
     filenames from the selected measures, or otherwise the program will take
     "sample1.txt" as a measure and then raise an error. Arguments other than
     input filenames should be specified at the left side of --.
