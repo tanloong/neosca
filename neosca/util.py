@@ -2,7 +2,6 @@
 # -*- coding=utf-8 -*-
 
 import os
-import sys
 from typing import List, Optional, Tuple
 
 from .util_platform_info import IS_DARWIN, IS_LINUX, IS_WINDOWS
@@ -74,8 +73,8 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             " shell."
         )
     else:
-        startup_file_dict = {
-            "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
+        shell_rcfile = {
+            "bash": "~/.bash_profile" if IS_DARWIN else "~/.bashrc",
             "zsh": "~/.zshrc",
             "ksh": "~/.kshrc",
             "tcsh": "~/.tcshrc",
@@ -84,17 +83,20 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             "fish": "~/.config/fish/config.fish",
             "ion": "~/.config/ion/initrc",
         }
-        startup_file = startup_file_dict.get(os.path.basename(shell), None)
-        if startup_file is None:
+        rcfile = shell_rcfile.get(os.path.basename(shell), None)
+        if rcfile is None:
             print(
                 "Failed to permanently set environment variables.\nReason: can't detect rc"
                 f" file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
-            startup_file = os.path.expanduser(startup_file)
-            with open(startup_file, "r", encoding="utf-8") as f:
-                configs = [line.strip() for line in f.readlines()]
+            rcfile = os.path.expanduser(rcfile)
+            if not os.path.isfile(rcfile):
+                configs = []
+            else:
+                with open(rcfile, "r", encoding="utf-8") as f:
+                    configs = [line.strip() for line in f.readlines()]
             new_config = (
                 f"export {env_var}={new_paths}"
                 if refresh
@@ -114,7 +116,7 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
                 configs.insert(duplicated_config_index[0], new_config)
             else:
                 configs.append(new_config)
-            with open(startup_file, "w", encoding="utf-8") as f:
+            with open(rcfile, "w", encoding="utf-8") as f:
                 f.write("\n".join(configs))
 
 
