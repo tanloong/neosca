@@ -172,15 +172,15 @@ class depends_installer:
             return False, f"Error: {fs_path} is neither a directory not a file."
 
     def _decompress_archive(
-        self, archive_path: str, file_ending: str, destination_folder: str
+        self, archive_path: str, file_extension: str, target_dir: str
     ) -> SCAProcedureResult:
-        if not os.path.isdir(destination_folder):
-            os.mkdir(destination_folder)
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir)
 
         archive_path = os.path.normpath(archive_path)
 
         if os.path.isfile(archive_path):
-            sucess, err_msg = self._extract_files(archive_path, file_ending, destination_folder)
+            sucess, err_msg = self._extract_files(archive_path, file_extension, target_dir)
             if not sucess:
                 return sucess, err_msg
             else:
