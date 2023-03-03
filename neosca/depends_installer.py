@@ -80,11 +80,11 @@ class depends_installer:
             return sucess, err_msg
         else:
             version = err_msg  # type:ignore
-        self.use_chinese_jdk_mirror = get_yes_or_no(
+        self.is_use_chinese_jdk_mirror = get_yes_or_no(
             "Do you want to download Java from a Chinese mirror site? If you are inside of"
             " China, you may want to use this for a faster network connection."
         )
-        if self.use_chinese_jdk_mirror in ("n", "N"):
+        if self.is_use_chinese_jdk_mirror in ("n", "N"):
             return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
         else:
             index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)
@@ -192,7 +192,7 @@ class depends_installer:
             return False, f"Error: {archive_path} is neither a directory not a file."
 
     def _get_java_filename(self, download_url) -> SCAProcedureResult:
-        if self.use_chinese_jdk_mirror:
+        if self.is_use_chinese_jdk_mirror:
             filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
         else:
             req = urllib.request.Request(download_url, headers=self.headers)
@@ -273,13 +273,13 @@ class depends_installer:
                 return False, f"Requesting to {download_url} failed."
         return True, filename
 
-    def ask_install(self, name: str, assume_yes: bool = False) -> SCAProcedureResult:
+    def ask_install(self, name: str, is_assume_yes: bool = False) -> SCAProcedureResult:
         reason_dict = {
             JAVA: f"values of PATH does not contain a {JAVA} bin folder",
             STANFORD_PARSER: "the environment variable STANFORD_PARSER_HOME is not found",
             STANFORD_TREGEX: "the environment variable STANFORD_TREGEX_HOME is not found",
         }
-        if assume_yes:
+        if is_assume_yes:
             is_install = "y"
         else:
             is_install = get_yes_or_no(
@@ -317,12 +317,12 @@ class depends_installer:
         arch: str,
         impl: str,
         target_dir: str,
-        assume_yes: bool = False,
+        is_assume_yes: bool = False,
     ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}jdk{version}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(JAVA, assume_yes)
+        sucess, err_msg = self.ask_install(JAVA, is_assume_yes)
         if not sucess:
             return sucess, err_msg
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
@@ -354,12 +354,12 @@ class depends_installer:
         return True, jdk_dir
 
     def install_stanford(
-        self, name: str, url: str, target_dir: str, assume_yes: bool = False
+        self, name: str, url: str, target_dir: str, is_assume_yes: bool = False
     ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}{name.lower().replace(' ', '-')}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(name, assume_yes)
+        sucess, err_msg = self.ask_install(name, is_assume_yes)
         if not sucess:
             return sucess, err_msg
         color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
@@ -384,7 +384,7 @@ class depends_installer:
     def install(
         self,
         name: str,
-        assume_yes: bool = False,
+        is_assume_yes: bool = False,
         version: str = _JAVA_VERSION,
         operating_system: str = OS,
         arch: str = ARCH,
@@ -393,15 +393,15 @@ class depends_installer:
     ) -> SCAProcedureResult:
         if name == JAVA:
             return self.install_java(
-                version, operating_system, arch, impl, target_dir, assume_yes
+                version, operating_system, arch, impl, target_dir, is_assume_yes
             )
         elif name == STANFORD_PARSER:
             return self.install_stanford(
-                name, self._URL_STANFORD_PARSER, target_dir, assume_yes
+                name, self._URL_STANFORD_PARSER, target_dir, is_assume_yes
             )
         elif name == STANFORD_TREGEX:
             return self.install_stanford(
-                name, self._URL_STANFORD_TREGEX, target_dir, assume_yes
+                name, self._URL_STANFORD_TREGEX, target_dir, is_assume_yes
             )
         else:
             return False, f"Unexpected name: {name}."

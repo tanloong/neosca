@@ -71,7 +71,7 @@ class StanfordTregex:
         self,
         counter: StructureCounter,
         trees: str,
-        reserve_matched: bool = False,
+        is_reserve_matched: bool = False,
         odir_matched: str = "",
     ):
         for structure in counter.structures_to_query:
@@ -80,9 +80,9 @@ class StanfordTregex:
                 structure.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
                 continue
             structure.freq, structure.matches = self.query_structure(
-                structure.pattern, trees, reserve_matched
+                structure.pattern, trees, is_reserve_matched
             )
-        if reserve_matched:
+        if is_reserve_matched:
             self.write_match_output(counter, odir_matched)
         return counter
 

@@ -159,7 +159,7 @@ class SCAUI:
         args_parser.add_argument(
             "-p",
             "--reserve-parsed",
-            dest="reserve_parsed",
+            dest="is_reserve_parsed",
             action="store_true",
             default=False,
             help="Reserve the parsed trees produced by the Stanford Parser.",
@@ -167,7 +167,7 @@ class SCAUI:
         args_parser.add_argument(
             "-m",
             "--reserve-matched",
-            dest="reserve_matched",
+            dest="is_reserve_matched",
             default=False,
             action="store_true",
             help="Reserve the matched subtrees produced by the Stanford Tregex.",
@@ -191,7 +191,7 @@ class SCAUI:
         )
         args_parser.add_argument(
             "--yes",
-            dest="assume_yes",
+            dest="is_assume_yes",
             action="store_true",
             default=False,
             help="Assume the answer to all prompts is yes, used when installing dependencies.",
@@ -248,7 +248,7 @@ Contact:
         else:
             options, ifile_list = self.args_parser.parse_known_args(argv[1:])
         if options.is_skip_querying:
-            options.reserve_parsed = True
+            options.is_reserve_parsed = True
 
         if options.text is not None:
             print(f"Command-line text: {options.text}")
@@ -287,9 +287,7 @@ Contact:
             self.verified_subfile_lists = verified_subfile_lists
 
         self.odir_matched = "result_matches"
-        if options.is_stdout:
-            options.ofile_freq = sys.stdout
-        elif options.ofile_freq is not None:
+        if options.ofile_freq is not None:
             self.odir_matched = os.path.splitext(options.ofile_freq)[0] + "_matches"
             ofile_freq_ext = os.path.splitext(options.ofile_freq)[-1].lstrip(".")
             if ofile_freq_ext not in ("csv", "json"):
@@ -314,13 +312,14 @@ Contact:
             "oformat_freq": options.oformat_freq,
             "dir_stanford_parser": "",
             "dir_stanford_tregex": "",
-            "reserve_parsed": options.reserve_parsed,
-            "reserve_matched": options.reserve_matched,
             "odir_matched": self.odir_matched,
             "newline_break": options.newline_break,
             "max_length": options.max_length,
-            "is_skip_querying": options.is_skip_querying,
             "selected_structures": options.selected_structures,
+            "is_reserve_parsed": options.is_reserve_parsed,
+            "is_reserve_matched": options.is_reserve_matched,
+            "is_stdout": options.is_stdout,
+            "is_skip_querying": options.is_skip_querying,
         }
         self.options = options
         return True, None
@@ -334,7 +333,7 @@ Contact:
             from .util import setenv
 
             installer = depends_installer()
-            sucess, err_msg = installer.install(JAVA, assume_yes=self.options.assume_yes)
+            sucess, err_msg = installer.install(JAVA, is_assume_yes=self.options.is_assume_yes)
             if not sucess:
                 return sucess, err_msg
             else:
@@ -358,7 +357,7 @@ Contact:
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
-                STANFORD_PARSER, assume_yes=self.options.assume_yes
+                STANFORD_PARSER, is_assume_yes=self.options.is_assume_yes
             )
             if not sucess:
                 return sucess, err_msg
@@ -381,7 +380,7 @@ Contact:
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
-                STANFORD_TREGEX, assume_yes=self.options.assume_yes
+                STANFORD_TREGEX, is_assume_yes=self.options.is_assume_yes
             )
             if not sucess:
                 return sucess, err_msg
@@ -433,13 +432,13 @@ Contact:
             i += 1
         if (
             self.verified_ifile_list or self.verified_subfile_lists
-        ) and self.options.reserve_parsed:
+        ) and self.options.is_reserve_parsed:
             print(
                 f"{i}. Parsed trees were saved corresponding to input files,"
                 ' with the same name but a ".parsed" extension.'
             )
             i += 1
-        if self.options.text is not None and self.options.reserve_parsed:
+        if self.options.text is not None and self.options.is_reserve_parsed:
             color_print(
                 "OKGREEN",
                 f"{self.cwd}{os.sep}cmdline_text.parsed",
@@ -447,7 +446,7 @@ Contact:
                 postfix=".",
             )
             i += 1
-        if self.options.reserve_matched:
+        if self.options.is_reserve_matched:
             color_print(
                 "OKGREEN",
                 f"{os.path.abspath(self.odir_matched)}",

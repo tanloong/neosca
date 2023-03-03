@@ -11,13 +11,13 @@ class StanfordParser:
     def __init__(
         self,
         dir_stanford_parser: str = "",
-        verbose: bool = False,
+        is_verbose: bool = False,
         nthreads: int = 1,
         # tested on a 16kb file: 3m23s with 2 threads vs. 3m21s with 1 threads
         max_memory: str = "3072m",  # 3g
     ) -> None:
         self.dir_stanford_parser = dir_stanford_parser
-        self.verbose = verbose
+        self.is_verbose = is_verbose
         self.nthreads = nthreads
         self.max_memory = max_memory
 
@@ -49,9 +49,7 @@ class StanfordParser:
         package_lexparser = jpype.JPackage(self.PARSER_METHOD)
         CoreLabelTokenFactory = package.process.CoreLabelTokenFactory
 
-        self.tokenizerFactory = package.process.PTBTokenizer.factory(
-            CoreLabelTokenFactory(), ""
-        )
+        self.tokenizerFactory = package.process.PTBTokenizer.factory(CoreLabelTokenFactory(), "")
         self.WordToSentenceProcessor = package.process.WordToSentenceProcessor()
         self.lexparser = package_lexparser.LexicalizedParser.loadModel(self.PARSER_MODEL)
         options = ["-outputFormat", "penn", "-nthreads", str(self.nthreads)]

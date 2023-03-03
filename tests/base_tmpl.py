@@ -8,7 +8,7 @@ import time
 from unittest import TestCase
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
-ifile_text = "There was no possibility of taking a walk that day."
+text = "There was no possibility of taking a walk that day."
 tree = """(ROOT
   (S
     (NP (EX There))

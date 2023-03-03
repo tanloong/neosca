@@ -1,45 +1,46 @@
 import os
 import sys
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 from .parser import StanfordParser
 from .querier import StanfordTregex
 from .structure_counter import StructureCounter
 
-
 class NeoSCA:
     def __init__(
         self,
-        ofile_freq,  # str or sys.stdout
+        ofile_freq: str = "result.csv",
         oformat_freq: str = "csv",
         dir_stanford_parser: str = "",
         dir_stanford_tregex: str = "",
-        reserve_parsed: bool = False,
-        reserve_matched: bool = False,
         odir_matched: str = "",
         newline_break: str = "never",
         max_length: Optional[int] = None,
-        is_skip_querying: bool = False,
         selected_structures: Optional[list] = None,
-        verbose: bool = True,
+        is_reserve_parsed: bool = False,
+        is_reserve_matched: bool = False,
+        is_stdout: bool = False,
+        is_skip_querying: bool = False,
+        is_verbose: bool = True,
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
         self.dir_stanford_parser = dir_stanford_parser
         self.dir_stanford_tregex = dir_stanford_tregex
-        self.reserve_parsed = reserve_parsed
-        self.reserve_matched = reserve_matched
         self.odir_matched = odir_matched
         self.newline_break = newline_break
         self.max_length = max_length
-        self.is_skip_querying = is_skip_querying
         self.selected_structures = selected_structures
-        self.verbose = verbose
+        self.is_reserve_parsed = is_reserve_parsed
+        self.is_reserve_matched = is_reserve_matched
+        self.is_stdout = is_stdout
+        self.is_skip_querying = is_skip_querying
+        self.is_verbose = is_verbose
         self.counter_lists: List[StructureCounter] = []
 
         self.parser = StanfordParser(
             self.dir_stanford_parser,
-            verbose=self.verbose,
+            is_verbose=self.is_verbose,
         )
         self.tregex = StanfordTregex(
             dir_stanford_tregex=self.dir_stanford_tregex,
@@ -66,14 +67,14 @@ class NeoSCA:
         counter = self.tregex.query(
             counter,
             trees,
-            reserve_matched=self.reserve_matched,
+            is_reserve_matched=self.is_reserve_matched,
             odir_matched=self.odir_matched,
         )
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
         trees = self.parser.parse(text, self.max_length, self.newline_break)
-        if self.reserve_parsed:
+        if self.is_reserve_parsed:
             with open(ofile_parsed, "w", encoding="utf-8") as f:
                 f.write(trees)
         return trees
@@ -150,8 +151,8 @@ class NeoSCA:
             print(f"Unexpected output format: {self.oformat_freq}")
             sys.exit(1)
 
-        if self.ofile_freq is not sys.stdout:
+        if not self.is_stdout:
             with open(self.ofile_freq, "w", encoding="utf-8") as f:
                 f.write(freq_output)
         else:
-            self.ofile_freq.write(freq_output)
+            sys.stdout.write(freq_output)
