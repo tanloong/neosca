@@ -42,9 +42,18 @@ class StanfordParser:
         self.init_parser()
 
     def init_parser(self):
-        jpype.startJVM(
-            f"-Xmx{self.max_memory}", classpath=os.path.join(self.dir_stanford_parser, "*")
-        )
+        classpath = os.path.join(self.dir_stanford_parser, "*")
+        if not jpype.isJVMStarted():
+            # Note that isJVMStarted may be renamed to isJVMRunning in the future.
+            # In jpype's _core.py:
+            # > TODO This method is horribly named.  It should be named isJVMRunning as
+            # > isJVMStarted would seem to imply that the JVM was started at some
+            # > point without regard to whether it has been shutdown.
+            jpype.startJVM(
+                f"-Xmx{self.max_memory}", classpath=classpath
+            )
+        else:
+            jpype.addClassPath(classpath)
         package = jpype.JPackage(self.PARSER_PACKAGE)
         package_lexparser = jpype.JPackage(self.PARSER_METHOD)
         CoreLabelTokenFactory = package.process.CoreLabelTokenFactory

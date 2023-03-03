@@ -1,9 +1,9 @@
 from collections import OrderedDict
-from typing import Sequence, Union
+from typing import Sequence, Union, Optional
 
 
 class Structure:
-    def __init__(self, name: str, desc: str, pattern="", matches="", requires=None) -> None:
+    def __init__(self, name: str, desc: str, pattern:str="", matches:Optional[list]=None, requires:Optional[list]=None) -> None:
         """
         :param name: name of the structure
         :param desc: description of the structure
@@ -14,11 +14,14 @@ class Structure:
         self.name = name
         self.desc = desc
         self.pattern = pattern
-        self.matches = matches
-        if requires is not None:
-            self.requires = requires
+        if matches is None:
+            self.matches = []
         else:
+            self.matches = matches
+        if requires is None:
             self.requires = []
+        else:
+            self.requires = requires
         self.freq: Union[float, int] = 0
 
     def __repr__(self) -> str:
