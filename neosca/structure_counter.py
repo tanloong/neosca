@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Sequence, Union, Optional
+from typing import Optional, Sequence, Set, Union
 
 
 class Structure:
@@ -42,7 +42,7 @@ class Structure:
 
 
 class StructureCounter:
-    def __init__(self, ifile="", selected_measures: Optional[set[str]] = None) -> None:
+    def __init__(self, ifile="", selected_measures: Optional[Set[str]] = None) -> None:
         self.ifile = ifile
         if selected_measures is None:
             self.selected_measures = set()

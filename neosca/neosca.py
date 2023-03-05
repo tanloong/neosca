@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from .parser import StanfordParser
 from .querier import StanfordTregex
@@ -17,7 +17,7 @@ class NeoSCA:
         odir_matched: str = "",
         newline_break: str = "never",
         max_length: Optional[int] = None,
-        selected_measures: Optional[set[str]] = None,
+        selected_measures: Optional[Set[str]] = None,
         is_reserve_parsed: bool = False,
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
