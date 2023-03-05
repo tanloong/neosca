@@ -83,7 +83,7 @@ the frequency of 9 structures in the text:
 ## Highlights
 
 * Works on Windows/macOS/Linux
-* An improved command-line interface
+* Flexible command-line options serving various needs
 
 ## Install
 
@@ -120,7 +120,7 @@ After you have NeoSCA installed, you can use `nsca --check-depends` to install t
 
 ### Basic Usage
 
-To use NeoSCA, run the `nsca` command in your terminal, followed by the options and arguments you want to use.
+To use NeoSCA, run `nsca` in your terminal, followed by the options and arguments you want to use.
 
 #### Single Input
 
@@ -154,7 +154,7 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 
 #### Multiple Input
 
-To analyze multiple text files at once, simply list them after the `nsca` command.
+To analyze multiple text files at once, simply list them after `nsca`.
 
 ```sh
 cd ./samples/
@@ -174,7 +174,7 @@ nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sa
 
 #### Expand Wildcards
 
-Use the `--expand-wildcards` option to print all files that match your wildcard pattern. This can help you ensure that your pattern matches all desired files and excludes any unwanted ones. Note that files that do not exist on the computer will not be included in the output, even if they match the specified pattern.
+Use `--expand-wildcards` to print all files that match your wildcard pattern. This can help you ensure that your pattern matches all desired files and excludes any unwanted ones. Note that files that do not exist on the computer will not be included in the output, even if they match the specified pattern.
 
 ```sh
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
@@ -197,13 +197,13 @@ It is for text with hard line breaks and a blank line between paragraphs.
 
 #### Select a Subset of Measures
 
-If you're interested in analyzing only a subset of available measures, you can use the `--select` option followed by a whitespace-separated list of the measures you want to include. To see a full list of available measures, use the command nsca `--list`.
+Use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
 
 ```sh
 nsca --select VP T DC_C -- sample1.txt
 ```
 
-To avoid the program taking input filenames as a selected measure and raising an error, use the `--` option to separate them from the measures. All arguments after the `--` option will be considered input filenames. Make sure to specify arguments except for input filenames to the left side of `--`.
+To avoid the program taking input filenames as a selected measure and raising an error, use `--` to separate them from the measures. All arguments after `--` will be considered input filenames. Make sure to specify arguments except for input filenames at the left side of `--`.
 
 #### Combine Subfiles
 
@@ -284,7 +284,7 @@ nsca --text 'This is a test.' --no-query
 
 #### List Output Fields
 
-If you are not sure what the output fields represent, you can use `--list` to print a list of all the available output fields.
+Use `--list` to print a list of all the available output fields.
 
 <details>
 
@@ -322,7 +322,7 @@ CN/C: complex nominals per clause
 
 #### Print the Help Message
 
-If you call the `nsca` command without any arguments or options, it will return a help message.
+If you call `nsca` without any arguments or options, it will return a help message.
 
 ## Citing
 
@@ -336,7 +336,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.35},
+title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.36},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -351,7 +351,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.35) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.36) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -361,7 +361,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.35, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.36, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

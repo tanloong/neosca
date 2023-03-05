@@ -16,6 +16,7 @@
 + Fix missing subfiles when expanding wildcards
 + Fix the slightly inaccurate word counting due to changes in the output format of Stanford Parser
 + Fix raising an error if target_dir does not exist when installing dependencies
++ Fix unexpectedly adding blanklines at the end of each line within each matched subtree on Windows
 
 ### Dependency Changes
 
