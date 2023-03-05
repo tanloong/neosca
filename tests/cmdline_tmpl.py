@@ -25,14 +25,14 @@ class CmdlineTmpl(BaseTmpl):
         if os.path.exists(ifile_name):
             os.remove(ifile_name)
         if output_file:
-            if type(output_file) is list:
+            if isinstance(output_file,list):
                 for f in output_file:
                     if os.path.exists(f):
                         if os.path.isdir(f):
                             shutil.rmtree(f)
                         elif os.path.isfile(f):
                             os.remove(f)
-            elif type(output_file) is str:
+            elif isinstance(output_file, str):
                 if os.path.exists(output_file):
                     if os.path.isdir(output_file):
                         shutil.rmtree(output_file)
@@ -68,10 +68,10 @@ class CmdlineTmpl(BaseTmpl):
         self.assertTrue(success ^ (result.returncode != 0))
         if success:
             if expected_output_file:
-                if type(expected_output_file) is list:
+                if isinstance(expected_output_file, list):
                     for f in expected_output_file:
                         self.assertFileExists(f)
-                elif type(expected_output_file) is str:
+                elif isinstance(expected_output_file, str):
                     self.assertFileExists(expected_output_file)
 
             if expected_stdout is not None:
@@ -82,7 +82,7 @@ class CmdlineTmpl(BaseTmpl):
 
             if check_func:
                 assert (
-                    type(expected_output_file) is str
+                    isinstance(expected_output_file, str)
                     and expected_output_file.split(".")[-1] == "csv"
                 )
                 with open(expected_output_file) as f:

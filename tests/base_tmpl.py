@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from unittest import TestCase
+from neosca.util_platform_info import IS_WINDOWS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 text = "There was no possibility of taking a walk that day."
@@ -23,15 +24,14 @@ tree = """(ROOT
     (. .)))
 """
 
-is_windows = sys.platform == "win32"
 dir_stanford_parser = (
-    glob.glob(os.path.join(os.environ["ProgramFiles"], "stanford-parser*"))[0]
-    if is_windows
+    glob.glob(os.path.join(os.environ["AppData"], "stanford-parser*"))[0]
+    if IS_WINDOWS
     else glob.glob(os.path.expanduser("~/.local/share/stanford-parser*"))[0]
 )
 dir_stanford_tregex = (
-    glob.glob(os.path.join(os.environ["ProgramFiles"], "stanford-tregex*"))[0]
-    if is_windows
+    glob.glob(os.path.join(os.environ["AppData"], "stanford-tregex*"))[0]
+    if IS_WINDOWS
     else glob.glob(os.path.expanduser("~/.local/share/stanford-tregex*"))[0]
 )
 
