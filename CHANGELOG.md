@@ -1,6 +1,6 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.36](link) (date)
+## [0.0.36](https://github.com/tanloong/neosca/releases/tag/0.0.36) (5 March 2023)
 
 ### New Features
 
