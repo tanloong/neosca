@@ -14,8 +14,85 @@ class TestStanfordParser(BaseTmpl):
         return super().setUp()
 
     def test_parse(self):
-        tree = self.parser.parse(text).strip()
+        tree = self.parser.parse(text)
         self.assertEqual(tree_expected, tree)
+        text_for_never = """There was no possibility
+
+of taking a walk that day."""
+        tree_correct = """(ROOT
+  (S
+    (NP (EX There))
+    (VP (VBD was)
+      (NP
+        (NP (DT no) (NN possibility))
+        (PP (IN of)
+          (S
+            (VP (VBG taking)
+              (NP (DT a) (NN walk))
+              (NP (DT that) (NN day)))))))
+    (. .)))
+"""
+        self.assertEqual(tree_correct, self.parser.parse(text_for_never, newline_break="never"))
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_for_never, newline_break="always")
+        )
+        self.assertNotEqual(tree_correct, self.parser.parse(text_for_never, newline_break="two"))
+        text_for_always = """CHAPTER I
+There was no possibility of taking a walk that day."""
+        tree_correct = """(ROOT
+  (S
+    (VP (VB CHAPTER)
+      (NP (PRP I)))))
+
+(ROOT
+  (S
+    (NP (EX There))
+    (VP (VBD was)
+      (NP
+        (NP (DT no) (NN possibility))
+        (PP (IN of)
+          (S
+            (VP (VBG taking)
+              (NP (DT a) (NN walk))
+              (NP (DT that) (NN day)))))))
+    (. .)))
+"""
+        self.assertEqual(
+            tree_correct, self.parser.parse(text_for_always, newline_break="always")
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_for_always, newline_break="never")
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_for_always, newline_break="two")
+        )
+        text_for_two = """CHAPTER I
+
+There was no possibility
+of taking a walk that day."""
+        tree_correct = """(ROOT
+  (S
+    (VP (VB CHAPTER)
+      (NP (PRP I)))))
+
+(ROOT
+  (S
+    (NP (EX There))
+    (VP (VBD was)
+      (NP
+        (NP (DT no) (NN possibility))
+        (PP (IN of)
+          (S
+            (VP (VBG taking)
+              (NP (DT a) (NN walk))
+              (NP (DT that) (NN day)))))))
+    (. .)))
+"""
+        self.assertEqual(tree_correct, self.parser.parse(text_for_two, newline_break="two"))
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_for_two, newline_break="always")
+        )
+        self.assertNotEqual(tree_correct, self.parser.parse(text_for_two, newline_break="never"))
 
     def test_is_long(self):
         max_length = 100

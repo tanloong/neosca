@@ -20,7 +20,8 @@ tree = """(ROOT
             (VP (VBG taking)
               (NP (DT a) (NN walk))
               (NP (DT that) (NN day)))))))
-    (. .)))"""
+    (. .)))
+"""
 
 is_windows = sys.platform == "win32"
 dir_stanford_parser = (
