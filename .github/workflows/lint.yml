@@ -14,12 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependency
-        run: pip install black mypy
+        run: pip install black flake8 mypy
       - name: Run black
-        run: black --line-length 110 --preview neosca/ tests/ 
+        run: black neosca/ tests/ --line-length 97 --preview
+      - name: Run flake8
+        run: flake8 neosca/ tests/ --count --max-line-length=97 --statistics --ignore=E203,E501,W503
       - name: Run mypy 
         run: mypy --check-untyped-defs neosca/

@@ -1,4 +1,3 @@
-import subprocess
 from .base_tmpl import BaseTmpl
 from unittest import mock
 from neosca.main import SCAUI

@@ -18,12 +18,10 @@ setuptools.setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
     packages=["neosca"],
-    description=(
-        "Another syntactic complexity analyzer of written English language samples"
-    ),
+    description="Another syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=[],
+    install_requires=['JPype1'],
     classifiers=[
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
@@ -31,8 +29,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.7",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v2 or later"
-        " (GPLv2+)",
+        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
