@@ -342,6 +342,7 @@ Contact:
                 setenv("JAVA_HOME", [java_home], True)  # type:ignore
                 setenv("PATH", [java_bin], False)  # type:ignore
                 current_PATH = os.environ.get("PATH", default="")
+                os.environ["JAVA_HOME"] = java_home  # type:ignore
                 os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
         else:
             color_print("OKGREEN", "ok", prefix="Java has already been installed. ")

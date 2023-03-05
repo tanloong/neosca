@@ -5,6 +5,7 @@ import sys
 from typing import Optional
 
 import jpype  # type:ignore
+from jpype import JClass
 
 
 class StanfordParser:
@@ -21,8 +22,7 @@ class StanfordParser:
         self.nthreads = nthreads
         self.max_memory = max_memory
 
-        self.PARSER_PACKAGE = "edu.stanford.nlp"
-        self.PARSER_METHOD = "edu.stanford.nlp.parser.lexparser"
+        self.PARSER_GRAMMAR = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
         self.PARSER_MODEL = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
         self.parsed_sent_num = 0
         self.long_sent_num = 0
@@ -49,20 +49,14 @@ class StanfordParser:
             # > TODO This method is horribly named.  It should be named isJVMRunning as
             # > isJVMStarted would seem to imply that the JVM was started at some
             # > point without regard to whether it has been shutdown.
-            jpype.startJVM(
-                f"-Xmx{self.max_memory}", classpath=classpath
-            )
+            jpype.startJVM(f"-Xmx{self.max_memory}", classpath=classpath)
         else:
             jpype.addClassPath(classpath)
-        package = jpype.JPackage(self.PARSER_PACKAGE)
-        package_lexparser = jpype.JPackage(self.PARSER_METHOD)
-        CoreLabelTokenFactory = package.process.CoreLabelTokenFactory
 
-        self.tokenizerFactory = package.process.PTBTokenizer.factory(CoreLabelTokenFactory(), "")
-        self.WordToSentenceProcessor = package.process.WordToSentenceProcessor()
-        self.lexparser = package_lexparser.LexicalizedParser.loadModel(self.PARSER_MODEL)
+        LexicalizedParser = JClass(self.PARSER_GRAMMAR)
+        self.lp = LexicalizedParser.loadModel(self.PARSER_MODEL)
         options = ["-outputFormat", "penn", "-nthreads", str(self.nthreads)]
-        self.lexparser.setOptionFlags(options)
+        self.lp.setOptionFlags(options)
 
     def _is_long(self, sentence_length: int, max_length: Optional[int] = None) -> bool:
         if max_length is not None and max_length < sentence_length:
@@ -79,7 +73,7 @@ class StanfordParser:
             return ""
         self.parsed_sent_num += 1
         print(self.PROMPT_PARSING.format(self.parsed_sent_num, sentence_length, plain_sentence))
-        parse = self.lexparser.parseTree(sentence)
+        parse = self.lp.apply(sentence)
         if parse is not None:
             return str(parse.pennString())
         else:
@@ -88,10 +82,10 @@ class StanfordParser:
             return ""
 
     def parse_paragraph(self, paragraph: str, max_length: Optional[int] = None) -> str:
-        doc = jpype.java.io.StringReader(jpype.java.lang.String(paragraph))
-        tokens = self.tokenizerFactory.getTokenizer(doc).tokenize()
-        sentences = self.WordToSentenceProcessor.process(tokens)
-        trees = "\n".join(self.parse_sentence(sentence, max_length) for sentence in sentences)
+        doc = JClass("edu.stanford.nlp.process.DocumentPreprocessor")(
+            jpype.java.io.StringReader(paragraph)
+        )
+        trees = "\n".join(self.parse_sentence(sentence, max_length) for sentence in doc)
         return trees
 
     def refresh_counters(self, max_length: Optional[int] = None) -> None:
