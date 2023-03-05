@@ -26,5 +26,5 @@ test:
 
 lint:
 	black neosca/ tests/ --line-length 97 --preview
-	flake8 neosca/ tests/ --count --max-line-length=97 --statistics
+	flake8 neosca/ tests/ --count --max-line-length=97 --statistics --ignore=E203,E501,W503
 	mypy --check-untyped-defs neosca/
