@@ -75,7 +75,7 @@ class StanfordParser:
         print(self.PROMPT_PARSING.format(self.parsed_sent_num, sentence_length, plain_sentence))
         parse = self.lp.apply(sentence)
         if parse is not None:
-            return str(parse.pennString())
+            return str(parse.pennString().replaceAll("\r", ""))
         else:
             self.no_parse_num += 1
             print(self.PROMPT_NO_PARSE.format(plain_sentence))

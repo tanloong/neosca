@@ -61,7 +61,7 @@ class StanfordTregex:
                 last_matching_root_node = match
                 span_string = " ".join(str(leaf.toString()) for leaf in match.getLeaves())
                 # we don't use match.spanString() because the output lacks whitespace, e.g., "the media" becomes "themedia"
-                penn_string = str(match.pennString())
+                penn_string = str(match.pennString().replaceAll("\r", ""))
                 matched_subtrees.append(span_string + "\n" + penn_string)
             tree = treeReader.readTree()
         return len(matched_subtrees), matched_subtrees

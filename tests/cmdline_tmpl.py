@@ -25,7 +25,7 @@ class CmdlineTmpl(BaseTmpl):
         if os.path.exists(ifile_name):
             os.remove(ifile_name)
         if output_file:
-            if isinstance(output_file,list):
+            if isinstance(output_file, list):
                 for f in output_file:
                     if os.path.exists(f):
                         if os.path.isdir(f):
