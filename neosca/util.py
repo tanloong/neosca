@@ -2,9 +2,10 @@
 # -*- coding=utf-8 -*-
 
 import os
-import re
-import sys
 from typing import List, Optional, Tuple
+
+from .util_platform_info import IS_DARWIN, IS_LINUX, IS_WINDOWS
+from .util_print import color_print
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -12,45 +13,9 @@ from typing import List, Optional, Tuple
 SCAProcedureResult = Tuple[bool, Optional[str]]
 
 
-class _bcolors:
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-
-
-bcolors = _bcolors()
-color_support = True
-if sys.platform == "win32":
-    try:
-        # https://stackoverflow.com/questions/36760127/...
-        # how-to-use-the-new-support-for-ansi-escape-sequences-in-the-windows-10-console
-        from ctypes import windll
-
-        kernel32 = windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-    except Exception:  # pragma: no cover
-        color_support = False
-
-
-def color_print(color: str, s: str, prefix: str = "", postfix: str = "", **kwargs) -> None:
-    kwargs.update({"sep": ""})
-    if color_support:
-        print(prefix, bcolors.__getattribute__(color) + s + bcolors.ENDC, postfix, **kwargs)
-    else:  # pragma: no cover
-        print(prefix, s, postfix, **kwargs)
-
-
-def same_line_print(s: str, width=80, **kwargs) -> None:
-    print(f"\r{'':<{width}}", end="")  # clear the line
-    print(f"\r{s}", end="", **kwargs)
-
-
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
+    if not os.path.exists(filename):
+        return True, None
     try:
         with open(filename, "w", encoding="utf-8") as f:
             if content is not None:
@@ -103,10 +68,13 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
 def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
-        print("Failed to permanently append {path} to {env_var}.\nReason: can't detect current shell.")
+        print(
+            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current"
+            " shell."
+        )
     else:
-        startup_file_dict = {
-            "bash": "~/.bash_profile" if sys.platform == "darwin" else "~/.bashrc",
+        shell_rcfile = {
+            "bash": "~/.bash_profile" if IS_DARWIN else "~/.bashrc",
             "zsh": "~/.zshrc",
             "ksh": "~/.kshrc",
             "tcsh": "~/.tcshrc",
@@ -115,18 +83,24 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
             "fish": "~/.config/fish/config.fish",
             "ion": "~/.config/ion/initrc",
         }
-        startup_file = startup_file_dict.get(os.path.basename(shell), None)
-        if startup_file is None:
+        rcfile = shell_rcfile.get(os.path.basename(shell), None)
+        if rcfile is None:
             print(
-                f"Failed to permanently set environment variables.\nReason: can't detect rc file for {shell}."
+                "Failed to permanently set environment variables.\nReason: can't detect rc"
+                f" file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
-            startup_file = os.path.expanduser(startup_file)
-            with open(startup_file, "r", encoding="utf-8") as f:
-                configs = [line.strip() for line in f.readlines()]
+            rcfile = os.path.expanduser(rcfile)
+            if not os.path.isfile(rcfile):
+                configs = []
+            else:
+                with open(rcfile, "r", encoding="utf-8") as f:
+                    configs = [line.strip() for line in f.readlines()]
             new_config = (
-                f"export {env_var}={new_paths}" if refresh else f"export {env_var}=${env_var}:{new_paths}"
+                f"export {env_var}={new_paths}"
+                if refresh
+                else f"export {env_var}=${env_var}:{new_paths}"
             )
             duplicated_config_index = []
             for i, config in enumerate(configs):
@@ -142,13 +116,13 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
                 configs.insert(duplicated_config_index[0], new_config)
             else:
                 configs.append(new_config)
-            with open(startup_file, "w", encoding="utf-8") as f:
+            with open(rcfile, "w", encoding="utf-8") as f:
                 f.write("\n".join(configs))
 
 
 def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
-    assert sys.platform in ("win32", "darwin", "linux")
-    if sys.platform == "win32":
+    assert any((IS_WINDOWS, IS_DARWIN, IS_LINUX))
+    if IS_WINDOWS:
         _setenv_windows(env_var, paths, refresh)
     else:
         _setenv_unix(env_var, paths, refresh)
@@ -159,12 +133,3 @@ def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
         postfix=":\n" + "\n".join(paths),
         end="\n\n",
     )
-
-
-def get_yes_or_no(prompt: str = "") -> str:
-    prompt_options = "Enter [y]es or [n]o: "
-    sep = "\n" if prompt else ""
-    answer = input(prompt + sep + prompt_options)
-    while answer not in ("y", "n", "Y", "N"):
-        answer = input(f"Unexpected input: {answer}.\nEnter [y]es or [n]o: ")
-    return answer

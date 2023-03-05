@@ -18,7 +18,9 @@ class TestCommandLineBasic(CmdlineTmpl):
         """Test that all three options print the same help page"""
         result = self.template(["python", "-m", "neosca"], expected_output_file=None)
         result_h = self.template(["python", "-m", "neosca", "-h"], expected_output_file=None)
-        result_help = self.template(["python", "-m", "neosca", "--help"], expected_output_file=None)
+        result_help = self.template(
+            ["python", "-m", "neosca", "--help"], expected_output_file=None
+        )
 
         self.assertEqual(result_h.stdout.decode("utf-8"), result_help.stdout.decode("utf-8"))
         self.assertEqual(result.stdout.decode("utf-8"), result_h.stdout.decode("utf-8"))
@@ -132,14 +134,18 @@ class TestCommandLineBasic(CmdlineTmpl):
         )
 
     def test_list_fields(self):
-        result = self.template(["python", "-m", "neosca", "--list"], text=None, expected_output_file=None)
+        result = self.template(
+            ["python", "-m", "neosca", "--list"], text=None, expected_output_file=None
+        )
         result_stdout = result.stdout.decode("utf-8")
-        ncorrect_lines = len(re.findall(r"^[A-Z/]+: .*$", result_stdout, re.MULTILINE))
+        ncorrect_lines = len(re.findall(r"^[A-Z_]+: .*$", result_stdout, re.MULTILINE))
         self.assertEqual(result_stdout.count("\n"), 23)
         self.assertEqual(ncorrect_lines, 23)
 
     def test_show_version(self):
-        result = self.template(["python", "-m", "neosca", "--version"], text=None, expected_output_file=None)
+        result = self.template(
+            ["python", "-m", "neosca", "--version"], text=None, expected_output_file=None
+        )
         self.assertRegex(result.stdout.decode("utf-8").strip(), r"[^.]+\.[^.]+\.[^.]+")
 
     def test_invalid_file(self):

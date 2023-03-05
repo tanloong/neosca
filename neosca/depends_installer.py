@@ -15,22 +15,17 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from .util import same_line_print
-from .util import color_print
-from .util import get_yes_or_no
 from .util import SCAProcedureResult
+from .util_platform_info import IS_DARWIN, IS_WINDOWS
+from .util_platform_info import USER_SOFTWARE_DIR
+from .util_print import same_line_print
+from .util_print import color_print
+from .util_print import get_yes_or_no
 
-_IS_WINDOWS = os.name == "nt"
-_IS_DARWIN = platform == "darwin"
-_UNPACK200 = "unpack200.exe" if _IS_WINDOWS else "unpack200"
-_UNPACK200_ARGS = '-r -v -l ""' if _IS_WINDOWS else ""
-if _IS_WINDOWS and os.environ.get("ProgramFiles") is not None:
-    _TARGET_DIR = os.environ.get("ProgramFiles")
-else:
-    _USER_DIR = os.path.expanduser("~")
-    _TARGET_DIR = os.path.join(_USER_DIR, ".local", "share")
+_UNPACK200 = "unpack200.exe" if IS_WINDOWS else "unpack200"
+_UNPACK200_ARGS = '-r -v -l ""' if IS_WINDOWS else ""
 
-OS = "windows" if _IS_WINDOWS else "mac" if _IS_DARWIN else platform
+OS = "windows" if IS_WINDOWS else "mac" if IS_DARWIN else platform
 ARCH = "x64" if maxsize > 2**32 else "x32"
 
 _TAR = ".tar"
@@ -53,11 +48,18 @@ class Implementation:
 class depends_installer:
     def __init__(self) -> None:
         self._URL_JAVA_TEMPLATE = (
-            "https://api.adoptopenjdk.net/v3/binary/latest/{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
+            "https://api.adoptopenjdk.net/v3/binary/latest/"
+            "{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
         )
-        self._URL_JAVA_TEMPLATE_CHINA = "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
-        self._URL_STANFORD_PARSER = "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
-        self._URL_STANFORD_TREGEX = "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
+        self._URL_JAVA_TEMPLATE_CHINA = (
+            "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
+        )
+        self._URL_STANFORD_PARSER = (
+            "https://downloads.cs.stanford.edu/nlp/software/stanford-parser-4.2.0.zip"
+        )
+        self._URL_STANFORD_TREGEX = (
+            "https://downloads.cs.stanford.edu/nlp/software/stanford-tregex-4.2.0.zip"
+        )
         self.headers = {"User-Agent": "Mozilla/5.0"}
 
     def normalize_version(self, version: str) -> SCAProcedureResult:
@@ -80,11 +82,11 @@ class depends_installer:
             return sucess, err_msg
         else:
             version = err_msg  # type:ignore
-        self.use_chinese_jdk_mirror = get_yes_or_no(
-            "Do you want to download Java from a Chinese mirror site?"
-            " If you are inside of China, you may want to use this for a faster network connection."
+        self.is_use_chinese_jdk_mirror = get_yes_or_no(
+            "Do you want to download Java from a Chinese mirror site? If you are inside of"
+            " China, you may want to use this for a faster network connection."
         )
-        if self.use_chinese_jdk_mirror in ("n", "N"):
+        if self.is_use_chinese_jdk_mirror in ("n", "N"):
             return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
         else:
             index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)
@@ -98,7 +100,8 @@ class depends_installer:
             else:
                 return (
                     False,
-                    f"Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at {index_url}.",
+                    "Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at"
+                    f" {index_url}.",
                 )
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
@@ -113,7 +116,9 @@ class depends_installer:
         else:
             return False, f"Error: {file} has unexpected extension."
 
-    def _extract_files(self, file: str, file_ending: str, destination_folder: str) -> SCAProcedureResult:
+    def _extract_files(
+        self, file: str, file_ending: str, destination_folder: str
+    ) -> SCAProcedureResult:
         if not os.path.isfile(file):
             return False, f"Error: {file} is not a regular file."
 
@@ -169,15 +174,15 @@ class depends_installer:
             return False, f"Error: {fs_path} is neither a directory not a file."
 
     def _decompress_archive(
-        self, archive_path: str, file_ending: str, destination_folder: str
+        self, archive_path: str, file_extension: str, target_dir: str
     ) -> SCAProcedureResult:
-        if not os.path.isdir(destination_folder):
-            os.mkdir(destination_folder)
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir)
 
         archive_path = os.path.normpath(archive_path)
 
         if os.path.isfile(archive_path):
-            sucess, err_msg = self._extract_files(archive_path, file_ending, destination_folder)
+            sucess, err_msg = self._extract_files(archive_path, file_extension, target_dir)
             if not sucess:
                 return sucess, err_msg
             else:
@@ -189,7 +194,7 @@ class depends_installer:
             return False, f"Error: {archive_path} is neither a directory not a file."
 
     def _get_java_filename(self, download_url) -> SCAProcedureResult:
-        if self.use_chinese_jdk_mirror:
+        if self.is_use_chinese_jdk_mirror:
             filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
         else:
             req = urllib.request.Request(download_url, headers=self.headers)
@@ -207,7 +212,8 @@ class depends_installer:
             if m.get_param("filename") is None:
                 return (
                     False,
-                    f"Parsing the response from {download_url} failed.\nReason: can't detect the filename.",
+                    f"Parsing the response from {download_url} failed.\nReason: can't detect"
+                    " the filename.",
                 )
             filename = m.get_param("filename")
             if not isinstance(filename, str):
@@ -228,7 +234,7 @@ class depends_installer:
         return round(size, precesion), f"{power_labels[n]}"
 
     def _callbackfunc(self, block_num: int, block_size: int, total_size):
-        max_hash_num = 50  # print up to 50 hashes
+        max_euqal_sign_num = 50  # print up to 50 hashes
         precesion = 2
         downloaded_size = block_num * block_size
         if downloaded_size >= total_size:
@@ -236,9 +242,9 @@ class depends_installer:
         percent = int(100 * downloaded_size / total_size)
         downloaded_size, downloaded_size_unit = self._format_bytes(downloaded_size, precesion)
         total_size, total_size_unit = self._format_bytes(total_size, precesion)
-        hash_num = int(percent / 100 * max_hash_num)
+        equal_sign_num = int(percent / 100 * max_euqal_sign_num)
         s = (
-            f"{percent:3}% [{'#' * hash_num}{' '*(max_hash_num-hash_num)}]"
+            f"{percent:3}% [{'=' * equal_sign_num}>{' '*(max_euqal_sign_num-equal_sign_num-1)}]"
             f" {downloaded_size:6} {downloaded_size_unit}/{total_size} {total_size_unit}"
         )
         same_line_print(s, width=100)
@@ -269,37 +275,37 @@ class depends_installer:
                 return False, f"Requesting to {download_url} failed."
         return True, filename
 
-    def ask_install(self, name: str, assume_yes: bool = False) -> SCAProcedureResult:
+    def ask_install(self, name: str, is_assume_yes: bool = False) -> SCAProcedureResult:
         reason_dict = {
             JAVA: f"values of PATH does not contain a {JAVA} bin folder",
-            STANFORD_PARSER: f"the environment variable STANFORD_PARSER_HOME is not found",
-            STANFORD_TREGEX: f"the environment variable STANFORD_TREGEX_HOME is not found",
+            STANFORD_PARSER: "the environment variable STANFORD_PARSER_HOME is not found",
+            STANFORD_TREGEX: "the environment variable STANFORD_TREGEX_HOME is not found",
         }
-        if assume_yes:
+        if is_assume_yes:
             is_install = "y"
         else:
             is_install = get_yes_or_no(
-                f"It seems that {name} has not been installed, because {reason_dict[name]}. Do you want to"
-                " let NeoSCA install it for you?"
+                f"It seems that {name} has not been installed, because {reason_dict[name]}. Do"
+                " you want to let NeoSCA install it for you?"
             )
         if is_install in ("n", "N"):
             manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
-                    " https://www.java.com/en/download.\n2. After installing, make sure you can access it in"
-                    " the cmd window by typing in `java -version`."
+                    " https://www.java.com/en/download.\n2. After installing, make sure you"
+                    " can access it in the cmd window by typing in `java -version`."
                 ),
                 STANFORD_PARSER: (
                     f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {self._URL_STANFORD_PARSER}.\n2. Set an"
-                    " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
-                    " directory."
+                    f" download and unzip the archive file at {self._URL_STANFORD_PARSER}.\n2."
+                    " Set an environment variable STANFORD_PARSER_HOME to the path of the"
+                    " unzipped directory."
                 ),
                 STANFORD_TREGEX: (
                     f"You will have to install {STANFORD_TREGEX} manually.\n\n1. To install it,"
-                    f" download and unzip the archive file at {self._URL_STANFORD_TREGEX}.\n2. Set an"
-                    " environment variable STANFORD_PARSER_HOME to the path of the unzipped"
-                    " directory."
+                    f" download and unzip the archive file at {self._URL_STANFORD_TREGEX}.\n2."
+                    " Set an environment variable STANFORD_PARSER_HOME to the path of the"
+                    " unzipped directory."
                 ),
             }
             return (False, manual_install_prompt_dict[name])
@@ -313,12 +319,12 @@ class depends_installer:
         arch: str,
         impl: str,
         target_dir: str,
-        assume_yes: bool = False,
+        is_assume_yes: bool = False,
     ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}jdk{version}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(JAVA, assume_yes)
+        sucess, err_msg = self.ask_install(JAVA, is_assume_yes)
         if not sucess:
             return sucess, err_msg
         sucess, err_msg = self.get_java_download_url(version, operating_system, arch, impl)
@@ -336,7 +342,9 @@ class depends_installer:
             return sucess, err_msg
         jdk_ext = err_msg
         print(f"Decompressing {JAVA} archive...")
-        sucess, err_msg = self._decompress_archive(jdk_archive, jdk_ext, target_dir)  # type:ignore
+        sucess, err_msg = self._decompress_archive(
+            jdk_archive, jdk_ext, target_dir  # type:ignore
+        )
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
@@ -349,12 +357,12 @@ class depends_installer:
         return True, jdk_dir
 
     def install_stanford(
-        self, name: str, url: str, target_dir: str, assume_yes: bool = False
+        self, name: str, url: str, target_dir: str, is_assume_yes: bool = False
     ) -> SCAProcedureResult:
         match = glob.glob(f"{target_dir}{os.sep}{name.lower().replace(' ', '-')}*")
         if match:
             return True, match[0]
-        sucess, err_msg = self.ask_install(name, assume_yes)
+        sucess, err_msg = self.ask_install(name, is_assume_yes)
         if not sucess:
             return sucess, err_msg
         color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
@@ -367,7 +375,9 @@ class depends_installer:
             return sucess, err_msg
         archive_ext = err_msg
         print(f"Decompressing {name} archive...")
-        sucess, err_msg = self._decompress_archive(archive_file, archive_ext, target_dir)  # type:ignore
+        sucess, err_msg = self._decompress_archive(
+            archive_file, archive_ext, target_dir  # type:ignore
+        )
         if not sucess:
             return sucess, err_msg
         unzipped_directory = err_msg
@@ -378,18 +388,24 @@ class depends_installer:
     def install(
         self,
         name: str,
-        assume_yes: bool = False,
+        is_assume_yes: bool = False,
         version: str = _JAVA_VERSION,
         operating_system: str = OS,
         arch: str = ARCH,
         impl: str = Implementation.HOTSPOT,
-        target_dir: str = _TARGET_DIR,  # type: ignore
+        target_dir: str = USER_SOFTWARE_DIR,  # type: ignore
     ) -> SCAProcedureResult:
         if name == JAVA:
-            return self.install_java(version, operating_system, arch, impl, target_dir, assume_yes)
+            return self.install_java(
+                version, operating_system, arch, impl, target_dir, is_assume_yes
+            )
         elif name == STANFORD_PARSER:
-            return self.install_stanford(name, self._URL_STANFORD_PARSER, target_dir, assume_yes)
+            return self.install_stanford(
+                name, self._URL_STANFORD_PARSER, target_dir, is_assume_yes
+            )
         elif name == STANFORD_TREGEX:
-            return self.install_stanford(name, self._URL_STANFORD_TREGEX, target_dir, assume_yes)
+            return self.install_stanford(
+                name, self._URL_STANFORD_TREGEX, target_dir, is_assume_yes
+            )
         else:
             return False, f"Unexpected name: {name}."
