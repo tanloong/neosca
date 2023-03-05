@@ -121,7 +121,7 @@ class SCAUI:
         args_parser.add_argument(
             "--select",
             metavar="<measure>",
-            dest="selected_structures",
+            dest="selected_measures",
             choices=[
                 "W",
                 "S",
@@ -307,6 +307,9 @@ Contact:
         if is_max_length_given_and_lt_zero or options.max_length == 0:
             return False, 'The value of "--max-length" should be greater than 0.'
 
+        if options.selected_measures is not None:
+            options.selected_measures = set(options.selected_measures)
+
         self.init_kwargs = {
             "ofile_freq": options.ofile_freq,
             "oformat_freq": options.oformat_freq,
@@ -315,7 +318,7 @@ Contact:
             "odir_matched": self.odir_matched,
             "newline_break": options.newline_break,
             "max_length": options.max_length,
-            "selected_structures": options.selected_structures,
+            "selected_measures": options.selected_measures,
             "is_reserve_parsed": options.is_reserve_parsed,
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
