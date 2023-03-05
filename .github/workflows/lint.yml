@@ -22,6 +22,6 @@ jobs:
       - name: Run black
         run: black neosca/ tests/ --line-length 97 --preview
       - name: Run flake8
-        run: flake8 neosca/ tests/ --count --max-line-length=97 --statistics
+        run: flake8 neosca/ tests/ --count --max-line-length=97 --statistics --ignore=E203,E501,W503
       - name: Run mypy 
         run: mypy --check-untyped-defs neosca/
