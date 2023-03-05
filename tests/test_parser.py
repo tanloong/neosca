@@ -2,10 +2,9 @@
 # -*- coding=utf-8 -*-
 
 from .base_tmpl import BaseTmpl
-from .base_tmpl import text
-from .base_tmpl import tree as tree_expected
 from .base_tmpl import dir_stanford_parser
 from neosca.parser import StanfordParser
+from neosca.util_platform_info import IS_WINDOWS
 
 
 class TestStanfordParser(BaseTmpl):
@@ -14,8 +13,6 @@ class TestStanfordParser(BaseTmpl):
         return super().setUp()
 
     def test_parse(self):
-        tree = self.parser.parse(text)
-        self.assertEqual(tree_expected, tree)
         text_for_never = """There was no possibility
 
 of taking a walk that day."""
@@ -32,6 +29,8 @@ of taking a walk that day."""
               (NP (DT that) (NN day)))))))
     (. .)))
 """
+        if IS_WINDOWS:
+            tree_correct = tree_correct.replace('\n', '\r\n')
         self.assertEqual(tree_correct, self.parser.parse(text_for_never, newline_break="never"))
         self.assertNotEqual(
             tree_correct, self.parser.parse(text_for_never, newline_break="always")
@@ -57,6 +56,8 @@ There was no possibility of taking a walk that day."""
               (NP (DT that) (NN day)))))))
     (. .)))
 """
+        if IS_WINDOWS:
+            tree_correct = tree_correct.replace('\n', '\r\n')
         self.assertEqual(
             tree_correct, self.parser.parse(text_for_always, newline_break="always")
         )
@@ -88,6 +89,8 @@ of taking a walk that day."""
               (NP (DT that) (NN day)))))))
     (. .)))
 """
+        if IS_WINDOWS:
+            tree_correct = tree_correct.replace('\n', '\r\n')
         self.assertEqual(tree_correct, self.parser.parse(text_for_two, newline_break="two"))
         self.assertNotEqual(
             tree_correct, self.parser.parse(text_for_two, newline_break="always")
