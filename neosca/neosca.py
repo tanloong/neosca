@@ -6,6 +6,7 @@ from .parser import StanfordParser
 from .querier import StanfordTregex
 from .structure_counter import StructureCounter
 
+
 class NeoSCA:
     def __init__(
         self,

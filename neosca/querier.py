@@ -56,7 +56,7 @@ class StanfordTregex:
             while matcher.find():
                 match = matcher.getMatch()
                 if last_matching_root_node is not None and last_matching_root_node == match:
-                # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
+                    # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
                     continue
                 last_matching_root_node = match
                 span_string = " ".join(str(leaf.toString()) for leaf in match.getLeaves())

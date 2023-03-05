@@ -3,6 +3,7 @@
 
 from .util_platform_info import IS_WINDOWS
 
+
 class _bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -20,7 +21,7 @@ if IS_WINDOWS:
     try:
         # https://stackoverflow.com/questions/36760127/...
         # how-to-use-the-new-support-for-ansi-escape-sequences-in-the-windows-10-console
-        from ctypes import windll
+        from ctypes import windll  # type:ignore
 
         kernel32 = windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)

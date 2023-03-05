@@ -47,8 +47,10 @@ class Implementation:
 
 class depends_installer:
     def __init__(self) -> None:
-        self._URL_JAVA_TEMPLATE = ("https://api.adoptopenjdk.net/v3/binary/latest/"
-                                   "{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk")
+        self._URL_JAVA_TEMPLATE = (
+            "https://api.adoptopenjdk.net/v3/binary/latest/"
+            "{}/ga/{}/{}/jdk/{}/normal/adoptopenjdk"
+        )
         self._URL_JAVA_TEMPLATE_CHINA = (
             "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{}/jdk/{}/{}/"
         )
@@ -341,7 +343,8 @@ class depends_installer:
         jdk_ext = err_msg
         print(f"Decompressing {JAVA} archive...")
         sucess, err_msg = self._decompress_archive(
-            jdk_archive, jdk_ext, target_dir)  # type:ignore
+            jdk_archive, jdk_ext, target_dir  # type:ignore
+        )
         if not sucess:
             return sucess, err_msg
         jdk_dir = err_msg
@@ -373,7 +376,8 @@ class depends_installer:
         archive_ext = err_msg
         print(f"Decompressing {name} archive...")
         sucess, err_msg = self._decompress_archive(
-            archive_file, archive_ext, target_dir)  # type:ignore
+            archive_file, archive_ext, target_dir  # type:ignore
+        )
         if not sucess:
             return sucess, err_msg
         unzipped_directory = err_msg

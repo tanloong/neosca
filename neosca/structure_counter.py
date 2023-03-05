@@ -3,7 +3,14 @@ from typing import Sequence, Union, Optional
 
 
 class Structure:
-    def __init__(self, name: str, desc: str, pattern:str="", matches:Optional[list]=None, requires:Optional[list]=None) -> None:
+    def __init__(
+        self,
+        name: str,
+        desc: str,
+        pattern: str = "",
+        matches: Optional[list] = None,
+        requires: Optional[list] = None,
+    ) -> None:
         """
         :param name: name of the structure
         :param desc: description of the structure
@@ -32,6 +39,7 @@ class Structure:
 
     def __add__(self, other) -> int:
         return self.freq + other.freq
+
     def __truediv__(self, other) -> Union[float, int]:
         return round(self.freq / other.freq, 4) if other.freq else 0
 

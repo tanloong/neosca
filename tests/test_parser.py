@@ -16,6 +16,7 @@ class TestStanfordParser(BaseTmpl):
     def test_parse(self):
         tree = self.parser.parse(text).strip()
         self.assertEqual(tree_expected, tree)
+
     def test_is_long(self):
         max_length = 100
         length_1 = 99
