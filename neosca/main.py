@@ -331,23 +331,25 @@ Contact:
         return True, None
 
     def check_java(self) -> SCAProcedureResult:
-        java_home = (
-            getenv(self.JAVA_HOME) if getenv(self.JAVA_HOME) is not None else search_java_home()
-        )
+        java_home = getenv(self.JAVA_HOME)
         if java_home is not None:
             color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
         else:
-            from .depends_installer import depends_installer
-            from .depends_installer import JAVA
+            java_home = search_java_home()
+            if java_home is None:
+                from .depends_installer import depends_installer
+                from .depends_installer import JAVA
 
-            installer = depends_installer()
-            sucess, err_msg = installer.install(JAVA, is_assume_yes=self.options.is_assume_yes)
-            if not sucess:
-                return sucess, err_msg
-            else:
-                java_home = err_msg
-        setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
-        os.environ["JAVA_HOME"] = java_home  # type:ignore
+                installer = depends_installer()
+                sucess, err_msg = installer.install(
+                    JAVA, is_assume_yes=self.options.is_assume_yes
+                )
+                if not sucess:
+                    return sucess, err_msg
+                else:
+                    java_home = err_msg
+            setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
+            os.environ["JAVA_HOME"] = java_home  # type:ignore
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
