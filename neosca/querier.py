@@ -12,16 +12,16 @@ from .structure_counter import StructureCounter
 
 
 class StanfordTregex:
-    TREGEX_METHOD = "edu.stanford.nlp.trees.tregex.TregexPattern"
-    MAX_MEMORY = "3072m"
-
     def __init__(
         self,
-        dir_stanford_tregex: str = "",
-        max_memory: str = MAX_MEMORY,
+        stanford_tregex_home: str = "",
+        max_memory: str = "3072m",
     ) -> None:
-        self.classpath = os.path.join(dir_stanford_tregex, "stanford-tregex.jar")
+        self.classpath = os.path.join(stanford_tregex_home, "stanford-tregex.jar")
         self.max_memory = max_memory
+        self.TREGEX_PATTERN = "edu.stanford.nlp.trees.tregex.TregexPattern"
+        self.STRING_READER = "java.io.StringReader"
+        self.PENN_TREE_READER = "edu.stanford.nlp.trees.PennTreeReader"
         self.init_tregex()
 
     def init_tregex(self):
@@ -35,9 +35,9 @@ class StanfordTregex:
         else:
             jpype.addClassPath(self.classpath)
 
-        self.TregexPattern = jpype.JClass("edu.stanford.nlp.trees.tregex.TregexPattern")
-        self.StringReader = JClass("java.io.StringReader")
-        self.PennTreeReader = JClass("edu.stanford.nlp.trees.PennTreeReader")
+        self.TregexPattern = jpype.JClass(self.TREGEX_PATTERN)
+        self.StringReader = JClass(self.STRING_READER)
+        self.PennTreeReader = JClass(self.PENN_TREE_READER)
         self.patname_patobj = {}
 
     def query_pattern(self, patname: str, pattern: str, trees: str) -> Tuple[int, list]:
