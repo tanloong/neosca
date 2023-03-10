@@ -12,8 +12,8 @@ class NeoSCA:
         self,
         ofile_freq: str = "result.csv",
         oformat_freq: str = "csv",
-        dir_stanford_parser: str = "",
-        dir_stanford_tregex: str = "",
+        stanford_parser_home: str = "",
+        stanford_tregex_home: str = "",
         odir_matched: str = "",
         newline_break: str = "never",
         max_length: Optional[int] = None,
@@ -26,8 +26,8 @@ class NeoSCA:
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
-        self.dir_stanford_parser = dir_stanford_parser
-        self.dir_stanford_tregex = dir_stanford_tregex
+        self.stanford_parser_home = stanford_parser_home
+        self.stanford_tregex_home = stanford_tregex_home
         self.odir_matched = odir_matched
         self.newline_break = newline_break
         self.max_length = max_length
@@ -40,11 +40,11 @@ class NeoSCA:
         self.counter_lists: List[StructureCounter] = []
 
         self.parser = StanfordParser(
-            self.dir_stanford_parser,
+            stanford_parser_home=self.stanford_parser_home,
             is_verbose=self.is_verbose,
         )
         self.tregex = StanfordTregex(
-            dir_stanford_tregex=self.dir_stanford_tregex,
+            stanford_tregex_home=self.stanford_tregex_home,
         )
 
     def _is_skip_parsing(self, ofile_parsed: str, ifile: str) -> bool:
