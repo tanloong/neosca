@@ -1,7 +1,6 @@
 import argparse
 import glob
 import os
-import subprocess
 import sys
 from typing import List, Optional
 
@@ -9,6 +8,7 @@ from . import __version__
 from .neosca import NeoSCA
 from .util import SCAProcedureResult
 from .util import try_write
+from .util_env import getenv, search_java_home
 from .util_print import color_print
 
 
@@ -19,6 +19,7 @@ class SCAUI:
         self.cwd = os.getcwd()
         self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
         self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
+        self.JAVA_HOME = "JAVA_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(
@@ -313,8 +314,8 @@ Contact:
         self.init_kwargs = {
             "ofile_freq": options.ofile_freq,
             "oformat_freq": options.oformat_freq,
-            "dir_stanford_parser": "",
-            "dir_stanford_tregex": "",
+            "stanford_parser_home": "",
+            "stanford_tregex_home": "",
             "odir_matched": self.odir_matched,
             "newline_break": options.newline_break,
             "max_length": options.max_length,
@@ -328,12 +329,15 @@ Contact:
         return True, None
 
     def check_java(self) -> SCAProcedureResult:
-        try:
-            subprocess.run(["java", "-version"], check=True, capture_output=True)
-        except (FileNotFoundError, subprocess.CalledProcessError):
+        java_home = (
+            getenv(self.JAVA_HOME) if getenv(self.JAVA_HOME) is not None else search_java_home()
+        )
+        if java_home is not None:
+            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
+        else:
             from .depends_installer import depends_installer
             from .depends_installer import JAVA
-            from .util import setenv
+            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(JAVA, is_assume_yes=self.options.is_assume_yes)
@@ -341,23 +345,18 @@ Contact:
                 return sucess, err_msg
             else:
                 java_home = err_msg
-                java_bin = os.path.join(java_home, "bin")  # type:ignore
-                setenv("JAVA_HOME", [java_home], True)  # type:ignore
-                setenv("PATH", [java_bin], False)  # type:ignore
-                current_PATH = os.environ.get("PATH", default="")
-                os.environ["JAVA_HOME"] = java_home  # type:ignore
-                os.environ["PATH"] = current_PATH + os.pathsep + java_bin  # type:ignore
-        else:
-            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
+        setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
+        os.environ["JAVA_HOME"] = java_home  # type:ignore
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
-        try:
-            self.options.dir_stanford_parser = os.environ[self.STANFORD_PARSER_HOME]
-        except KeyError:
+        self.options.stanford_parser_home = getenv(self.STANFORD_PARSER_HOME)
+        if self.options.stanford_parser_home is not None:
+            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
+        else:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_PARSER
-            from .util import setenv
+            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
@@ -367,20 +366,23 @@ Contact:
                 return sucess, err_msg
             else:
                 stanford_parser_home = err_msg
-                setenv(self.STANFORD_PARSER_HOME, [stanford_parser_home], True)  # type:ignore
-                self.options.dir_stanford_parser = stanford_parser_home  # type:ignore
-        else:
-            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
-        self.init_kwargs.update({"dir_stanford_parser": self.options.dir_stanford_parser})
+                setenv(
+                    self.STANFORD_PARSER_HOME,
+                    [stanford_parser_home],  # type:ignore
+                    refresh=True,
+                )
+                self.options.stanford_parser_home = stanford_parser_home  # type:ignore
+        self.init_kwargs.update({"stanford_parser_home": self.options.stanford_parser_home})
         return True, None
 
     def check_stanford_tregex(self) -> SCAProcedureResult:
-        try:
-            self.options.dir_stanford_tregex = os.environ[self.STANFORD_TREGEX_HOME]
-        except KeyError:
+        self.options.stanford_tregex_home = getenv(self.STANFORD_TREGEX_HOME)
+        if self.options.stanford_tregex_home is not None:
+            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
+        else:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_TREGEX
-            from .util import setenv
+            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
@@ -390,11 +392,13 @@ Contact:
                 return sucess, err_msg
             else:
                 stanford_tregex_home = err_msg
-                setenv(self.STANFORD_TREGEX_HOME, [stanford_tregex_home], True)  # type:ignore
-                self.options.dir_stanford_tregex = stanford_tregex_home  # type:ignore
-        else:
-            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
-        self.init_kwargs.update({"dir_stanford_tregex": self.options.dir_stanford_tregex})
+                setenv(
+                    self.STANFORD_TREGEX_HOME,
+                    [stanford_tregex_home],  # type:ignore
+                    refresh=True,
+                )
+                self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
+        self.init_kwargs.update({"stanford_tregex_home": self.options.stanford_tregex_home})
         return True, None
 
     def check_depends(self) -> SCAProcedureResult:
