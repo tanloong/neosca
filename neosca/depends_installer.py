@@ -277,9 +277,15 @@ class depends_installer:
 
     def ask_install(self, name: str, is_assume_yes: bool = False) -> SCAProcedureResult:
         reason_dict = {
-            JAVA: f"values of PATH does not contain a {JAVA} bin folder",
-            STANFORD_PARSER: "the environment variable STANFORD_PARSER_HOME is not found",
-            STANFORD_TREGEX: "the environment variable STANFORD_TREGEX_HOME is not found",
+            JAVA: f"values of PATH does not include a {JAVA} bin folder",
+            STANFORD_PARSER: (
+                "the environment variable STANFORD_PARSER_HOME is not found or its value is not"
+                " an existing directory"
+            ),
+            STANFORD_TREGEX: (
+                "the environment variable STANFORD_TREGEX_HOME is not found or its value is not"
+                " an existing directory"
+            ),
         }
         if is_assume_yes:
             is_install = "y"
@@ -292,8 +298,11 @@ class depends_installer:
             manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
-                    " https://www.java.com/en/download.\n2. After installing, make sure you"
-                    " can access it in the cmd window by typing in `java -version`."
+                    " https://www.java.com/en/download/manual.jsp. Note that the program will"
+                    " crash when mixing 64 bit Python with 32 bit Java or vice versa, so make"
+                    " sure that you install a Java with the same bitness of your Python.\n2."
+                    " Set an environment variable JAVA_HOME to the path of the unzipped"
+                    " directory."
                 ),
                 STANFORD_PARSER: (
                     f"You will have to install {STANFORD_PARSER} manually.\n\n1. To install it,"

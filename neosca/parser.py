@@ -11,13 +11,13 @@ from jpype import JClass
 class StanfordParser:
     def __init__(
         self,
-        dir_stanford_parser: str = "",
+        stanford_parser_home: str = "",
         is_verbose: bool = False,
         nthreads: int = 1,
         # tested on a 16kb file: 3m23s with 2 threads vs. 3m21s with 1 threads
         max_memory: str = "3072m",  # 3g
     ) -> None:
-        self.dir_stanford_parser = dir_stanford_parser
+        self.stanford_parser_home = stanford_parser_home
         self.is_verbose = is_verbose
         self.nthreads = nthreads
         self.max_memory = max_memory
@@ -42,7 +42,7 @@ class StanfordParser:
         self.init_parser()
 
     def init_parser(self):
-        classpath = os.path.join(self.dir_stanford_parser, "*")
+        classpath = os.path.join(self.stanford_parser_home, "*")
         if not jpype.isJVMStarted():
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
