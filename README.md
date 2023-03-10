@@ -114,7 +114,16 @@ NeoSCA depends on
 [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml),
 and
 [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
-After you have NeoSCA installed, you can use `nsca --check-depends` to install them.
+You can use `nsca --check-depends` to install them.
+
+Called with the `--check-depends`,
+NeoSCA will download and unzip archive files of these three to
+`%AppData%`
+(for Windows users, usually `C:\\Users\\<username>\\AppData\\Roaming`) or
+`~/.local/share`
+(for macOS and Linux users),
+and set the environment variable `JAVA_HOME`, `STANFORD_PARSER_HOME`, and `STANFORD_TREGEX_HOME`.
+**If you have previously installed any of the three, you need to manually set the according environment variable.**
 
 ## Usage
 
