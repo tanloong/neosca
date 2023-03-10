@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.37](https://github.com/tanloong/neosca/releases/tag/0.0.37) (10 March 2023)
+
+### Bug Fixes
+
+fix(dependencies): fix not being able to start JVM due to "JAVA_HOME not found"
+
 ## [0.0.36](https://github.com/tanloong/neosca/releases/tag/0.0.36) (5 March 2023)
 
 ### New Features
@@ -10,7 +16,7 @@
 + Add the option `--newline-break`
 + Add the option `--select`
 
-### Bugfixes
+### Bug Fixes
 
 + Fix raising PermissionError when installing dependencies on Windows
 + Fix missing subfiles when expanding wildcards
