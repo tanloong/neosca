@@ -8,7 +8,9 @@ from . import __version__
 from .neosca import NeoSCA
 from .util import SCAProcedureResult
 from .util import try_write
-from .util_env import getenv, search_java_home
+from .util_env import getenv
+from .util_env import setenv
+from .util_env import search_java_home
 from .util_print import color_print
 
 
@@ -337,7 +339,6 @@ Contact:
         else:
             from .depends_installer import depends_installer
             from .depends_installer import JAVA
-            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(JAVA, is_assume_yes=self.options.is_assume_yes)
@@ -356,7 +357,6 @@ Contact:
         else:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_PARSER
-            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
@@ -382,7 +382,6 @@ Contact:
         else:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_TREGEX
-            from .util_env import setenv
 
             installer = depends_installer()
             sucess, err_msg = installer.install(
