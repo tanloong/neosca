@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-fix(dependencies): fix not being able to start JVM due to "JAVA_HOME not found"
+fix(dependencies): fix not being able to start JVM if Java is installed but JAVA_HOME is not set.
 
 ## [0.0.36](https://github.com/tanloong/neosca/releases/tag/0.0.36) (5 March 2023)
 
