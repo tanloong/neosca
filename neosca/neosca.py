@@ -134,24 +134,25 @@ class NeoSCA:
                 print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
                 self.parse_ifile(ifile)
 
-    def write_freq_output(self) -> None:
+    def get_freq_output(self) -> str:
+        assert self.oformat_freq in ("csv", "json")
         if self.oformat_freq == "csv":
-            freq_output = StructureCounter(selected_measures=self.selected_measures).fields
-            for structures in self.counter_lists:
-                freq_dict = structures.get_freqs()
+            freq_output = self.counter_lists[0].fields
+            for counter in self.counter_lists:
+                freq_dict = counter.get_freqs()
                 freq_output += "\n" + ",".join(str(freq) for freq in freq_dict.values())
-        elif self.oformat_freq == "json":
+        else:
             import json
 
             final_freq_dict: Dict[str, List[Dict]] = {"Files": []}
-            for structures in self.counter_lists:
-                freq_dict = structures.get_freqs()
+            for counter in self.counter_lists:
+                freq_dict = counter.get_freqs()
                 final_freq_dict["Files"].append(freq_dict)
             freq_output = json.dumps(final_freq_dict)
-        else:
-            print(f"Unexpected output format: {self.oformat_freq}")
-            sys.exit(1)
+        return freq_output
 
+    def write_freq_output(self) -> None:
+        freq_output = self.get_freq_output()
         if not self.is_stdout:
             with open(self.ofile_freq, "w", encoding="utf-8") as f:
                 f.write(freq_output)
