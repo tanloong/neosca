@@ -126,4 +126,8 @@ def search_java_home() -> Optional[str]:
             if glob.glob(os.path.join(dir_name, "java.*")):
                 candidate = os.path.dirname(dir_name)
                 break
+    if candidate is None and IS_WINDOWS:
+        system_software_dir = os.getenv("ProgramFiles", "")
+        if glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*")):
+            candidate = glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*"))[0]
     return candidate
