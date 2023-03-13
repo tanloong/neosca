@@ -13,8 +13,8 @@
 
 ![](img/testing-on-Windows.gif)
 
-[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)
-[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)
+[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md) |
+繁體中文 |
 [English](https://github.com/tanloong/neosca#readme)
 
 NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重寫版本，添加了對 Windows 的支持和更多的命令行選項。與 L2SCA 一樣，NeoSCA 對 txt 格式的英文語料統計以下內容：
