@@ -18,9 +18,9 @@ class SCAUI:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
         self.cwd = os.getcwd()
+        self.JAVA_HOME = "JAVA_HOME"
         self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
         self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
-        self.JAVA_HOME = "JAVA_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(
@@ -347,8 +347,12 @@ Contact:
                     return sucess, err_msg
                 else:
                     java_home = err_msg
+            java_bin = os.path.join(java_home, "bin")  # type:ignore
+            path_orig = os.getenv("PATH", "")
             setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
+            setenv("PATH", [java_bin], refresh=False)  # type:ignore
             os.environ["JAVA_HOME"] = java_home  # type:ignore
+            os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
