@@ -7,10 +7,10 @@ on:
   push:
     branches: [ master ]
     paths:
-      - "*.py"
+      - "**.py"
   pull_request:
     paths:
-      - "*.py"
+      - "**.py"
   schedule:
     - cron: "0 10 * * *"
 
