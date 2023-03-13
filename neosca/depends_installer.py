@@ -298,8 +298,8 @@ class depends_installer:
             manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
-                    " https://www.java.com/en/download/manual.jsp. Note that the program will"
-                    " crash when mixing 64 bit Python with 32 bit Java or vice versa, so make"
+                    " https://www.java.com/en/download/manual.jsp. Note that when mixing 64 bit"
+                    " Python with 32 bit Java or vice versa the program will crash, so make"
                     " sure that you install a Java with the same bitness of your Python.\n2."
                     " Set an environment variable JAVA_HOME to the path of the unzipped"
                     " directory."

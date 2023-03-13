@@ -81,21 +81,23 @@ class StanfordParser:
             print(self.PROMPT_NO_PARSE.format(plain_sentence))
             return ""
 
-    def parse_paragraph(self, paragraph: str, max_length: Optional[int] = None) -> str:
+    def parse_text(self, text: str, max_length: Optional[int] = None) -> str:
         doc = JClass("edu.stanford.nlp.process.DocumentPreprocessor")(
-            jpype.java.io.StringReader(paragraph)
+            jpype.java.io.StringReader(text)
         )
         trees = "\n".join(self.parse_sentence(sentence, max_length) for sentence in doc)
         return trees
 
     def refresh_counters(self, max_length: Optional[int] = None) -> None:
-        if max_length is not None:
+        if max_length is not None and self.long_sent_num > 0:
             sys.stderr.write(
                 self.PROMPT_LONG_SENTENCE_SUMMARY.format(self.long_sent_num, max_length)
             )
-        sys.stderr.write(self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num))
-        self.parsed_sent_num = 0
+        if self.no_parse_num > 0:
+            sys.stderr.write(self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num))
+
         self.long_sent_num = 0
+        self.parsed_sent_num = 0
         self.no_parse_num = 0
 
     def parse(
@@ -103,7 +105,7 @@ class StanfordParser:
     ) -> str:
         assert newline_break in ("never", "always", "two")
         if newline_break == "never":
-            trees = self.parse_paragraph(text, max_length)
+            trees = self.parse_text(text, max_length)
         else:
             if newline_break == "always":
                 paragraphs = list(filter(None, text.split("\n")))
@@ -111,6 +113,6 @@ class StanfordParser:
                 import re
 
                 paragraphs = re.split(r"(?:\r?\n){2,}", text)
-            trees = "\n".join(self.parse_paragraph(paragraph) for paragraph in paragraphs)
+            trees = "\n".join(self.parse_text(paragraph) for paragraph in paragraphs)
         self.refresh_counters(max_length)
         return trees
