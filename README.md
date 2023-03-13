@@ -13,6 +13,10 @@
 
 ![](img/testing-on-Windows.gif)
 
+[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)
+[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)
+[English](https://github.com/tanloong/neosca#readme)
+
 NeoSCA is a rewrite of [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) which is developed by [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html), with added support for Windows and an improved command-line interface for easier usage. The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
 
 <details>

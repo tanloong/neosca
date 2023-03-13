@@ -13,6 +13,10 @@
 
 ![](img/testing-on-Windows.gif)
 
+[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)
+[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)
+[English](https://github.com/tanloong/neosca#readme)
+
 NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重写版本，添加了对 Windows 的支持和更多的命令行选项。与 L2SCA 一样，NeoSCA 对 txt 格式的英文语料统计以下内容：
 
 <details>
@@ -405,28 +409,6 @@ MLA (9th edition)
 + [L2SCA included in TAASSC](https://www.linguisticanalysistools.org/taassc.html)，使用的是 Python，作者 [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
 + [L2SCA R 语言版](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1)，作者 [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat)、Anas Knefati 和 Antoine Lafontaine
 + [FSCA](https://github.com/nvandeweerd/fsca) (法语句法复杂度分析器)，使用的是 R 语言，作者 [Nate Vandeweerd](https://github.com/nvandeweerd)
-
-## FAQ
-
-### NeoSCA 有词数限制吗？
-
-NeoSCA 没有词数限制，但也不是无论多大的文件都能处理，决定它能处理多大文件的是运行它需要的内存。 我试了试用 NeoSCA v0.0.37 分析 The Great Gatsby (原始文件：https://www.gutenberg.org/cache/epub/64317/pg64317.txt)，把原始文件简单处理之后用 NeoSCA 分析的时候有 4 万 8 千词 (https://controlc.com/d3072aa6)，可以正常出结果 (https://controlc.com/7e289eb6)。
-
-NeoSCA 使用 Stanford Parser 分析输入文本，再使用 Tregex 在分析结果中查找句法结构。Tregex 需要的内存比较少，决定 NeoSCA 需要多少内存的主要是 Stanford Parser。Stanford Parser 所需要的内存既与要分析的单个句子的长度有关，也与要分析的文件的总长度有关。
-
-1. Stanford Parser 分析一个 100 词的句子需要 350M 内存 (https://nlp.stanford.edu/software/parser-faq.html#k)，NeoSCA 设置的最大内存限制是 3G。 如果一个句子太太太长，比如多个分句用分号连接成一个句子，就会报错 (OutOfMemoryError)。
-
-对这种情况，即使这个句子所在的输入文件很小，NeoSCA 也处理不了。解决办法是找到这种句子，用句号/问号/叹号把它们拆分成多个句子。如果你下载的 NeoSCA 的版本是 0.0.36+，也可以使用 --max-length 来跳过长句子 (https://gitee.com/tanloong/neosca#skip-long-sentences)。 比如 nsca --max-length 100 sample.txt 的意思是只分析长度小于等于 100 的句子，长度大于 100 的句子不会被 Stanford Parser 分析，所以它们的 9 个句法结构的频次和 14 个句法复杂度指标的值也不会体现在输出结果里。
-
-2.1 如果输入文件里没有太太太长的句子，NeoSCA v0.0.35- 会把正在分析的那个文件里的整个文本一次性发送给 Stanford Parser，需要的内存取决于那个文件的大小。
-
-NeoSCA v0.0.36+ 添加了 --newline-break 选项 (https://gitee.com/tanloong/neosca#treat-newlines-as-sentence-breaks)，这个选项有 3 个可选值：never (默认)、always、two。如果 --newline-break 被设置为 never (默认就是 never)，NeoSCA 在分析一个文件时会把里面的整个文本一次性发送给 Stanford Parser，需要的内存也取决于整个文件的大小。
-
-对这种情况，如果出现 OutOfMemoryError，只能把输入文件拆分成多个子文件再分析，但这么做就只能得到子文件的 14 个指标的值，而且不能把子文件的这些值简单地加起来求平均来当作原文件的值，因为没有考虑每个子文件的权重，要得到原文件的值只能在 Excel 里把各子文件的 9 种句法结构的频次分别加起来，然后手动计算 14 个指标的值。NeoSCA v0.0.36+ 添加了 --combine-subfiles 选项 (https://gitee.com/tanloong/neosca#combine-subfiles)，可以自动进行这个手动计算的过程。
-
-2.2 如果 --newline-break 被设置为 always，NeoSCA 会先把文本以单个换行符为间隔切分成很多段落，然后一段一段地发送给 Stanford Parser，需要的内存取决于正在被分析的那个段落的大小；当--newline-break 被设置为 two 时，NeoSCA 会先把文本以空行作为间隔切分成很多段落，然后一段一段地发送给 Stanford Parser，需要的内存取决于正在被分析的那个段落的大小。
-
-对这种情况，应该不会有 OutOfMemoryError 的问题 (我感觉)，因为这两种段落都不会太长(吧)。如果还是出现了 OutOfMemoryError，可能实际上是上面第1点里的问题，或者段落确实太长了。解决办法见上面第1点和第2.1点。
 
 ## 许可证
 
