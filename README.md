@@ -269,9 +269,9 @@ nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-#### Json Output
+#### JSON Output
 
-You can generate a json file by:
+You can generate a JSON file by:
 
 ```sh
 nsca ./samples/sample1.txt --output-format json

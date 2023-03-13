@@ -259,9 +259,9 @@ nsca --text 'The quick brown fox jumps over the lazy dog.'
 # 輸出結果: ./result.csv
 ```
 
-#### 輸出 Json 文件
+#### 輸出 JSON 文件
 
-要輸出 Json 格式的文件可以通過以下方式：
+要輸出 JSON 格式的文件可以通過以下方式：
 
 ```sh
 nsca ./samples/sample1.txt --output-format json
