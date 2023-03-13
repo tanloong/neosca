@@ -412,7 +412,7 @@ MLA (9th edition)
 
 ## 許可證
 
-根據 [GNU通用公共許可證第2版](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) 或更高版本的條款分發。
+根據 [GNU 通用公共許可證第 2 版](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) 或更高版本的條款分發。
 
 ## 聯繫
 

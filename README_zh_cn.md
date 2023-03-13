@@ -412,7 +412,7 @@ MLA (9th edition)
 
 ## 许可证
 
-根据 [GNU通用公共许可证第2版](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) 或更高版本的条款分发。
+根据 [GNU 通用公共许可证第 2 版](https://github.com/tanloong/neosca/blob/master/LICENSE.txt) 或更高版本的条款分发。
 
 ## 联系
 
