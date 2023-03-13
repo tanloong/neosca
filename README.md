@@ -13,12 +13,7 @@
 
 ![](img/testing-on-Windows.gif)
 
-NeoSCA is a rewrite of
-[L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA)
-which is developed by
-[Xiaofei Lu](http://personal.psu.edu/xxl13/index.html),
-with added support for Windows and an improved command-line interface for easier usage.
-The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
+NeoSCA is a rewrite of [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) which is developed by [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html), with added support for Windows and an improved command-line interface for easier usage. The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
 
 <details>
 
@@ -82,7 +77,7 @@ the frequency of 9 structures in the text:
 
 ## Highlights
 
-* Works on Windows/macOS/Linux
+* Works on **Windows**/macOS/Linux
 * Flexible command-line options serving various needs
 
 ## Install
@@ -109,12 +104,11 @@ pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### Install Dependencies
 
-NeoSCA depends on
-[Java](https://www.java.com/en/download/manual.jsp),
-[Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml),
-and
-[Stanford Tregex](https://nlp.stanford.edu/software/tregex.html).
-You can use `nsca --check-depends` to install them.
+NeoSCA depends on [Java](https://www.java.com/en/download/manual.jsp), [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml), and [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html). NeoSCA provides an option to install all of them:
+
+```sh
+nsca --check-depends
+```
 
 Called with the `--check-depends`,
 NeoSCA will download and unzip archive files of these three to
@@ -127,9 +121,9 @@ and set the environment variable `JAVA_HOME`, `STANFORD_PARSER_HOME`, and `STANF
 
 ## Usage
 
-### Basic Usage
+NeoSCA is a CLI-based tool. You can see the help message by running `nsca --help` in your terminal.
 
-To use NeoSCA, run `nsca` in your terminal, followed by the options and arguments you want to use.
+### Basic Usage
 
 #### Single Input
 
@@ -140,7 +134,7 @@ nsca ./samples/sample1.txt
 # frequency output: ./result.csv
 ```
 
-A `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o`.
+A `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o/--output-file`.
 
 ```sh
 nsca ./samples/sample1.txt -o sample1.csv
@@ -150,14 +144,14 @@ nsca ./samples/sample1.txt -o sample1.csv
 <details>
 
 <summary>
-When analyzing a text file with a filename that includes spaces, it is important to enclose the file path in double quotes. Assume you have a <code>sample 1.txt</code> to analyze:
+When analyzing a text file with a filename that includes spaces, it is important to enclose the file path in single or double quotes. Assume you have a <code>sample 1.txt</code> to analyze:
 </summary>
 
 ```sh
 nsca "./samples/sample 1.txt"
 ```
 
-This ensures that the entire filename including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "sample" and "1.txt" as two separate arguments and the analysis would fail.
+This ensures that the entire filename including the spaces, is interpreted as a single argument. Without the double quotes, the command would interpret "./samples/sample" and "1.txt" as two separate arguments and the analysis would fail.
 
 </details>
 
@@ -191,6 +185,8 @@ nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
 
 #### Treat Newlines as Sentence Breaks
 
+Stanford Parser by default does not take newlines as sentence breaks during the sentence segmentation. To achieve this you can use:
+
 ```sh
 nsca sample1.txt --newline-break always
 ```
@@ -206,7 +202,7 @@ It is for text with hard line breaks and a blank line between paragraphs.
 
 #### Select a Subset of Measures
 
-Use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
+NeoSCA by default outputs values of all of the available measures. You can use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
 
 ```sh
 nsca --select VP T DC_C -- sample1.txt
@@ -225,12 +221,22 @@ nsca -c sample1-sub*.txt -c sample2-sub*.txt
 nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
 ```
 
+#### Skip Long Sentences
+
+Use `--max-length` to only analyze sentences with lengths shorter than or equal to 100, for example.
+
+```sh
+nsca sample1.txt --max-length 100
+```
+
+When the `--max-length` is not specified, the program will try to analyze sentences of any lengths, but may [run out of memory](https://nlp.stanford.edu/software/parser-faq.html#k) trying to do so.
+
 #### Reserve Intermediate Results
 
 <details>
 
 <summary>
-To reserve the parsed trees, use <code>-p</code> or <code>--reserve-parsed</code>. To reserve matched subtrees, use <code>-m</code> or <code>--reserve-matched</code>.
+NeoSCA by default only saves frequency output. To reserve the parsed trees, use <code>-p</code> or <code>--reserve-parsed</code>. To reserve matched subtrees, use <code>-m</code> or <code>--reserve-matched</code>.
 </summary>
 
 ```sh
@@ -248,16 +254,6 @@ nsca samples/sample1.txt -p -m
 
 </details>
 
-#### Skip Long Sentences
-
-Use `--max-length` to only analyze sentences with lengths shorter than or equal to 100, for example.
-
-```sh
-nsca sample1.txt --max-length 100
-```
-
-When the `--max-length` is not specified, the program will try to analyze sentences of any lengths, but may [run out of memory](https://nlp.stanford.edu/software/parser-faq.html#k) trying to do so.
-
 ### Misc
 
 #### Pass Text Through the Command Line
@@ -269,7 +265,7 @@ nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-#### Output Frequencies in Json Format
+#### Json Output
 
 You can generate a json file by:
 
@@ -282,7 +278,7 @@ nsca ./samples/sample1.txt -o sample1.json
 
 #### Just Parse Text and Exit
 
-If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes.
+If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes. When `--no-query` is specified, the `--reserve-parsed` will be automatically set.
 
 ```sh
 nsca samples/sample1.txt --no-query
@@ -328,10 +324,6 @@ CN/C: complex nominals per clause
 ```
 
 </details>
-
-#### Print the Help Message
-
-If you call `nsca` without any arguments or options, it will return a help message.
 
 ## Citing
 
