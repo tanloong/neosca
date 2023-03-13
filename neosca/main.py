@@ -5,7 +5,6 @@ import sys
 from typing import List, Optional
 
 from . import __version__
-from .neosca import NeoSCA
 from .util import SCAProcedureResult
 from .util import try_write
 from .util_env import getenv
@@ -485,11 +484,15 @@ Contact:
 
     @run_tmpl  # type: ignore
     def run_on_text(self) -> None:
+        from .neosca import NeoSCA
+
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_text(self.options.text)
 
     @run_tmpl  # type: ignore
     def run_on_ifiles(self) -> None:
+        from .neosca import NeoSCA
+
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_ifiles(self.verified_ifile_list)
         if self.verified_subfile_lists:
