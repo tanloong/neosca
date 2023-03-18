@@ -260,6 +260,8 @@ Contact:
             options.is_reserve_parsed = True
 
         if options.text is not None:
+            if ifile_list:
+                return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
             print(f"Command-line text: {options.text}")
             verified_ifile_list = None
         else:
