@@ -22,6 +22,7 @@ class NeoSCA:
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
         is_skip_querying: bool = False,
+        is_pretokenized: bool = False,
         is_verbose: bool = True,
     ) -> None:
         self.ofile_freq = ofile_freq
@@ -36,6 +37,7 @@ class NeoSCA:
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
         self.is_skip_querying = is_skip_querying
+        self.is_pretokenized = is_pretokenized
         self.is_verbose = is_verbose
         self.counter_lists: List[StructureCounter] = []
 
@@ -74,7 +76,9 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
-        trees = self.parser.parse(text, self.max_length, self.newline_break)
+        trees = self.parser.parse(
+            text, self.max_length, self.newline_break, self.is_pretokenized
+        )
         if self.is_reserve_parsed:
             with open(ofile_parsed, "w", encoding="utf-8") as f:
                 f.write(trees)
