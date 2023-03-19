@@ -99,6 +99,13 @@ class SCAUI:
             help="Pass text through the command line.",
         )
         args_parser.add_argument(
+            "--pretokenized",
+            dest="is_pretokenized",
+            action="store_true",
+            default=False,
+            help="Assume that the text has already been tokenized.",
+        )
+        args_parser.add_argument(
             "-o",
             "--output-file",
             metavar="<filename>",
@@ -253,6 +260,8 @@ Contact:
             options.is_reserve_parsed = True
 
         if options.text is not None:
+            if ifile_list:
+                return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
             print(f"Command-line text: {options.text}")
             verified_ifile_list = None
         else:
@@ -325,6 +334,7 @@ Contact:
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
             "is_skip_querying": options.is_skip_querying,
+            "is_pretokenized": options.is_pretokenized,
         }
         self.options = options
         return True, None
