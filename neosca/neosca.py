@@ -76,6 +76,12 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
+        if not self.is_stanford_parser_initialized:
+            self.parser = StanfordParser(
+                stanford_parser_home=self.stanford_parser_home,
+                is_verbose=self.is_verbose,
+            )
+            self.is_stanford_parser_initialized = True
         trees = self.parser.parse(
             text, self.max_length, self.newline_break, self.is_pretokenized
         )
@@ -102,12 +108,6 @@ class NeoSCA:
                 f" exists, and is non-empty and newer than {ifile}."
             )
             return self._read_file(ofile_parsed)
-        if not self.is_stanford_parser_initialized:
-            self.parser = StanfordParser(
-                stanford_parser_home=self.stanford_parser_home,
-                is_verbose=self.is_verbose,
-            )
-            self.is_stanford_parser_initialized = True
         text = self._read_file(ifile)
         try:
             trees = self.parse_text(text, ofile_parsed)
