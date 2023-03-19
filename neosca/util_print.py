@@ -46,6 +46,6 @@ def get_yes_or_no(prompt: str = "") -> str:
     prompt_options = "Enter [y]es or [n]o: "
     sep = "\n" if prompt else ""
     answer = input(prompt + sep + prompt_options)
-    while answer not in ("y", "n", "Y", "N"):
+    while answer not in ("y", "n", "Y", "N", "yes", "Yes", "no", "No"):
         answer = input(f"Unexpected input: {answer}.\nEnter [y]es or [n]o: ")
     return answer
