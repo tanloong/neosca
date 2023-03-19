@@ -41,13 +41,8 @@ class NeoSCA:
         self.is_verbose = is_verbose
         self.counter_lists: List[StructureCounter] = []
 
-        self.parser = StanfordParser(
-            stanford_parser_home=self.stanford_parser_home,
-            is_verbose=self.is_verbose,
-        )
-        self.tregex = StanfordTregex(
-            stanford_tregex_home=self.stanford_tregex_home,
-        )
+        self.is_stanford_parser_initialized = False
+        self.is_stanford_tregex_initialized = False
 
     def _is_skip_parsing(self, ofile_parsed: str, ifile: str) -> bool:
         """See whether a parsed file already exists"""
@@ -67,6 +62,11 @@ class NeoSCA:
         return content
 
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
+        if not self.is_stanford_tregex_initialized:
+            self.tregex = StanfordTregex(
+                stanford_tregex_home=self.stanford_tregex_home,
+            )
+            self.is_stanford_tregex_initialized = True
         counter = self.tregex.query(
             counter,
             trees,
@@ -102,6 +102,12 @@ class NeoSCA:
                 f" exists, and is non-empty and newer than {ifile}."
             )
             return self._read_file(ofile_parsed)
+        if not self.is_stanford_parser_initialized:
+            self.parser = StanfordParser(
+                stanford_parser_home=self.stanford_parser_home,
+                is_verbose=self.is_verbose,
+            )
+            self.is_stanford_parser_initialized = True
         text = self._read_file(ifile)
         try:
             trees = self.parse_text(text, ofile_parsed)
