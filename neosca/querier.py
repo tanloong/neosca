@@ -88,21 +88,18 @@ class StanfordTregex:
     def write_match_output(self, counter: StructureCounter, odir_matched: str = "") -> None:
         """
         Save Tregex's match output
-
-        :param structures: an instance of Structures
         """
         bn_input = os.path.basename(counter.ifile)
         bn_input_noext = os.path.splitext(bn_input)[0]
-        subdir_match_output = os.path.join(odir_matched, bn_input_noext).strip()
-        if not os.path.isdir(subdir_match_output):
-            # if not (exists and is a directory)
-            os.makedirs(subdir_match_output)
+        subodir_matched = os.path.join(odir_matched, bn_input_noext).strip()
+        if not os.path.isdir(subodir_matched):
+            os.makedirs(subodir_matched)
         for structure in counter.structures_to_query:
             if structure.matches:
                 bn_match_output = (
                     bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
                 )
-                fn_match_output = os.path.join(subdir_match_output, bn_match_output)
+                fn_match_output = os.path.join(subodir_matched, bn_match_output)
+                matches = "\n".join(structure.matches)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
-                    for match in structure.matches:
-                        f.write(match + "\n")
+                    f.write(matches)
