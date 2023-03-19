@@ -1,4 +1,4 @@
-.PHONY: refresh clean build release install test lint
+.PHONY: refresh clean build release install test cov lint
 
 refresh: lint clean build install
 
@@ -23,6 +23,10 @@ install:
 
 test:
 	python -m unittest
+
+cov:
+	python -m coverage run -m unittest
+	python -m coverage html
 
 lint:
 	black neosca/ tests/ --line-length 97 --preview
