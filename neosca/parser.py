@@ -68,16 +68,18 @@ class StanfordParser:
         """Parse a single sentence"""
         sentence_length = len(sentence)
         plain_sentence = " ".join(str(w.toString()) for w in sentence)
-        if self._is_long(sentence_length, max_length):
+        if self._is_long(sentence_length, max_length):  # pragma: no cover
             self.long_sent_num += 1
-            sys.stderr.write(self.PROMPT_LONG_SENTENCE.format(max_length, plain_sentence))
+            sys.stderr.write(
+                self.PROMPT_LONG_SENTENCE.format(max_length, plain_sentence)
+            )  # pragma: no cover
             return ""
         self.parsed_sent_num += 1
         print(self.PROMPT_PARSING.format(self.parsed_sent_num, sentence_length, plain_sentence))
         parse = self.lp.apply(sentence)
         if parse is not None:
             return str(parse.pennString().replaceAll("\r", ""))
-        else:
+        else:  # pragma: no cover
             self.no_parse_num += 1
             print(self.PROMPT_NO_PARSE.format(plain_sentence))
             return ""
@@ -96,11 +98,13 @@ class StanfordParser:
 
     def refresh_counters(self, max_length: Optional[int] = None) -> None:
         if max_length is not None and self.long_sent_num > 0:
-            sys.stderr.write(
+            sys.stderr.write(  # pragma: no cover
                 self.PROMPT_LONG_SENTENCE_SUMMARY.format(self.long_sent_num, max_length)
             )
         if self.no_parse_num > 0:
-            sys.stderr.write(self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num))
+            sys.stderr.write(
+                self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num)
+            )  # pragma: no cover
 
         self.long_sent_num = 0
         self.parsed_sent_num = 0

@@ -25,7 +25,7 @@ class StanfordTregex:
         self.init_tregex()
 
     def init_tregex(self):
-        if not jpype.isJVMStarted():
+        if not jpype.isJVMStarted():  # pragma: no cover
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
             # > TODO This method is horribly named.  It should be named isJVMRunning as

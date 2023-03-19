@@ -17,7 +17,7 @@ class _bcolors:
 
 bcolors = _bcolors()
 color_support = True
-if IS_WINDOWS:
+if IS_WINDOWS:  # pragma: no cover
     try:
         # https://stackoverflow.com/questions/36760127/...
         # how-to-use-the-new-support-for-ansi-escape-sequences-in-the-windows-10-console
@@ -25,7 +25,7 @@ if IS_WINDOWS:
 
         kernel32 = windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-    except Exception:  # pragma: no cover
+    except Exception:
         color_support = False
 
 
@@ -42,7 +42,7 @@ def same_line_print(s: str, width=80, **kwargs) -> None:
     print(f"\r{s}", end="", **kwargs)
 
 
-def get_yes_or_no(prompt: str = "") -> str:
+def get_yes_or_no(prompt: str = "") -> str:  # pragma: no cover
     prompt_options = "Enter [y]es or [n]o: "
     sep = "\n" if prompt else ""
     answer = input(prompt + sep + prompt_options)

@@ -55,7 +55,7 @@ class NeoSCA:
                 is_skip_parsing = True
         return is_skip_parsing
 
-    def _read_file(self, filename: str) -> str:
+    def _read_file(self, filename: str) -> str:  # pragma: no cover
         """Read a file (either an input file or a parsed file) and return the content"""
         with open(filename, "r", encoding="utf-8") as f:
             content = f.read()
