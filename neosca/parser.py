@@ -24,6 +24,7 @@ class StanfordParser:
 
         self.PARSER_GRAMMAR = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
         self.PARSER_MODEL = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
+        self.DOCUMENT_PREPROCESSOR = "edu.stanford.nlp.process.DocumentPreprocessor"
         self.parsed_sent_num = 0
         self.long_sent_num = 0
         self.no_parse_num = 0
@@ -81,10 +82,15 @@ class StanfordParser:
             print(self.PROMPT_NO_PARSE.format(plain_sentence))
             return ""
 
-    def parse_text(self, text: str, max_length: Optional[int] = None) -> str:
-        doc = JClass("edu.stanford.nlp.process.DocumentPreprocessor")(
-            jpype.java.io.StringReader(text)
-        )
+    def parse_text(
+        self, text: str, max_length: Optional[int] = None, is_pretokenized: bool = False
+    ) -> str:
+        doc = JClass(self.DOCUMENT_PREPROCESSOR)(jpype.java.io.StringReader(text))
+        if is_pretokenized:
+            WhitespaceTokenizerFactory = JClass(
+                "edu.stanford.nlp.process.WhitespaceTokenizer$WhitespaceTokenizerFactory"
+            )
+            doc.setTokenizerFactory(WhitespaceTokenizerFactory.newTokenizerFactory())
         trees = "\n".join(self.parse_sentence(sentence, max_length) for sentence in doc)
         return trees
 
@@ -101,11 +107,15 @@ class StanfordParser:
         self.no_parse_num = 0
 
     def parse(
-        self, text: str, max_length: Optional[int] = None, newline_break: str = "never"
+        self,
+        text: str,
+        max_length: Optional[int] = None,
+        newline_break: str = "never",
+        is_pretokenized: bool = False,
     ) -> str:
         assert newline_break in ("never", "always", "two")
         if newline_break == "never":
-            trees = self.parse_text(text, max_length)
+            trees = self.parse_text(text, max_length, is_pretokenized)
         else:
             if newline_break == "always":
                 paragraphs = list(filter(None, text.split("\n")))
@@ -113,6 +123,9 @@ class StanfordParser:
                 import re
 
                 paragraphs = re.split(r"(?:\r?\n){2,}", text)
-            trees = "\n".join(self.parse_text(paragraph) for paragraph in paragraphs)
+            trees = "\n".join(
+                self.parse_text(paragraph, max_length, is_pretokenized)
+                for paragraph in paragraphs
+            )
         self.refresh_counters(max_length)
         return trees
