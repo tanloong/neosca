@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from typing import Dict, List, Optional, Set
@@ -72,6 +73,7 @@ class NeoSCA:
             trees,
             is_reserve_matched=self.is_reserve_matched,
             odir_matched=self.odir_matched,
+            is_stdout=self.is_stdout,
         )
         return counter
 
@@ -83,11 +85,14 @@ class NeoSCA:
             )
             self.is_stanford_parser_initialized = True
         trees = self.parser.parse(
-            text, self.max_length, self.newline_break, self.is_pretokenized
+            text,
+            max_length=self.max_length,
+            newline_break=self.newline_break,
+            is_pretokenized=self.is_pretokenized,
+            is_reserve_parsed=self.is_reserve_parsed,
+            ofile_parsed=ofile_parsed,
+            is_stdout=self.is_stdout,
         )
-        if self.is_reserve_parsed:
-            with open(ofile_parsed, "w", encoding="utf-8") as f:
-                f.write(trees)
         return trees
 
     def run_on_text(self, text: str, ifile: str = "cmdline_text") -> None:
@@ -103,7 +108,7 @@ class NeoSCA:
         ofile_parsed = os.path.splitext(ifile)[0] + ".parsed"
         is_skip_parsing = self._is_skip_parsing(ofile_parsed=ofile_parsed, ifile=ifile)
         if is_skip_parsing:
-            print(
+            logging.info(
                 f"\t[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
             )
@@ -129,24 +134,24 @@ class NeoSCA:
             if is_combine:
                 parent_counter = StructureCounter(selected_measures=self.selected_measures)
                 for i, ifile in enumerate(ifiles):
-                    print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
                     child_counter = self.parse_ifile_and_query(ifile)
                     parent_counter += child_counter
                 self.counter_lists.append(parent_counter)
             else:
                 for i, ifile in enumerate(ifiles):
-                    print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
-                    child_counter = self.parse_ifile_and_query(ifile)
-                    self.counter_lists.append(child_counter)
+                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                    counter = self.parse_ifile_and_query(ifile)
+                    self.counter_lists.append(counter)
             self.write_freq_output()
         else:
             for i, ifile in enumerate(ifiles):
-                print(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
                 self.parse_ifile(ifile)
 
-    def get_freq_output(self) -> str:
-        assert self.oformat_freq in ("csv", "json")
-        if self.oformat_freq == "csv":
+    def get_freq_output(self, format: str) -> str:
+        assert format in ("csv", "json")
+        if format == "csv":
             freq_output = self.counter_lists[0].fields
             for counter in self.counter_lists:
                 freq_dict = counter.get_freqs()
@@ -162,9 +167,9 @@ class NeoSCA:
         return freq_output
 
     def write_freq_output(self) -> None:
-        freq_output = self.get_freq_output()
+        freq_output = self.get_freq_output(self.oformat_freq)
         if not self.is_stdout:
             with open(self.ofile_freq, "w", encoding="utf-8") as f:
                 f.write(freq_output)
         else:
-            sys.stdout.write(freq_output)
+            sys.stdout.write(freq_output + "\n")

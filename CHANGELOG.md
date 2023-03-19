@@ -1,5 +1,3 @@
-+ Fix different result with and without `--select` (#12)
-
 <div align="center"><h1>Changelog</h1></div>
 
 ## [0.0.38]() ()
@@ -7,10 +5,12 @@
 ### New Features
 
 + Add `--pretokenized`
++ Add `--quiet`
 
 ### Bug Fixes
 
 + Fix not rasing error for typos in arguments when `--text` is specified
++ Fix different result with and without `--select` (#12)
 
 ## [0.0.37](https://github.com/tanloong/neosca/releases/tag/0.0.37) (10 March 2023)
 

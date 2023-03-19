@@ -2,6 +2,7 @@
 # -*- coding=utf-8 -*-
 
 from .util_platform_info import IS_WINDOWS
+import sys
 
 
 class _bcolors:
@@ -29,18 +30,22 @@ if IS_WINDOWS:  # pragma: no cover
         color_support = False
 
 
-def color_print(color: str, s: str, prefix: str = "", postfix: str = "", **kwargs) -> None:
-    kwargs.update({"sep": ""})
+def color_print(
+    color: str, s: str, prefix: str = "", postfix: str = ""
+) -> None:  # pragma: no cover
     if color_support:
-        print(prefix, bcolors.__getattribute__(color) + s + bcolors.ENDC, postfix, **kwargs)
+        sys.stderr.write(prefix)
+        sys.stderr.write(bcolors.__getattribute__(color) + s + bcolors.ENDC)
+        sys.stderr.write(postfix + "\n")
     else:  # pragma: no cover
-        print(prefix, s, postfix, **kwargs)
+        sys.stderr.write(prefix)
+        sys.stderr.write(s)
+        sys.stderr.write(postfix + "\n")
 
 
-def same_line_print(s: str, width=80, **kwargs) -> None:
-    print(f"\r{'':<{width}}", end="")  # clear the line
-    print(f"\r{s}", end="", **kwargs)
-
+def same_line_print(s: str, width=80) -> None:  # pragma: no cover
+    sys.stderr.write(f"\r{'':<{width}}")  # clear the line
+    sys.stderr.write(f"\r{s}")
 
 def get_yes_or_no(prompt: str = "") -> str:  # pragma: no cover
     prompt_options = "Enter [y]es or [n]o: "

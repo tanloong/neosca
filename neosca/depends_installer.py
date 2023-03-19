@@ -1,6 +1,7 @@
 from collections import namedtuple
 import email.message
 import glob
+import logging
 import lzma
 import os
 import re
@@ -19,7 +20,6 @@ from .util import SCAProcedureResult
 from .util_platform_info import IS_DARWIN, IS_WINDOWS
 from .util_platform_info import USER_SOFTWARE_DIR
 from .util_print import same_line_print
-from .util_print import color_print
 from .util_print import get_yes_or_no
 
 _UNPACK200 = "unpack200.exe" if IS_WINDOWS else "unpack200"
@@ -176,6 +176,7 @@ class depends_installer:
     def _decompress_archive(
         self, archive_path: str, file_extension: str, target_dir: str
     ) -> SCAProcedureResult:
+        logging.info(f"Decompressing {archive_path} to {target_dir}...")
         if not os.path.isdir(target_dir):
             os.makedirs(target_dir)
 
@@ -250,6 +251,7 @@ class depends_installer:
         same_line_print(s, width=100)
 
     def _download(self, download_url: str, name: str) -> SCAProcedureResult:
+        logging.info(f"Downloading {download_url}...")
         if name == JAVA:
             success, err_msg = self._get_java_filename(download_url)
             if not success:
@@ -330,7 +332,7 @@ class depends_installer:
         target_dir: str,
         is_assume_yes: bool = False,
     ) -> SCAProcedureResult:
-        match = glob.glob(f"{target_dir}{os.sep}jdk{version}*")
+        match = glob.glob(f"{target_dir}{os.sep}j[dr][ke]{version}*")
         if match:
             return True, match[0]
         sucess, err_msg = self.ask_install(JAVA, is_assume_yes)
@@ -341,7 +343,6 @@ class depends_installer:
             return sucess, err_msg
         else:
             url = err_msg
-        color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
         sucess, err_msg = self._download(url, name=JAVA)  # type:ignore
         if not sucess:
             return sucess, err_msg
@@ -350,7 +351,6 @@ class depends_installer:
         if not sucess:
             return sucess, err_msg
         jdk_ext = err_msg
-        print(f"Decompressing {JAVA} archive...")
         sucess, err_msg = self._decompress_archive(
             jdk_archive, jdk_ext, target_dir  # type:ignore
         )
@@ -374,7 +374,6 @@ class depends_installer:
         sucess, err_msg = self.ask_install(name, is_assume_yes)
         if not sucess:
             return sucess, err_msg
-        color_print("OKGREEN", target_dir, prefix=f'Downloading {url} to "', postfix='"...')
         sucess, err_msg = self._download(url, name=name)
         if not sucess:
             return sucess, err_msg
@@ -383,7 +382,6 @@ class depends_installer:
         if not sucess:
             return sucess, err_msg
         archive_ext = err_msg
-        print(f"Decompressing {name} archive...")
         sucess, err_msg = self._decompress_archive(
             archive_file, archive_ext, target_dir  # type:ignore
         )

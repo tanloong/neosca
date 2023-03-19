@@ -2,6 +2,7 @@
 # -*- coding=utf-8 -*-
 
 import glob
+import logging
 import os
 from typing import List, Optional
 
@@ -46,7 +47,7 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
 def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
-        print(
+        logging.warning(
             "Failed to permanently append {path} to {env_var}.\nReason: can't detect current"
             " shell."
         )
@@ -63,7 +64,7 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
         }
         rcfile = shell_rcfile.get(os.path.basename(shell), None)
         if rcfile is None:
-            print(
+            logging.warning(
                 "Failed to permanently set environment variables.\nReason: can't detect rc"
                 f" file for {shell}."
             )
@@ -109,7 +110,6 @@ def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
         env_var,
         prefix="Added the following path(s) to ",
         postfix=":\n" + "\n".join(paths),
-        end="\n\n",
     )
 
 
