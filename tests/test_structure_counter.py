@@ -43,6 +43,7 @@ class TestStructureCounter(BaseTmpl):
             ["VP1", "C1", "T1", "T2", "CN1", "CN2", "CN3", "CP"],
             [s.name for s in self.counter2.structures_to_query],
         )
+
     def test_update_freqs(self):
         self.counter1.VP1.freq, self.counter1.VP2.freq = 7, 1
         self.counter1.C1.freq, self.counter1.C2.freq = 9, 1
@@ -95,3 +96,42 @@ class TestStructureCounter(BaseTmpl):
     def test_get_freqs(self):
         freq_dict = self.counter1.get_freqs()
         self.assertTrue("Filename", freq_dict.keys() - set(self.selected_measures1))
+
+    def test_add(self):
+        (
+            self.counter1.VP1.freq,
+            self.counter1.VP2.freq,
+            self.counter1.C1.freq,
+            self.counter1.T1.freq,
+            self.counter1.T2.freq,
+            self.counter1.DC.freq,
+        ) = (5, 38, 19, 27, 11, 21)
+        (
+            self.counter2.VP1.freq,
+            self.counter2.C1.freq,
+            self.counter2.T1.freq,
+            self.counter2.T2.freq,
+            self.counter2.CN1.freq,
+            self.counter2.CN2.freq,
+            self.counter2.CN3.freq,
+            self.counter2.CP.freq,
+        ) = (4, 3, 41, 8, 40, 16, 49, 34)
+        counter3 = self.counter1 + self.counter2
+        self.assertListEqual(
+            ["VP", "T", "CP", "VP_T", "DC_C", "CN_C"],
+            [s.name for s in counter3.structures_to_report],
+        )
+        self.assertListEqual(
+            ["VP1", "VP2", "C1", "T1", "T2", "CN1", "CN2", "CN3", "DC", "CP"],
+            [s.name for s in counter3.structures_to_query],
+        )
+        self.assertEqual(9, counter3.VP1.freq)
+        self.assertEqual(38, counter3.VP2.freq)
+        self.assertEqual(22, counter3.C1.freq)
+        self.assertEqual(68, counter3.T1.freq)
+        self.assertEqual(19, counter3.T2.freq)
+        self.assertEqual(21, counter3.DC.freq)
+        self.assertEqual(40, counter3.CN1.freq)
+        self.assertEqual(16, counter3.CN2.freq)
+        self.assertEqual(49, counter3.CN3.freq)
+        self.assertEqual(34, counter3.CP.freq)
