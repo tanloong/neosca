@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
+import logging
 import os
 import re
+import sys
 from typing import Tuple
 
 import jpype
@@ -25,7 +27,7 @@ class StanfordTregex:
         self.init_tregex()
 
     def init_tregex(self):
-        if not jpype.isJVMStarted():
+        if not jpype.isJVMStarted():  # pragma: no cover
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
             # > TODO This method is horribly named.  It should be named isJVMRunning as
@@ -72,37 +74,40 @@ class StanfordTregex:
         trees: str,
         is_reserve_matched: bool = False,
         odir_matched: str = "",
+        is_stdout: bool = False,
     ):
         for structure in counter.structures_to_query:
-            print(f'\t[Tregex] Querying "{structure.desc}"...')
+            logging.info(f'[Tregex] Querying "{structure.desc}"...')
             if structure.name == "W":
                 structure.freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
                 continue
             structure.freq, structure.matches = self.query_pattern(
                 structure.name, structure.pattern, trees
             )
-        if is_reserve_matched:
-            self.write_match_output(counter, odir_matched)
+        if is_reserve_matched:  # pragma: no cover
+            self.write_match_output(counter, odir_matched, is_stdout)
         return counter
 
-    def write_match_output(self, counter: StructureCounter, odir_matched: str = "") -> None:
+    def write_match_output(
+        self, counter: StructureCounter, odir_matched: str = "", is_stdout: bool = False
+    ) -> None:  # pragma: no cover
         """
         Save Tregex's match output
-
-        :param structures: an instance of Structures
         """
         bn_input = os.path.basename(counter.ifile)
         bn_input_noext = os.path.splitext(bn_input)[0]
-        subdir_match_output = os.path.join(odir_matched, bn_input_noext).strip()
-        if not os.path.isdir(subdir_match_output):
-            # if not (exists and is a directory)
-            os.makedirs(subdir_match_output)
+        subodir_matched = os.path.join(odir_matched, bn_input_noext).strip()
+        if not is_stdout:
+            os.makedirs(subodir_matched, exist_ok=True)
         for structure in counter.structures_to_query:
             if structure.matches:
-                bn_match_output = (
-                    bn_input_noext + "-" + structure.name.replace("/", "p") + ".matches"
-                )
-                fn_match_output = os.path.join(subdir_match_output, bn_match_output)
-                with open(fn_match_output, "w", encoding="utf-8") as f:
-                    for match in structure.matches:
-                        f.write(match + "\n")
+                matches = "\n".join(structure.matches)
+                matches_id = bn_input_noext + "-" + structure.name.replace("/", "p")
+                if not is_stdout:
+                    extension = ".matched"
+                    fn_match_output = os.path.join(subodir_matched, matches_id + extension)
+                    with open(fn_match_output, "w", encoding="utf-8") as f:
+                        f.write(matches)
+                else:
+                    sys.stdout.write(matches_id + "\n")
+                    sys.stdout.write(matches)
