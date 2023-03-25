@@ -16,14 +16,14 @@ class Structure:
         :param desc: description of the structure
         :param pattern: Tregex pattern
         :param matches: matched subtrees by Tregex
-        :param requirements: a list of structure names that this instance of Structure requires, e.g., MLS requires ["W","S"]
+        :param requirements: a list of structure names that current instance of Structure requires. Note that the elements come from the initial StructureCounter.structures_to_query, thus CN_T requires ["CN1", "CN2", "CN3", "T1", "T2"] instead of ["CN", "T"]
         """
         self.name = name
         self.desc = desc
         self.pattern = pattern
         if matches is None:
             self.matches = []
-        else:
+        else:  # pragma: no cover
             self.matches = matches
         if requirements is None:
             self.requirements = []
@@ -31,7 +31,7 @@ class Structure:
             self.requirements = requirements
         self.freq: Union[float, int] = 0
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return (
             f"name: {self.name} ({self.desc})\nrequirements: {self.requirements}\npattern:"
             f" {self.pattern}\nmatches: {self.matches}\nfrequency: {self.freq}"
@@ -117,19 +117,29 @@ class StructureCounter:
         self.CN = Structure("CN", "complex nominals", requirements=["CN1", "CN2", "CN3"])
 
         self.MLS = Structure("MLS", "mean length of sentence", requirements=["W", "S"])
-        self.MLT = Structure("MLT", "mean length of T-unit", requirements=["W", "T"])
+        self.MLT = Structure("MLT", "mean length of T-unit", requirements=["W", "T1", "T2"])
         self.MLC = Structure("MLC", "mean length of clause", requirements=["W", "C1"])
         self.C_S = Structure("C_S", "clauses per sentence", requirements=["C1", "S"])
-        self.VP_T = Structure("VP_T", "verb phrases per T-unit", requirements=["VP1", "T"])
-        self.C_T = Structure("C_T", "clauses per T-unit", requirements=["C1", "T"])
+        self.VP_T = Structure(
+            "VP_T", "verb phrases per T-unit", requirements=["VP1", "T1", "T2"]
+        )
+        self.C_T = Structure("C_T", "clauses per T-unit", requirements=["C1", "T1", "T2"])
         self.DC_C = Structure("DC_C", "dependent clauses per clause", requirements=["DC", "C1"])
-        self.DC_T = Structure("DC_T", "dependent clauses per T-unit", requirements=["DC", "T"])
-        self.T_S = Structure("T_S", "T-units per sentence", requirements=["T", "S"])
-        self.CT_T = Structure("CT_T", "complex T-unit ratio", requirements=["CT", "T"])
-        self.CP_T = Structure("CP_T", "coordinate phrases per T-unit", requirements=["CP", "T"])
+        self.DC_T = Structure(
+            "DC_T", "dependent clauses per T-unit", requirements=["DC", "T1", "T2"]
+        )
+        self.T_S = Structure("T_S", "T-units per sentence", requirements=["T1", "T2", "S"])
+        self.CT_T = Structure("CT_T", "complex T-unit ratio", requirements=["CT", "T1", "T2"])
+        self.CP_T = Structure(
+            "CP_T", "coordinate phrases per T-unit", requirements=["CP", "T1", "T2"]
+        )
         self.CP_C = Structure("CP_C", "coordinate phrases per clause", requirements=["CP", "C1"])
-        self.CN_T = Structure("CN_T", "complex nominals per T-unit", requirements=["CN", "T"])
-        self.CN_C = Structure("CN_C", "complex nominals per clause", requirements=["CN", "C1"])
+        self.CN_T = Structure(
+            "CN_T", "complex nominals per T-unit", requirements=["CN1", "CN2", "CN3", "T1", "T2"]
+        )
+        self.CN_C = Structure(
+            "CN_C", "complex nominals per clause", requirements=["CN1", "CN2", "CN3", "C1"]
+        )
 
         self.structures_to_query: Sequence[Structure] = (
             self.W,
@@ -236,9 +246,6 @@ class StructureCounter:
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         selected_measures = self.selected_measures | other.selected_measures
         new = StructureCounter(new_ifile, selected_measures=selected_measures)
-        for structure in self.structures_to_query:
-            exec(
-                f"new.{structure.name}.freq = self.{structure.name}.freq +"
-                f" other.{structure.name}.freq"
-            )
+        for structure in new.structures_to_query:
+            exec("new.{0}.freq = self.{0}.freq + other.{0}.freq".format(structure.name))
         return new

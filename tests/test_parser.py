@@ -16,9 +16,12 @@ class TestStanfordParser(BaseTmpl):
     def test_parse(self):
         tree = self.parser.parse(text)
         self.assertEqual(tree_expected, tree)
-        text_for_never = """There was no possibility
+        text_never_false = """There was no possibility
 
 of taking a walk that day."""
+        text_never_true = """There was no possibility
+
+of taking a walk that day ."""
         tree_correct = """(ROOT
   (S
     (NP (EX There))
@@ -32,13 +35,28 @@ of taking a walk that day."""
               (NP (DT that) (NN day)))))))
     (. .)))
 """
-        self.assertEqual(tree_correct, self.parser.parse(text_for_never, newline_break="never"))
-        self.assertNotEqual(
-            tree_correct, self.parser.parse(text_for_never, newline_break="always")
+        self.assertEqual(
+            tree_correct,
+            self.parser.parse(text_never_false, newline_break="never", is_pretokenized=False),
         )
-        self.assertNotEqual(tree_correct, self.parser.parse(text_for_never, newline_break="two"))
-        text_for_always = """CHAPTER I
+        self.assertEqual(
+            tree_correct,
+            self.parser.parse(text_never_true, newline_break="never", is_pretokenized=True),
+        )
+        self.assertNotEqual(
+            tree_correct,
+            self.parser.parse(text_never_false, newline_break="never", is_pretokenized=True),
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_never_false, newline_break="always")
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_never_false, newline_break="two")
+        )
+        text_always_false = """CHAPTER I
 There was no possibility of taking a walk that day."""
+        text_always_true = """CHAPTER I
+There was no possibility of taking a walk that day ."""
         tree_correct = """(ROOT
   (S
     (VP (VB CHAPTER)
@@ -58,18 +76,31 @@ There was no possibility of taking a walk that day."""
     (. .)))
 """
         self.assertEqual(
-            tree_correct, self.parser.parse(text_for_always, newline_break="always")
+            tree_correct,
+            self.parser.parse(text_always_false, newline_break="always", is_pretokenized=False),
+        )
+        self.assertEqual(
+            tree_correct,
+            self.parser.parse(text_always_true, newline_break="always", is_pretokenized=True),
         )
         self.assertNotEqual(
-            tree_correct, self.parser.parse(text_for_always, newline_break="never")
+            tree_correct,
+            self.parser.parse(text_always_false, newline_break="always", is_pretokenized=True),
         )
         self.assertNotEqual(
-            tree_correct, self.parser.parse(text_for_always, newline_break="two")
+            tree_correct, self.parser.parse(text_always_false, newline_break="never")
         )
-        text_for_two = """CHAPTER I
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_always_false, newline_break="two")
+        )
+        text_two_false = """CHAPTER I
 
 There was no possibility
 of taking a walk that day."""
+        text_two_true = """CHAPTER I
+
+There was no possibility
+of taking a walk that day ."""
         tree_correct = """(ROOT
   (S
     (VP (VB CHAPTER)
@@ -88,11 +119,24 @@ of taking a walk that day."""
               (NP (DT that) (NN day)))))))
     (. .)))
 """
-        self.assertEqual(tree_correct, self.parser.parse(text_for_two, newline_break="two"))
-        self.assertNotEqual(
-            tree_correct, self.parser.parse(text_for_two, newline_break="always")
+        self.assertEqual(
+            tree_correct,
+            self.parser.parse(text_two_false, newline_break="two", is_pretokenized=False),
         )
-        self.assertNotEqual(tree_correct, self.parser.parse(text_for_two, newline_break="never"))
+        self.assertEqual(
+            tree_correct,
+            self.parser.parse(text_two_true, newline_break="two", is_pretokenized=True),
+        )
+        self.assertNotEqual(
+            tree_correct,
+            self.parser.parse(text_two_false, newline_break="two", is_pretokenized=True),
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_two_false, newline_break="always")
+        )
+        self.assertNotEqual(
+            tree_correct, self.parser.parse(text_two_false, newline_break="never")
+        )
 
     def test_is_long(self):
         max_length = 100

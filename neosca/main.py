@@ -1,5 +1,6 @@
 import argparse
 import glob
+import logging
 import os
 import sys
 from typing import List, Optional
@@ -99,6 +100,13 @@ class SCAUI:
             help="Pass text through the command line.",
         )
         args_parser.add_argument(
+            "--pretokenized",
+            dest="is_pretokenized",
+            action="store_true",
+            default=False,
+            help="Assume that the text has already been tokenized.",
+        )
+        args_parser.add_argument(
             "-o",
             "--output-file",
             metavar="<filename>",
@@ -182,6 +190,13 @@ class SCAUI:
             help="Parse the input files, save the parsed trees and exit.",
         )
         args_parser.add_argument(
+            "--quiet",
+            dest="is_quiet",
+            action="store_true",
+            default=False,
+            help="Stop NeoSCA from print anything except for final results.",
+        )
+        args_parser.add_argument(
             "--check-depends",
             dest="check_depends",
             action="store_true",
@@ -249,11 +264,17 @@ Contact:
             options, ifile_list = self.args_parser.parse_args(argv[1:idx]), argv[idx + 1 :]
         else:
             options, ifile_list = self.args_parser.parse_known_args(argv[1:])
+        if options.is_quiet:
+            logging.basicConfig(format="%(message)s", level=logging.CRITICAL)
+        else:
+            logging.basicConfig(format="%(message)s", level=logging.INFO)
         if options.is_skip_querying:
             options.is_reserve_parsed = True
 
         if options.text is not None:
-            print(f"Command-line text: {options.text}")
+            if ifile_list:
+                return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
+            logging.info(f"Command-line text: {options.text}")
             verified_ifile_list = None
         else:
             verified_ifile_list = []
@@ -280,7 +301,7 @@ Contact:
                     else:
                         return False, f"No such file as \n\n{f}"
                 if len(verified_subfiles) == 1:
-                    print(
+                    logging.critical(
                         f"Only 1 subfile provided: ({verified_subfiles[0]}). There should be 2"
                         " or more subfiles to combine."
                     )
@@ -325,15 +346,14 @@ Contact:
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
             "is_skip_querying": options.is_skip_querying,
+            "is_pretokenized": options.is_pretokenized,
         }
         self.options = options
         return True, None
 
     def check_java(self) -> SCAProcedureResult:
         java_home = getenv(self.JAVA_HOME)
-        if java_home is not None:
-            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
-        else:
+        if java_home is None:
             java_home = search_java_home()
             if java_home is None:
                 from .depends_installer import depends_installer
@@ -349,17 +369,24 @@ Contact:
                     java_home = err_msg
             java_bin = os.path.join(java_home, "bin")  # type:ignore
             path_orig = os.getenv("PATH", "")
-            setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
-            setenv("PATH", [java_bin], refresh=False)  # type:ignore
+            setenv(
+                "JAVA_HOME",
+                [java_home],  # type:ignore
+                refresh=True,
+                is_quiet=self.options.is_quiet,
+            )
+            setenv(
+                "PATH", [java_bin], refresh=False, is_quiet=self.options.is_quiet
+            )  # type:ignore
             os.environ["JAVA_HOME"] = java_home  # type:ignore
             os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
+        elif not self.options.is_quiet:
+            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
         self.options.stanford_parser_home = getenv(self.STANFORD_PARSER_HOME)
-        if self.options.stanford_parser_home is not None:
-            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
-        else:
+        if self.options.stanford_parser_home is None:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_PARSER
 
@@ -375,16 +402,17 @@ Contact:
                     self.STANFORD_PARSER_HOME,
                     [stanford_parser_home],  # type:ignore
                     refresh=True,
+                    is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_parser_home = stanford_parser_home  # type:ignore
+        elif not self.options.is_quiet:
+            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
         self.init_kwargs.update({"stanford_parser_home": self.options.stanford_parser_home})
         return True, None
 
     def check_stanford_tregex(self) -> SCAProcedureResult:
         self.options.stanford_tregex_home = getenv(self.STANFORD_TREGEX_HOME)
-        if self.options.stanford_tregex_home is not None:
-            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
-        else:
+        if self.options.stanford_tregex_home is None:
             from .depends_installer import depends_installer
             from .depends_installer import STANFORD_TREGEX
 
@@ -400,8 +428,11 @@ Contact:
                     self.STANFORD_TREGEX_HOME,
                     [stanford_tregex_home],  # type:ignore
                     refresh=True,
+                    is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
+        elif not self.options.is_quiet:
+            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
         self.init_kwargs.update({"stanford_tregex_home": self.options.stanford_tregex_home})
         return True, None
 
@@ -432,41 +463,41 @@ Contact:
             )
 
     def exit_routine(self) -> None:
-        print("\n", "=" * 60, sep="")
-        i = 1
-        if not self.options.is_skip_querying and not self.options.is_stdout:
-            color_print(
-                "OKGREEN",
-                f"{os.path.abspath(self.options.ofile_freq)}",
-                prefix=f"{i}. Frequency output was saved to ",
-                postfix=".",
-            )
-            i += 1
-        if (
-            self.verified_ifile_list or self.verified_subfile_lists
-        ) and self.options.is_reserve_parsed:
-            print(
-                f"{i}. Parsed trees were saved corresponding to input files,"
-                ' with the same name but a ".parsed" extension.'
-            )
-            i += 1
-        if self.options.text is not None and self.options.is_reserve_parsed:
-            color_print(
-                "OKGREEN",
-                f"{self.cwd}{os.sep}cmdline_text.parsed",
-                prefix=f"{i}. Parsed trees were saved to ",
-                postfix=".",
-            )
-            i += 1
-        if self.options.is_reserve_matched:
-            color_print(
-                "OKGREEN",
-                f"{os.path.abspath(self.odir_matched)}",
-                prefix=f"{i}. Matched subtrees were saved to ",
-                postfix=".",
-            )
-            i += 1
-        print("Done.")
+        msg_num = 0
+        if not self.options.is_quiet and not self.options.is_stdout:
+            if not self.options.is_skip_querying:
+                msg_num += 1
+                color_print(
+                    "OKGREEN",
+                    f"{os.path.abspath(self.options.ofile_freq)}",
+                    prefix=f"{msg_num}. Frequency output was saved to ",
+                    postfix=".",
+                )
+            if self.options.is_reserve_parsed:
+                if self.verified_ifile_list or self.verified_subfile_lists:
+                    msg_num += 1
+                    logging.info(
+                        f"{msg_num}. Parsed trees were saved corresponding to input files,"
+                        ' with the same name but a ".parsed" extension.'
+                    )
+                elif self.options.text is not None:
+                    msg_num += 1
+                    color_print(
+                        "OKGREEN",
+                        f"{self.cwd}{os.sep}cmdline_text.parsed",
+                        prefix=f"{msg_num}. Parsed trees were saved to ",
+                        postfix=".",
+                    )
+            if self.options.is_reserve_matched:
+                msg_num += 1
+                color_print(
+                    "OKGREEN",
+                    f"{os.path.abspath(self.odir_matched)}",
+                    prefix=f"{msg_num}. Matched subtrees were saved to ",
+                    postfix=".",
+                )
+        if msg_num > 0:
+            logging.info("Done.")
 
     def run_tmpl(func):  # type: ignore
         def wrapper(self, *args, **kwargs):
@@ -548,9 +579,9 @@ def main() -> None:
     ui = SCAUI()
     success, err_msg = ui.parse_args(sys.argv)
     if not success:
-        print(err_msg)
+        logging.critical(err_msg)
         sys.exit(1)
     success, err_msg = ui.run()
     if not success:
-        print(err_msg)
+        logging.critical(err_msg)
         sys.exit(1)

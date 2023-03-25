@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
+import logging
 import os
 import sys
 from typing import Optional
 
-import jpype  # type:ignore
+import jpype
 from jpype import JClass
 
 
@@ -24,10 +25,11 @@ class StanfordParser:
 
         self.PARSER_GRAMMAR = "edu.stanford.nlp.parser.lexparser.LexicalizedParser"
         self.PARSER_MODEL = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
+        self.DOCUMENT_PREPROCESSOR = "edu.stanford.nlp.process.DocumentPreprocessor"
         self.parsed_sent_num = 0
         self.long_sent_num = 0
         self.no_parse_num = 0
-        self.PROMPT_PARSING = "Parsing [sent. {} len. {}]: {}"
+        self.PROMPT_PARSING = "[Parser] Parsing [sent. {} len. {}]: {}"
         self.PROMPT_LONG_SENTENCE = "Sentence longer than {}. Skipping: {}\n"
         self.PROMPT_NO_PARSE = (
             'Sentence has no parse using PCFG grammar (or no PCFG fallback). Skipping: "{}"'
@@ -54,6 +56,8 @@ class StanfordParser:
             jpype.addClassPath(classpath)
 
         LexicalizedParser = JClass(self.PARSER_GRAMMAR)
+        RedwoodConfiguration = JClass("edu.stanford.nlp.util.logging.RedwoodConfiguration")
+        RedwoodConfiguration.empty().capture(jpype.java.lang.System.err).apply()
         self.lp = LexicalizedParser.loadModel(self.PARSER_MODEL)
         options = ["-outputFormat", "penn", "-nthreads", str(self.nthreads)]
         self.lp.setOptionFlags(options)
@@ -67,45 +71,63 @@ class StanfordParser:
         """Parse a single sentence"""
         sentence_length = len(sentence)
         plain_sentence = " ".join(str(w.toString()) for w in sentence)
-        if self._is_long(sentence_length, max_length):
+        if self._is_long(sentence_length, max_length):  # pragma: no cover
             self.long_sent_num += 1
-            sys.stderr.write(self.PROMPT_LONG_SENTENCE.format(max_length, plain_sentence))
+            sys.stderr.write(
+                self.PROMPT_LONG_SENTENCE.format(max_length, plain_sentence)
+            )  # pragma: no cover
             return ""
         self.parsed_sent_num += 1
-        print(self.PROMPT_PARSING.format(self.parsed_sent_num, sentence_length, plain_sentence))
+        logging.info(
+            self.PROMPT_PARSING.format(self.parsed_sent_num, sentence_length, plain_sentence)
+        )
         parse = self.lp.apply(sentence)
         if parse is not None:
             return str(parse.pennString().replaceAll("\r", ""))
-        else:
+        else:  # pragma: no cover
             self.no_parse_num += 1
-            print(self.PROMPT_NO_PARSE.format(plain_sentence))
+            logging.warning(self.PROMPT_NO_PARSE.format(plain_sentence))
             return ""
 
-    def parse_text(self, text: str, max_length: Optional[int] = None) -> str:
-        doc = JClass("edu.stanford.nlp.process.DocumentPreprocessor")(
-            jpype.java.io.StringReader(text)
-        )
+    def parse_text(
+        self, text: str, max_length: Optional[int] = None, is_pretokenized: bool = False
+    ) -> str:
+        doc = JClass(self.DOCUMENT_PREPROCESSOR)(jpype.java.io.StringReader(text))
+        if is_pretokenized:
+            WhitespaceTokenizerFactory = JClass(
+                "edu.stanford.nlp.process.WhitespaceTokenizer$WhitespaceTokenizerFactory"
+            )
+            doc.setTokenizerFactory(WhitespaceTokenizerFactory.newTokenizerFactory())
         trees = "\n".join(self.parse_sentence(sentence, max_length) for sentence in doc)
         return trees
 
     def refresh_counters(self, max_length: Optional[int] = None) -> None:
         if max_length is not None and self.long_sent_num > 0:
-            sys.stderr.write(
+            sys.stderr.write(  # pragma: no cover
                 self.PROMPT_LONG_SENTENCE_SUMMARY.format(self.long_sent_num, max_length)
             )
         if self.no_parse_num > 0:
-            sys.stderr.write(self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num))
+            sys.stderr.write(
+                self.PROMPT_NO_PARSE_SUMMARY.format(self.no_parse_num)
+            )  # pragma: no cover
 
         self.long_sent_num = 0
         self.parsed_sent_num = 0
         self.no_parse_num = 0
 
     def parse(
-        self, text: str, max_length: Optional[int] = None, newline_break: str = "never"
+        self,
+        text: str,
+        max_length: Optional[int] = None,
+        newline_break: str = "never",
+        is_pretokenized: bool = False,
+        is_reserve_parsed: bool = False,
+        ofile_parsed: str = "cmdline_text.parsed",
+        is_stdout: bool = False,
     ) -> str:
         assert newline_break in ("never", "always", "two")
         if newline_break == "never":
-            trees = self.parse_text(text, max_length)
+            trees = self.parse_text(text, max_length, is_pretokenized)
         else:
             if newline_break == "always":
                 paragraphs = list(filter(None, text.split("\n")))
@@ -113,6 +135,15 @@ class StanfordParser:
                 import re
 
                 paragraphs = re.split(r"(?:\r?\n){2,}", text)
-            trees = "\n".join(self.parse_text(paragraph) for paragraph in paragraphs)
+            trees = "\n".join(
+                self.parse_text(paragraph, max_length, is_pretokenized)
+                for paragraph in paragraphs
+            )
+        if is_reserve_parsed:
+            if not is_stdout:
+                with open(ofile_parsed, "w", encoding="utf-8") as f:
+                    f.write(trees)
+            else:
+                sys.stdout.write(trees + "\n")
         self.refresh_counters(max_length)
         return trees

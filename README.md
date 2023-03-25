@@ -418,7 +418,7 @@ MLA (9th edition)
 
 + [L2SCA](https://sites.psu.edu/xxl13/l2sca/), the original implementation, written in Python, by [Xiaofei Lu](https://sites.psu.edu/xxl13)
 + [L2SCA online](https://aihaiyang.com/software/l2sca/), by [Haiyang Ai](https://aihaiyang.com/)
-+ [L2SCA included in TAASSC](https://www.linguisticanalysistools.org/taassc.html), written in Python, by [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
++ [TAASSC](https://www.linguisticanalysistools.org/taassc.html), written in Python, by [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
 + [L2SCA written in R](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1), by [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat), Anas Knefati, and Antoine Lafontaine
 + [FSCA](https://github.com/nvandeweerd/fsca) (French Syntactic Complexity Analyzer), written in R, by [Nate Vandeweerd](https://github.com/nvandeweerd)
 
