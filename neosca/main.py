@@ -369,8 +369,15 @@ Contact:
                     java_home = err_msg
             java_bin = os.path.join(java_home, "bin")  # type:ignore
             path_orig = os.getenv("PATH", "")
-            setenv("JAVA_HOME", [java_home], refresh=True)  # type:ignore
-            setenv("PATH", [java_bin], refresh=False)  # type:ignore
+            setenv(
+                "JAVA_HOME",
+                [java_home],  # type:ignore
+                refresh=True,
+                is_quiet=self.options.is_quiet,
+            )
+            setenv(
+                "PATH", [java_bin], refresh=False, is_quiet=self.options.is_quiet
+            )  # type:ignore
             os.environ["JAVA_HOME"] = java_home  # type:ignore
             os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
         elif not self.options.is_quiet:
@@ -395,6 +402,7 @@ Contact:
                     self.STANFORD_PARSER_HOME,
                     [stanford_parser_home],  # type:ignore
                     refresh=True,
+                    is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_parser_home = stanford_parser_home  # type:ignore
         elif not self.options.is_quiet:
@@ -420,6 +428,7 @@ Contact:
                     self.STANFORD_TREGEX_HOME,
                     [stanford_tregex_home],  # type:ignore
                     refresh=True,
+                    is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
         elif not self.options.is_quiet:

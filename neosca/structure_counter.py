@@ -23,7 +23,7 @@ class Structure:
         self.pattern = pattern
         if matches is None:
             self.matches = []
-        else: # pragma: no cover
+        else:  # pragma: no cover
             self.matches = matches
         if requirements is None:
             self.requirements = []
@@ -31,7 +31,7 @@ class Structure:
             self.requirements = requirements
         self.freq: Union[float, int] = 0
 
-    def __repr__(self) -> str: # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return (
             f"name: {self.name} ({self.desc})\nrequirements: {self.requirements}\npattern:"
             f" {self.pattern}\nmatches: {self.matches}\nfrequency: {self.freq}"

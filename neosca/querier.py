@@ -109,5 +109,5 @@ class StanfordTregex:
                     with open(fn_match_output, "w", encoding="utf-8") as f:
                         f.write(matches)
                 else:
-                    sys.stdout.write(matches_id+'\n')
+                    sys.stdout.write(matches_id + "\n")
                     sys.stdout.write(matches)

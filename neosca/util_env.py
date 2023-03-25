@@ -99,18 +99,21 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
                 f.write("\n".join(configs))
 
 
-def setenv(env_var: str, paths: List[str], refresh: bool = False) -> None:
+def setenv(
+    env_var: str, paths: List[str], refresh: bool = False, is_quiet: bool = False
+) -> None:
     assert any((IS_WINDOWS, IS_DARWIN, IS_LINUX))
     if IS_WINDOWS:
         _setenv_windows(env_var, paths, refresh)
     else:
         _setenv_unix(env_var, paths, refresh)
-    color_print(
-        "OKGREEN",
-        env_var,
-        prefix="Added the following path(s) to ",
-        postfix=":\n" + "\n".join(paths),
-    )
+    if not is_quiet:
+        color_print(
+            "OKGREEN",
+            env_var,
+            prefix="Added the following path(s) to ",
+            postfix=":\n" + "\n".join(paths),
+        )
 
 
 def getenv(env_var: str) -> Optional[str]:

@@ -47,10 +47,11 @@ def same_line_print(s: str, width=80) -> None:  # pragma: no cover
     sys.stderr.write(f"\r{'':<{width}}")  # clear the line
     sys.stderr.write(f"\r{s}")
 
+
 def get_yes_or_no(prompt: str = "") -> str:  # pragma: no cover
-    prompt_options = "Enter [y]es or [n]o: "
+    option = "Enter [y]es or [n]o: "
     sep = "\n" if prompt else ""
-    answer = input(prompt + sep + prompt_options)
+    answer = input(prompt + sep + option)
     while answer not in ("y", "n", "Y", "N", "yes", "Yes", "no", "No"):
-        answer = input(f"Unexpected input: {answer}.\nEnter [y]es or [n]o: ")
+        answer = input(f"Unexpected input: {answer}.\n{option}")
     return answer
