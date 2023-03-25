@@ -149,9 +149,9 @@ class NeoSCA:
                 logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
                 self.parse_ifile(ifile)
 
-    def get_freq_output(self, format: str) -> str:
-        assert format in ("csv", "json")
-        if format == "csv":
+    def get_freq_output(self, format_: str) -> str:
+        assert format_ in ("csv", "json")
+        if format_ == "csv":
             freq_output = self.counter_lists[0].fields
             for counter in self.counter_lists:
                 freq_dict = counter.get_freqs()
