@@ -129,6 +129,8 @@ class NeoSCA:
         return self.query_against_trees(trees, counter)
 
     def run_on_ifiles(self, ifiles, is_combine=False) -> None:
+        if not ifiles:
+            return None
         total = len(ifiles)
         if not self.is_skip_querying:
             if is_combine:
