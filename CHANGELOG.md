@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.39]() ()
+
+### Bug Fixes
+
++ Fix raising IndexError when running only with subfiles
+
 ## [0.0.38](https://github.com/tanloong/neosca/releases/tag/0.0.38) (25 March 2023)
 
 ### New Features
