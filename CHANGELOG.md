@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 + Fix raising IndexError when running only with subfiles
++ Fix wrong column alignment in the csv output if filenames contain commas
 
 ## [0.0.38](https://github.com/tanloong/neosca/releases/tag/0.0.38) (25 March 2023)
 

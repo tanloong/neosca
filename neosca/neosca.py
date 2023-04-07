@@ -109,7 +109,7 @@ class NeoSCA:
         is_skip_parsing = self._is_skip_parsing(ofile_parsed=ofile_parsed, ifile=ifile)
         if is_skip_parsing:
             logging.info(
-                f"\t[Parser] Parsing skipped: {ofile_parsed} already"
+                f"[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
             )
             return self._read_file(ofile_parsed)
@@ -157,6 +157,8 @@ class NeoSCA:
             freq_output = self.counter_lists[0].fields
             for counter in self.counter_lists:
                 freq_dict = counter.get_freqs()
+                if "," in freq_dict["Filename"]:
+                    freq_dict["Filename"] = '"' + freq_dict["Filename"] + '"'
                 freq_output += "\n" + ",".join(str(freq) for freq in freq_dict.values())
         else:
             import json
