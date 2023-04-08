@@ -530,9 +530,8 @@ Contact:
 
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_ifiles(self.verified_ifile_list)
-        if self.verified_subfile_lists:
-            for subfiles in self.verified_subfile_lists:
-                analyzer.run_on_ifiles(subfiles, is_combine=True)
+        for subfiles in self.verified_subfile_lists:
+            analyzer.run_on_ifiles(subfiles, is_combine=True)
 
     def run(self) -> SCAProcedureResult:
         if self.options.version:
