@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set
 from .parser import StanfordParser
 from .querier import StanfordTregex
 from .structure_counter import StructureCounter
+from .util_env import unite_classpaths
 
 
 class NeoSCA:
@@ -28,8 +29,7 @@ class NeoSCA:
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
-        self.stanford_parser_home = stanford_parser_home
-        self.stanford_tregex_home = stanford_tregex_home
+        self.classpaths = unite_classpaths(stanford_parser_home, stanford_tregex_home)
         self.odir_matched = odir_matched
         self.newline_break = newline_break
         self.max_length = max_length
@@ -44,6 +44,19 @@ class NeoSCA:
 
         self.is_stanford_parser_initialized = False
         self.is_stanford_tregex_initialized = False
+
+    def ensure_stanford_tregex_initialized(self) -> None:
+        if not self.is_stanford_tregex_initialized:
+            self.tregex = StanfordTregex(classpaths=self.classpaths)
+            self.is_stanford_tregex_initialized = True
+
+    def ensure_stanford_parser_initialized(self) -> None:
+        if not self.is_stanford_parser_initialized:
+            self.parser = StanfordParser(
+                classpaths=self.classpaths,
+                is_verbose=self.is_verbose,
+            )
+            self.is_stanford_parser_initialized = True
 
     def _is_skip_parsing(self, ofile_parsed: str, ifile: str) -> bool:
         """See whether a parsed file already exists"""
@@ -63,11 +76,7 @@ class NeoSCA:
         return content
 
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
-        if not self.is_stanford_tregex_initialized:
-            self.tregex = StanfordTregex(
-                stanford_tregex_home=self.stanford_tregex_home,
-            )
-            self.is_stanford_tregex_initialized = True
+        self.ensure_stanford_tregex_initialized()
         counter = self.tregex.query(
             counter,
             trees,
@@ -78,12 +87,7 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
-        if not self.is_stanford_parser_initialized:
-            self.parser = StanfordParser(
-                stanford_parser_home=self.stanford_parser_home,
-                is_verbose=self.is_verbose,
-            )
-            self.is_stanford_parser_initialized = True
+        self.ensure_stanford_parser_initialized()
         trees = self.parser.parse(
             text,
             max_length=self.max_length,

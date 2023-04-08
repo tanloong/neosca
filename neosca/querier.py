@@ -5,7 +5,7 @@ import logging
 import os
 import re
 import sys
-from typing import Tuple
+from typing import Optional, Tuple
 
 import jpype
 from jpype import JClass
@@ -16,10 +16,10 @@ from .structure_counter import StructureCounter
 class StanfordTregex:
     def __init__(
         self,
-        stanford_tregex_home: str = "",
+        classpaths: Optional[list] = None,
         max_memory: str = "3072m",
     ) -> None:
-        self.classpath = os.path.join(stanford_tregex_home, "stanford-tregex.jar")
+        self.classpaths = classpaths if classpaths is not None else []
         self.max_memory = max_memory
         self.TREGEX_PATTERN = "edu.stanford.nlp.trees.tregex.TregexPattern"
         self.STRING_READER = "java.io.StringReader"
@@ -28,14 +28,13 @@ class StanfordTregex:
 
     def init_tregex(self):
         if not jpype.isJVMStarted():  # pragma: no cover
+            logging.info("[Tregex] starting JVM...")
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
             # > TODO This method is horribly named.  It should be named isJVMRunning as
             # > isJVMStarted would seem to imply that the JVM was started at some
             # > point without regard to whether it has been shutdown.
-            jpype.startJVM(f"-Xmx{self.max_memory}", classpath=self.classpath)
-        else:
-            jpype.addClassPath(self.classpath)
+            jpype.startJVM(f"-Xmx{self.max_memory}", classpath=self.classpaths)
 
         self.TregexPattern = jpype.JClass(self.TREGEX_PATTERN)
         self.StringReader = JClass(self.STRING_READER)
