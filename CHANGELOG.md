@@ -1,10 +1,10 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.39]() ()
+## [0.0.39](https://github.com/tanloong/neosca/releases/tag/0.0.39) (8 April 2023)
 
 ### Bug Fixes
 
-+ Fix raising IndexError when running only with subfiles
++ Fix raising IndexError when running only on subfiles
 + Fix wrong column alignment in the csv output if filenames contain commas
 
 ## [0.0.38](https://github.com/tanloong/neosca/releases/tag/0.0.38) (25 March 2023)
