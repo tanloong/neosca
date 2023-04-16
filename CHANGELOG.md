@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.40]() ()
+
+### Bug Fixes
+
++ Fix subsequent files cannot be processed if parsed results for preceding files are present (#20)
+
 ## [0.0.39](https://github.com/tanloong/neosca/releases/tag/0.0.39) (8 April 2023)
 
 ### Bug Fixes
