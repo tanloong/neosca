@@ -154,7 +154,13 @@ nsca "./samples/sample 1.txt"
 
 #### 多個輸入文件
 
-以空格為間隔，在 `nsca` 的右邊列出輸入文件：
+在 nsca 的右邊指定輸入文件夾。
+
+```
+nsca samples/ # 分析 samples/ 文件夹下所有的".txt" 文件
+```
+
+或者以空格為間隔列出輸入文件：
 
 ```sh
 cd ./samples/

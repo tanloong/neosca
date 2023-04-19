@@ -161,7 +161,13 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 
 #### Multiple Input
 
-To analyze multiple text files at once, simply list them after `nsca`.
+Specify the input directory after `nsca`.
+
+```
+nsca samples/ # analyze every ".txt" file under the "samples/" directory
+```
+
+Or simply list each file:
 
 ```sh
 cd ./samples/

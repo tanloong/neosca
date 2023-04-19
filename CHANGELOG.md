@@ -2,6 +2,10 @@
 
 ## [0.0.40]() ()
 
+### New Features
+
++ Add ability to accept input directories
+
 ### Bug Fixes
 
 + Fix subsequent files cannot be processed if parsed results for preceding files are present (#20)
