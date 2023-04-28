@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 English
 
-NeoSCA is a rewrite of [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) which is developed by [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html), with added support for Windows and an improved command-line interface for easier usage. The same as L2SCA, NeoSCA takes written English language samples in plain text format as input, and computes:
+NeoSCA is a rewrite of [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) which is developed by [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html), with added support for Windows and an improved command-line interface for easier usage. NeoSCA accepts written English texts and computes the following measures:
 
 <details>
 
@@ -81,8 +81,9 @@ the frequency of 9 structures in the text:
 
 ## Highlights
 
-* Works on **Windows**/macOS/Linux
-* Flexible command-line options serving various needs
+* Cross-platform compatibility: Windows, macOS, and Linux
+* Flexible command-line options to serve various needs
+* Supports reading docx files
 
 ## Install
 
@@ -131,14 +132,16 @@ NeoSCA is a CLI-based tool. You can see the help message by running `nsca --help
 
 #### Single Input
 
-To analyze a single text file, use the command `nsca` followed by the file path.
+To analyze a single file, use the command `nsca` followed by the file path.
 
 ```sh
 nsca ./samples/sample1.txt
-# frequency output: ./result.csv
+nsca ./samples/sample1.docx
 ```
 
-A `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o/--output-file`.
+When working on docx files, tables, figures, images, and other unrelated elements (except for headers and footers, which will be automatically ignored) should be manually removed before they are analyzed.
+
+After running the above command, a `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o/--output-file`.
 
 ```sh
 nsca ./samples/sample1.txt -o sample1.csv
@@ -148,7 +151,7 @@ nsca ./samples/sample1.txt -o sample1.csv
 <details>
 
 <summary>
-When analyzing a text file with a filename that includes spaces, it is important to enclose the file path in single or double quotes. Assume you have a <code>sample 1.txt</code> to analyze:
+When analyzing a file whose name includes spaces, it is important to enclose the file path in single or double quotes. Assume you have a <code>sample 1.txt</code> to analyze:
 </summary>
 
 ```sh
@@ -164,7 +167,9 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 Specify the input directory after `nsca`.
 
 ```
-nsca samples/ # analyze every ".txt" file under the "samples/" directory
+nsca samples/ # analyze every txt/docx file under the "samples/" directory
+nsca samples/ --ftype txt # analyze only txt files under "samples/"
+nsca samples/ --ftype docx # analyze only docx files under "samples/"
 ```
 
 Or simply list each file:

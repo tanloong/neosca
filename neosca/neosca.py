@@ -7,6 +7,8 @@ from .parser import StanfordParser
 from .querier import StanfordTregex
 from .structure_counter import StructureCounter
 from .util_env import unite_classpaths
+from .util_io import read_txt
+from .util_io import read_file
 
 
 class NeoSCA:
@@ -69,12 +71,6 @@ class NeoSCA:
                 is_skip_parsing = True
         return is_skip_parsing
 
-    def _read_file(self, filename: str) -> str:  # pragma: no cover
-        """Read a file (either an input file or a parsed file) and return the content"""
-        with open(filename, "r", encoding="utf-8") as f:
-            content = f.read()
-        return content
-
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
         self.ensure_stanford_tregex_initialized()
         counter = self.tregex.query(
@@ -116,8 +112,8 @@ class NeoSCA:
                 f"[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
             )
-            return self._read_file(ofile_parsed)
-        text = self._read_file(ifile)
+            return read_txt(ofile_parsed, is_guess_encoding=False)
+        text = read_file(ifile)
         try:
             trees = self.parse_text(text, ofile_parsed)
         except KeyboardInterrupt:

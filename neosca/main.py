@@ -7,18 +7,20 @@ from typing import List, Optional
 
 from . import __version__
 from .util import SCAProcedureResult
-from .util import try_write
 from .util_env import getenv
 from .util_env import setenv
 from .util_env import search_java_home
+from .util_io import try_write
 from .util_print import color_print
 
 
 class SCAUI:
     def __init__(self) -> None:
+        self.supported_ifile_types = ["txt", "docx"]
+        self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
-        self.cwd = os.getcwd()
+
         self.JAVA_HOME = "JAVA_HOME"
         self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
         self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
@@ -98,6 +100,17 @@ class SCAUI:
             metavar="<text>",
             default=None,
             help="Pass text through the command line.",
+        )
+        args_parser.add_argument(
+            "--ftype",
+            dest="ifile_types",
+            choices=self.supported_ifile_types,
+            default=self.supported_ifile_types,
+            nargs="+",
+            help=(
+                "Analyze files of the specified type(s). If not set, the program will process"
+                " files of all supported types."
+            ),
         )
         args_parser.add_argument(
             "--pretokenized",
@@ -286,7 +299,8 @@ Contact:
                 if os.path.isfile(path):
                     verified_ifile_list.append(path)
                 elif os.path.isdir(path):
-                    verified_ifile_list.extend(glob.glob(f"{path}{os.path.sep}*.txt"))
+                    for ftype in options.ifile_types:
+                        verified_ifile_list.extend(glob.glob(f"{path}{os.path.sep}*.{ftype}"))
                 elif glob.glob(path):
                     verified_ifile_list.extend(glob.glob(path))
                 else:
@@ -303,7 +317,8 @@ Contact:
                     if os.path.isfile(path):
                         verified_subfiles.append(path)
                     elif os.path.isdir(path):
-                        verified_subfiles.extend(glob.glob(f"{path}{os.path.sep}*.txt"))
+                        for ftype in options.ifile_types:
+                            verified_subfiles.extend(glob.glob(f"{path}{os.path.sep}*.{ftype}"))
                     elif glob.glob(path):
                         verified_subfiles.extend(glob.glob(path))
                     else:
@@ -324,8 +339,10 @@ Contact:
             if ofile_freq_ext not in ("csv", "json"):
                 return (
                     False,
-                    f"The file extension {ofile_freq_ext} is not supported. Use one of"
-                    " the following:\n1. csv\n2. json",
+                    (
+                        f"The file extension {ofile_freq_ext} is not supported. Use one of"
+                        " the following:\n1. csv\n2. json"
+                    ),
                 )
             if ofile_freq_ext != options.oformat_freq:
                 options.oformat_freq = ofile_freq_ext
@@ -461,13 +478,15 @@ Contact:
 
     def check_python(self) -> SCAProcedureResult:
         v_info = sys.version_info
-        if v_info.minor >= 7 and v_info.major == 3:
+        if v_info >= (3, 7):
             return True, None
         else:
             return (
                 False,
-                f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                " NeoSCA only supports Python 3.7 or higher.",
+                (
+                    f"Error: Python {v_info.major}.{v_info.minor} is too old."
+                    " NeoSCA only supports Python 3.7 or higher."
+                ),
             )
 
     def exit_routine(self) -> None:
@@ -571,7 +590,7 @@ Contact:
             for ifile in sorted(self.verified_ifile_list):
                 print(f" {ifile}")
         if self.verified_subfile_lists:
-            for i,subfiles in enumerate(self.verified_subfile_lists):
+            for i, subfiles in enumerate(self.verified_subfile_lists):
                 print(f"Input subfile list {i+1}:")
                 for subfile in subfiles:
                     print(f" {subfile}")

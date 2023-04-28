@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 [English](https://github.com/tanloong/neosca#readme)
 
-NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重写版本，添加了对 Windows 的支持和更多的命令行选项。与 L2SCA 一样，NeoSCA 对 txt 格式的英文语料统计以下内容：
+NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重写版本，添加了对 Windows 的支持和更多的命令行选项。NeoSCA 对英文语料统计以下内容：
 
 <details>
 
@@ -81,8 +81,9 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 
 ## Highlights
 
-* 支持 **Windows**、macOS 和 Linux 系统。
-* 提供灵活的命令行选项
+* 跨平台：支持 **Windows**、macOS 和 Linux 系统。
+* 灵活的命令行选项
+* 支持 docx 格式的输入文件
 
 ## 安装
 
@@ -124,12 +125,14 @@ NeoSCA 是通过命令行来使用的。在终端中输入 `nsca --help` 加回�
 
 #### 单个输入文件
 
-在终端中输入 `nsca` 右边加输入文件的路径。
+在终端中输入 `nsca` 加空格，后面跟输入文件的路径。
 
 ```sh
 nsca ./samples/sample1.txt
-# 输出文件: ./result.csv
+nsca ./samples/sample1.docx
 ```
+
+docx 文件需要事先删除表格、图表、图片等不相关元素，页眉页脚会自动忽略，不必删除 (若有)。
 
 输出文件会保存在当前路径下，默认文件名是 `result.csv`，使用 `-o/--output-file` 可以自定义输出文件名。
 
@@ -157,7 +160,9 @@ nsca "./samples/sample 1.txt"
 在 `nsca` 的右边指定输入文件夹。
 
 ```
-nsca samples/ # 分析 samples/ 文件夹下所有的".txt" 文件
+nsca samples/ # 分析 samples/ 文件夹下所有的 txt 和 docx 文件
+nsca samples/ --ftype txt # 只分析 txt 文件
+nsca samples/ --ftype docx # 只分析 docx 文件
 ```
 
 或者以空格为间隔列出输入文件：
@@ -208,7 +213,7 @@ NeoSCA 默认计算所有指标的值，使用 `--select` 可以只计算选定�
 nsca --select VP T DC_C -- sample1.txt
 ```
 
-注意需要使用 `--` 将选定指标与输入文件名区分开。`--` 右边的所有参数都将被视为输入文件名，请确保在 `--` 的左边指定除了输入文件名之外的参数。
+注意需要使用 `--` 将选定指标与输入文件名区分开。`--` 右边的所有参数都将被视为输入文件名，请确保将输入文件名之外的参数写在 `--` 的左边。
 
 #### 合并子文件
 
