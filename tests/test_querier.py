@@ -5,14 +5,14 @@ from neosca.querier import StanfordTregex
 from neosca.structure_counter import StructureCounter
 
 from .base_tmpl import BaseTmpl
-from .base_tmpl import dir_stanford_tregex
+from .base_tmpl import classpaths
 from .base_tmpl import tree
 
 
 class TestStanfordTregex(BaseTmpl):
     def setUp(self):
         self.counter = StructureCounter()
-        self.tregex = StanfordTregex(dir_stanford_tregex)
+        self.tregex = StanfordTregex(classpaths=classpaths)
         return super().setUp()
 
     def test_query(self):
