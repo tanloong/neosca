@@ -43,9 +43,10 @@ def read_txt(path: str, is_guess_encoding=True) -> str:
             content = f.read()
     else:
         with open(path, "rb") as f:
-            content = f.read()
-        content = str(from_bytes(content).best()) 
+            bytes_ = f.read()
+        content = str(from_bytes(bytes_).best())
     return content
+
 
 def read_file(path: str) -> str:
     _, ext = os.path.splitext(path)
@@ -69,8 +70,10 @@ def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
     except PermissionError:
         return (
             False,
-            f"PermissionError: can not write to {filename}, because it is already"
-            f" in use by another process.\n\n1. Ensure that {filename} is closed,"
-            " or \n2. Specify another output filename through the `-o` option,"
-            f" e.g. nsca input.txt -o {filename.replace('.csv', '-2.csv')}",
+            (
+                f"PermissionError: can not write to {filename}, because it is already"
+                f" in use by another process.\n\n1. Ensure that {filename} is closed,"
+                " or \n2. Specify another output filename through the `-o` option,"
+                f" e.g. nsca input.txt -o {filename.replace('.csv', '-2.csv')}"
+            ),
         )
