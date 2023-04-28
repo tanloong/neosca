@@ -13,11 +13,11 @@
 
 ![](img/testing-on-Windows.gif)
 
-[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md) |
-繁體中文 |
+簡體中文 |
+[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 [English](https://github.com/tanloong/neosca#readme)
 
-NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重寫版本，添加了對 Windows 的支持和更多的命令行選項。與 L2SCA 一樣，NeoSCA 對 txt 格式的英文語料統計以下內容：
+NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重寫版本，添加了對 Windows 的支持和更多的命令行選項。NeoSCA 對英文語料統計以下內容：
 
 <details>
 
@@ -31,16 +31,16 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 4. 子句
 5. T 單位
 6. 從屬子句
-7. 復雜 T 單位
-8. 并列短語
-9. 復雜名詞性短語
+7. 複雜 T 單位
+8. 並列短語
+9. 複雜名詞性短語
 
 </details>
 
 <details>
 
 <summary>
-14 種句法復雜度指標的值
+14 種句法複雜度指標的值
 </summary>
 
 1. 平均句子長度
@@ -51,12 +51,12 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 6. 每個 T 單位中的子句數量
 7. 從屬子句比率，即每個子句中的從屬子句數量
 8. 每個 T 單位中的從屬子句數量 
-9. 并列句比率，即每個句子中的 T 單位數量
-10. 復雜 T 單位比率，即每個 T 單位中的復雜 T 單位數量
-11. 每個 T 單位中的并列短語數量
-12. 每個子句中的并列短語數量
-13. 每個 T 單位中的復雜名詞性短語數量
-14. 每個子句中的復雜名詞性短語數量
+9. 並列句比率，即每個句子中的 T 單位數量
+10. 複雜 T 單位比率，即每個 T 單位中的複雜 T 單位數量
+11. 每個 T 單位中的並列短語數量
+12. 每個子句中的並列短語數量
+13. 每個 T 單位中的複雜名詞性短語數量
+14. 每個子句中的複雜名詞性短語數量
 
 </details>
 
@@ -73,7 +73,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
     * [進階使用](#進階使用)
     * [其他](#其他)
 * [引用](#引用)
-* [類似軟件](#類似軟件)
+* [類似軟體](#類似軟體)
 * [許可證](#許可證)
 * [聯繫](#聯繫)
 
@@ -81,8 +81,9 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 
 ## Highlights
 
-* 支持 **Windows**、macOS 和 Linux 系統。
-* 提供靈活的命令行選項
+* 跨平臺：支持 **Windows**、macOS 和 Linux 系統。
+* 靈活的命令行選項
+* 支持 docx 格式的輸入文件
 
 ## 安裝
 
@@ -124,12 +125,14 @@ NeoSCA 是通過命令行來使用的。在終端中輸入 `nsca --help` 加回�
 
 #### 單個輸入文件
 
-在終端中輸入 `nsca` 右邊加輸入文件的路徑。
+在終端中輸入 `nsca` 加空格，後面跟輸入文件的路徑。
 
 ```sh
 nsca ./samples/sample1.txt
-# 輸出文件: ./result.csv
+nsca ./samples/sample1.docx
 ```
+
+docx 文件需要事先刪除表格、圖表、圖片等不相關元素，頁眉頁腳會自動忽略，不必刪除 (若有)。
 
 輸出文件會保存在當前路徑下，默認文件名是 `result.csv`，使用 `-o/--output-file` 可以自定義輸出文件名。
 
@@ -148,13 +151,21 @@ nsca ./samples/sample1.txt -o sample1.csv
 nsca "./samples/sample 1.txt"
 ```
 
-這可以讓包括空格在內的整個路徑被識別為單個輸入文件，否則 “./samples/sample” 和 “1.txt” 會被認為是兩個文件，因為這兩個文件都不存在，所以程序會運行失敗。
+這可以讓包括空格在內的整個路徑被識別為單個輸入文件，否則 「./samples/sample」 和 「1.txt」 會被認為是兩個文件，因為這兩個文件都不存在，所以程序會運行失敗。
 
 </details>
 
 #### 多個輸入文件
 
-以空格為間隔，在 `nsca` 的右邊列出輸入文件：
+在 `nsca` 的右邊指定輸入文件夾。
+
+```
+nsca samples/ # 分析 samples/ 文件夾下所有的 txt 和 docx 文件
+nsca samples/ --ftype txt # 只分析 txt 文件
+nsca samples/ --ftype docx # 只分析 docx 文件
+```
+
+或者以空格為間隔列出輸入文件：
 
 ```sh
 cd ./samples/
@@ -165,7 +176,7 @@ nsca sample1.txt sample2.txt
 
 ```sh
 cd ./samples/
-nsca sample*.txt # 指定所有文件名以 “sample” 開頭並且以 “.txt” 結尾的文件
+nsca sample*.txt # 指定所有文件名以 「sample」 開頭並且以 「.txt」 結尾的文件
 nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
@@ -202,11 +213,11 @@ NeoSCA 默認計算所有指標的值，使用 `--select` 可以只計算選定�
 nsca --select VP T DC_C -- sample1.txt
 ```
 
-注意需要使用 `--` 將選定指標與輸入文件名區分開。`--` 右邊的所有參數都將被視為輸入文件名，請確保在 `--` 的左邊指定除了輸入文件名之外的參數。
+注意需要使用 `--` 將選定指標與輸入文件名區分開。`--` 右邊的所有參數都將被視為輸入文件名，請確保將輸入文件名之外的參數寫在 `--` 的左邊。
 
 #### 合併子文件
 
-使用 `-c`/`--combine-subfiles` 選項可以累加子文件中 9 種句法結構的頻次並計算原文件的 14 種句法復雜度指標的值。你可以使用多個 `-c` 來分別合併不同的子文件列表。命令中同時含有輸入子文件名和輸入文件名時需要使用 `--` 把二者區分開。
+使用 `-c`/`--combine-subfiles` 選項可以累加子文件中 9 種句法結構的頻次並計算原文件的 14 種句法複雜度指標的值。你可以使用多個 `-c` 來分別合併不同的子文件列表。命令中同時含有輸入子文件名和輸入文件名時需要使用 `--` 把二者區分開。
 
 ```sh
 nsca -c sample1-sub1.txt sample1-sub2.txt
@@ -281,7 +292,7 @@ nsca --text 'This is a test.' --no-query
 # 句法樹: ./cmdline_text.parsed
 ```
 
-#### 列出 9 種句法結構和 14 個句法復雜度指標
+#### 列出 9 種句法結構和 14 個句法複雜度指標
 
 <details>
 
@@ -329,7 +340,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.39},
+title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.40},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -344,7 +355,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.39) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.40) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -354,7 +365,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.39, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.40, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -402,13 +413,13 @@ MLA (9th edition)
 
 </details>
 
-## 類似軟件
+## 類似軟體
 
 + [L2SCA](https://sites.psu.edu/xxl13/l2sca/) 原版，使用的是 Python，作者 [Xiaofei Lu](https://sites.psu.edu/xxl13)
 + [L2SCA online](https://aihaiyang.com/software/l2sca/)，作者 [Haiyang Ai](https://aihaiyang.com/)
 + [TAASSC](https://www.linguisticanalysistools.org/taassc.html)，使用的是 Python，作者 [Kristopher Kyle]( https://kristopherkyle.github.io/professional-webpage/)
 + [L2SCA R 語言版](https://pennstateoffice365-my.sharepoint.com/personal/xxl13_psu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads%2FL2SCA%5FR%2Ezip&parent=%2Fpersonal%2Fxxl13%5Fpsu%5Fedu%2FDocuments%2Fother%2Dwork%2Fwebpage%2Fdownloads&ga=1)，作者 [Thomas Gaillat](https://perso.univ-rennes2.fr/thomas.gaillat)、Anas Knefati 和 Antoine Lafontaine
-+ [FSCA](https://github.com/nvandeweerd/fsca) (法語句法復雜度分析器)，使用的是 R 語言，作者 [Nate Vandeweerd](https://github.com/nvandeweerd)
++ [FSCA](https://github.com/nvandeweerd/fsca) (法語句法複雜度分析器)，使用的是 R 語言，作者 [Nate Vandeweerd](https://github.com/nvandeweerd)
 
 ## 許可證
 

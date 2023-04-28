@@ -1,1 +1,2 @@
 JPype1
+charset-normalizer

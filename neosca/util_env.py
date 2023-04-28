@@ -134,3 +134,9 @@ def search_java_home() -> Optional[str]:
         if glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*")):
             candidate = glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*"))[0]
     return candidate
+
+
+def unite_classpaths(stanford_parser_home, stanford_tregex_home) -> list:
+    cp_parser = os.path.join(stanford_parser_home, "*")
+    cp_tregex = os.path.join(stanford_tregex_home, "stanford-tregex.jar")
+    return [cp_parser, cp_tregex]

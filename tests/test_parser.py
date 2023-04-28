@@ -4,13 +4,13 @@
 from .base_tmpl import BaseTmpl
 from .base_tmpl import text
 from .base_tmpl import tree as tree_expected
-from .base_tmpl import dir_stanford_parser
+from .base_tmpl import classpaths
 from neosca.parser import StanfordParser
 
 
 class TestStanfordParser(BaseTmpl):
     def setUp(self):
-        self.parser = StanfordParser(dir_stanford_parser)
+        self.parser = StanfordParser(classpaths=classpaths)
         return super().setUp()
 
     def test_parse(self):
