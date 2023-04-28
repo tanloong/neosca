@@ -32,3 +32,6 @@ lint:
 	black neosca/ tests/ --line-length 97 --preview
 	flake8 neosca/ tests/ --count --max-line-length=97 --statistics --ignore=E203,E501,W503
 	mypy --check-untyped-defs neosca/
+
+README_zh_tw.md: README_zh_cn.md
+	cd ~/software/zhconv && python -m zhconv zh-tw < ~/projects/neosca/README_zh_cn.md > ~/projects/neosca/README_zh_tw.md

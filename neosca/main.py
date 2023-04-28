@@ -478,15 +478,13 @@ Contact:
 
     def check_python(self) -> SCAProcedureResult:
         v_info = sys.version_info
-        if v_info >= (3, 7):
+        if v_info.minor >= 7 and v_info.major == 3:
             return True, None
         else:
             return (
                 False,
-                (
-                    f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                    " NeoSCA only supports Python 3.7 or higher."
-                ),
+                f"Error: Python {v_info.major}.{v_info.minor} is too old."
+                " NeoSCA only supports Python 3.7 or higher.",
             )
 
     def exit_routine(self) -> None:
