@@ -100,8 +100,10 @@ class depends_installer:
             else:
                 return (
                     False,
-                    "Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at"
-                    f" {index_url}.",
+                    (
+                        "Failed to find any archive file (*.zip, *.tar.gz, *.tar, or *.7z) at"
+                        f" {index_url}."
+                    ),
                 )
 
     def _get_normalized_archive_ext(self, file: str) -> SCAProcedureResult:
@@ -205,23 +207,29 @@ class depends_installer:
             if "Content-Disposition" not in info:
                 return (
                     False,
-                    f"Parsing the response from {download_url} failed. \nReason:"
-                    ' "Content-Disposition" not in response.info().',
+                    (
+                        f"Parsing the response from {download_url} failed. \nReason:"
+                        ' "Content-Disposition" not in response.info().'
+                    ),
                 )
             m = email.message.Message()
             m["content-type"] = info["Content-Disposition"]
             if m.get_param("filename") is None:
                 return (
                     False,
-                    f"Parsing the response from {download_url} failed.\nReason: can't detect"
-                    " the filename.",
+                    (
+                        f"Parsing the response from {download_url} failed.\nReason: can't detect"
+                        " the filename."
+                    ),
                 )
             filename = m.get_param("filename")
             if not isinstance(filename, str):
                 return (
                     False,
-                    f"Parsing the response from {download_url} failed.\nReason: the value of"
-                    ' the attribute "filename" is not a str.',
+                    (
+                        f"Parsing the response from {download_url} failed.\nReason: the value of"
+                        ' the attribute "filename" is not a str.'
+                    ),
                 )
         return True, filename
 

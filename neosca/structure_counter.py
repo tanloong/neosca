@@ -59,17 +59,21 @@ class StructureCounter:
         self.C1 = Structure(
             "C1",
             "regular clauses",
-            "S|SINV|SQ "
-            "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-            "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]",
+            (
+                "S|SINV|SQ "
+                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
+                "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]"
+            ),
         )
         self.C2 = Structure(
             "C2",
             "fragment clauses",
-            "FRAG > ROOT !<< "
-            "(S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-            "(VP [<# MD|VBP|VBZ|VBD | < CC < "
-            "(VP <# MD|VBP|VBZ|VBD)])])",
+            (
+                "FRAG > ROOT !<< "
+                "(S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
+                "(VP [<# MD|VBP|VBZ|VBD | < CC < "
+                "(VP <# MD|VBP|VBZ|VBD)])])"
+            ),
         )
         self.T1 = Structure(
             "T1",
@@ -95,19 +99,23 @@ class StructureCounter:
         self.DC = Structure(
             "DC",
             "dependent clauses",
-            "SBAR < "
-            "(S|SINV|SQ "
-            "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-            "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])",
+            (
+                "SBAR < "
+                "(S|SINV|SQ "
+                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
+                "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
+            ),
         )
         self.CT = Structure(
             "CT",
             "complex T-units",
-            "S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << "
-            "(SBAR < (S|SINV|SQ "
-            "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-            "(VP [<# MD|VBP|VBZ|VBD | < CC < "
-            "(VP <# MD|VBP|VBZ|VBD)])]))",
+            (
+                "S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << "
+                "(SBAR < (S|SINV|SQ "
+                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
+                "(VP [<# MD|VBP|VBZ|VBD | < CC < "
+                "(VP <# MD|VBP|VBZ|VBD)])]))"
+            ),
         )
         self.CP = Structure("CP", "coordinate phrases", "ADJP|ADVP|NP|VP < CC")
 
