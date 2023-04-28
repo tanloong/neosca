@@ -11,6 +11,7 @@
 ### Bug Fixes
 
 + Fix subsequent files cannot be processed if parsed results for preceding files are present (#20)
++ Fix incorrect column alignment in the csv output if filenames contain commas
 
 ## [0.0.39](https://github.com/tanloong/neosca/releases/tag/0.0.39) (8 April 2023)
 
