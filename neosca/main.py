@@ -6,11 +6,11 @@ import sys
 from typing import List, Optional
 
 from . import __version__
+from .io import try_write
 from .util import SCAProcedureResult
 from .util_env import getenv
 from .util_env import setenv
 from .util_env import search_java_home
-from .util_io import try_write
 from .util_print import color_print
 
 
