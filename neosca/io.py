@@ -48,13 +48,19 @@ class SCAIO:
                 content = f.read()
         else:
             try:
+                logging.info(
+                    f"Attempting to read {path} with {self.previous_encoding} encoding..."
+                )
                 with open(path, "r", encoding=self.previous_encoding) as f:  # type:ignore
                     content = f.read()
             except ValueError:
+                logging.info(f"Attempt failed. Reading {path} in binary mode...")
                 with open(path, "rb") as f:
                     bytes_ = f.read()
+                logging.info("Guessing the encoding of the byte string...")
                 encoding = detect(bytes_)["encoding"]
                 if encoding is not None:
+                    logging.info(f"Decoding the byte string with {encoding} encoding...")
                     content = bytes_.decode(encoding=encoding)  # type:ignore
                     self.previous_encoding = encoding  # type:ignore
                 else:
