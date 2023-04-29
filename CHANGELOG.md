@@ -1,12 +1,18 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.41](https://github.com/tanloong/neosca/releases/tag/0.0.41) (29 April 2023)
+## [0.0.42](https://github.com/tanloong/neosca/releases/tag/0.0.42) (29 April 2023)
+
+### Bug Fixes
+
++ Update dependents in setup.py
+
+## [0.0.42](https://github.com/tanloong/neosca/releases/tag/0.0.42) (29 April 2023)
 
 ### Improvements
 
-+ try reusing previously detected encoding for txt files before detecting again
++ Try reusing previously detected encoding for txt files before detecting again
 
-## [0.0.40](https://github.com/tanloong/neosca/releases/tag/0.0.41) (29 April 2023)
+## [0.0.40](https://github.com/tanloong/neosca/releases/tag/0.0.42) (29 April 2023)
 
 ### New Features
 
