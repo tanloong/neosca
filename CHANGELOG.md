@@ -1,10 +1,16 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.40](https://github.com/tanloong/neosca/releases/tag/0.0.40) (29 April 2023)
+## [0.0.41](https://github.com/tanloong/neosca/releases/tag/0.0.41) (29 April 2023)
+
+### Improvements
+
++ try reusing previously detected encoding for txt files before detecting again
+
+## [0.0.40](https://github.com/tanloong/neosca/releases/tag/0.0.41) (29 April 2023)
 
 ### New Features
 
-+ Add support for input directories, allowing users to process batches of files more easily and efficiently.
++ Add support for input directories, allowing users to process batches of files more easily.
 + Add support for reading docx files, in addition to the previously-supported txt files.
 + Add the ability to guess the encoding of txt files, making it easier to read files with unknown or non-utf8 encodings.
 

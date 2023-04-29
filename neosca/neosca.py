@@ -3,12 +3,11 @@ import os
 import sys
 from typing import Dict, List, Optional, Set
 
+from .io import SCAIO
 from .parser import StanfordParser
 from .querier import StanfordTregex
 from .structure_counter import StructureCounter
 from .util_env import unite_classpaths
-from .util_io import read_txt
-from .util_io import read_file
 
 
 class NeoSCA:
@@ -43,6 +42,7 @@ class NeoSCA:
         self.is_pretokenized = is_pretokenized
         self.is_verbose = is_verbose
         self.counter_lists: List[StructureCounter] = []
+        self.io = SCAIO()
 
         self.is_stanford_parser_initialized = False
         self.is_stanford_tregex_initialized = False
@@ -112,8 +112,8 @@ class NeoSCA:
                 f"[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
             )
-            return read_txt(ofile_parsed, is_guess_encoding=False)
-        text = read_file(ifile)
+            return self.io.read_txt(ofile_parsed, is_guess_encoding=False)
+        text = self.io.read_file(ifile)
         try:
             trees = self.parse_text(text, ofile_parsed)
         except KeyboardInterrupt:
