@@ -15,13 +15,15 @@ from charset_normalizer import detect
 
 from .util import SCAProcedureResult
 
-WORD_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-PARA = WORD_NAMESPACE + "p"
-TEXT = WORD_NAMESPACE + "t"
-
 
 class SCAIO:
+
+    DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    DOCX_PARA = DOCX_NAMESPACE + "p"
+    DOCX_TEXT = DOCX_NAMESPACE + "t"
+
     def __init__(self) -> None:
+        self.ext_read_map = {".txt": self.read_txt, ".docx": self.read_docx}
         self.previous_encoding = "utf-8"
 
     def read_docx(self, path) -> str:
@@ -37,8 +39,8 @@ class SCAIO:
         tree = XML(xml_content)
 
         paragraphs = []
-        for paragraph in tree.iter(PARA):
-            text = "".join(node.text for node in paragraph.iter(TEXT) if node.text)
+        for paragraph in tree.iter(self.DOCX_PARA):
+            text = "".join(node.text for node in paragraph.iter(self.DOCX_TEXT) if node.text)
             paragraphs.append(text)
         return "\n".join(paragraphs)
 
@@ -70,13 +72,10 @@ class SCAIO:
 
     def read_file(self, path: str) -> str:
         _, ext = os.path.splitext(path)
-
-        if ext == ".txt":
-            return self.read_txt(path)
-        elif ext == ".docx":
-            return self.read_docx(path)
-        else:
+        if ext not in self.ext_read_map:
             raise ValueError("Unexpected file type. Only txt and docx files are supported.")
+        else:
+            return self.ext_read_map[ext](path)
 
 
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
