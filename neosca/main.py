@@ -483,8 +483,10 @@ Contact:
         else:
             return (
                 False,
-                f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                " NeoSCA only supports Python 3.7 or higher.",
+                (
+                    f"Error: Python {v_info.major}.{v_info.minor} is too old."
+                    " NeoSCA only supports Python 3.7 or higher."
+                ),
             )
 
     def exit_routine(self) -> None:
