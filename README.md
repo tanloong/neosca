@@ -83,7 +83,7 @@ the frequency of 9 structures in the text:
 
 * Cross-platform compatibility: Windows, macOS, and Linux
 * Flexible command-line options to serve various needs
-* Supports reading docx files
+* Supports reading docx/odt files
 
 ## Install
 
@@ -139,7 +139,7 @@ nsca ./samples/sample1.txt
 nsca ./samples/sample1.docx
 ```
 
-When working on docx files, tables, figures, images, and other unrelated elements (except for headers and footers, which will be automatically ignored) should be manually removed before they are analyzed.
+Tables, figures, images, and other unrelated elements (except for headers and footers, which will be automatically ignored) should be manually removed before docx/odt files are analyzed.
 
 After running the above command, a `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o/--output-file`.
 

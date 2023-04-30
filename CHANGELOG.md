@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.43]() ()
+
+### New Features
+
++ Add support for reading odt files
+
 ## [0.0.42](https://github.com/tanloong/neosca/releases/tag/0.0.42) (29 April 2023)
 
 ### Bug Fixes

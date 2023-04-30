@@ -83,7 +83,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 
 * 跨平台：支持 **Windows**、macOS 和 Linux 系统。
 * 灵活的命令行选项
-* 支持 docx 格式的输入文件
+* 支持 docx/odt 格式的输入文件
 
 ## 安装
 
@@ -132,7 +132,7 @@ nsca ./samples/sample1.txt
 nsca ./samples/sample1.docx
 ```
 
-docx 文件需要事先删除表格、图表、图片等不相关元素，页眉页脚会自动忽略，不必删除 (若有)。
+docx/odt 文件需要事先删除表格、图表、图片等不相关元素，页眉页脚会自动忽略，不必删除 (若有)。
 
 输出文件会保存在当前路径下，默认文件名是 `result.csv`，使用 `-o/--output-file` 可以自定义输出文件名。
 

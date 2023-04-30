@@ -2,9 +2,9 @@
 # -*- coding=utf-8 -*-
 
 try:
-    from xml.etree.cElementTree import XML
+    from xml.etree.cElementTree import XML, fromstring
 except ImportError:
-    from xml.etree.ElementTree import XML
+    from xml.etree.ElementTree import XML, fromstring
 import logging
 import os
 import sys
@@ -17,25 +17,30 @@ from .util import SCAProcedureResult
 
 
 class SCAIO:
-
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"
     DOCX_TEXT = DOCX_NAMESPACE + "t"
 
+    ODT_NAMESPACE = ".//{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
+    ODT_PARA = ODT_NAMESPACE + "p"
+
     def __init__(self) -> None:
-        self.ext_read_map = {".txt": self.read_txt, ".docx": self.read_docx}
+        self.ext_read_map = {
+            ".txt": self.read_txt,
+            ".docx": self.read_docx,
+            ".odt": self.read_odt,
+        }
         self.previous_encoding = "utf-8"
 
-    def read_docx(self, path) -> str:
+    def read_docx(self, path: str) -> str:
         """
         Take the path of a docx file as argument, return the text in unicode.
         This approach does not extract text from tables, headers, and footers.
 
         https://etienned.github.io/posts/extract-text-from-word-docx-simply/
         """
-        document = zipfile.ZipFile(path)
-        xml_content = document.read("word/document.xml")
-        document.close()
+        with zipfile.ZipFile(path) as zip_file:
+            xml_content = zip_file.read("word/document.xml")
         tree = XML(xml_content)
 
         paragraphs = []
@@ -43,6 +48,13 @@ class SCAIO:
             text = "".join(node.text for node in paragraph.iter(self.DOCX_TEXT) if node.text)
             paragraphs.append(text)
         return "\n".join(paragraphs)
+
+    def read_odt(self, path: str) -> str:
+        with zipfile.ZipFile(path) as zip_file:
+            xml_content = zip_file.read("content.xml")
+        root = fromstring(xml_content)
+        paragraphs = root.findall(self.ODT_PARA)
+        return "\n".join("".join(node.itertext()) for node in paragraphs)
 
     def read_txt(self, path: str, is_guess_encoding=True) -> str:
         if not is_guess_encoding:
@@ -61,6 +73,7 @@ class SCAIO:
                     bytes_ = f.read()
                 logging.info("Guessing the encoding of the byte string...")
                 encoding = detect(bytes_)["encoding"]
+
                 if encoding is not None:
                     logging.info(f"Decoding the byte string with {encoding} encoding...")
                     content = bytes_.decode(encoding=encoding)  # type:ignore
@@ -75,7 +88,7 @@ class SCAIO:
         if ext not in self.ext_read_map:
             raise ValueError("Unexpected file type. Only txt and docx files are supported.")
         else:
-            return self.ext_read_map[ext](path)
+            return self.ext_read_map[ext](path)  # type:ignore
 
 
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
