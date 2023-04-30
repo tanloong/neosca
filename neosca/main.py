@@ -16,7 +16,7 @@ from .util_print import color_print
 
 class SCAUI:
     def __init__(self) -> None:
-        self.supported_ifile_types = ["txt", "docx"]
+        self.supported_ifile_types = ["txt", "docx", "odt"]
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -85,8 +85,8 @@ class SCAUI:
             ),
         )
         args_parser.add_argument(
-            "-c",
             "--combine-files",
+            "-c",
             metavar="<subfile>",
             dest="subfile_lists",
             action="append",
@@ -95,8 +95,8 @@ class SCAUI:
             help="Combine frequency output of multiple files.",
         )
         args_parser.add_argument(
-            "-t",
             "--text",
+            "-t",
             metavar="<text>",
             default=None,
             help="Pass text through the command line.",
@@ -120,8 +120,8 @@ class SCAUI:
             help="Assume that the text has already been tokenized.",
         )
         args_parser.add_argument(
-            "-o",
             "--output-file",
+            "-o",
             metavar="<filename>",
             dest="ofile_freq",
             default=None,
@@ -180,16 +180,16 @@ class SCAUI:
             ),
         )
         args_parser.add_argument(
-            "-p",
             "--reserve-parsed",
+            "-p",
             dest="is_reserve_parsed",
             action="store_true",
             default=False,
             help="Reserve the parsed trees produced by the Stanford Parser.",
         )
         args_parser.add_argument(
-            "-m",
             "--reserve-matched",
+            "-m",
             dest="is_reserve_matched",
             default=False,
             action="store_true",
