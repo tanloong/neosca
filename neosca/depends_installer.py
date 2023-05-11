@@ -86,7 +86,7 @@ class depends_installer:
             "Do you want to download Java from a Chinese mirror site? If you are inside of"
             " China, you may want to use this for a faster network connection."
         )
-        if self.is_use_chinese_jdk_mirror in ("n", "N"):
+        if self.is_use_chinese_jdk_mirror in ("n", "N", "no", "No"):
             return True, self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
         else:
             index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)
@@ -304,7 +304,7 @@ class depends_installer:
                 f"It seems that {name} has not been installed, because {reason_dict[name]}. Do"
                 " you want to let NeoSCA install it for you?"
             )
-        if is_install in ("n", "N"):
+        if is_install in ("n", "N", "no", "No"):
             manual_install_prompt_dict = {
                 JAVA: (
                     f"You will have to install {JAVA} manually.\n\n1. To install it, visit"
