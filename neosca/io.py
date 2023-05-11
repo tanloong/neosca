@@ -8,7 +8,7 @@ except ImportError:
 import logging
 import os
 import sys
-from typing import Optional
+from typing import ByteString, Optional, Union
 import zipfile
 
 from charset_normalizer import detect
@@ -56,39 +56,45 @@ class SCAIO:
         paragraphs = root.findall(self.ODT_PARA)
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
+    def _read_txt(self, path: str, mode:str, encoding:Optional[str]=None) -> Union[str, ByteString]:
+        try:
+            with open(path, mode=mode, encoding=encoding) as f:
+                content = f.read()
+        except FileNotFoundError:
+            logging.critical(f"{path} does not exist.")
+            sys.exit(1)
+        else:
+            return content
+
     def read_txt(self, path: str, is_guess_encoding=True) -> str:
         if not is_guess_encoding:
-            with open(path, "r", encoding="utf-8") as f:
-                content = f.read()
+            content = self._read_txt(path, "r", "utf-8")
         else:
             try:
                 logging.info(
                     f"Attempting to read {path} with {self.previous_encoding} encoding..."
                 )
-                with open(path, "r", encoding=self.previous_encoding) as f:  # type:ignore
-                    content = f.read()
+                content = self._read_txt(path, "r", self.previous_encoding) #type:ignore
             except ValueError:
                 logging.info(f"Attempt failed. Reading {path} in binary mode...")
-                with open(path, "rb") as f:
-                    bytes_ = f.read()
+                bytes_ = self._read_txt(path, "rb")
                 logging.info("Guessing the encoding of the byte string...")
-                encoding = detect(bytes_)["encoding"]
+                encoding = detect(bytes_)["encoding"] #type:ignore
 
                 if encoding is not None:
                     logging.info(f"Decoding the byte string with {encoding} encoding...")
                     content = bytes_.decode(encoding=encoding)  # type:ignore
                     self.previous_encoding = encoding  # type:ignore
                 else:
-                    logging.critical(f"Cannot detect encoding for {path}.")
+                    logging.critical(f"{path} is of unsupported file type.")
                     sys.exit(1)
-        return content
+        return content #type:ignore
 
     def read_file(self, path: str) -> str:
         _, ext = os.path.splitext(path)
         if ext not in self.ext_read_map:
-            raise ValueError("Unexpected file type. Only txt and docx files are supported.")
-        else:
-            return self.ext_read_map[ext](path)  # type:ignore
+            ext = ".txt" # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
+        return self.ext_read_map[ext](path)  # type:ignore
 
 
 def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
