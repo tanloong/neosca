@@ -2,19 +2,15 @@ import setuptools
 
 with open("./README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
-with open("./neosca/__init__.py", "r", encoding="utf-8") as f:
-    for line in f.readlines():
-        if line.startswith("__version__"):
-            delim = '"' if '"' in line else "'"
-            version = line.split(delim)[1]
-            break
-    else:
-        print("Can't find version! Stop Here!")
-        exit(1)
+
+with open("./neosca/about.py", "r", encoding="utf-8") as f:
+    about = {}
+    exec(f.read(), about)
+
 setuptools.setup(
     name="neosca",
-    version=version,
-    author="TAN Long",
+    version=about["__version__"],
+    author="Long Tan",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
     packages=["neosca"],
