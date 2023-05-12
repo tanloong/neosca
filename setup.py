@@ -1,29 +1,31 @@
 import setuptools
+from setuptools.command.install import install as install_
+
+class InstallCommand(install_):
+    def run(self):
+        install_.run(self)
+        from stanza import download as download_stanza
+        download_stanza("en", resources_url="stanfordnlp")
 
 with open("./README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
-with open("./neosca/__init__.py", "r", encoding="utf-8") as f:
-    for line in f.readlines():
-        if line.startswith("__version__"):
-            delim = '"' if '"' in line else "'"
-            version = line.split(delim)[1]
-            break
-    else:
-        print("Can't find version! Stop Here!")
-        exit(1)
+
+with open("./neosca/about.py", "r", encoding="utf-8") as f:
+    about = {}
+    exec(f.read(), about)
+
 setuptools.setup(
     name="neosca",
-    version=version,
-    author="TAN Long",
+    version=about["__version__"],
+    author="Long Tan",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
     packages=["neosca"],
     description="Another syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=['JPype1', 'charset-normalizer'],
+    install_requires=['JPype1', 'charset-normalizer', 'stanza'],
     classifiers=[
-        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.8",
@@ -34,6 +36,6 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8, <=3.10",
     entry_points={"console_scripts": ["nsca = neosca:main"]},
 )
