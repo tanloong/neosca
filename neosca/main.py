@@ -3,9 +3,9 @@ import glob
 import logging
 import os
 import sys
-from typing import List, Optional
+from typing import Callable, List, Optional
 
-from . import __version__
+from .about import __version__
 from .io import try_write
 from .util import SCAProcedureResult
 from .util_env import getenv
@@ -526,7 +526,7 @@ Contact:
         if msg_num > 0:
             logging.info("Done.")
 
-    def run_tmpl(func):  # type: ignore
+    def run_tmpl(func: Callable): # type:ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_python()
             if not sucess:
@@ -544,14 +544,14 @@ Contact:
 
         return wrapper
 
-    @run_tmpl  # type: ignore
+    @run_tmpl
     def run_on_text(self) -> None:
         from .neosca import NeoSCA
 
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_text(self.options.text)
 
-    @run_tmpl  # type: ignore
+    @run_tmpl
     def run_on_ifiles(self) -> None:
         from .neosca import NeoSCA
 
