@@ -135,20 +135,20 @@ class NeoSCA:
         if not self.is_skip_querying:
             if is_combine:
                 parent_counter = StructureCounter(selected_measures=self.selected_measures)
-                for i, ifile in enumerate(ifiles):
-                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                for i, ifile in enumerate(ifiles, 1):
+                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
                     child_counter = self.parse_ifile_and_query(ifile)
                     parent_counter += child_counter
                 self.counter_lists.append(parent_counter)
             else:
-                for i, ifile in enumerate(ifiles):
-                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+                for i, ifile in enumerate(ifiles, 1):
+                    logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
                     counter = self.parse_ifile_and_query(ifile)
                     self.counter_lists.append(counter)
             self.write_freq_output()
         else:
-            for i, ifile in enumerate(ifiles):
-                logging.info(f'[NeoSCA] Processing "{ifile}" ({i+1}/{total})...')
+            for i, ifile in enumerate(ifiles, 1):
+                logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
                 self.parse_ifile(ifile)
 
     def get_freq_output(self, format_: str) -> str:
