@@ -590,8 +590,8 @@ Contact:
             for ifile in sorted(self.verified_ifile_list):
                 print(f" {ifile}")
         if self.verified_subfile_lists:
-            for i, subfiles in enumerate(self.verified_subfile_lists):
-                print(f"Input subfile list {i+1}:")
+            for i, subfiles in enumerate(self.verified_subfile_lists, 1):
+                print(f"Input subfile list {i}:")
                 for subfile in subfiles:
                     print(f" {subfile}")
         return True, None
