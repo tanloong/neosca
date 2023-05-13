@@ -587,13 +587,13 @@ Contact:
     def expand_wildcards(self) -> SCAProcedureResult:
         if self.verified_ifile_list:
             print("Input files:")
-            for ifile in sorted(self.verified_ifile_list):
-                print(f" {ifile}")
+            for i,ifile in enumerate(self.verified_ifile_list, 1):
+                print(f" {i}. {ifile}")
         if self.verified_subfile_lists:
             for i, subfiles in enumerate(self.verified_subfile_lists, 1):
                 print(f"Input subfile list {i}:")
-                for subfile in subfiles:
-                    print(f" {subfile}")
+                for j,subfile in enumerate(subfiles, 1):
+                    print(f" {i}. {subfile}")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
