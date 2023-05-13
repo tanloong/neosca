@@ -585,15 +585,20 @@ Contact:
         return True, None
 
     def expand_wildcards(self) -> SCAProcedureResult:
+        is_not_found = True
         if self.verified_ifile_list:
+            is_not_found = False
             print("Input files:")
             for i,ifile in enumerate(self.verified_ifile_list, 1):
                 print(f" {i}. {ifile}")
         if self.verified_subfile_lists:
+            is_not_found = False
             for i, subfiles in enumerate(self.verified_subfile_lists, 1):
                 print(f"Input subfile list {i}:")
                 for j,subfile in enumerate(subfiles, 1):
                     print(f" {i}. {subfile}")
+        if is_not_found:
+            print(f"0 files and subfiles are found.")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
