@@ -397,11 +397,11 @@ Contact:
             setenv(
                 "JAVA_HOME",
                 [java_home],  # type:ignore
-                refresh=True,
+                is_refresh=True,
                 is_quiet=self.options.is_quiet,
             )
             setenv(
-                "PATH", [java_bin], refresh=False, is_quiet=self.options.is_quiet
+                "PATH", [java_bin], is_refresh=False, is_quiet=self.options.is_quiet
             )  # type:ignore
             os.environ["JAVA_HOME"] = java_home  # type:ignore
             os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
@@ -426,7 +426,7 @@ Contact:
                 setenv(
                     self.STANFORD_PARSER_HOME,
                     [stanford_parser_home],  # type:ignore
-                    refresh=True,
+                    is_refresh=True,
                     is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_parser_home = stanford_parser_home  # type:ignore
@@ -452,7 +452,7 @@ Contact:
                 setenv(
                     self.STANFORD_TREGEX_HOME,
                     [stanford_tregex_home],  # type:ignore
-                    refresh=True,
+                    is_refresh=True,
                     is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
