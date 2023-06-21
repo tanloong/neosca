@@ -35,7 +35,7 @@ class SCAIO:
     def read_docx(self, path: str) -> str:
         """
         Take the path of a docx file as argument, return the text in unicode.
-        This approach does not extract text from tables, headers, and footers.
+        This approach does not extract text from headers and footers.
 
         https://etienned.github.io/posts/extract-text-from-word-docx-simply/
         """
