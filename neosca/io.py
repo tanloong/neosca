@@ -60,6 +60,8 @@ class SCAIO:
         try:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()
+        # input file existence has already been checked before running (main.py: verified_ifile_list),
+        # here check it again in case users remove input files during runtime
         except FileNotFoundError:
             logging.critical(f"{path} does not exist.")
             sys.exit(1)
