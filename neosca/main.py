@@ -16,7 +16,7 @@ from .util_print import color_print
 
 class SCAUI:
     def __init__(self) -> None:
-        self.supported_ifile_types = ["txt", "docx", "odt"]
+        self.supported_ifile_types = [".txt", ".docx", ".odt"]
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -185,7 +185,7 @@ class SCAUI:
             dest="is_reserve_parsed",
             action="store_true",
             default=False,
-            help="Reserve the parsed trees produced by the Stanford Parser.",
+            help="Reserve the parse trees produced by the Stanford Parser.",
         )
         args_parser.add_argument(
             "--reserve-matched",
@@ -214,7 +214,7 @@ class SCAUI:
             dest="is_skip_querying",
             action="store_true",
             default=False,
-            help="Parse the input files, save the parsed trees and exit.",
+            help="Parse the input files, save the parse trees and exit.",
         )
         args_parser.add_argument(
             "--quiet",
@@ -522,7 +522,7 @@ Contact:
                 if self.verified_ifile_list or self.verified_subfile_lists:
                     msg_num += 1
                     logging.info(
-                        f"{msg_num}. Parsed trees were saved corresponding to input files,"
+                        f"{msg_num}. parse trees were saved corresponding to input files,"
                         ' with the same name but a ".parsed" extension.'
                     )
                 elif self.options.text is not None:
@@ -530,7 +530,7 @@ Contact:
                     color_print(
                         "OKGREEN",
                         f"{self.cwd}{os.sep}cmdline_text.parsed",
-                        prefix=f"{msg_num}. Parsed trees were saved to ",
+                        prefix=f"{msg_num}. parse trees were saved to ",
                         postfix=".",
                     )
             if self.options.is_reserve_matched:
@@ -544,7 +544,7 @@ Contact:
         if msg_num > 0:
             logging.info("Done.")
 
-    def run_tmpl(func: Callable): # type:ignore
+    def run_tmpl(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_python()
             if not sucess:
@@ -607,13 +607,13 @@ Contact:
         if self.verified_ifile_list:
             is_not_found = False
             print("Input files:")
-            for i,ifile in enumerate(self.verified_ifile_list, 1):
+            for i, ifile in enumerate(self.verified_ifile_list, 1):
                 print(f" {i}. {ifile}")
         if self.verified_subfile_lists:
             is_not_found = False
             for i, subfiles in enumerate(self.verified_subfile_lists, 1):
                 print(f"Input subfile list {i}:")
-                for j,subfile in enumerate(subfiles, 1):
+                for j, subfile in enumerate(subfiles, 1):
                     print(f" {i}. {subfile}")
         if is_not_found:
             print(f"0 files and subfiles are found.")

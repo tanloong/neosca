@@ -121,6 +121,7 @@ class NeoSCA:
                 f"[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
             )
+            # parse file are always (1) plain text, and (2) of utf-8 encoding
             return self.io.read_txt(ofile_parsed, is_guess_encoding=False)
         text = self.io.read_file(ifile)
         try:
