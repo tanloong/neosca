@@ -6,7 +6,7 @@ import sys
 from typing import Callable, List, Optional
 
 from .about import __version__
-from .io import try_write
+from .io import SCAIO
 from .util import SCAProcedureResult
 from .util_env import getenv
 from .util_env import setenv
@@ -535,7 +535,7 @@ Contact:
             if not sucess:
                 return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = try_write(self.options.ofile_freq, None)
+                sucess, err_msg = SCAIO.try_write(self.options.ofile_freq, None)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)  # type: ignore

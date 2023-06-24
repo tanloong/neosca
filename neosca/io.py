@@ -24,7 +24,7 @@ class SCAIO:
     ODT_NAMESPACE = ".//{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
     ODT_PARA = ODT_NAMESPACE + "p"
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.ext_read_map = {
             ".txt": self.read_txt,
             ".docx": self.read_docx,
@@ -98,22 +98,22 @@ class SCAIO:
             ext = ".txt" # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
         return self.ext_read_map[ext](path)  # type:ignore
 
-
-def try_write(filename: str, content: Optional[str]) -> SCAProcedureResult:
-    if not os.path.exists(filename):
-        return True, None
-    try:
-        with open(filename, "w", encoding="utf-8") as f:
-            if content is not None:
-                f.write(content)
+    @classmethod
+    def try_write(cls, filename: str, content: Optional[str]) -> SCAProcedureResult:
+        if not os.path.exists(filename):
             return True, None
-    except PermissionError:
-        return (
-            False,
-            (
-                f"PermissionError: can not write to {filename}, because it is already"
-                f" in use by another process.\n\n1. Ensure that {filename} is closed,"
-                " or \n2. Specify another output filename through the `-o` option,"
-                f" e.g. nsca input.txt -o {filename.replace('.csv', '-2.csv')}"
-            ),
-        )
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                if content is not None:
+                    f.write(content)
+                return True, None
+        except PermissionError:
+            return (
+                False,
+                (
+                    f"PermissionError: can not write to {filename}, because it is already"
+                    f" in use by another process.\n\n1. Ensure that {filename} is closed,"
+                    " or \n2. Specify another output filename through the `-o` option,"
+                    f" e.g. nsca input.txt -o {filename.replace('.csv', '-2.csv')}"
+                ),
+            )
