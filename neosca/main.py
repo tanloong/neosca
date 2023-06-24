@@ -196,6 +196,20 @@ class SCAUI:
             help="Reserve the matched subtrees produced by the Stanford Tregex.",
         )
         args_parser.add_argument(
+            "--no-parse",
+            dest="is_skip_parsing",
+            action="store_true",
+            default=False,
+            help=(
+                "Assume input as parse trees. By default, the program expects"
+                " raw text as input that will be parsed before querying. If you"
+                " already have parsed input files, use this flag to indicate that"
+                " the program should skip the parsing step and proceed directly"
+                " to querying. When this flag is set, the is_skip_querying and"
+                " reserve_parsed are automatically set as False."
+            ),
+        )
+        args_parser.add_argument(
             "--no-query",
             dest="is_skip_querying",
             action="store_true",
@@ -287,6 +301,9 @@ Contact:
             logging.basicConfig(format="%(message)s", level=logging.INFO)
         if options.is_skip_querying:
             options.is_reserve_parsed = True
+        if options.is_skip_parsing:
+            options.is_skip_querying = False
+            options.is_reserve_parsed = False
 
         if options.text is not None:
             if ifile_list:
@@ -371,6 +388,7 @@ Contact:
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
             "is_skip_querying": options.is_skip_querying,
+            "is_skip_parsing": options.is_skip_parsing,
             "is_pretokenized": options.is_pretokenized,
         }
         self.options = options

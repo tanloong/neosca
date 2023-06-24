@@ -25,6 +25,7 @@ class NeoSCA:
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
         is_skip_querying: bool = False,
+        is_skip_parsing: bool = False,
         is_pretokenized: bool = False,
         is_verbose: bool = True,
     ) -> None:
@@ -39,6 +40,7 @@ class NeoSCA:
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
         self.is_skip_querying = is_skip_querying
+        self.is_skip_parsing = is_skip_parsing
         self.is_pretokenized = is_pretokenized
         self.is_verbose = is_verbose
         self.counter_lists: List[StructureCounter] = []
@@ -60,16 +62,16 @@ class NeoSCA:
             )
             self.is_stanford_parser_initialized = True
 
-    def _is_skip_parsing(self, ofile_parsed: str, ifile: str) -> bool:
-        """See whether a parsed file already exists"""
-        is_skip_parsing = False
+    def has_parse_file(self, ofile_parsed: str, ifile: str) -> bool:
+        """Check is a parse file already exists before parsing"""
+        has_parse_file = False
         is_exist = os.path.exists(ofile_parsed)
         if is_exist:
             is_not_empty = os.path.getsize(ofile_parsed) > 0
             is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(ifile)
             if is_not_empty and is_parsed_newer_than_input:
-                is_skip_parsing = True
-        return is_skip_parsing
+                has_parse_file = True
+        return has_parse_file
 
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
         self.ensure_stanford_tregex_initialized()
@@ -83,6 +85,9 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
+        if self.is_skip_parsing: # assume input as parse trees
+            return text
+
         self.ensure_stanford_parser_initialized()
         trees = self.parser.parse(
             text,
@@ -96,7 +101,7 @@ class NeoSCA:
         return trees
 
     def run_on_text(self, text: str, ifile: str = "cmdline_text") -> None:
-        trees = self.parse_text(text)
+        trees:str = self.parse_text(text)
         if not self.is_skip_querying:
             counter = StructureCounter(ifile, selected_measures=self.selected_measures)
             counter = self.query_against_trees(trees, counter)
@@ -105,9 +110,13 @@ class NeoSCA:
 
     def parse_ifile(self, ifile: str) -> str:
         """Parse a single file"""
+        if self.is_skip_parsing:
+            # assume input as parse trees
+            return self.io.read_txt(ifile, is_guess_encoding=False)
+
         ofile_parsed = os.path.splitext(ifile)[0] + ".parsed"
-        is_skip_parsing = self._is_skip_parsing(ofile_parsed=ofile_parsed, ifile=ifile)
-        if is_skip_parsing:
+        has_parse_file = self.has_parse_file(ofile_parsed=ofile_parsed, ifile=ifile)
+        if has_parse_file:
             logging.info(
                 f"[Parser] Parsing skipped: {ofile_parsed} already"
                 f" exists, and is non-empty and newer than {ifile}."
