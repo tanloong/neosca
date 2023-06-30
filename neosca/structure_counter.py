@@ -10,6 +10,7 @@ class Structure:
         name: str,
         desc: str,
         pattern: str = "",
+        *,
         matches: Optional[list] = None,
         requirements: Optional[list] = None,
     ) -> None:
