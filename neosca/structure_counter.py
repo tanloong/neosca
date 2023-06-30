@@ -11,7 +11,6 @@ class Structure:
         desc: str,
         pattern: str = "",
         *,
-        matches: Optional[list] = None,
         requirements: Optional[list] = None,
     ) -> None:
         """
@@ -24,21 +23,30 @@ class Structure:
         self.name = name
         self.desc = desc
         self.pattern = pattern
-        if matches is None:
-            self.matches = []
-        else:  # pragma: no cover
-            self.matches = matches
         if requirements is None:
             self.requirements = []
         else:
             self.requirements = requirements
         self.freq: Union[float, int] = 0
+        self.matches: list = []
 
     def __repr__(self) -> str:  # pragma: no cover
         return (
             f"name: {self.name} ({self.desc})\nrequirements: {self.requirements}\npattern:"
             f" {self.pattern}\nmatches: {self.matches}\nfrequency: {self.freq}"
         )
+
+    def set_freq(self, freq: int):
+        if not isinstance(freq, int) or freq < 0:
+            raise ValueError("freq should be a non-negative integer")
+        else:
+            self.freq = freq
+
+    def set_matches(self, matches: list):
+        if not isinstance(matches, list):
+            raise ValueError("matches should be a list object")
+        else:
+            self.matches = matches
 
 
 class StructureCounter:
@@ -48,6 +56,7 @@ class StructureCounter:
             self.selected_measures = set()
         else:
             self.selected_measures = selected_measures
+
         self.structures: Dict[str, Structure] = {}
         for args, kwargs in data:
             self.structures[args[0]] = Structure(*args, **kwargs)
@@ -171,5 +180,7 @@ class StructureCounter:
         selected_measures = self.selected_measures | other.selected_measures
         new = StructureCounter(new_ifile, selected_measures=selected_measures)
         for s in new.structures_to_query:
-            new.structures[s.name].freq = self.structures[s.name].freq + other.structures[s.name].freq
+            new.structures[s.name].freq = (
+                self.structures[s.name].freq + other.structures[s.name].freq
+            )
         return new

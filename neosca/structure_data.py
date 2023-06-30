@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
-data = [
+from typing import List, Tuple, Dict
+
+data: List[Tuple[Tuple, Dict]] = [
     (("W", "words"), {}),
     (("S", "sentences", "ROOT"), {}),
     (("VP1", "regular verb phrases", "VP > S|SINV|SQ"), {}),
