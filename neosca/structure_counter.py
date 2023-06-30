@@ -109,11 +109,9 @@ class StructureCounter:
 
     def parse_selected_measures(self):
         if len(self.selected_measures) > 0:
-            self.structures_to_report = [
-                structure
-                for structure in self.structures_to_report
-                if structure.name in self.selected_measures
-            ]
+            self.structures_to_report = list(
+                filter(lambda s: s.name in self.selected_measures, self.structures_to_report)
+            )
             selected_measures_extended = self.selected_measures.copy()
             for structure in self.structures_to_report:
                 for name in structure.requirements:
@@ -129,10 +127,11 @@ class StructureCounter:
         """
         Update frequencies of complex nominals, clauses, verb phrases, and T-units
         """
-        self.VP.freq = self.VP1.freq + self.VP2.freq
-        self.C.freq = self.C1.freq + self.C2.freq
-        self.T.freq = self.T1.freq + self.T2.freq
-        self.CN.freq = self.CN1.freq + self.CN2.freq + self.CN3.freq
+        for s_name in ("VP", "C", "T", "CN"):
+            self.structures[s_name].freq = sum(
+                self.structures[requirement_name].freq
+                for requirement_name in self.structures[s_name].requirements
+            )
 
     def compute_14_indicies(self) -> None:
         """
