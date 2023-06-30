@@ -90,24 +90,22 @@ class StructureCounter:
                 "MLS",
                 "MLT",
                 "MLC",
-                "C_S",
-                "VP_T",
-                "C_T",
-                "DC_C",
-                "DC_T",
-                "T_S",
-                "CT_T",
-                "CP_T",
-                "CP_C",
-                "CN_T",
-                "CN_C",
+                "C/S",
+                "VP/T",
+                "C/T",
+                "DC/C",
+                "DC/T",
+                "T/S",
+                "CT/T",
+                "CP/T",
+                "CP/C",
+                "CN/T",
+                "CN/C",
             )
         ]
 
         self.parse_selected_measures()
-        self.fields = "Filename," + ",".join(
-            (structure.name for structure in self.structures_to_report)
-        ).replace("_", "/")
+        self.fields = "Filename," + ",".join((s.name for s in self.structures_to_report))
 
     def parse_selected_measures(self):
         if len(self.selected_measures) > 0:
