@@ -138,7 +138,7 @@ class TestCommandLineBasic(CmdlineTmpl):
             ["python", "-m", "neosca", "--list"], text=None, expected_output_file=None
         )
         result_stdout = result.stdout.decode("utf-8")
-        ncorrect_lines = len(re.findall(r"^[A-Z_]+: .*$", result_stdout, re.MULTILINE))
+        ncorrect_lines = len(re.findall(r"^[A-Z/]+: .*$", result_stdout, re.MULTILINE))
         self.assertEqual(result_stdout.count("\n"), 23)
         self.assertEqual(ncorrect_lines, 23)
 
