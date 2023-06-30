@@ -170,6 +170,6 @@ class StructureCounter:
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         selected_measures = self.selected_measures | other.selected_measures
         new = StructureCounter(new_ifile, selected_measures=selected_measures)
-        for structure in new.structures_to_query:
-            exec("new.{0}.freq = self.{0}.freq + other.{0}.freq".format(structure.name))
+        for s in new.structures_to_query:
+            new.structures[s.name].freq = self.structures[s.name].freq + other.structures[s.name].freq
         return new
