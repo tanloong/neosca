@@ -1,5 +1,7 @@
 from collections import OrderedDict
-from typing import List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union
+
+from .structure_data import data
 
 
 class Structure:
@@ -48,147 +50,57 @@ class StructureCounter:
             self.selected_measures = set()
         else:
             self.selected_measures = selected_measures
-        self.W = Structure("W", "words")
-        self.S = Structure("S", "sentences", "ROOT")
-        self.VP1 = Structure("VP1", "regular verb phrases", "VP > S|SINV|SQ")
-        self.VP2 = Structure(
-            "VP2",
-            "verb phrases in inverted yes/no questions or in wh-questions",
-            "MD|VBZ|VBP|VBD > (SQ !< VP)",
-        )
-        self.C1 = Structure(
-            "C1",
-            "regular clauses",
-            (
-                "S|SINV|SQ "
-                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-                "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]"
-            ),
-        )
-        self.C2 = Structure(
-            "C2",
-            "fragment clauses",
-            (
-                "FRAG > ROOT !<< "
-                "(S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-                "(VP [<# MD|VBP|VBZ|VBD | < CC < "
-                "(VP <# MD|VBP|VBZ|VBD)])])"
-            ),
-        )
-        self.T1 = Structure(
-            "T1",
-            "regular T-units",
-            "S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]",
-        )
-        self.T2 = Structure(
-            "T2",
-            "fragment T-units",
-            "FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])",
-        )
-        self.CN1 = Structure(
-            "CN1",
-            "complex nominals, type 1",
-            "NP !> NP [<< JJ|POS|PP|S|VBG | << (NP $++ NP !$+ CC)]",
-        )
-        self.CN2 = Structure(
-            "CN2",
-            "complex nominals, type 2",
-            "SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]",
-        )
-        self.CN3 = Structure("CN3", "complex nominals, type 3", "S < (VP <# VBG|TO) $+ VP")
-        self.DC = Structure(
-            "DC",
-            "dependent clauses",
-            (
-                "SBAR < "
-                "(S|SINV|SQ "
-                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-                "(VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
-            ),
-        )
-        self.CT = Structure(
-            "CT",
-            "complex T-units",
-            (
-                "S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << "
-                "(SBAR < (S|SINV|SQ "
-                "[> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < "
-                "(VP [<# MD|VBP|VBZ|VBD | < CC < "
-                "(VP <# MD|VBP|VBZ|VBD)])]))"
-            ),
-        )
-        self.CP = Structure("CP", "coordinate phrases", "ADJP|ADVP|NP|VP < CC")
-
-        self.VP = Structure("VP", "verb phrases", requirements=["VP1", "VP2"])
-        self.C = Structure("C", "clauses", requirements=["C1", "C2"])
-        self.T = Structure("T", "T-units", requirements=["T1", "T2"])
-        self.CN = Structure("CN", "complex nominals", requirements=["CN1", "CN2", "CN3"])
-
-        self.MLS = Structure("MLS", "mean length of sentence", requirements=["W", "S"])
-        self.MLT = Structure("MLT", "mean length of T-unit", requirements=["W", "T1", "T2"])
-        self.MLC = Structure("MLC", "mean length of clause", requirements=["W", "C1"])
-        self.C_S = Structure("C_S", "clauses per sentence", requirements=["C1", "S"])
-        self.VP_T = Structure(
-            "VP_T", "verb phrases per T-unit", requirements=["VP1", "T1", "T2"]
-        )
-        self.C_T = Structure("C_T", "clauses per T-unit", requirements=["C1", "T1", "T2"])
-        self.DC_C = Structure("DC_C", "dependent clauses per clause", requirements=["DC", "C1"])
-        self.DC_T = Structure(
-            "DC_T", "dependent clauses per T-unit", requirements=["DC", "T1", "T2"]
-        )
-        self.T_S = Structure("T_S", "T-units per sentence", requirements=["T1", "T2", "S"])
-        self.CT_T = Structure("CT_T", "complex T-unit ratio", requirements=["CT", "T1", "T2"])
-        self.CP_T = Structure(
-            "CP_T", "coordinate phrases per T-unit", requirements=["CP", "T1", "T2"]
-        )
-        self.CP_C = Structure("CP_C", "coordinate phrases per clause", requirements=["CP", "C1"])
-        self.CN_T = Structure(
-            "CN_T", "complex nominals per T-unit", requirements=["CN1", "CN2", "CN3", "T1", "T2"]
-        )
-        self.CN_C = Structure(
-            "CN_C", "complex nominals per clause", requirements=["CN1", "CN2", "CN3", "C1"]
-        )
+        self.structures: Dict[str, Structure] = {}
+        for args, kwargs in data:
+            self.structures[args[0]] = Structure(*args, **kwargs)
 
         self.structures_to_query: List[Structure] = [
-            self.W,
-            self.S,
-            self.VP1,
-            self.VP2,
-            self.C1,
-            self.C2,
-            self.T1,
-            self.T2,
-            self.CN1,
-            self.CN2,
-            self.CN3,
-            self.DC,
-            self.CT,
-            self.CP,
+            self.structures[key]
+            for key in (
+                "W",
+                "S",
+                "VP1",
+                "VP2",
+                "C1",
+                "C2",
+                "T1",
+                "T2",
+                "CN1",
+                "CN2",
+                "CN3",
+                "DC",
+                "CT",
+                "CP",
+            )
         ]
+
         self.structures_to_report: List[Structure] = [
-            self.W,
-            self.S,
-            self.VP,
-            self.C,
-            self.T,
-            self.DC,
-            self.CT,
-            self.CP,
-            self.CN,
-            self.MLS,
-            self.MLT,
-            self.MLC,
-            self.C_S,
-            self.VP_T,
-            self.C_T,
-            self.DC_C,
-            self.DC_T,
-            self.T_S,
-            self.CT_T,
-            self.CP_T,
-            self.CP_C,
-            self.CN_T,
-            self.CN_C,
+            self.structures[key]
+            for key in (
+                "W",
+                "S",
+                "VP",
+                "C",
+                "T",
+                "DC",
+                "CT",
+                "CP",
+                "CN",
+                "MLS",
+                "MLT",
+                "MLC",
+                "C_S",
+                "VP_T",
+                "C_T",
+                "DC_C",
+                "DC_T",
+                "T_S",
+                "CT_T",
+                "CP_T",
+                "CP_C",
+                "CN_T",
+                "CN_C",
+            )
         ]
 
         self.parse_selected_measures()
