@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Optional, Sequence, Set, Union
+from typing import List, Optional, Set, Union
 
 
 class Structure:
@@ -149,7 +149,7 @@ class StructureCounter:
             "CN_C", "complex nominals per clause", requirements=["CN1", "CN2", "CN3", "C1"]
         )
 
-        self.structures_to_query: Sequence[Structure] = (
+        self.structures_to_query: List[Structure] = [
             self.W,
             self.S,
             self.VP1,
@@ -164,8 +164,8 @@ class StructureCounter:
             self.DC,
             self.CT,
             self.CP,
-        )
-        self.structures_to_report: Sequence[Structure] = (
+        ]
+        self.structures_to_report: List[Structure] = [
             self.W,
             self.S,
             self.VP,
@@ -189,7 +189,7 @@ class StructureCounter:
             self.CP_C,
             self.CN_T,
             self.CN_C,
-        )
+        ]
 
         self.parse_selected_measures()
         self.fields = "Filename," + ",".join(
