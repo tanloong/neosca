@@ -40,9 +40,6 @@ class Structure:
             f" {self.pattern}\nmatches: {self.matches}\nfrequency: {self.freq}"
         )
 
-    def __truediv__(self, other) -> Union[float, int]:
-        return round(self.freq / other.freq, 4) if other.freq else 0
-
 
 class StructureCounter:
     def __init__(self, ifile="", selected_measures: Optional[Set[str]] = None) -> None:
@@ -137,20 +134,29 @@ class StructureCounter:
         """
         Compute the 14 syntactic complexity indices
         """
-        self.MLS.freq = self.W / self.S
-        self.MLT.freq = self.W / self.T
-        self.MLC.freq = self.W / self.C1
-        self.C_S.freq = self.C1 / self.S
-        self.VP_T.freq = self.VP1 / self.T
-        self.C_T.freq = self.C1 / self.T
-        self.DC_C.freq = self.DC / self.C1
-        self.DC_T.freq = self.DC / self.T
-        self.T_S.freq = self.T / self.S
-        self.CT_T.freq = self.CT / self.T
-        self.CP_T.freq = self.CP / self.T
-        self.CP_C.freq = self.CP / self.C1
-        self.CN_T.freq = self.CN / self.T
-        self.CN_C.freq = self.CN / self.C1
+        for s_name, dividend, divisor in (
+            ("MLS", "W", "S"),
+            ("MLT", "W", "T"),
+            ("MLC", "W", "C1"),
+            ("C/S", "C1", "S"),
+            ("VP/T", "VP1", "T"),
+            ("C/T", "C1", "T"),
+            ("DC/C", "DC", "C1"),
+            ("DC/T", "DC", "T"),
+            ("T/S", "T", "S"),
+            ("CT/T", "CT", "T"),
+            ("CP/T", "CP", "T"),
+            ("CP/C", "CP", "C1"),
+            ("CN/T", "CN", "T"),
+            ("CN/C", "CN", "C1"),
+        ):
+            divident_freq, divisor_freq = (
+                self.structures[dividend].freq,
+                self.structures[divisor].freq,
+            )
+            self.structures[s_name].freq = (
+                round(divident_freq / divisor_freq, 4) if divisor_freq else 0
+            )
 
     def get_freqs(self) -> dict:
         self.update_freqs()

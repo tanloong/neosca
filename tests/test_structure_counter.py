@@ -12,14 +12,6 @@ class TestStructure(BaseTmpl):
         self.S = Structure("S", "sentences")
         return super().setUp()
 
-    def test_div(self):
-        self.W.freq = 25
-        self.S.freq = 2
-        self.assertEqual(12.5, self.W / self.S)
-        self.S.freq = 0
-        self.assertEqual(0, self.W / self.S)
-
-
 class TestStructureCounter(BaseTmpl):
     def setUp(self):
         self.selected_measures1 = {"VP", "T", "DC_C"}
