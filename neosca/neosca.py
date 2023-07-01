@@ -156,7 +156,7 @@ class NeoSCA:
         if format_ == "csv":
             freq_output = self.counter_lists[0].fields
             for counter in self.counter_lists:
-                freq_dict = counter.get_freqs()
+                freq_dict = counter.get_all_freqs()
                 if "," in freq_dict["Filename"]:
                     freq_dict["Filename"] = '"' + freq_dict["Filename"] + '"'
                 freq_output += "\n" + ",".join(str(freq) for freq in freq_dict.values())
@@ -165,7 +165,7 @@ class NeoSCA:
 
             final_freq_dict: Dict[str, List[Dict]] = {"Files": []}
             for counter in self.counter_lists:
-                freq_dict = counter.get_freqs()
+                freq_dict = counter.get_all_freqs()
                 final_freq_dict["Files"].append(freq_dict)
             freq_output = json.dumps(final_freq_dict)
         return freq_output

@@ -53,7 +53,7 @@ class TestStructureCounter(BaseTmpl):
             ("CN2", 1),
             ("CN3", 2),
         ):
-            self.counter1.structures[s_name].set_freq(freq)
+            self.counter1.set_freq(s_name, freq)
 
         self.counter1.update_freqs()
         for s_name, freq in (
@@ -76,7 +76,7 @@ class TestStructureCounter(BaseTmpl):
             ("CP", 26),
             ("CN", 181),
         ):
-            self.counter1.structures[s_name].set_freq(freq)
+            self.counter1.set_freq(s_name, freq)
 
         self.counter1.compute_14_indicies()
         for s_name, freq in (
@@ -107,7 +107,7 @@ class TestStructureCounter(BaseTmpl):
             self.assertEqual(self.counter1.structures[s_name].freq, freq)
 
     def test_get_freqs(self):
-        freq_dict = self.counter1.get_freqs()
+        freq_dict = self.counter1.get_all_freqs()
         self.assertTrue("Filename", freq_dict.keys() - set(self.selected_measures1))
 
     def test_add(self):
@@ -119,7 +119,7 @@ class TestStructureCounter(BaseTmpl):
             ("T2", 11),
             ("DC", 21),
         ):
-            self.counter1.structures[s_name].set_freq(freq)
+            self.counter1.set_freq(s_name, freq)
 
         for s_name, freq in (
             ("VP1", 4),
@@ -131,7 +131,7 @@ class TestStructureCounter(BaseTmpl):
             ("CN3", 49),
             ("CP", 34),
         ):
-            self.counter2.structures[s_name].set_freq(freq)
+            self.counter2.set_freq(s_name, freq)
 
         counter3 = self.counter1 + self.counter2
         self.assertListEqual(

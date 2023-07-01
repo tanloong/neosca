@@ -17,7 +17,6 @@ class Structure:
         :param name: name of the structure
         :param desc: description of the structure
         :param pattern: Tregex pattern
-        :param matches: matched subtrees by Tregex
         :param requirements: a list of structure names that current instance of Structure requires. Note that the elements come from the initial StructureCounter.structures_to_query, thus CN_T requires ["CN1", "CN2", "CN3", "T1", "T2"] instead of ["CN", "T"]
         """
         self.name = name
@@ -35,18 +34,6 @@ class Structure:
             f"name: {self.name} ({self.desc})\nrequirements: {self.requirements}\npattern:"
             f" {self.pattern}\nmatches: {self.matches}\nfrequency: {self.freq}"
         )
-
-    def set_freq(self, freq: int):
-        if not isinstance(freq, int) or freq < 0:
-            raise ValueError("freq should be a non-negative integer")
-        else:
-            self.freq = freq
-
-    def set_matches(self, matches: list):
-        if not isinstance(matches, list):
-            raise ValueError("matches should be a list object")
-        else:
-            self.matches = matches
 
 
 class StructureCounter:
@@ -167,7 +154,28 @@ class StructureCounter:
                 round(divident_freq / divisor_freq, 4) if divisor_freq else 0
             )
 
-    def get_freqs(self) -> dict:
+    def set_freq(self, structure_name: str, freq: int) -> None:
+        if structure_name not in self.structures:
+            raise ValueError(f"{structure_name} not counted")
+        elif not isinstance(freq, int) or freq < 0:
+            raise ValueError("freq should be a non-negative integer")
+        else:
+            self.structures[structure_name].freq = freq
+
+    def set_matches(self, structure_name: str, matches: list) -> None:
+        if structure_name not in self.structures:
+            raise ValueError(f"{structure_name} not counted")
+        elif not isinstance(matches, list):
+            raise ValueError("matches should be a list object")
+        else:
+            self.structures[structure_name].matches = matches
+
+    def get_freq(self, structure_name: str) -> Union[float, int]:
+        if structure_name not in self.structures:
+            raise ValueError(f"{structure_name} not counted")
+        return self.structures[structure_name].freq
+
+    def get_all_freqs(self) -> dict:
         self.update_freqs()
         self.compute_14_indicies()
         freq_dict = OrderedDict({"Filename": self.ifile})
@@ -177,10 +185,10 @@ class StructureCounter:
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
-        selected_measures = self.selected_measures | other.selected_measures
-        new = StructureCounter(new_ifile, selected_measures=selected_measures)
+        new_selected_measures = self.selected_measures | other.selected_measures
+        new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
         for s in new.structures_to_query:
-            new.structures[s.name].freq = (
-                self.structures[s.name].freq + other.structures[s.name].freq
-            )
+            s_name = s.name
+            freq = self.get_freq(s_name) + other.get_freq(s_name)
+            new.set_freq(s_name, freq)  # type: ignore
         return new
