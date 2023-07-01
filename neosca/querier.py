@@ -77,13 +77,14 @@ class StanfordTregex:
     ):
         for structure in counter.structures_to_query:
             logging.info(f'[Tregex] Querying "{structure.desc}"...')
+            s_name = structure.name
             if structure.name == "W":
                 freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
-                structure.set_freq(freq)
+                counter.set_freq(s_name, freq)
                 continue
             freq, matches = self.query_pattern(structure.name, structure.pattern, trees)
-            structure.set_freq(freq)
-            structure.set_matches(matches)
+            counter.set_freq(s_name, freq)
+            counter.set_matches(s_name, matches)
         if is_reserve_matched:  # pragma: no cover
             self.write_match_output(counter, odir_matched, is_stdout)
         return counter
