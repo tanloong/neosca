@@ -302,6 +302,14 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
+#### Parse trees as input
+
+By default, the program expects raw text as input that will be parsed before querying. If you already have parsed input files, use `--no-parse` to indicate that the program should skip the parsing step and proceed directly to querying. When this flag is set, the is_skip_querying and reserve_parsed are automatically set as False.
+
+```sh
+nsca samples/sample1.parsed --no-parse
+```
+
 #### List Output Fields
 
 Use `--list` to print a list of all the available output fields.

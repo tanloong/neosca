@@ -292,6 +292,14 @@ nsca --text 'This is a test.' --no-query
 # 句法樹: ./cmdline_text.parsed
 ```
 
+#### 將成分句法樹作為輸入
+
+NeoSCA 默認接受原始文本作為輸入，對文本進行短語結構分析並生成句法樹，然後統計句法樹中的目標句法結構。使用 `--no-parse` 可以讓程序跳過短語結構分析的步驟，直接將輸入文件作為句法樹開始統計的步驟。使用此選項時，`is_skip_querying` 和 `reserve_parsed` 會自動設置為 False。
+
+```sh
+nsca samples/sample1.parsed --no-parse
+```
+
 #### 列出 9 種句法結構和 14 個句法複雜度指標
 
 <details>
