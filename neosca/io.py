@@ -56,7 +56,9 @@ class SCAIO:
         paragraphs = root.findall(self.ODT_PARA)
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
-    def _read_txt(self, path: str, mode:str, encoding:Optional[str]=None) -> Union[str, ByteString]:
+    def _read_txt(
+        self, path: str, mode: str, encoding: Optional[str] = None
+    ) -> Union[str, ByteString]:
         try:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()
@@ -76,12 +78,12 @@ class SCAIO:
                 logging.info(
                     f"Attempting to read {path} with {self.previous_encoding} encoding..."
                 )
-                content = self._read_txt(path, "r", self.previous_encoding) #type:ignore
+                content = self._read_txt(path, "r", self.previous_encoding)  # type:ignore
             except ValueError:
                 logging.info(f"Attempt failed. Reading {path} in binary mode...")
                 bytes_ = self._read_txt(path, "rb")
                 logging.info("Guessing the encoding of the byte string...")
-                encoding = detect(bytes_)["encoding"] #type:ignore
+                encoding = detect(bytes_)["encoding"]  # type:ignore
 
                 if encoding is not None:
                     logging.info(f"Decoding the byte string with {encoding} encoding...")
@@ -90,12 +92,14 @@ class SCAIO:
                 else:
                     logging.critical(f"{path} is of unsupported file type.")
                     sys.exit(1)
-        return content #type:ignore
+        return content  # type:ignore
 
     def read_file(self, path: str) -> str:
         _, ext = os.path.splitext(path)
         if ext not in self.ext_read_map:
-            ext = ".txt" # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
+            ext = (  # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
+                ".txt"
+            )
         return self.ext_read_map[ext](path)  # type:ignore
 
     @classmethod

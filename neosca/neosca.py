@@ -85,7 +85,7 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, ofile_parsed="cmdline_text.parsed") -> str:
-        if self.is_skip_parsing: # assume input as parse trees
+        if self.is_skip_parsing:  # assume input as parse trees
             return text
 
         self.ensure_stanford_parser_initialized()
@@ -101,7 +101,7 @@ class NeoSCA:
         return trees
 
     def run_on_text(self, text: str, ifile: str = "cmdline_text") -> None:
-        trees:str = self.parse_text(text)
+        trees: str = self.parse_text(text)
         if not self.is_skip_querying:
             counter = StructureCounter(ifile, selected_measures=self.selected_measures)
             counter = self.query_against_trees(trees, counter)

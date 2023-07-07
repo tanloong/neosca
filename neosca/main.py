@@ -616,7 +616,7 @@ Contact:
                 for j, subfile in enumerate(subfiles, 1):
                     print(f" {i}. {subfile}")
         if is_not_found:
-            print(f"0 files and subfiles are found.")
+            print("0 files and subfiles are found.")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
