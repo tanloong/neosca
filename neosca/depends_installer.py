@@ -22,6 +22,16 @@ from .util_platform_info import USER_SOFTWARE_DIR
 from .util_print import same_line_print
 from .util_print import get_yes_or_no
 
+if IS_DARWIN:
+    import ssl
+
+    try:
+        _create_unverified_https_context = ssl._create_unverified_context
+    except AttributeError:
+        pass
+    else:
+        ssl._create_default_https_context = _create_unverified_https_context
+
 _UNPACK200 = "unpack200.exe" if IS_WINDOWS else "unpack200"
 _UNPACK200_ARGS = '-r -v -l ""' if IS_WINDOWS else ""
 
