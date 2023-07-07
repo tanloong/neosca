@@ -122,7 +122,7 @@ class StructureCounter:
         """
         for s_name in ("VP", "C", "T", "CN"):
             self.structures[s_name].freq = sum(
-                self.structures[requirement_name].freq
+                self.get_freq(requirement_name)
                 for requirement_name in self.structures[s_name].requirements
             )
 
@@ -147,8 +147,8 @@ class StructureCounter:
             ("CN/C", "CN", "C1"),
         ):
             divident_freq, divisor_freq = (
-                self.structures[dividend].freq,
-                self.structures[divisor].freq,
+                self.get_freq(dividend),
+                self.get_freq(divisor),
             )
             self.structures[s_name].freq = (
                 round(divident_freq / divisor_freq, 4) if divisor_freq else 0
