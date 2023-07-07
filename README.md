@@ -83,7 +83,7 @@ the frequency of 9 structures in the text:
 
 * Cross-platform compatibility: Windows, macOS, and Linux
 * Flexible command-line options to serve various needs
-* Supports reading docx files
+* Supports reading docx/odt files
 
 ## Install
 
@@ -139,7 +139,7 @@ nsca ./samples/sample1.txt
 nsca ./samples/sample1.docx
 ```
 
-When working on docx files, tables, figures, images, and other unrelated elements (except for headers and footers, which will be automatically ignored) should be manually removed before they are analyzed.
+Tables, figures, images, and other unrelated elements (except for headers and footers, which will be automatically ignored) should be manually removed before docx/odt files are analyzed.
 
 After running the above command, a `result.csv` file will be generated in the current directory. You can specify a different output filename using `-o/--output-file`.
 
@@ -220,7 +220,7 @@ It is for text with hard line breaks and a blank line between paragraphs.
 NeoSCA by default outputs values of all of the available measures. You can use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
 
 ```sh
-nsca --select VP T DC_C -- sample1.txt
+nsca --select VP T DC/C -- sample1.txt
 ```
 
 To avoid the program taking input filenames as a selected measure and raising an error, use `--` to separate them from the measures. All arguments after `--` will be considered input filenames. Make sure to specify arguments except for input filenames at the left side of `--`.
@@ -302,6 +302,14 @@ nsca --text 'This is a test.' --no-query
 # parsed trees: ./cmdline_text.parsed
 ```
 
+#### Parse trees as input
+
+By default, the program expects raw text as input that will be parsed before querying. If you already have parsed input files, use `--no-parse` to indicate that the program should skip the parsing step and proceed directly to querying. When this flag is set, the is_skip_querying and reserve_parsed are automatically set as False.
+
+```sh
+nsca samples/sample1.parsed --no-parse
+```
+
 #### List Output Fields
 
 Use `--list` to print a list of all the available output fields.
@@ -352,7 +360,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.42},
+title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.43},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -367,7 +375,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.42) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.43) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -377,7 +385,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.42, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.43, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

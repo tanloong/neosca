@@ -83,7 +83,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 
 * 跨平臺：支持 **Windows**、macOS 和 Linux 系統。
 * 靈活的命令行選項
-* 支持 docx 格式的輸入文件
+* 支持 docx/odt 格式的輸入文件
 
 ## 安裝
 
@@ -132,7 +132,7 @@ nsca ./samples/sample1.txt
 nsca ./samples/sample1.docx
 ```
 
-docx 文件需要事先刪除表格、圖表、圖片等不相關元素，頁眉頁腳會自動忽略，不必刪除 (若有)。
+docx/odt 文件需要事先刪除表格、圖表、圖片等不相關元素，頁眉頁腳會自動忽略，不必刪除 (若有)。
 
 輸出文件會保存在當前路徑下，默認文件名是 `result.csv`，使用 `-o/--output-file` 可以自定義輸出文件名。
 
@@ -210,7 +210,7 @@ nsca sample1.txt --newline-break always
 NeoSCA 默認計算所有指標的值，使用 `--select` 可以只計算選定指標的值。要查看所有的可選指標可以用 `nsca --list`。
 
 ```sh
-nsca --select VP T DC_C -- sample1.txt
+nsca --select VP T DC/C -- sample1.txt
 ```
 
 注意需要使用 `--` 將選定指標與輸入文件名區分開。`--` 右邊的所有參數都將被視為輸入文件名，請確保將輸入文件名之外的參數寫在 `--` 的左邊。
@@ -292,6 +292,14 @@ nsca --text 'This is a test.' --no-query
 # 句法樹: ./cmdline_text.parsed
 ```
 
+#### 將成分句法樹作為輸入
+
+NeoSCA 默認接受原始文本作為輸入，對文本進行短語結構分析並生成句法樹，然後統計句法樹中的目標句法結構。使用 `--no-parse` 可以讓程序跳過短語結構分析的步驟，直接將輸入文件作為句法樹開始統計的步驟。使用此選項時，`is_skip_querying` 和 `reserve_parsed` 會自動設置為 False。
+
+```sh
+nsca samples/sample1.parsed --no-parse
+```
+
 #### 列出 9 種句法結構和 14 個句法複雜度指標
 
 <details>
@@ -340,7 +348,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.42},
+title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.43},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -355,7 +363,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.42) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.43) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -365,7 +373,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.42, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.43, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

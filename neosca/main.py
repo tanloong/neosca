@@ -3,10 +3,10 @@ import glob
 import logging
 import os
 import sys
-from typing import List, Optional
+from typing import Callable, List, Optional
 
-from . import __version__
-from .io import try_write
+from .about import __version__
+from .io import SCAIO
 from .util import SCAProcedureResult
 from .util_env import getenv
 from .util_env import setenv
@@ -16,7 +16,7 @@ from .util_print import color_print
 
 class SCAUI:
     def __init__(self) -> None:
-        self.supported_ifile_types = ["txt", "docx"]
+        self.supported_ifile_types = [".txt", ".docx", ".odt"]
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -85,8 +85,8 @@ class SCAUI:
             ),
         )
         args_parser.add_argument(
-            "-c",
             "--combine-files",
+            "-c",
             metavar="<subfile>",
             dest="subfile_lists",
             action="append",
@@ -95,8 +95,8 @@ class SCAUI:
             help="Combine frequency output of multiple files.",
         )
         args_parser.add_argument(
-            "-t",
             "--text",
+            "-t",
             metavar="<text>",
             default=None,
             help="Pass text through the command line.",
@@ -120,8 +120,8 @@ class SCAUI:
             help="Assume that the text has already been tokenized.",
         )
         args_parser.add_argument(
-            "-o",
             "--output-file",
+            "-o",
             metavar="<filename>",
             dest="ofile_freq",
             default=None,
@@ -158,49 +158,63 @@ class SCAUI:
                 "MLS",
                 "MLT",
                 "MLC",
-                "C_S",
-                "VP_T",
-                "C_T",
-                "DC_C",
-                "DC_T",
-                "T_S",
-                "CT_T",
-                "CP_T",
-                "CP_C",
-                "CN_T",
-                "CN_C",
+                "C/S",
+                "VP/T",
+                "C/T",
+                "DC/C",
+                "DC/T",
+                "T/S",
+                "CT/T",
+                "CP/T",
+                "CP/C",
+                "CN/T",
+                "CN/C",
             ],
             default=None,
             nargs="+",
             help=(
                 "Select only some of the measures to analyze. The full list of measures include"
-                ' "W", "S", "VP", "C", "T", "DC", "CT", "CP", "CN", "MLS", "MLT", "MLC", "C_S",'
-                ' "VP_T", "C_T", "DC_C", "DC_T", "T_S", "CT_T", "CP_T", "CP_C", "CN_T", and'
-                ' "CN_C".'
+                ' "W", "S", "VP", "C", "T", "DC", "CT", "CP", "CN", "MLS", "MLT", "MLC", "C/S",'
+                ' "VP/T", "C/T", "DC/C", "DC/T", "T/S", "CT/T", "CP/T", "CP/C", "CN/T", and'
+                ' "CN/C".'
             ),
         )
         args_parser.add_argument(
-            "-p",
             "--reserve-parsed",
+            "-p",
             dest="is_reserve_parsed",
             action="store_true",
             default=False,
-            help="Reserve the parsed trees produced by the Stanford Parser.",
+            help="Reserve the parse trees produced by the Stanford Parser.",
         )
         args_parser.add_argument(
-            "-m",
             "--reserve-matched",
+            "-m",
             dest="is_reserve_matched",
             default=False,
             action="store_true",
             help="Reserve the matched subtrees produced by the Stanford Tregex.",
         )
         args_parser.add_argument(
+            "--no-parse",
+            dest="is_skip_parsing",
+            action="store_true",
+            default=False,
+            help=(
+                "Assume input as parse trees. By default, the program expects"
+                " raw text as input that will be parsed before querying. If you"
+                " already have parsed input files, use this flag to indicate that"
+                " the program should skip the parsing step and proceed directly"
+                " to querying. When this flag is set, the is_skip_querying and"
+                " reserve_parsed are automatically set as False."
+            ),
+        )
+        args_parser.add_argument(
             "--no-query",
             dest="is_skip_querying",
             action="store_true",
             default=False,
-            help="Parse the input files, save the parsed trees and exit.",
+            help="Parse the input files, save the parse trees and exit.",
         )
         args_parser.add_argument(
             "--quiet",
@@ -250,7 +264,7 @@ class SCAUI:
     Only analyze sentences with lengths shorter than or equal to 100.
 12. nsca sample1.txt --newline-break always
     Consider newlines as sentence breaks.
-13. nsca --select VP T DC_C -- sample1.txt
+13. nsca --select VP T DC/C -- sample1.txt
     Select a subset of measures to analyze. Use -- to separate input
     filenames from the selected measures, or otherwise the program will take
     "sample1.txt" as a measure and then raise an error. Arguments other than
@@ -266,6 +280,10 @@ class SCAUI:
     Use multiple -c to combine different lists of subfiles respectively.
 18. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
     Use -- to separate input filenames from names of the subfiles.
+19. nsca sample1.txt --no-query
+    Parse the input files, save the parsed trees and exit.
+20. nsca sample1.parsed --no-parse
+    Assume input as parse trees. Skip the parsing step and proceed directly to querying.
 
 Contact:
 1. https://github.com/tanloong/neosca/issues
@@ -287,6 +305,9 @@ Contact:
             logging.basicConfig(format="%(message)s", level=logging.INFO)
         if options.is_skip_querying:
             options.is_reserve_parsed = True
+        if options.is_skip_parsing:
+            options.is_skip_querying = False
+            options.is_reserve_parsed = False
 
         if options.text is not None:
             if ifile_list:
@@ -371,6 +392,7 @@ Contact:
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
             "is_skip_querying": options.is_skip_querying,
+            "is_skip_parsing": options.is_skip_parsing,
             "is_pretokenized": options.is_pretokenized,
         }
         self.options = options
@@ -397,11 +419,11 @@ Contact:
             setenv(
                 "JAVA_HOME",
                 [java_home],  # type:ignore
-                refresh=True,
+                is_refresh=True,
                 is_quiet=self.options.is_quiet,
             )
             setenv(
-                "PATH", [java_bin], refresh=False, is_quiet=self.options.is_quiet
+                "PATH", [java_bin], is_refresh=False, is_quiet=self.options.is_quiet
             )  # type:ignore
             os.environ["JAVA_HOME"] = java_home  # type:ignore
             os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
@@ -426,7 +448,7 @@ Contact:
                 setenv(
                     self.STANFORD_PARSER_HOME,
                     [stanford_parser_home],  # type:ignore
-                    refresh=True,
+                    is_refresh=True,
                     is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_parser_home = stanford_parser_home  # type:ignore
@@ -452,7 +474,7 @@ Contact:
                 setenv(
                     self.STANFORD_TREGEX_HOME,
                     [stanford_tregex_home],  # type:ignore
-                    refresh=True,
+                    is_refresh=True,
                     is_quiet=self.options.is_quiet,
                 )
                 self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
@@ -504,7 +526,7 @@ Contact:
                 if self.verified_ifile_list or self.verified_subfile_lists:
                     msg_num += 1
                     logging.info(
-                        f"{msg_num}. Parsed trees were saved corresponding to input files,"
+                        f"{msg_num}. parse trees were saved corresponding to input files,"
                         ' with the same name but a ".parsed" extension.'
                     )
                 elif self.options.text is not None:
@@ -512,7 +534,7 @@ Contact:
                     color_print(
                         "OKGREEN",
                         f"{self.cwd}{os.sep}cmdline_text.parsed",
-                        prefix=f"{msg_num}. Parsed trees were saved to ",
+                        prefix=f"{msg_num}. parse trees were saved to ",
                         postfix=".",
                     )
             if self.options.is_reserve_matched:
@@ -526,7 +548,7 @@ Contact:
         if msg_num > 0:
             logging.info("Done.")
 
-    def run_tmpl(func):  # type: ignore
+    def run_tmpl(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_python()
             if not sucess:
@@ -535,7 +557,7 @@ Contact:
             if not sucess:
                 return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = try_write(self.options.ofile_freq, None)
+                sucess, err_msg = SCAIO.try_write(self.options.ofile_freq, None)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)  # type: ignore
@@ -544,14 +566,14 @@ Contact:
 
         return wrapper
 
-    @run_tmpl  # type: ignore
+    @run_tmpl
     def run_on_text(self) -> None:
         from .neosca import NeoSCA
 
         analyzer = NeoSCA(**self.init_kwargs)
         analyzer.run_on_text(self.options.text)
 
-    @run_tmpl  # type: ignore
+    @run_tmpl
     def run_on_ifiles(self) -> None:
         from .neosca import NeoSCA
 
@@ -585,15 +607,20 @@ Contact:
         return True, None
 
     def expand_wildcards(self) -> SCAProcedureResult:
+        is_not_found = True
         if self.verified_ifile_list:
+            is_not_found = False
             print("Input files:")
-            for ifile in sorted(self.verified_ifile_list):
-                print(f" {ifile}")
+            for i, ifile in enumerate(self.verified_ifile_list, 1):
+                print(f" {i}. {ifile}")
         if self.verified_subfile_lists:
-            for i, subfiles in enumerate(self.verified_subfile_lists):
-                print(f"Input subfile list {i+1}:")
-                for subfile in subfiles:
-                    print(f" {subfile}")
+            is_not_found = False
+            for i, subfiles in enumerate(self.verified_subfile_lists, 1):
+                print(f"Input subfile list {i}:")
+                for j, subfile in enumerate(subfiles, 1):
+                    print(f" {j}. {subfile}")
+        if is_not_found:
+            print("0 files and subfiles are found.")
         return True, None
 
     def show_version(self) -> SCAProcedureResult:
