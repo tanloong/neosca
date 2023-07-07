@@ -618,7 +618,7 @@ Contact:
             for i, subfiles in enumerate(self.verified_subfile_lists, 1):
                 print(f"Input subfile list {i}:")
                 for j, subfile in enumerate(subfiles, 1):
-                    print(f" {i}. {subfile}")
+                    print(f" {j}. {subfile}")
         if is_not_found:
             print("0 files and subfiles are found.")
         return True, None
