@@ -158,25 +158,25 @@ class SCAUI:
                 "MLS",
                 "MLT",
                 "MLC",
-                "C_S",
-                "VP_T",
-                "C_T",
-                "DC_C",
-                "DC_T",
-                "T_S",
-                "CT_T",
-                "CP_T",
-                "CP_C",
-                "CN_T",
-                "CN_C",
+                "C/S",
+                "VP/T",
+                "C/T",
+                "DC/C",
+                "DC/T",
+                "T/S",
+                "CT/T",
+                "CP/T",
+                "CP/C",
+                "CN/T",
+                "CN/C",
             ],
             default=None,
             nargs="+",
             help=(
                 "Select only some of the measures to analyze. The full list of measures include"
-                ' "W", "S", "VP", "C", "T", "DC", "CT", "CP", "CN", "MLS", "MLT", "MLC", "C_S",'
-                ' "VP_T", "C_T", "DC_C", "DC_T", "T_S", "CT_T", "CP_T", "CP_C", "CN_T", and'
-                ' "CN_C".'
+                ' "W", "S", "VP", "C", "T", "DC", "CT", "CP", "CN", "MLS", "MLT", "MLC", "C/S",'
+                ' "VP/T", "C/T", "DC/C", "DC/T", "T/S", "CT/T", "CP/T", "CP/C", "CN/T", and'
+                ' "CN/C".'
             ),
         )
         args_parser.add_argument(
@@ -264,7 +264,7 @@ class SCAUI:
     Only analyze sentences with lengths shorter than or equal to 100.
 12. nsca sample1.txt --newline-break always
     Consider newlines as sentence breaks.
-13. nsca --select VP T DC_C -- sample1.txt
+13. nsca --select VP T DC/C -- sample1.txt
     Select a subset of measures to analyze. Use -- to separate input
     filenames from the selected measures, or otherwise the program will take
     "sample1.txt" as a measure and then raise an error. Arguments other than
@@ -280,6 +280,10 @@ class SCAUI:
     Use multiple -c to combine different lists of subfiles respectively.
 18. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
     Use -- to separate input filenames from names of the subfiles.
+19. nsca sample1.txt --no-query
+    Parse the input files, save the parsed trees and exit.
+20. nsca sample1.parsed --no-parse
+    Assume input as parse trees. Skip the parsing step and proceed directly to querying.
 
 Contact:
 1. https://github.com/tanloong/neosca/issues

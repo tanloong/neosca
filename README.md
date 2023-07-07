@@ -220,7 +220,7 @@ It is for text with hard line breaks and a blank line between paragraphs.
 NeoSCA by default outputs values of all of the available measures. You can use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
 
 ```sh
-nsca --select VP T DC_C -- sample1.txt
+nsca --select VP T DC/C -- sample1.txt
 ```
 
 To avoid the program taking input filenames as a selected measure and raising an error, use `--` to separate them from the measures. All arguments after `--` will be considered input filenames. Make sure to specify arguments except for input filenames at the left side of `--`.

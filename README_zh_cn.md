@@ -210,7 +210,7 @@ nsca sample1.txt --newline-break always
 NeoSCA 默认计算所有指标的值，使用 `--select` 可以只计算选定指标的值。要查看所有的可选指标可以用 `nsca --list`。
 
 ```sh
-nsca --select VP T DC_C -- sample1.txt
+nsca --select VP T DC/C -- sample1.txt
 ```
 
 注意需要使用 `--` 将选定指标与输入文件名区分开。`--` 右边的所有参数都将被视为输入文件名，请确保将输入文件名之外的参数写在 `--` 的左边。
