@@ -11,7 +11,7 @@
 [![downloads](https://static.pepy.tech/badge/neosca)](https://pepy.tech/project/neosca)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
-![](img/testing-on-Windows.gif)
+<!-- ![](img/testing-on-Windows.gif) -->
 
 简体中文 |
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
