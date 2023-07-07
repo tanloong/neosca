@@ -83,7 +83,7 @@ the frequency of 9 structures in the text:
 
 * Cross-platform compatibility: Windows, macOS, and Linux
 * Flexible command-line options to serve various needs
-* Supports reading docx/odt files
+* Supports reading txt/docx/odt files
 
 ## Install
 
