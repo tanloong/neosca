@@ -83,7 +83,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 
 * 跨平台：支持 **Windows**、macOS 和 Linux 系统。
 * 灵活的命令行选项
-* 支持 docx/odt 格式的输入文件
+* 支持 txt/docx/odt 格式的输入文件
 
 ## 安装
 
