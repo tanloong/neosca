@@ -131,7 +131,7 @@ class StanfordParser:
             else:
                 import re
 
-                paragraphs = re.split(r"(?:\r?\n){2,}", text)
+                paragraphs = re.split(r"(?:\r\n|\n|\r){2,}", text)
             trees = "\n".join(
                 self.parse_text(paragraph, max_length, is_pretokenized)
                 for paragraph in paragraphs

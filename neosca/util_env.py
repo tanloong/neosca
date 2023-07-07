@@ -10,7 +10,7 @@ from .util_platform_info import IS_DARWIN, IS_LINUX, IS_WINDOWS
 from .util_print import color_print
 
 
-def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> None:
+def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
     import winreg  # Allows access to the windows registry
     import ctypes  # Allows interface with low-level C API's
 
@@ -18,7 +18,7 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
         # Get the current user registry
         with winreg.OpenKey(root, "Environment", 0, winreg.KEY_ALL_ACCESS) as key:  # type:ignore
             # Go to the environment key
-            if refresh or os.environ.get(env_var) is None:
+            if is_refresh or os.environ.get(env_var) is None:
                 new_value = ";".join(paths)
             else:
                 existing_value = os.environ.get(env_var)
@@ -44,7 +44,7 @@ def _setenv_windows(env_var: str, paths: List[str], refresh: bool = False) -> No
         )
 
 
-def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
+def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
         logging.warning(
@@ -78,12 +78,12 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
                     configs = [line.strip() for line in f.readlines()]
             new_config = (
                 f"export {env_var}={new_paths}"
-                if refresh
+                if is_refresh
                 else f"export {env_var}=${env_var}:{new_paths}"
             )
             duplicated_config_index = []
             for i, config in enumerate(configs):
-                if refresh:
+                if is_refresh:
                     if config.startswith(f"export {env_var}"):
                         duplicated_config_index.append(i)
                 else:
@@ -100,13 +100,13 @@ def _setenv_unix(env_var: str, paths: List[str], refresh: bool = False) -> None:
 
 
 def setenv(
-    env_var: str, paths: List[str], refresh: bool = False, is_quiet: bool = False
+    env_var: str, paths: List[str], is_refresh: bool = False, is_quiet: bool = False
 ) -> None:
     assert any((IS_WINDOWS, IS_DARWIN, IS_LINUX))
     if IS_WINDOWS:
-        _setenv_windows(env_var, paths, refresh)
+        _setenv_windows(env_var, paths, is_refresh)
     else:
-        _setenv_unix(env_var, paths, refresh)
+        _setenv_unix(env_var, paths, is_refresh)
     if not is_quiet:
         color_print(
             "OKGREEN",
