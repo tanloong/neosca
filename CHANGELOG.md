@@ -1,10 +1,20 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.43]() ()
+## [0.0.43](https://github.com/tanloong/neosca/releases/tag/0.0.43) (7 July 2023)
+
+### Breaking Change
+
++ Should now use slashes (e.g., C/S) instead of underscores (e.g., C_S) for `--select`
 
 ### New Features
 
-+ Add support for reading odt files
++ Add `--no-parse`
++ Add support for reading .odt files
+
+### Bug Fixes
+
++ Fix urlopen error on macOS
++ Store Java dependencies at root direcotry if Windows username contains non-latin characters
 
 ## [0.0.42](https://github.com/tanloong/neosca/releases/tag/0.0.42) (29 April 2023)
 
