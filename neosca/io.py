@@ -70,7 +70,7 @@ class SCAIO:
         else:
             return content
 
-    def read_txt(self, path: str, is_guess_encoding=True) -> str:
+    def read_txt(self, path: str, is_guess_encoding: bool = True) -> Optional[str]:
         if not is_guess_encoding:
             content = self._read_txt(path, "r", "utf-8")
         else:
@@ -90,11 +90,11 @@ class SCAIO:
                     content = bytes_.decode(encoding=encoding)  # type:ignore
                     self.previous_encoding = encoding  # type:ignore
                 else:
-                    logging.critical(f"{path} is of unsupported file type.")
-                    sys.exit(1)
+                    logging.warning(f"{path} is of unsupported file type. Skipped.")
+                    return None
         return content  # type:ignore
 
-    def read_file(self, path: str) -> str:
+    def read_file(self, path: str) -> Optional[str]:
         _, ext = os.path.splitext(path)
         if ext not in self.ext_read_map:
             ext = (  # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
