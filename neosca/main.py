@@ -320,8 +320,7 @@ Contact:
                 if os.path.isfile(path):
                     verified_ifile_list.append(path)
                 elif os.path.isdir(path):
-                    for ftype in options.ifile_types:
-                        verified_ifile_list.extend(glob.glob(f"{path}{os.path.sep}*.{ftype}"))
+                    verified_ifile_list.extend(glob.glob(f"{path}{os.path.sep}*"))
                 elif glob.glob(path):
                     verified_ifile_list.extend(glob.glob(path))
                 else:
