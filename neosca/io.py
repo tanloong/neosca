@@ -8,7 +8,7 @@ except ImportError:
 import logging
 import os
 import sys
-from typing import ByteString, Optional, Union
+from typing import ByteString, Callable, Dict, Optional, Union
 import zipfile
 
 from charset_normalizer import detect
@@ -128,10 +128,14 @@ class SCAIO:
 
     def read_file(self, path: str) -> Optional[str]:
         _, ext = os.path.splitext(path)
+        if ext in self.extensions_to_exclude:
+            logging.warning(f"{path} does not appear to be an input file. Skipped.")
+            return None
+
         if ext not in self.ext_read_map:
-            ext = (  # assume files with other extensions as .txt files; throw an error from within read_txt() if not so
-                ".txt"
-            )
+            # assume files with other extensions as .txt files; if not so,
+            # read_txt() will log them from within and return None
+            ext = ".txt"
         return self.ext_read_map[ext](path)  # type:ignore
 
     @classmethod
