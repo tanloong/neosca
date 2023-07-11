@@ -108,7 +108,7 @@ class NeoSCA:
             self.counter_lists.append(counter)
             self.write_freq_output()
 
-    def parse_ifile(self, ifile: str) -> str:
+    def parse_ifile(self, ifile: str) -> Optional[str]:
         """Parse a single file"""
         if self.is_skip_parsing:
             # assume input as parse trees
@@ -124,6 +124,8 @@ class NeoSCA:
             # parse file are always (1) plain text, and (2) of utf-8 encoding
             return self.io.read_txt(ofile_parsed, is_guess_encoding=False)
         text = self.io.read_file(ifile)
+        if text is None:
+            return None
         try:
             trees = self.parse_text(text, ofile_parsed)
         except KeyboardInterrupt:
@@ -133,8 +135,10 @@ class NeoSCA:
         else:
             return trees
 
-    def parse_ifile_and_query(self, ifile: str) -> StructureCounter:
+    def parse_ifile_and_query(self, ifile: str) -> Optional[StructureCounter]:
         trees = self.parse_ifile(ifile)
+        if trees is None:
+            return None
         counter = StructureCounter(ifile, selected_measures=self.selected_measures)
         return self.query_against_trees(trees, counter)
 
@@ -148,12 +152,16 @@ class NeoSCA:
                 for i, ifile in enumerate(ifiles, 1):
                     logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
                     child_counter = self.parse_ifile_and_query(ifile)
+                    if child_counter is None:
+                        continue
                     parent_counter += child_counter
                 self.counter_lists.append(parent_counter)
             else:
                 for i, ifile in enumerate(ifiles, 1):
                     logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
                     counter = self.parse_ifile_and_query(ifile)
+                    if counter is None:
+                        continue
                     self.counter_lists.append(counter)
             self.write_freq_output()
         else:
