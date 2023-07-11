@@ -19,7 +19,7 @@ release:
 	python -m twine upload dist/*
 
 install:
-	python setup.py install --user
+	python setup.py install
 
 test:
 	python -m unittest
