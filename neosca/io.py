@@ -25,12 +25,44 @@ class SCAIO:
     ODT_PARA = ODT_NAMESPACE + "p"
 
     def __init__(self):
-        self.ext_read_map = {
+        self.ext_read_map: Dict[str, Callable] = {
             ".txt": self.read_txt,
             ".docx": self.read_docx,
             ".odt": self.read_odt,
         }
-        self.previous_encoding = "utf-8"
+        # .parsed files, along with other types of files, should be explicitly
+        # checked and excluded, because they are text files and self.read_txt can
+        # only exclude non-text files
+        self.extensions_to_exclude: tuple = (
+            ".parsed",
+            ".csv",
+            ".tsv",
+            ".xml",
+            ".json",
+            ".md",
+            ".yml",
+            ".toml",
+            ".html",
+            ".htm",
+            ".cfg",
+            ".conf",
+            ".ini",
+            ".rtf",
+            ".log",
+            ".bat",
+            ".sh",
+            ".py",
+            ".r",
+            ".R",
+            ".h",
+            ".java",
+            ".cpp",
+            ".sql",
+            ".textile",
+            ".srt",
+            ".tex",
+        )
+        self.previous_encoding: str = "utf-8"
 
     def read_docx(self, path: str) -> str:
         """
