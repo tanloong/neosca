@@ -26,6 +26,9 @@ class Structure:
             self.requirements = []
         else:
             self.requirements = requirements
+
+        # TODO should clarify count or count/count
+        # https://articles.zsxq.com/id_wnw0w98lzgsq.html
         self.freq: Union[float, int] = 0
         self.matches: list = []
 
@@ -178,6 +181,8 @@ class StructureCounter:
     def get_all_freqs(self) -> dict:
         self.update_freqs()
         self.compute_14_indicies()
+        # TODO should store Filename in an extra metadata layer
+        # https://articles.zsxq.com/id_wnw0w98lzgsq.html
         freq_dict = OrderedDict({"Filename": self.ifile})
         for structure in self.structures_to_report:
             freq_dict[structure.name] = str(structure.freq)

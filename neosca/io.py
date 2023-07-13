@@ -94,8 +94,8 @@ class SCAIO:
         try:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()
-        # input file existence has already been checked before running (main.py: verified_ifile_list),
-        # here check it again in case users remove input files during runtime
+        # input file existence has already been checked in main.py, here check
+        # it again in case users remove input files during runtime
         except FileNotFoundError:
             logging.critical(f"{path} does not exist.")
             sys.exit(1)
@@ -133,27 +133,28 @@ class SCAIO:
             return None
 
         if ext not in self.ext_read_map:
-            # assume files with other extensions as .txt files; if not so,
-            # read_txt() will log them from within and return None
+            # assume files with other extensions as text files; if not so,
+            # read_txt() will fail and log them and return None
             ext = ".txt"
         return self.ext_read_map[ext](path)  # type:ignore
 
     @classmethod
-    def try_write(cls, filename: str, content: Optional[str]) -> SCAProcedureResult:
+    def is_writable(cls, filename: str) -> SCAProcedureResult:
+        """check whether files are opened by such other processes as WPS"""
         if not os.path.exists(filename):
             return True, None
         try:
-            with open(filename, "w", encoding="utf-8") as f:
-                if content is not None:
-                    f.write(content)
-                return True, None
+            with open(filename, "w", encoding="utf-8"):
+                pass
         except PermissionError:
             return (
                 False,
                 (
-                    f"PermissionError: can not write to {filename}, because it is already"
-                    f" in use by another process.\n\n1. Ensure that {filename} is closed,"
-                    " or \n2. Specify another output filename through the `-o` option,"
-                    f" e.g. nsca input.txt -o {filename.replace('.csv', '-2.csv')}"
+                    f"PermissionError: can not write to {filename}, because it is already in use"
+                    " by another process.\n\n1. Ensure that {filename} is closed, or \n2."
+                    " Specify another output filename through the `-o` option, e.g. nsca"
+                    f" input.txt -o {filename.replace('.csv', '-2.csv')}"
                 ),
             )
+        else:
+            return True, None

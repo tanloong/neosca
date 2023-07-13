@@ -556,7 +556,7 @@ Contact:
             if not sucess:
                 return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = SCAIO.try_write(self.options.ofile_freq, None)
+                sucess, err_msg = SCAIO.is_writable(self.options.ofile_freq)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)  # type: ignore
