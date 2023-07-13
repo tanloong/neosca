@@ -313,7 +313,7 @@ Contact:
             if ifile_list:
                 return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
             logging.info(f"Command-line text: {options.text}")
-            verified_ifile_list = None
+            self.verified_ifile_list = None
         else:
             verified_ifile_list = []
             for path in ifile_list:
@@ -325,7 +325,7 @@ Contact:
                     verified_ifile_list.extend(glob.glob(path))
                 else:
                     return (False, f"No such file as \n\n{path}")
-        self.verified_ifile_list = verified_ifile_list
+            self.verified_ifile_list = verified_ifile_list
 
         if options.subfile_lists is None:
             self.verified_subfile_lists: List[list] = []
