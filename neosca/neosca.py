@@ -6,8 +6,8 @@ import sys
 from typing import Dict, List, Optional, Set, Tuple
 
 from .parser import StanfordParser
-from .querier import StanfordTregex
 from .scaenv import unite_classpaths
+from .querier import Ns_PyTregex
 from .scaio import SCAIO
 from .structure_counter import StructureCounter
 
@@ -81,7 +81,7 @@ class NeoSCA:
 
     def ensure_stanford_tregex_initialized(self) -> None:
         if not self.is_stanford_tregex_initialized:
-            self.tregex = StanfordTregex(classpaths=self.classpaths)
+            self.tregex = Ns_PyTregex()
             self.is_stanford_tregex_initialized = True
 
     def ensure_stanford_parser_initialized(self) -> None:

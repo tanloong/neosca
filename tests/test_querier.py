@@ -5,7 +5,7 @@ from neosca.scaexceptions import (
     CircularDefinitionError,
     StructureNotFoundError,
 )
-from neosca.querier import StanfordTregex
+from neosca.querier import Ns_PyTregex
 from neosca.structure_counter import StructureCounter
 
 from .base_tmpl import BaseTmpl
@@ -16,7 +16,7 @@ from .base_tmpl import tree
 class TestStanfordTregex(BaseTmpl):
     def setUp(self):
         self.counter = StructureCounter()
-        self.tregex = StanfordTregex(classpaths=classpaths)
+        self.tregex = Ns_PyTregex()
         return super().setUp()
 
     def test_set_value(self):

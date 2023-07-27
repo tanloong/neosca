@@ -8,48 +8,25 @@ import os.path as os_path
 import re
 import sys
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
-import jpype
-from jpype import JClass
-
+from .pytregex.tregex import TregexPattern
 from .scaexceptions import CircularDefinitionError, InvalidSourceError
 
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter
 
 
-class StanfordTregex:
+
+class Ns_PyTregex:
     def __init__(
         self,
-        classpaths: Optional[list] = None,
-        max_memory: str = "3072m",
     ) -> None:
-        self.classpaths = classpaths if classpaths is not None else []
-        self.max_memory = max_memory
-        self.TREGEX_PATTERN = "edu.stanford.nlp.trees.tregex.TregexPattern"
-        self.STRING_READER = "java.io.StringReader"
-        self.PENN_TREE_READER = "edu.stanford.nlp.trees.PennTreeReader"
-        self.init_tregex()
-
-    def init_tregex(self):
-        if not jpype.isJVMStarted():  # pragma: no cover
-            logging.debug("[StanfordTregex] starting JVM...")
-            # Note that isJVMStarted may be renamed to isJVMRunning in the future.
-            # In jpype's _core.py:
-            # > TODO This method is horribly named.  It should be named isJVMRunning as
-            # > isJVMStarted would seem to imply that the JVM was started at some
-            # > point without regard to whether it has been shutdown.
-            jpype.startJVM(f"-Xmx{self.max_memory}", classpath=self.classpaths)
-
-        self.TregexPattern = jpype.JClass(self.TREGEX_PATTERN)
-        self.StringReader = JClass(self.STRING_READER)
-        self.PennTreeReader = JClass(self.PENN_TREE_READER)
         self.compiled_pattern_map = {}
 
     def get_compiled_pattern(self, sname: str, pattern_string: str):
         if sname not in self.compiled_pattern_map:
-            tregex_pattern = self.TregexPattern.compile(pattern_string)
+            tregex_pattern = TregexPattern(pattern_string)
             self.compiled_pattern_map[sname] = tregex_pattern
         else:
             tregex_pattern = self.compiled_pattern_map[sname]
@@ -60,35 +37,17 @@ class StanfordTregex:
         matches = []
         tregex_pattern = self.get_compiled_pattern(sname, pattern_string)
 
-        treeReader = self.PennTreeReader(self.StringReader(trees))
-        tree = treeReader.readTree()
-        while tree is not None:
-            matcher = tregex_pattern.matcher(tree)
-            last_matching_root_node = None
-            while matcher.find():
-                match = matcher.getMatch()
-                # Each tree node can be reported only once as the root of a match.
-                # Although solely nodeNumber checking is enough, it involves
-                #  iteration acorss the tree, which can be slow on high trees,
-                #  so use equals() to exit if-condition early. The equals()
-                #  will check labels, number of children, and finally whether
-                #  the children are pairwise equal. This achieves an average
-                #  speed increase of 78ms across 4 trials on ~5% fragment of
-                #  Penn Treebank
-                #  (https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/treebank.zip).
-                if last_matching_root_node is not None and (
-                    last_matching_root_node.equals(match)
-                    and last_matching_root_node.nodeNumber(tree) == match.nodeNumber(tree)
-                ):
-                    continue
-                last_matching_root_node = match
+        matched_nodes = tregex_pattern.findall(trees)
+        last_node = None
 
-                # we don't use match.spanString() because the output lacks
-                # whitespace, e.g., "the media" becomes "themedia"
-                span_string = " ".join(str(leaf.toString()) for leaf in match.getLeaves())
-                penn_string = str(match.pennString().replaceAll("\r", ""))
-                matches.append(span_string + "\n" + penn_string)
-            tree = treeReader.readTree()
+        for node in matched_nodes:
+            if node is last_node:
+            # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
+                continue
+            last_node = node
+            span_string = node.span_string()
+            matches.append(span_string)
+
         return matches
 
     @classmethod
@@ -121,7 +80,7 @@ class StanfordTregex:
         for toknum, tokval, *_ in g:
             if toknum == NAME:
                 ancestor_snames.append(sname)
-                StanfordTregex.check_circular_def(tokval, ancestor_snames, counter)
+                Ns_PyTregex.check_circular_def(tokval, ancestor_snames, counter)
 
                 self.set_value(counter, tokval, trees, ancestor_snames)
                 if self.has_tregex_pattern(counter, tokval):
@@ -234,7 +193,7 @@ class StanfordTregex:
             meta_data = (
                 f"# name: {structure.name}\n"
                 + f"# description: {structure.description}\n"
-                + f"# tregex_pattern: {structure.tregex_pattern}\n\n"
+                + f"# pytregex_pattern: {structure.tregex_pattern}\n\n"
             )
             res = "\n".join(matches)
             # only accept alphanumeric chars, underscore, and hypen
