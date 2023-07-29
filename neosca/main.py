@@ -402,10 +402,10 @@ Contact:
         if java_home is None:
             java_home = search_java_home()
             if java_home is None:
-                from .depends_installer import depends_installer
+                from .depends_installer import DependsInstaller
                 from .depends_installer import JAVA
 
-                installer = depends_installer()
+                installer = DependsInstaller()
                 sucess, err_msg = installer.install(
                     JAVA, is_assume_yes=self.options.is_assume_yes
                 )
@@ -433,10 +433,10 @@ Contact:
     def check_stanford_parser(self) -> SCAProcedureResult:
         self.options.stanford_parser_home = getenv(self.STANFORD_PARSER_HOME)
         if self.options.stanford_parser_home is None:
-            from .depends_installer import depends_installer
+            from .depends_installer import DependsInstaller
             from .depends_installer import STANFORD_PARSER
 
-            installer = depends_installer()
+            installer = DependsInstaller()
             sucess, err_msg = installer.install(
                 STANFORD_PARSER, is_assume_yes=self.options.is_assume_yes
             )
@@ -459,10 +459,10 @@ Contact:
     def check_stanford_tregex(self) -> SCAProcedureResult:
         self.options.stanford_tregex_home = getenv(self.STANFORD_TREGEX_HOME)
         if self.options.stanford_tregex_home is None:
-            from .depends_installer import depends_installer
+            from .depends_installer import DependsInstaller
             from .depends_installer import STANFORD_TREGEX
 
-            installer = depends_installer()
+            installer = DependsInstaller()
             sucess, err_msg = installer.install(
                 STANFORD_TREGEX, is_assume_yes=self.options.is_assume_yes
             )
