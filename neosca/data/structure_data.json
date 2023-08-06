@@ -1,0 +1,161 @@
+[
+    {
+        "name": "W",
+        "desc": "words"
+    },
+    {
+        "name": "S",
+        "desc": "sentences",
+        "tregex_pattern": "ROOT"
+    },
+    {
+        "name": "VP1",
+        "desc": "regular verb phrases",
+        "tregex_pattern": "VP > S|SINV|SQ"
+    },
+    {
+        "name": "VP2",
+        "desc": "verb phrases in inverted yes/no questions or in wh-questions",
+        "tregex_pattern": "MD|VBZ|VBP|VBD > (SQ !< VP)"
+    },
+    {
+        "name": "C1",
+        "desc": "regular clauses",
+        "tregex_pattern": "S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]"
+    },
+    {
+        "name": "C2",
+        "desc": "fragment clauses",
+        "tregex_pattern": "FRAG > ROOT !<< (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
+    },
+    {
+        "name": "T1",
+        "desc": "regular T-units",
+        "tregex_pattern": "S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]"
+    },
+    {
+        "name": "T2",
+        "desc": "fragment T-units",
+        "tregex_pattern": "FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])"
+    },
+    {
+        "name": "CN1",
+        "desc": "complex nominals, type 1",
+        "tregex_pattern": "NP !> NP [<< JJ|POS|PP|S|VBG | << (NP $++ NP !$+ CC)]"
+    },
+    {
+        "name": "CN2",
+        "desc": "complex nominals, type 2",
+        "tregex_pattern": "SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]"
+    },
+    {
+        "name": "CN3",
+        "desc": "complex nominals, type 3",
+        "tregex_pattern": "S < (VP <# VBG|TO) $+ VP"
+    },
+    {
+        "name": "DC",
+        "desc": "dependent clauses",
+        "tregex_pattern": "SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
+    },
+    {
+        "name": "CT",
+        "desc": "complex T-units",
+        "tregex_pattern": "S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << (SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]))"
+    },
+    {
+        "name": "CP",
+        "desc": "coordinate phrases",
+        "tregex_pattern": "ADJP|ADVP|NP|VP < CC"
+    },
+    {
+        "name": "VP",
+        "desc": "verb phrases",
+        "value_source": "VP1 + VP2"
+    },
+    {
+        "name": "C",
+        "desc": "clauses",
+        "value_source": "C1 + C2"
+    },
+    {
+        "name": "T",
+        "desc": "T-units",
+        "value_source": "T1 + T2"
+    },
+    {
+        "name": "CN",
+        "desc": "complex nominals",
+        "value_source": "CN1 + CN2 + CN3"
+    },
+    {
+        "name": "MLS",
+        "desc": "mean length of sentence",
+        "value_source": "W / S"
+    },
+    {
+        "name": "MLT",
+        "desc": "mean length of T-unit",
+        "value_source": "W / T"
+    },
+    {
+        "name": "MLC",
+        "desc": "mean length of clause",
+        "value_source": "W / C"
+    },
+    {
+        "name": "C/S",
+        "desc": "clauses per sentence",
+        "value_source": "C / S"
+    },
+    {
+        "name": "VP/T",
+        "desc": "verb phrases per T-unit",
+        "value_source": "VP / T"
+    },
+    {
+        "name": "C/T",
+        "desc": "clauses per T-unit",
+        "value_source": "C / T"
+    },
+    {
+        "name": "DC/C",
+        "desc": "dependent clauses per clause",
+        "value_source": "DC / C"
+    },
+    {
+        "name": "DC/T",
+        "desc": "dependent clauses per T-unit",
+        "value_source": "DC / T"
+    },
+    {
+        "name": "T/S",
+        "desc": "T-units per sentence",
+        "value_source": "T / S"
+    },
+    {
+        "name": "CT/T",
+        "desc": "complex T-unit ratio",
+        "value_source": "CT / T"
+    },
+    {
+        "name": "CP/T",
+        "desc": "coordinate phrases per T-unit",
+        "value_source": "CP / T"
+    },
+    {
+        "name": "CP/C",
+        "desc": "coordinate phrases per clause",
+        "value_source": "CP / C"
+    },
+    {
+        "name": "CN/T",
+        "desc": "complex nominals per T-unit",
+        "value_source": "CN / T"
+    },
+    {
+        "name": "CN/C",
+        "desc": "complex nominals per clause",
+        "value_source": "CN / C"
+    }
+]

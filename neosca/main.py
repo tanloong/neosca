@@ -601,8 +601,9 @@ Contact:
     def list_fields(self) -> SCAProcedureResult:
         from .structure_counter import StructureCounter
 
-        for structure in StructureCounter().structures_to_report:
-            print(f"{structure.name}: {structure.desc}")
+        counter = StructureCounter()
+        for s_name in counter.selected_measures:
+            print(f"{s_name}: {counter.get_structure(s_name).desc}")
         return True, None
 
     def expand_wildcards(self) -> SCAProcedureResult:

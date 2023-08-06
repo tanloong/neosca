@@ -28,7 +28,7 @@ class StanfordParser:
         self.parsed_sent_num = 0
         self.long_sent_num = 0
         self.no_parse_num = 0
-        self.PROMPT_PARSING = "[Parser] Parsing [sent. {} len. {}]: {}"
+        self.PROMPT_PARSING = "Parsing [sent. {} len. {}]: {}"
         self.PROMPT_LONG_SENTENCE = "Sentence longer than {}. Skipping: {}\n"
         self.PROMPT_NO_PARSE = (
             'Sentence has no parse using PCFG grammar (or no PCFG fallback). Skipping: "{}"'
@@ -44,7 +44,7 @@ class StanfordParser:
 
     def init_parser(self):
         if not jpype.isJVMStarted():
-            logging.info("[Parser] starting JVM...")
+            logging.debug("starting JVM...")
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
             # > TODO This method is horribly named.  It should be named isJVMRunning as

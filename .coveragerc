@@ -1,2 +1,3 @@
 [run]
 source = neosca
+omit = neosca/depends_installer.py
