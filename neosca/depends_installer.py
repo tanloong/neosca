@@ -16,11 +16,9 @@ import urllib.parse
 import urllib.request
 import zipfile
 
+from .scaplatform import IS_DARWIN, IS_WINDOWS, USER_SOFTWARE_DIR
+from .scaprint import get_yes_or_no, same_line_print
 from .util import SCAProcedureResult
-from .util_platform_info import IS_DARWIN, IS_WINDOWS
-from .util_platform_info import USER_SOFTWARE_DIR
-from .util_print import same_line_print
-from .util_print import get_yes_or_no
 
 if IS_DARWIN:
     import ssl

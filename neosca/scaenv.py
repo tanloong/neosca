@@ -6,8 +6,8 @@ import logging
 import os
 from typing import List, Optional
 
-from .util_platform_info import IS_DARWIN, IS_LINUX, IS_WINDOWS
-from .util_print import color_print
+from .scaplatform import IS_DARWIN, IS_LINUX, IS_WINDOWS
+from .scaprint import color_print
 
 
 def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
@@ -100,13 +100,13 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
 
 
 def setenv(
-    env_var: str, paths: List[str], is_refresh: bool = False, is_quiet: bool = False
+    env_var: str, paths: List[str], is_override: bool = False, is_quiet: bool = False
 ) -> None:
     assert any((IS_WINDOWS, IS_DARWIN, IS_LINUX))
     if IS_WINDOWS:
-        _setenv_windows(env_var, paths, is_refresh)
+        _setenv_windows(env_var, paths, is_override)
     else:
-        _setenv_unix(env_var, paths, is_refresh)
+        _setenv_unix(env_var, paths, is_override)
     if not is_quiet:
         color_print(
             "OKGREEN",

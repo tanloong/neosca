@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
-from .util_platform_info import IS_WINDOWS
 import sys
+
+from .scaplatform import IS_WINDOWS
 
 
 class _bcolors:

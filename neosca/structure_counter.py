@@ -1,27 +1,30 @@
 from collections import OrderedDict
-import json
-import os.path as os_path
-from typing import Dict, Optional, Set, Union
 from copy import deepcopy
+import json
+import logging
+import os.path as os_path
+from typing import Dict, List, Optional, Set, Union
+
+from .scaexceptions import StructureNotFoundError
 
 
 class Structure:
     def __init__(
         self,
         name: str,
-        desc: str,
         *,
         tregex_pattern: Optional[str] = None,
         value_source: Optional[str] = None,
+        description: Optional[str] = None,
     ) -> None:
         """
         :param name: name of the structure
-        :param desc: description of the structure
+        :param description: description of the structure
         :param pattern: Tregex pattern
         :param value_source: how to compute the value basing on values of other structures, e.g. "VP1 + VP2". One and only one of pattern and value_source should be given.
         """
         self.name = name
-        self.desc = desc
+        self.description = description
 
         # no need to check "W" because it uses regex
         if name != "W":
@@ -37,8 +40,12 @@ class Structure:
 
     def __repr__(self) -> str:  # pragma: no cover
         return (
-            f"name: {self.name}\ndescription: {self.desc}\npattern:"
-            f" {self.tregex_pattern}\nmatches: {self.matches}\nfrequency: {self.value}"
+            f"name: {self.name}"
+            + f"\ndescription: {self.description}"
+            + f"\ntregex_pattern: {self.tregex_pattern}"
+            + f"\nvalue_source: {self.value_source}"
+            + f"\nmatches: {self.matches}"
+            + f"\nfrequency: {self.value}"
         )
 
     def __add__(self, other) -> Union[int, float]:
@@ -53,8 +60,7 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other + self.value
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError()
 
     def __sub__(self, other) -> Union[int, float]:
         assert self.value is not None
@@ -68,8 +74,7 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other - self.value
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError()
 
     def __mul__(self, other) -> Union[int, float]:
         assert self.value is not None
@@ -83,35 +88,33 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other * self.value
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError()
 
     def __truediv__(self, other) -> float:
         assert self.value is not None
         if isinstance(other, (float, int)):
-            return round(self.value / other, 4) if other else 0
+            return self.value / other if other else 0
 
         assert other.value is not None
-        return round(self.value / other.value, 4) if other.value else 0
+        return self.value / other.value if other.value else 0
 
     def __rtruediv__(self, other) -> float:
         assert self.value is not None
         if isinstance(other, (float, int)):
-            return round(other / self.value, 4) if other else 0
-        else:
-            raise NotImplementedError()
+            return other / self.value if other else 0
+        raise NotImplementedError()
 
 
 class StructureCounter:
     data_file = os_path.join(os_path.dirname(__file__), "data", "structure_data.json")
     with open(data_file, "r", encoding="utf-8") as f:
-        builtin_data = json.load(f)
+        BUILTIN_DATA = json.load(f)
 
-    builtin_structures: Dict[str, Structure] = {}
-    for kwargs in builtin_data:
-        builtin_structures[kwargs["name"]] = Structure(**kwargs)
+    BUILTIN_STRUCTURES: Dict[str, Structure] = {}
+    for kwargs in BUILTIN_DATA["structures"]:
+        BUILTIN_STRUCTURES[kwargs["name"]] = Structure(**kwargs)
 
-    builtin_selected_measures = [
+    DEFAULT_MEASURES: List[str] = [
         "W",
         "S",
         "VP",
@@ -137,65 +140,118 @@ class StructureCounter:
         "CN/C",
     ]
 
-    def __init__(self, ifile="", selected_measures: Optional[Set[str]] = None) -> None:
+    def __init__(
+        self,
+        ifile="",
+        *,
+        selected_measures: Optional[list[str]] = None,
+        user_structure_defs: Optional[List[Dict[str, str]]] = None,
+    ) -> None:
         self.ifile = ifile
-        if selected_measures is not None:
-            # accepted from users as a set to avoid duplicates, now convert to list to ensure order
-            self.selected_measures = list(selected_measures)
-        else:
-            self.selected_measures = self.builtin_selected_measures
 
-        self.fields = "Filename," + ",".join(self.selected_measures)
-        self.structures = deepcopy(self.builtin_structures)
+        user_defined_structures: Dict[str, Structure] = {}
+        user_defined_snames: Optional[Set[str]] = None
+
+        if user_structure_defs is not None:
+            user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
+
+            for kwargs in user_structure_defs:
+                user_defined_structures[kwargs["name"]] = Structure(**kwargs)
+
+        self.structures: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURES)
+        self.structures.update(user_defined_structures)
+
+        default_measures = StructureCounter.DEFAULT_MEASURES + [
+            sname
+            for sname in user_defined_structures.keys()
+            if sname not in StructureCounter.DEFAULT_MEASURES
+        ]
+
+        if selected_measures is not None:
+            StructureCounter.check_undefined_measure(selected_measures, user_defined_snames)
+        self.selected_measures: List[str] = (
+            selected_measures if selected_measures is not None else default_measures
+        )
+        logging.debug(f"[StructureCounter] selected_measures: {self.selected_measures}")
+
+    @classmethod
+    def check_duplicated_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+        user_defined_snames = set()
+        for definition in user_structure_defs:
+            sname = definition["name"]
+            if sname in user_defined_snames:
+                raise ValueError(f'Duplicated structure definition "{sname}".')
+            user_defined_snames.add(sname)
+        return user_defined_snames
+
+    @classmethod
+    def check_undefined_measure(
+        cls, selected_measures: List[str], user_defined_snames: Optional[Set[str]]
+    ) -> None:
+        # check undefined selected_measure
+        if user_defined_snames is not None:
+            all_measures = StructureCounter.BUILTIN_STRUCTURES.keys() | user_defined_snames
+        else:
+            all_measures = set(StructureCounter.BUILTIN_STRUCTURES.keys())
+
+        for m in selected_measures:
+            if m not in all_measures:
+                raise ValueError(f"{m} has not been defined.")
 
     def get_structure(self, structure_name: str) -> Structure:
         try:
             structure = self.structures[structure_name]
         except KeyError:
-            raise KeyError(f"{structure_name} not found.")
+            raise StructureNotFoundError(f"{structure_name} not found.")
         else:
             return structure
 
     def set_matches(self, structure_name: str, matches: list) -> None:
         if structure_name not in self.structures:
-            raise ValueError(f"{structure_name} not found")
+            raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
             raise ValueError("matches should be a list object")
         else:
             self.structures[structure_name].matches = matches
 
-    def get_matches(self, s_name: str) -> Optional[list]:
-        s = self.get_structure(s_name)
+    def get_matches(self, sname: str) -> Optional[list]:
+        s = self.get_structure(sname)
         return s.matches
 
-    def set_value(self, s_name: str, value: Union[int, float]) -> None:
-        if s_name not in self.structures:
-            raise ValueError(f"{s_name} not counted")
+    def set_value(self, sname: str, value: Union[int, float]) -> None:
+        if sname not in self.structures:
+            raise ValueError(f"{sname} not counted")
         elif not isinstance(value, (float, int)):
             raise ValueError(f"value should be either a float or an integer, got {value}")
         else:
-            self.structures[s_name].value = value
+            self.structures[sname].value = value
 
-    def get_value(self, s_name: str) -> Optional[Union[float, int]]:
-        s = self.get_structure(s_name)
-        return s.value
+    def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
+        value = self.get_structure(sname).value
+        return round(value, precision) if value is not None else value
 
-    def get_all_values(self) -> dict:
+    def get_all_values(self, precision: int = 4) -> dict:
         # TODO should store Filename in an extra metadata layer
         # https://articles.zsxq.com/id_wnw0w98lzgsq.html
         freq_dict = OrderedDict({"Filename": self.ifile})
-        for s_name in self.selected_measures:
-            freq_dict[s_name] = str(self.get_value(s_name))
+        for sname in self.selected_measures:
+            freq_dict[sname] = str(self.get_value(sname, precision))
         return freq_dict
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
+        logging.debug("[StructureCounter] Adding counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
-        new_selected_measures = set(self.selected_measures + other.selected_measures)
+        new_selected_measures = list(
+            dict.fromkeys(self.selected_measures + other.selected_measures)
+        )
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
-        for s_name in new.structures:
-            this_value = self.get_value(s_name)
-            that_value = other.get_value(s_name)
+        for sname in new.structures:
+            this_value = self.get_value(sname)
+            that_value = other.get_value(sname)
             if not (this_value is None and that_value is None):
                 value = (this_value or 0) + (that_value or 0)
-                new.set_value(s_name, value)  # type: ignore
+                new.set_value(sname, value)
+                logging.debug(
+                    f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
+                )
         return new

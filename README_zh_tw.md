@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 [English](https://github.com/tanloong/neosca#readme)
 
-NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重寫版本，添加了對 Windows 的支持和更多的命令行選項。NeoSCA 對英文語料統計以下內容：
+NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的復刻版，添加了對 Windows 的支持和更多的命令行選項。NeoSCA 對英文語料統計以下內容：
 
 <details>
 
@@ -348,7 +348,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.43},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.43},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}

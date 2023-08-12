@@ -1,3 +1,6 @@
 [run]
 source = neosca
-omit = neosca/depends_installer.py
+omit =
+    neosca/about.py
+    neosca/depends_installer.py
+    neosca/scaexceptions.py

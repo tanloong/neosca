@@ -12,13 +12,11 @@ class StanfordParser:
     def __init__(
         self,
         classpaths: Optional[list] = None,
-        is_verbose: bool = False,
         nthreads: int = 1,
         # tested on a 16kb file: 3m23s with 2 threads vs. 3m21s with 1 threads
         max_memory: str = "3072m",  # 3g
     ) -> None:
         self.classpaths = classpaths if classpaths is not None else []
-        self.is_verbose = is_verbose
         self.nthreads = nthreads
         self.max_memory = max_memory
 
@@ -28,7 +26,7 @@ class StanfordParser:
         self.parsed_sent_num = 0
         self.long_sent_num = 0
         self.no_parse_num = 0
-        self.PROMPT_PARSING = "Parsing [sent. {} len. {}]: {}"
+        self.PROMPT_PARSING = " Parsing [sent. {} len. {}]: {}"
         self.PROMPT_LONG_SENTENCE = "Sentence longer than {}. Skipping: {}\n"
         self.PROMPT_NO_PARSE = (
             'Sentence has no parse using PCFG grammar (or no PCFG fallback). Skipping: "{}"'
