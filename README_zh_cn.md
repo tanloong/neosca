@@ -205,7 +205,42 @@ nsca sample1.txt --newline-break always
 + `always` 表示将换行符作为句子边界，但两个换行符之间仍可以有多个句子。
 + `two` 表示将连续的两个 (或更多) 换行符作为句子边界，适用于存在句内换行、段落之间以空行间隔的文本。
 
-#### 只计算一部分指标
+#### 配置文件
+
+你可以使用配置文件来自定义需要统计/计算的句法结构。
+
+neosca 的默认配置文件名为 `nsca.json`，neosca 会尝试在当前工作目录查找 `nsca.json`。你可以使用命令 `nsca --config <your_config_file>` 指定自己的配置文件。配置文件应为 JSON 格式，并以 `.json` 扩展名命名。
+
+```json
+{
+    "structures": [
+        {
+            "name": "VP1",
+            "description": "regular verb phrases",
+            "tregex_pattern": "VP > S|SINV|SQ"
+        },
+        {
+            "name": "VP2",
+            "description": "verb phrases in inverted yes/no questions or in wh-questions",
+            "tregex_pattern": "MD|VBZ|VBP|VBD > (SQ !< VP)"
+        },
+        {
+            "name": "VP",
+            "description": "verb phrases",
+            "value_source": "VP1 + VP2"
+        }
+}
+```
+
+上面是 neosca 内置的句法结构的定义的一部分。定义应遵循键值对的格式，其中键和值都应放在半角引号中。
+
+neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基于 Tregex 语法的定义。通过 `tregex_pattern` 定义的句法结构，会运行 Stanford Tregex 来统计频次。`value_source` 表示该句法结构通过计算其他结构来间接统计，可以包含整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。通过 `value_source` 定义的句法结构，会先统计/计算依赖结构，然后计算 `value_source` 的值并赋给该句法结构。
+
+`value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，以避免递归。
+
+定义一个句法结构时只能使用 `tregex_pattern` 或 `value_source` 的其中一种，不能两个同时使用。`name` 的值可以在 `--select` 选项中使用。`description` 可以不写，只写。
+
+#### 选取部分指标
 
 NeoSCA 默认计算所有指标的值，使用 `--select` 可以只计算选定指标的值。要查看所有的可选指标可以用 `nsca --list`。
 
@@ -300,7 +335,7 @@ NeoSCA 默认接受原始文本作为输入，对文本进行短语结构分析�
 nsca samples/sample1.parsed --no-parse
 ```
 
-#### 列出 9 种句法结构和 14 个句法复杂度指标
+#### 列出内置指标
 
 <details>
 
