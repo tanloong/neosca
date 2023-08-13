@@ -2,8 +2,10 @@
 # -*- coding=utf-8 -*-
 
 import os
+
+from neosca.scaenv import getenv
+
 from .cmdline_tmpl import BaseTmpl
-from neosca.util_env import getenv
 
 
 class TestUtilEnv(BaseTmpl):
