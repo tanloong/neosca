@@ -144,7 +144,7 @@ class StructureCounter:
         self,
         ifile="",
         *,
-        selected_measures: Optional[list[str]] = None,
+        selected_measures: Optional[List[str]] = None,
         user_structure_defs: Optional[List[Dict[str, str]]] = None,
     ) -> None:
         self.ifile = ifile

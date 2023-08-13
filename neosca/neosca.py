@@ -21,7 +21,7 @@ class NeoSCA:
         odir_matched: str = "",
         newline_break: str = "never",
         max_length: Optional[int] = None,
-        selected_measures: Optional[list[str]] = None,
+        selected_measures: Optional[List[str]] = None,
         is_reserve_parsed: bool = False,
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
