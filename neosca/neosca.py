@@ -47,6 +47,7 @@ class NeoSCA:
         self.user_data, self.user_structure_defs, self.user_defined_snames = (
             self.load_user_config(config)
         )
+        logging.debug(f"[NeoSCA] user_defined_snames: {self.user_defined_snames}")
 
         if selected_measures is not None:
             StructureCounter.check_undefined_measure(selected_measures, self.user_defined_snames)

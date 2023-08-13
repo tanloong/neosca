@@ -39,7 +39,7 @@ class SCAUI:
             dest="list_fields",
             action="store_true",
             default=False,
-            help="List available measures.",
+            help="List built-in measures.",
         )
         args_parser.add_argument(
             "--expand-wildcards",
@@ -274,6 +274,8 @@ class SCAUI:
     Parse the input files, save the parsed trees and exit.
 20. nsca sample1.parsed --no-parse
     Assume input as parse trees. Skip the parsing step and proceed directly to querying.
+21. nsca --config nsca.json sample1.txt
+    Use nsca.json where you can defined your own syntactic structures to search or calculate.
 
 Contact:
 1. https://github.com/tanloong/neosca/issues
@@ -383,6 +385,14 @@ Contact:
                 return False, f"no such file as\n\n{user_config}"
             if not user_config.endswith(".json"):
                 return False, f'"{user_config}" does not seem like a json file.'
+            logging.debug(f"[Main] Using configuration file {user_config}")
+        else:
+            default_config_file = "nsca.json"
+            if os_path.isfile(default_config_file):
+                user_config = default_config_file
+                logging.debug(f"[Main] Using configuration file {user_config}")
+            else:
+                logging.debug("[Main] No configuration file found")
 
         self.init_kwargs = {
             "ofile_freq": options.ofile_freq,
@@ -399,7 +409,7 @@ Contact:
             "is_skip_querying": options.is_skip_querying,
             "is_skip_parsing": options.is_skip_parsing,
             "is_pretokenized": options.is_pretokenized,
-            "config": options.config,
+            "config": user_config,
         }
         self.options = options
         return True, None

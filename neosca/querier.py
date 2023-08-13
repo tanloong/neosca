@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import sys
-from tokenize import NAME, tokenize, untokenize
+from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import List, Optional
 
 import jpype
@@ -125,11 +125,15 @@ class StanfordTregex:
                     ancestor_snames.clear()
 
                 tokens.append((toknum, f"counter.get_structure('{tokval}')"))
+            elif toknum == NUMBER:
+                tokens.append((toknum, tokval))
             elif tokval in ("+", "-", "*", "/", "(", ")"):
                 tokens.append((toknum, tokval))
             # constrain value_source as only NAMEs and numberic ops to assure security for `eval`
             elif tokval != "":
                 raise InvalidSourceError(f'Unexpected token: "{tokval}"')
+        # append "+ 0" to force tokens evaluated as num if value_source contains just name of another Structure
+        tokens.extend(((PLUS, "+"), (NUMBER, "0")))
         return tokens
 
     def has_tregex_pattern(self, counter: StructureCounter, sname: str) -> bool:

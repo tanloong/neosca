@@ -154,6 +154,7 @@ class StructureCounter:
 
         if user_structure_defs is not None:
             user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
+            logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
 
             for kwargs in user_structure_defs:
                 user_defined_structures[kwargs["name"]] = Structure(**kwargs)
@@ -182,6 +183,7 @@ class StructureCounter:
             if sname in user_defined_snames:
                 raise ValueError(f'Duplicated structure definition "{sname}".')
             user_defined_snames.add(sname)
+        logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
         return user_defined_snames
 
     @classmethod
@@ -193,6 +195,7 @@ class StructureCounter:
             all_measures = StructureCounter.BUILTIN_STRUCTURES.keys() | user_defined_snames
         else:
             all_measures = set(StructureCounter.BUILTIN_STRUCTURES.keys())
+        logging.debug(f"[StructureCounter] all_measures: {all_measures}")
 
         for m in selected_measures:
             if m not in all_measures:
