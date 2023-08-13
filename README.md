@@ -217,7 +217,7 @@ It is for text with hard line breaks and a blank line between paragraphs.
 
 #### Configuration file
 
-You can use a configuration file where you can define custom syntactic structures to search or calculate.
+You can use a configuration file to define custom syntactic structures to search or calculate.
 
 The default filename for neosca is `nsca.json`, neosca will try to find `nsca.json` in current working directory. Alternatively, you can provide your own configuration file with `nsca --config <your_config_file>`. The configuration file should be in JSON format and named with `.json` extension.
 
@@ -249,7 +249,7 @@ There are two approaches to define a structure: using `tregex_pattern` or `value
 
 The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid recursive definition.
 
-Structures can be defined using either `tregex_pattern` or `value_source`, but not both simultaneously. The `name` attribute will be used for `--select` option. The `description` attribute is optional, you omit it in your definitions for convenience.
+Structures can be defined using either `tregex_pattern` or `value_source`, but not both simultaneously. The `name` attribute will be used for `--select` option. The `description` attribute is optional, you can omit it for convenience.
 
 #### Select a subset of measures
 
