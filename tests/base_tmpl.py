@@ -6,8 +6,9 @@ import os
 import sys
 import time
 from unittest import TestCase
-from neosca.util_platform_info import IS_WINDOWS
-from neosca.util_env import unite_classpaths
+
+from neosca.scaenv import unite_classpaths
+from neosca.scaplatform import IS_WINDOWS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 text = "There was no possibility of taking a walk that day."

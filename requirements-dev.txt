@@ -5,5 +5,6 @@ twine
 
 # Lint & Coverage
 black
+flake8
 mypy
 coverage

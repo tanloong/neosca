@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 [English](https://github.com/tanloong/neosca#readme)
 
-NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的重寫版本，添加了對 Windows 的支持和更多的命令行選項。NeoSCA 對英文語料統計以下內容：
+NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的復刻版，添加了對 Windows 的支持和更多的命令行選項。NeoSCA 對英文語料統計以下內容：
 
 <details>
 
@@ -205,7 +205,43 @@ nsca sample1.txt --newline-break always
 + `always` 表示將換行符作為句子邊界，但兩個換行符之間仍可以有多個句子。
 + `two` 表示將連續的兩個 (或更多) 換行符作為句子邊界，適用於存在句內換行、段落之間以空行間隔的文本。
 
-#### 只計算一部分指標
+#### 配置文件
+
+你可以使用配置文件來自定義需要統計/計算的句法結構。
+
+neosca 的默認配置文件名為 `nsca.json`，neosca 會嘗試在當前工作目錄查找 `nsca.json`。你可以使用命令 `nsca --config <your_config_file>` 指定自己的配置文件。配置文件應為 JSON 格式，並以 `.json` 擴展名命名。
+
+```json
+{
+    "structures": [
+        {
+            "name": "VP1",
+            "description": "regular verb phrases",
+            "tregex_pattern": "VP > S|SINV|SQ"
+        },
+        {
+            "name": "VP2",
+            "description": "verb phrases in inverted yes/no questions or in wh-questions",
+            "tregex_pattern": "MD|VBZ|VBP|VBD > (SQ !< VP)"
+        },
+        {
+            "name": "VP",
+            "description": "verb phrases",
+            "value_source": "VP1 + VP2"
+        }
+    ]
+}
+```
+
+上面是 neosca 內置的句法結構的定義的一部分。定義應遵循鍵值對的格式，其中鍵和值都應放在半角引號中。
+
+neosca 提供了兩種定義句法結構的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基於 Tregex 語法的定義。通過 `tregex_pattern` 定義的句法結構，會運行 Stanford Tregex 來統計頻次。`value_source` 表示該句法結構通過計算其他結構來間接統計，可以包含整數、小數、`+`、`-`、`*`、`/`、半角括號 `(` 和 `)`。通過 `value_source` 定義的句法結構，會先統計/計算依賴結構，然後計算 `value_source` 的值並賦給該句法結構。
+
+`value_source` 的定義可以嵌套，依賴結構自身也可以通過 `value_source` 來定義並依賴於其他結構，形成類似樹的關係。但位於葉子節點的句法結構必須通過 `tregex_pattern` 來定義，以避免遞歸。
+
+定義一個句法結構時只能使用 `tregex_pattern` 或 `value_source` 的其中一種，不能兩個同時使用。`name` 的值可以在 `--select` 選項中使用。`description` 可以不寫，只寫。
+
+#### 選取部分指標
 
 NeoSCA 默認計算所有指標的值，使用 `--select` 可以只計算選定指標的值。要查看所有的可選指標可以用 `nsca --list`。
 
@@ -300,7 +336,7 @@ NeoSCA 默認接受原始文本作為輸入，對文本進行短語結構分析�
 nsca samples/sample1.parsed --no-parse
 ```
 
-#### 列出 9 種句法結構和 14 個句法複雜度指標
+#### 列出內置指標
 
 <details>
 
@@ -348,7 +384,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.43},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.44},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -363,7 +399,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.43) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.44) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -373,7 +409,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.43, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.44, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

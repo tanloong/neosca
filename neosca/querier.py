@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
+from io import BytesIO
 import logging
 import os
 import re
 import sys
-from typing import Optional, Tuple
+from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
+from typing import List, Optional
 
 import jpype
 from jpype import JClass
 
+from .scaexceptions import InvalidSourceError, RecursiveDefinitionError
 from .structure_counter import StructureCounter
 
 
@@ -28,7 +31,7 @@ class StanfordTregex:
 
     def init_tregex(self):
         if not jpype.isJVMStarted():  # pragma: no cover
-            logging.info("[Tregex] starting JVM...")
+            logging.debug("[StanfordTregex] starting JVM...")
             # Note that isJVMStarted may be renamed to isJVMRunning in the future.
             # In jpype's _core.py:
             # > TODO This method is horribly named.  It should be named isJVMRunning as
@@ -39,15 +42,20 @@ class StanfordTregex:
         self.TregexPattern = jpype.JClass(self.TREGEX_PATTERN)
         self.StringReader = JClass(self.STRING_READER)
         self.PennTreeReader = JClass(self.PENN_TREE_READER)
-        self.patname_patobj = {}
+        self.compiled_pattern_map = {}
 
-    def query_pattern(self, patname: str, pattern: str, trees: str) -> Tuple[int, list]:
-        matched_subtrees = []
-        if patname not in self.patname_patobj:
-            tregex_pattern = self.TregexPattern.compile(pattern)
-            self.patname_patobj[patname] = tregex_pattern
+    def get_compiled_pattern(self, sname: str, pattern_string: str):
+        if sname not in self.compiled_pattern_map:
+            tregex_pattern = self.TregexPattern.compile(pattern_string)
+            self.compiled_pattern_map[sname] = tregex_pattern
         else:
-            tregex_pattern = self.patname_patobj[patname]
+            tregex_pattern = self.compiled_pattern_map[sname]
+
+        return tregex_pattern
+
+    def get_matches(self, sname: str, pattern_string: str, trees: str) -> list:
+        matches = []
+        tregex_pattern = self.get_compiled_pattern(sname, pattern_string)
 
         treeReader = self.PennTreeReader(self.StringReader(trees))
         tree = treeReader.readTree()
@@ -56,16 +64,125 @@ class StanfordTregex:
             last_matching_root_node = None
             while matcher.find():
                 match = matcher.getMatch()
-                if last_matching_root_node is not None and last_matching_root_node == match:
-                    # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
+                # Each tree node can be reported only once as the root of a match.
+                # Although solely nodeNumber checking is enough, it involves
+                # iteration acorss the tree, which can be slow on high trees,
+                # so use equals() to exit if-condition early. The equals()
+                # will check labels, number of children, and finally whether
+                # the children are pairwise equal. This achieves an average
+                # speed increase of 78ms across 4 trials on ~5% fragment of
+                # Penn Treebank
+                # (https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/treebank.zip).
+                if last_matching_root_node is not None and (
+                    last_matching_root_node.equals(match)
+                    and last_matching_root_node.nodeNumber(tree) == match.nodeNumber(tree)
+                ):
                     continue
                 last_matching_root_node = match
+
+                # we don't use match.spanString() because the output lacks
+                # whitespace, e.g., "the media" becomes "themedia"
                 span_string = " ".join(str(leaf.toString()) for leaf in match.getLeaves())
-                # we don't use match.spanString() because the output lacks whitespace, e.g., "the media" becomes "themedia"
                 penn_string = str(match.pennString().replaceAll("\r", ""))
-                matched_subtrees.append(span_string + "\n" + penn_string)
+                matches.append(span_string + "\n" + penn_string)
             tree = treeReader.readTree()
-        return len(matched_subtrees), matched_subtrees
+        return matches
+
+    @classmethod
+    def check_recursive_def(
+        cls, descendant_sname: str, ancestor_snames: List[str], counter: StructureCounter
+    ) -> None:
+        if descendant_sname in ancestor_snames:
+            recursive_definition = ", ".join(
+                f"{upstream_sname} = {counter.get_structure(upstream_sname).value_source}"
+                for upstream_sname in ancestor_snames
+            )
+            raise RecursiveDefinitionError(f"Recursive definition: {recursive_definition}")
+        else:
+            logging.debug(
+                "[StanfordTregex] Recursive definition checked: descendant"
+                f" {descendant_sname} not in ancestors {ancestor_snames}"
+            )
+
+    def tokenize_value_source(
+        self,
+        value_source: str,
+        counter: StructureCounter,
+        sname: str,
+        trees: str,
+        ancestor_snames: List[str],
+    ) -> list:
+        tokens = []
+        g = tokenize(BytesIO(value_source.encode("utf-8")).readline)
+        next(g)  # skip the "utf-8" token
+        for toknum, tokval, *_ in g:
+            if toknum == NAME:
+                ancestor_snames.append(sname)
+                StanfordTregex.check_recursive_def(tokval, ancestor_snames, counter)
+
+                self.set_value(counter, tokval, trees, ancestor_snames)
+                if self.has_tregex_pattern(counter, tokval):
+                    ancestor_snames.clear()
+
+                tokens.append((toknum, f"counter.get_structure('{tokval}')"))
+            elif toknum == NUMBER:
+                tokens.append((toknum, tokval))
+            elif tokval in ("+", "-", "*", "/", "(", ")"):
+                tokens.append((toknum, tokval))
+            # constrain value_source as only NAMEs and numberic ops to assure security for `eval`
+            elif tokval != "":
+                raise InvalidSourceError(f'Unexpected token: "{tokval}"')
+        # append "+ 0" to force tokens evaluated as num if value_source contains just name of another Structure
+        tokens.extend(((PLUS, "+"), (NUMBER, "0")))
+        return tokens
+
+    def has_tregex_pattern(self, counter: StructureCounter, sname: str) -> bool:
+        return counter.get_structure(sname).tregex_pattern is not None
+
+    def set_value_from_pattern(self, counter: StructureCounter, sname: str, trees: str):
+        structure = counter.get_structure(sname)
+        tregex_pattern = structure.tregex_pattern
+        assert tregex_pattern is not None
+
+        logging.info(
+            f" Searching for {sname}"
+            + (f" ({structure.description})..." if structure.description is not None else "...")
+        )
+        logging.debug(f" Searching for {tregex_pattern}")
+        matched_subtrees = self.get_matches(sname, tregex_pattern, trees)
+        counter.set_matches(sname, matched_subtrees)
+        counter.set_value(sname, len(matched_subtrees))
+
+    def set_value_from_source(
+        self, counter: StructureCounter, sname: str, trees: str, ancestor_snames: List[str]
+    ) -> None:
+        structure = counter.get_structure(sname)
+        value_source = structure.value_source
+        assert value_source is not None, f"value_source for {sname} is None."
+
+        logging.info(
+            f" Calculating {sname} "
+            + (f"({structure.description}) " if structure.description is not None else "")
+            + f"= {value_source}..."
+        )
+        tokens = self.tokenize_value_source(value_source, counter, sname, trees, ancestor_snames)
+        value = eval(untokenize(tokens))
+        counter.set_value(sname, value)
+
+    def set_value(
+        self, counter: StructureCounter, sname: str, trees: str, ancestor_snames: List[str] = []
+    ) -> None:
+        value = counter.get_value(sname)
+        if value is not None:
+            logging.debug(
+                f"[StanfordTregex] {sname} has already been set as {value}, skipping..."
+            )
+            return
+
+        if self.has_tregex_pattern(counter, sname):
+            self.set_value_from_pattern(counter, sname, trees)
+        else:
+            self.set_value_from_source(counter, sname, trees, ancestor_snames)
 
     def query(
         self,
@@ -74,17 +191,16 @@ class StanfordTregex:
         is_reserve_matched: bool = False,
         odir_matched: str = "",
         is_stdout: bool = False,
-    ):
-        for structure in counter.structures_to_query:
-            logging.info(f'[Tregex] Querying "{structure.desc}"...')
-            s_name = structure.name
-            if structure.name == "W":
-                freq = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
-                counter.set_freq(s_name, freq)
+    ) -> StructureCounter:
+        for sname in counter.selected_measures:
+            if sname == "W":
+                logging.info(' Searching for "words"')
+                value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
+                counter.set_value(sname, value)
                 continue
-            freq, matches = self.query_pattern(structure.name, structure.pattern, trees)
-            counter.set_freq(s_name, freq)
-            counter.set_matches(s_name, matches)
+
+            self.set_value(counter, sname, trees)
+
         if is_reserve_matched:  # pragma: no cover
             self.write_match_output(counter, odir_matched, is_stdout)
         return counter
@@ -100,15 +216,20 @@ class StanfordTregex:
         subodir_matched = os.path.join(odir_matched, bn_input_noext).strip()
         if not is_stdout:
             os.makedirs(subodir_matched, exist_ok=True)
-        for structure in counter.structures_to_query:
-            if structure.matches:
-                matches = "\n".join(structure.matches)
-                matches_id = bn_input_noext + "-" + structure.name.replace("/", "p")
-                if not is_stdout:
-                    extension = ".matched"
-                    fn_match_output = os.path.join(subodir_matched, matches_id + extension)
-                    with open(fn_match_output, "w", encoding="utf-8") as f:
-                        f.write(matches)
-                else:
-                    sys.stdout.write(matches_id + "\n")
-                    sys.stdout.write(matches)
+        for sname in counter.selected_measures:
+            matches = counter.get_matches(sname)
+            if matches is None or len(matches) == 0:
+                return
+
+            res = "\n".join(matches)
+            # only accept alphanumeric chars, underscore, and hypen
+            escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
+            matches_id = bn_input_noext + "-" + escaped_sname
+            if not is_stdout:
+                extension = ".matched"
+                fn_match_output = os.path.join(subodir_matched, matches_id + extension)
+                with open(fn_match_output, "w", encoding="utf-8") as f:
+                    f.write(res)
+            else:
+                sys.stdout.write(matches_id + "\n")
+                sys.stdout.write(res)

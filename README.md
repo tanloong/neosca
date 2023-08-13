@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 English
 
-NeoSCA is a rewrite of [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) which is developed by [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html), with added support for Windows and an improved command-line interface for easier usage. NeoSCA accepts written English texts and computes the following measures:
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA accepts written English texts and computes the following measures:
 
 <details>
 
@@ -95,19 +95,19 @@ To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or lat
 python --version
 ```
 
-If Python is not installed, you can download and install it from [Python website](https://www.python.org/downloads/). Once you have Python installed, you can install NeoSCA using `pip`:
+If Python is not installed, you can download and install it from [Python website](https://www.python.org/downloads/). Once you have Python installed, you can install `neosca` using `pip`:
 
 ```sh
 pip install neosca
 ```
 
-If you are in China and having trouble with slow download speeds or network issues, you can use the Tsinghua University PyPI mirror to install NeoSCA:
+If you are in China and having trouble with slow download speeds or network issues, you can use the Tsinghua University PyPI mirror to install `neosca`:
 
 ```sh
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Install Dependencies
+### Install dependencies
 
 NeoSCA depends on [Java](https://www.java.com/en/download/manual.jsp), [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml), and [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html). NeoSCA provides an option to install all of them:
 
@@ -126,11 +126,11 @@ and set the environment variable `JAVA_HOME`, `STANFORD_PARSER_HOME`, and `STANF
 
 ## Usage
 
-NeoSCA is a CLI-based tool. You can see the help message by running `nsca --help` in your terminal.
+NeoSCA is a command-line tool. You can see the help message by running `nsca --help` in your terminal.
 
-### Basic Usage
+### Basic usage
 
-#### Single Input
+#### Single input
 
 To analyze a single file, use the command `nsca` followed by the file path.
 
@@ -162,7 +162,7 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 
 </details>
 
-#### Multiple Input
+#### Multiple input
 
 Specify the input directory after `nsca`.
 
@@ -188,9 +188,9 @@ nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
-### Advanced Usage
+### Advanced usage
 
-#### Expand Wildcards
+#### Expand wildcards
 
 Use `--expand-wildcards` to print all files that match your wildcard pattern. This can help you ensure that your pattern matches all desired files and excludes any unwanted ones. Note that files that do not exist on the computer will not be included in the output, even if they match the specified pattern.
 
@@ -198,7 +198,7 @@ Use `--expand-wildcards` to print all files that match your wildcard pattern. Th
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
 ```
 
-#### Treat Newlines as Sentence Breaks
+#### Treat newlines as sentence breaks
 
 Stanford Parser by default does not take newlines as sentence breaks during the sentence segmentation. To achieve this you can use:
 
@@ -215,7 +215,43 @@ more than one sentences per line.
 + `two` means to take two or more consecutive newlines as a sentence break.
 It is for text with hard line breaks and a blank line between paragraphs.
 
-#### Select a Subset of Measures
+#### Configuration file
+
+You can use a configuration file where you can define custom syntactic structures to search or calculate.
+
+The default filename for neosca is `nsca.json`, neosca will try to find `nsca.json` in current working directory. Alternatively, you can provide your own configuration file with `nsca --config <your_config_file>`. The configuration file should be in JSON format and named with `.json` extension.
+
+```json
+{
+    "structures": [
+        {
+            "name": "VP1",
+            "description": "regular verb phrases",
+            "tregex_pattern": "VP > S|SINV|SQ"
+        },
+        {
+            "name": "VP2",
+            "description": "verb phrases in inverted yes/no questions or in wh-questions",
+            "tregex_pattern": "MD|VBZ|VBP|VBD > (SQ !< VP)"
+        },
+        {
+            "name": "VP",
+            "description": "verb phrases",
+            "value_source": "VP1 + VP2"
+        }
+    ]
+}
+```
+
+Above is a part of neosca's built-in structure definitions. Each definition follows a key-value pair format, where both the key and value should be enclosed in quotation marks.
+
+There are two approaches to define a structure: using `tregex_pattern` or `value_source`. `tregex_pattern` represents the formal definition in Tregex syntax. Structures defined through `tregex_pattern` will be searched and counted by running Stanford Tregex against input text. `value_source` specifies a more intricate structure derived from combining dependant structures. `value_source` can contain names of other structures (defining order does not matter), ints, floats, `+`, `-`, `*`, `/`, `(`, and `)`. Structures defined through `value_source` will be calculated after their dependants are searched or calculated.
+
+The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid recursive definition.
+
+Structures can be defined using either `tregex_pattern` or `value_source`, but not both simultaneously. The `name` attribute will be used for `--select` option. The `description` attribute is optional, you omit it in your definitions for convenience.
+
+#### Select a subset of measures
 
 NeoSCA by default outputs values of all of the available measures. You can use `--select` to only analyze measures that you are interested in. To see a full list of available measures, use `nsca --list`.
 
@@ -225,7 +261,7 @@ nsca --select VP T DC/C -- sample1.txt
 
 To avoid the program taking input filenames as a selected measure and raising an error, use `--` to separate them from the measures. All arguments after `--` will be considered input filenames. Make sure to specify arguments except for input filenames at the left side of `--`.
 
-#### Combine Subfiles
+#### Combine subfiles
 
 Use `-c`/`--combine-subfiles` to add up frequencies of the 9 syntactic structures of subfiles and compute values of the 14 syntactic complexity indices for the imaginary parent file. You can use this option multiple times to combine different lists of subfiles respectively. The `--` should be used to separate input filenames from input subfile-names.
 
@@ -236,7 +272,7 @@ nsca -c sample1-sub*.txt -c sample2-sub*.txt
 nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
 ```
 
-#### Skip Long Sentences
+#### Skip long sentences
 
 Use `--max-length` to only analyze sentences with lengths shorter than or equal to 100, for example.
 
@@ -246,7 +282,7 @@ nsca sample1.txt --max-length 100
 
 When the `--max-length` is not specified, the program will try to analyze sentences of any lengths, but may [run out of memory](https://nlp.stanford.edu/software/parser-faq.html#k) trying to do so.
 
-#### Reserve Intermediate Results
+#### Reserve intermediate results
 
 <details>
 
@@ -271,7 +307,7 @@ nsca samples/sample1.txt -p -m
 
 ### Misc
 
-#### Pass Text Through the Command Line
+#### Pass text through the command line
 
 If you want to analyze text that is passed directly through the command line, you can use `--text` followed by the text.
 
@@ -280,7 +316,7 @@ nsca --text 'The quick brown fox jumps over the lazy dog.'
 # frequency output: ./result.csv
 ```
 
-#### JSON Output
+#### JSON output
 
 You can generate a JSON file by:
 
@@ -291,7 +327,7 @@ nsca ./samples/sample1.txt -o sample1.json
 # frequency output: ./sample1.json
 ```
 
-#### Just Parse Text and Exit
+#### Just parse text and exit
 
 If you only want to save the parsed trees and exit, you can use `--no-query`. This can be useful if you want to use the parsed trees for other purposes. When `--no-query` is specified, the `--reserve-parsed` will be automatically set.
 
@@ -310,9 +346,7 @@ By default, the program expects raw text as input that will be parsed before que
 nsca samples/sample1.parsed --no-parse
 ```
 
-#### List Output Fields
-
-Use `--list` to print a list of all the available output fields.
+#### List built-in measures
 
 <details>
 
@@ -360,7 +394,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Rewrite of L2 Syntactic Complexity Analyzer, version 0.0.43},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.43},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -433,7 +467,7 @@ MLA (9th edition)
 
 </details>
 
-## Related Efforts
+## Related efforts
 
 + [L2SCA](https://sites.psu.edu/xxl13/l2sca/), the original implementation, written in Python, by [Xiaofei Lu](https://sites.psu.edu/xxl13)
 + [L2SCA online](https://aihaiyang.com/software/l2sca/), by [Haiyang Ai](https://aihaiyang.com/)

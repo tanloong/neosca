@@ -122,7 +122,9 @@ class TestCommandLineBasic(CmdlineTmpl):
         # skip .parsed files
         parsed_file = os.path.join(self.samples_dir, "1.parsed")
         open(parsed_file, "a").close()
-        self.template(["python", "-m", "neosca", self.samples_dir], expected_output_file=[])
+        self.template(
+            ["python", "-m", "neosca", self.samples_dir], expected_output_file=["result.csv"]
+        )
         self.cleanup(parsed_file)
 
     def test_outputfile(self):

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
-from .util_platform_info import IS_WINDOWS
 import sys
+
+from .scaplatform import IS_WINDOWS
 
 
 class _bcolors:
@@ -48,10 +49,14 @@ def same_line_print(s: str, width=80) -> None:  # pragma: no cover
     sys.stderr.write(f"\r{s}")
 
 
-def get_yes_or_no(prompt: str = "") -> str:  # pragma: no cover
+def get_yes_or_no(prompt: str = "") -> bool:  # pragma: no cover
     option = "Enter [y]es or [n]o: "
     sep = "\n" if prompt else ""
     answer = input(prompt + sep + option)
-    while answer not in ("y", "n", "Y", "N", "yes", "Yes", "no", "No"):
-        answer = input(f"Unexpected input: {answer}.\n{option}")
-    return answer
+    while True:
+        if answer in ("y", "Y", "yes", "Yes", "YES"):
+            return True
+        elif answer in ("n", "N", "no", "No", "NO"):
+            return False
+        else:
+            answer = input(f"Invalid input: {answer}.\n{option}")
