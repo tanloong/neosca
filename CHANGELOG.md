@@ -1,5 +1,16 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.46](https://github.com/tanloong/neosca/releases/tag/0.0.45) (14 August 2023)
+
+### Bug fixes
+
++ Fix division by zero error introduced in 0.0.44
+
+### Improvements
+
++ Update docs for custom structure definition
++ Add release.yml for workflow
+
 ## [0.0.45](https://github.com/tanloong/neosca/releases/tag/0.0.45) (14 August 2023)
 
 ### New features
