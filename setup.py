@@ -14,10 +14,11 @@ setuptools.setup(
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
     packages=["neosca"],
+    package_data={"neosca": ["data/structure_data.json"]},
     description="Another syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=['JPype1', 'charset-normalizer'],
+    install_requires=["JPype1", "charset-normalizer"],
     classifiers=[
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
@@ -31,5 +32,5 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
     ],
     python_requires=">=3.7",
-    entry_points={"console_scripts": ["nsca = neosca:main"]},
+    entry_points={"console_scripts": ["nsca = neosca:main", "nsca-tregex = neosca:tregex_cli"]},
 )

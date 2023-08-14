@@ -245,7 +245,13 @@ The default filename for neosca is `nsca.json`, neosca will try to find `nsca.js
 
 Above is a part of neosca's built-in structure definitions. Each definition follows a key-value pair format, where both the key and value should be enclosed in quotation marks.
 
-There are two approaches to define a structure: using `tregex_pattern` or `value_source`. `tregex_pattern` represents the formal definition in Tregex syntax. Structures defined through `tregex_pattern` will be searched and counted by running Stanford Tregex against input text. `value_source` specifies a more intricate structure derived from combining dependant structures. `value_source` can contain names of other structures (defining order does not matter), ints, floats, `+`, `-`, `*`, `/`, `(`, and `)`. Structures defined through `value_source` will be calculated after their dependants are searched or calculated.
+There are two approaches to define a structure: using `tregex_pattern` or `value_source`. `tregex_pattern` represents the formal definition in Tregex syntax. Structures defined through `tregex_pattern` will be searched and counted by running Stanford Tregex against input text. For instructions about how to write a Tregex pattern, see:
+
++ Chapter 6 of Xiaofei's book [*Computational Methods for Corpus Annotation and Analysis*](http://www.springer.com/education+%26+language/linguistics/book/978-94-017-8644-7?otherVersion=978-94-017-8645-4)
++ [Powerpoint tutorial](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt) for Tregex by Galen Andrew
++ [The TregexPattern javadoc page](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
+
+`value_source` specifies a more intricate structure derived from combining dependant structures. `value_source` can contain names of other structures (defining order does not matter), ints, floats, `+`, `-`, `*`, `/`, `(`, and `)`. Structures defined through `value_source` will be calculated after their dependants are searched or calculated.
 
 The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid recursive definition.
 
@@ -382,6 +388,10 @@ CN/C: complex nominals per clause
 
 </details>
 
+#### Tregex interface
+
+NeoSCA has a Tregex command line interface `nsca-tregex`, which behaves similar as `tregex.sh` from Tregex package, with additional support for Windows.
+
 ## Citing
 
 If you use NeoSCA in your research, please cite as follows.
@@ -394,7 +404,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.43},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.45},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -409,7 +419,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.43) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.45) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -419,7 +429,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.43, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.45, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
