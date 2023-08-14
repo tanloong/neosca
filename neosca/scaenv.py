@@ -9,6 +9,10 @@ from typing import List, Optional
 from .scaplatform import IS_DARWIN, IS_LINUX, IS_WINDOWS
 from .scaprint import color_print
 
+JAVA_HOME = "JAVA_HOME"
+STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
+STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
+
 
 def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
     import winreg  # Allows access to the windows registry

@@ -7,7 +7,14 @@ import sys
 from typing import Callable, List, Optional
 
 from .about import __version__
-from .scaenv import getenv, search_java_home, setenv
+from .scaenv import (
+    JAVA_HOME,
+    STANFORD_PARSER_HOME,
+    STANFORD_TREGEX_HOME,
+    getenv,
+    search_java_home,
+    setenv,
+)
 from .scaio import SCAIO
 from .scaprint import color_print
 from .util import SCAProcedureResult
@@ -19,10 +26,6 @@ class SCAUI:
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
-
-        self.JAVA_HOME = "JAVA_HOME"
-        self.STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
-        self.STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(
@@ -415,7 +418,7 @@ Contact:
         return True, None
 
     def check_java(self) -> SCAProcedureResult:
-        java_home = getenv(self.JAVA_HOME)
+        java_home = getenv(JAVA_HOME)
         if java_home is None:
             java_home = search_java_home()
             if java_home is None:
@@ -448,8 +451,8 @@ Contact:
         return True, None
 
     def check_stanford_parser(self) -> SCAProcedureResult:
-        self.options.stanford_parser_home = getenv(self.STANFORD_PARSER_HOME)
-        if self.options.stanford_parser_home is None:
+        stanford_parser_home = getenv(STANFORD_PARSER_HOME)
+        if stanford_parser_home is None:
             from .depends_installer import DependsInstaller
             from .depends_installer import STANFORD_PARSER
 
@@ -461,21 +464,22 @@ Contact:
                 return sucess, err_msg
             else:
                 stanford_parser_home = err_msg
+                assert stanford_parser_home is not None
                 setenv(
-                    self.STANFORD_PARSER_HOME,
-                    [stanford_parser_home],  # type:ignore
+                    STANFORD_PARSER_HOME,
+                    [stanford_parser_home],
                     is_override=True,
                     is_quiet=self.options.is_quiet,
                 )
-                self.options.stanford_parser_home = stanford_parser_home  # type:ignore
         elif not self.options.is_quiet:
             color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
-        self.init_kwargs.update({"stanford_parser_home": self.options.stanford_parser_home})
+
+        self.init_kwargs.update({"stanford_parser_home": stanford_parser_home})
         return True, None
 
     def check_stanford_tregex(self) -> SCAProcedureResult:
-        self.options.stanford_tregex_home = getenv(self.STANFORD_TREGEX_HOME)
-        if self.options.stanford_tregex_home is None:
+        stanford_tregex_home = getenv(STANFORD_TREGEX_HOME)
+        if stanford_tregex_home is None:
             from .depends_installer import DependsInstaller
             from .depends_installer import STANFORD_TREGEX
 
@@ -487,16 +491,16 @@ Contact:
                 return sucess, err_msg
             else:
                 stanford_tregex_home = err_msg
+                assert stanford_tregex_home is not None
                 setenv(
-                    self.STANFORD_TREGEX_HOME,
-                    [stanford_tregex_home],  # type:ignore
+                    STANFORD_TREGEX_HOME,
+                    [stanford_tregex_home],
                     is_override=True,
                     is_quiet=self.options.is_quiet,
                 )
-                self.options.stanford_tregex_home = stanford_tregex_home  # type:ignore
         elif not self.options.is_quiet:
             color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
-        self.init_kwargs.update({"stanford_tregex_home": self.options.stanford_tregex_home})
+        self.init_kwargs.update({"stanford_tregex_home": stanford_tregex_home})
         return True, None
 
     def check_depends(self) -> SCAProcedureResult:

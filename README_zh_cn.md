@@ -235,11 +235,15 @@ neosca 的默认配置文件名为 `nsca.json`，neosca 会尝试在当前工作
 
 上面是 neosca 内置的句法结构的定义的一部分。定义应遵循键值对的格式，其中键和值都应放在半角引号中。
 
-neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基于 Tregex 语法的定义。通过 `tregex_pattern` 定义的句法结构，会运行 Stanford Tregex 来统计频次。`value_source` 表示该句法结构通过计算其他结构来间接统计，可以包含整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。通过 `value_source` 定义的句法结构，会先统计/计算依赖结构，然后计算 `value_source` 的值并赋给该句法结构。
+neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基于 Tregex 语法的定义。通过 `tregex_pattern` 定义的句法结构，会运行 Stanford Tregex 来统计频次。关于 Tregex pattern 要怎么写，请查看：
 
-`value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，以避免递归。
++ Xiaofei 的 [*Computational Methods for Corpus Annotation and Analysis*](http://www.springer.com/education+%26+language/linguistics/book/978-94-017-8644-7?otherVersion=978-94-017-8645-4) 的第六章
++ 一位 Galen Andrew 的 [PPT](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt)
++ [TregexPattern 文档](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
 
-定义一个句法结构时只能使用 `tregex_pattern` 或 `value_source` 的其中一种，不能两个同时使用。`name` 的值可以在 `--select` 选项中使用。`description` 可以不写，只写。
+`value_source` 表示该句法结构通过计算其他结构来间接统计，可以包含整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。通过 `value_source` 定义的句法结构，会先统计/计算依赖结构，然后计算 `value_source` 的值并赋给该句法结构。`value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，避免递归。
+
+定义一个句法结构时只能使用 `tregex_pattern` 或 `value_source` 的其中一种，不能两个同时使用。`name` 的值可以在 `--select` 选项中使用。`description` 可以不写。
 
 #### 选取部分指标
 
@@ -372,6 +376,10 @@ CN/C: complex nominals per clause
 
 </details>
 
+#### Tregex 接口
+
+使用 `nsca-tregex` 可以在命令行下运行 Tregex，该命令和 Tregex package 中的 `tregex.sh` 功能类似，但额外支持 Windows。
+
 ## 引用
 
 如果你在发表的成果中使用了 NeoSCA，请按如下信息进行引用。
@@ -384,7 +392,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.44},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.45},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -399,7 +407,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.44) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.45) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -409,7 +417,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.44, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.45, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -457,7 +465,7 @@ MLA (9th edition)
 
 </details>
 
-## 类似软件
+## 相关软件
 
 + [L2SCA](https://sites.psu.edu/xxl13/l2sca/) 原版，使用的是 Python，作者 [Xiaofei Lu](https://sites.psu.edu/xxl13)
 + [L2SCA online](https://aihaiyang.com/software/l2sca/)，作者 [Haiyang Ai](https://aihaiyang.com/)
