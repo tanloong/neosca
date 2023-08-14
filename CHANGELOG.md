@@ -1,5 +1,15 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.45](https://github.com/tanloong/neosca/releases/tag/0.0.45) (14 August 2023)
+
+### New features
+
++ Add Tregex command line interface
+
+### Bug fixes
+
++ Include structure_data.json in dist
+
 ## [0.0.44](https://github.com/tanloong/neosca/releases/tag/0.0.44) (14 August 2023)
 
 ### New features
