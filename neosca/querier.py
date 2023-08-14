@@ -66,13 +66,13 @@ class StanfordTregex:
                 match = matcher.getMatch()
                 # Each tree node can be reported only once as the root of a match.
                 # Although solely nodeNumber checking is enough, it involves
-                # iteration acorss the tree, which can be slow on high trees,
-                # so use equals() to exit if-condition early. The equals()
-                # will check labels, number of children, and finally whether
-                # the children are pairwise equal. This achieves an average
-                # speed increase of 78ms across 4 trials on ~5% fragment of
-                # Penn Treebank
-                # (https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/treebank.zip).
+                #  iteration acorss the tree, which can be slow on high trees,
+                #  so use equals() to exit if-condition early. The equals()
+                #  will check labels, number of children, and finally whether
+                #  the children are pairwise equal. This achieves an average
+                #  speed increase of 78ms across 4 trials on ~5% fragment of
+                #  Penn Treebank
+                #  (https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/treebank.zip).
                 if last_matching_root_node is not None and (
                     last_matching_root_node.equals(match)
                     and last_matching_root_node.nodeNumber(tree) == match.nodeNumber(tree)
