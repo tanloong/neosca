@@ -241,7 +241,7 @@ neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 
 + 一位 Galen Andrew 的 [PPT](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt)
 + [TregexPattern 文档](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
 
-`value_source` 表示该句法结构通过计算其他结构来间接统计，可以包含整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。通过 `value_source` 定义的句法结构，会先统计/计算依赖结构，然后计算 `value_source` 的值并赋给该句法结构。`value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，避免递归。
+`value_source` 表示该句法结构通过计算其他结构来间接统计，可以包含整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。通过 `value_source` 定义的句法结构，会先统计/计算依赖结构，然后计算 `value_source` 的值并赋给该句法结构。`value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，避免定义循环。
 
 定义一个句法结构时只能使用 `tregex_pattern` 或 `value_source` 的其中一种，不能两个同时使用。`name` 的值可以在 `--select` 选项中使用。`description` 可以不写。
 
