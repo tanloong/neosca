@@ -4,3 +4,4 @@ omit =
     neosca/about.py
     neosca/depends_installer.py
     neosca/scaexceptions.py
+    neosca/tregex_cli.py
