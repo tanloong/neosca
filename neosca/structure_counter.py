@@ -101,7 +101,7 @@ class Structure:
     def __rtruediv__(self, other) -> float:
         assert self.value is not None
         if isinstance(other, (float, int)):
-            return other / self.value if other else 0
+            return other / self.value if self.value else 0
         raise NotImplementedError()
 
 

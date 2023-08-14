@@ -30,26 +30,27 @@ class TestStructure(BaseTmpl):
         s1.value = 20
         s2.value = 10
 
-        self.assertTrue(s1 + s2, 30)
-        self.assertTrue(s1 + 10, 30)
-        self.assertTrue(20 + s2, 30)
+        self.assertEqual(s1 + s2, 30)
+        self.assertEqual(s1 + 10, 30)
+        self.assertEqual(20 + s2, 30)
         self.assertRaises(NotImplementedError, operator.add, "20", s2)
 
-        self.assertTrue(s1 - s2, 10)
-        self.assertTrue(s1 - 10, 10)
-        self.assertTrue(20 - s2, 10)
+        self.assertEqual(s1 - s2, 10)
+        self.assertEqual(s1 - 10, 10)
+        self.assertEqual(20 - s2, 10)
         self.assertRaises(NotImplementedError, operator.sub, "20", s2)
 
-        self.assertTrue(s1 * s2, 200)
-        self.assertTrue(s1 * 10, 200)
-        self.assertTrue(20 * s2, 200)
+        self.assertEqual(s1 * s2, 200)
+        self.assertEqual(s1 * 10, 200)
+        self.assertEqual(20 * s2, 200)
         self.assertRaises(NotImplementedError, operator.mul, "20", s2)
 
-        self.assertTrue(s1 / s2, 2)
-        self.assertTrue(s1 / 10, 2)
-        self.assertTrue(20 / s2, 2)
+        self.assertEqual(s1 / s2, 2)
+        self.assertEqual(s1 / 10, 2)
+        self.assertEqual(20 / s2, 2)
         self.assertRaises(NotImplementedError, operator.truediv, "20", s2)
 
+        self.assertEqual(s1 / 0, 0)
 
 class TestStructureCounter(BaseTmpl):
     def test_init(self):
