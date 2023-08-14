@@ -12,7 +12,7 @@ from typing import List, Optional
 import jpype
 from jpype import JClass
 
-from .scaexceptions import InvalidSourceError, RecursiveDefinitionError
+from .scaexceptions import InvalidSourceError, CircularDefinitionError
 from .structure_counter import StructureCounter
 
 
@@ -89,18 +89,18 @@ class StanfordTregex:
         return matches
 
     @classmethod
-    def check_recursive_def(
+    def check_circular_def(
         cls, descendant_sname: str, ancestor_snames: List[str], counter: StructureCounter
     ) -> None:
         if descendant_sname in ancestor_snames:
-            recursive_definition = ", ".join(
+            circular_definition = ", ".join(
                 f"{upstream_sname} = {counter.get_structure(upstream_sname).value_source}"
                 for upstream_sname in ancestor_snames
             )
-            raise RecursiveDefinitionError(f"Recursive definition: {recursive_definition}")
+            raise CircularDefinitionError(f"Circular definition: {circular_definition}")
         else:
             logging.debug(
-                "[StanfordTregex] Recursive definition checked: descendant"
+                "[StanfordTregex] Circular definition checked: descendant"
                 f" {descendant_sname} not in ancestors {ancestor_snames}"
             )
 
@@ -118,7 +118,7 @@ class StanfordTregex:
         for toknum, tokval, *_ in g:
             if toknum == NAME:
                 ancestor_snames.append(sname)
-                StanfordTregex.check_recursive_def(tokval, ancestor_snames, counter)
+                StanfordTregex.check_circular_def(tokval, ancestor_snames, counter)
 
                 self.set_value(counter, tokval, trees, ancestor_snames)
                 if self.has_tregex_pattern(counter, tokval):

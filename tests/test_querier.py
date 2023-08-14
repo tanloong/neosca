@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 
 from neosca.scaexceptions import (
-    RecursiveDefinitionError,
+    CircularDefinitionError,
     StructureNotFoundError,
 )
 from neosca.querier import StanfordTregex
@@ -20,7 +20,7 @@ class TestStanfordTregex(BaseTmpl):
         return super().setUp()
 
     def test_set_value(self):
-        kwargs_recursive_defs = {
+        kwargs_circular_defs = {
             "ifile": "",
             "user_structure_defs": [
                 # recursion 1
@@ -36,10 +36,10 @@ class TestStanfordTregex(BaseTmpl):
                 {"name": "G", "value_source": "NULL"},
             ],
         }
-        counter = StructureCounter(**kwargs_recursive_defs)
-        self.assertRaises(RecursiveDefinitionError, self.tregex.set_value, counter, "A", tree)
-        self.assertRaises(RecursiveDefinitionError, self.tregex.set_value, counter, "B", tree)
-        self.assertRaises(RecursiveDefinitionError, self.tregex.set_value, counter, "D", tree)
+        counter = StructureCounter(**kwargs_circular_defs)
+        self.assertRaises(CircularDefinitionError, self.tregex.set_value, counter, "A", tree)
+        self.assertRaises(CircularDefinitionError, self.tregex.set_value, counter, "B", tree)
+        self.assertRaises(CircularDefinitionError, self.tregex.set_value, counter, "D", tree)
 
         self.assertRaises(StructureNotFoundError, self.tregex.set_value, counter, "G", tree)
 

@@ -253,7 +253,7 @@ There are two approaches to define a structure: using `tregex_pattern` or `value
 
 `value_source` specifies a more intricate structure derived from combining dependant structures. `value_source` can contain names of other structures (defining order does not matter), ints, floats, `+`, `-`, `*`, `/`, `(`, and `)`. Structures defined through `value_source` will be calculated after their dependants are searched or calculated.
 
-The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid recursive definition.
+The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid circular definition.
 
 Structures can be defined using either `tregex_pattern` or `value_source`, but not both simultaneously. The `name` attribute will be used for `--select` option. The `description` attribute is optional, you can omit it for convenience.
 

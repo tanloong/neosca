@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 
 
-class RecursiveDefinitionError(ValueError):
+class CircularDefinitionError(ValueError):
     pass
 
 
