@@ -28,10 +28,9 @@ def get_ndw_first_z(z, lemma_lst):
 def get_ndw_erz(z, lemma_lst):
     ndw_erz = 0
     for _ in range(10):
-        ndw_erz_types = {}
         erz_lemma_lst = random.sample(lemma_lst, z)
-        for lemma in erz_lemma_lst:
-            ndw_erz_types[lemma] = 1
+
+        ndw_erz_types = set(erz_lemma_lst)
         ndw_erz += len(ndw_erz_types)
     return ndw_erz / 10.0
 
@@ -40,11 +39,10 @@ def get_ndw_erz(z, lemma_lst):
 def get_ndw_esz(z, lemma_lst):
     ndw_esz = 0
     for _ in range(10):
-        ndw_esz_types = {}
         start_word = random.randint(0, len(lemma_lst) - z)
         esz_lemma_lst = lemma_lst[start_word : start_word + z]
-        for lemma in esz_lemma_lst:
-            ndw_esz_types[lemma] = 1
+
+        ndw_esz_types = set(esz_lemma_lst)
         ndw_esz += len(ndw_esz_types)
     return ndw_esz / 10.0
 
@@ -170,31 +168,31 @@ for lemline in lemlines:
                 slex_count_map[word] = slex_count_map.get(word, 0) + 1
 
 word_type_nr = len(word_count_map)
-word_token_nr = sum(count for count in word_count_map)
+word_token_nr = sum(count for count in word_count_map.values())
 
 sword_type_nr = len(sword_count_map)
-sword_token_nr = sum(count for count in sword_count_map)
+sword_token_nr = sum(count for count in sword_count_map.values())
 
 lex_type_nr = len(lex_count_map)
-lex_token_nr = sum(count for count in lex_count_map)
+lex_token_nr = sum(count for count in lex_count_map.values())
 
 slex_type_nr = len(slex_count_map)
-slex_token_nr = sum(count for count in slex_count_map)
+slex_token_nr = sum(count for count in slex_count_map.values())
 
 verb_type_nr = len(verb_count_map)
-verb_token_nr = sum(count for count in verb_count_map)
+verb_token_nr = sum(count for count in verb_count_map.values())
 
 sverb_type_nr = len(sverb_count_map)
-sverb_token_nr = sum(count for count in sverb_count_map)
+sverb_token_nr = sum(count for count in sverb_count_map.values())
 
 adj_type_nr = len(adj_count_map)
-adj_token_nr = sum(count for count in adj_count_map)
+adj_token_nr = sum(count for count in adj_count_map.values())
 
 adv_type_nr = len(adv_count_map)
-adv_token_nr = sum(count for count in adv_count_map)
+adv_token_nr = sum(count for count in adv_count_map.values())
 
 noun_type_nr = len(noun_count_map)
-noun_token_nr = sum(count for count in noun_count_map)
+noun_token_nr = sum(count for count in noun_count_map.values())
 
 lemma_nr = len(lemma_lst)
 
@@ -208,7 +206,7 @@ ls2 = sword_type_nr / word_type_nr
 
 # 2.2 verb sophistication
 vs1 = sverb_type_nr / verb_token_nr
-vs2 = (sverb_type_nr ** 2) / verb_token_nr
+vs2 = (sverb_type_nr**2) / verb_token_nr
 cvs1 = sverb_type_nr / sqrt(2 * verb_token_nr)
 
 # 3 lexical diversity or variation
@@ -245,11 +243,11 @@ modv = (adv_type_nr + adj_type_nr) / lex_token_nr
 sys.stdout.write(
     "filename, wordtypes, swordtypes, lextypes, slextypes, wordtokens, swordtokens, lextokens,"
     " slextokens, ld, ls1, ls2, vs1, vs2, cvs1, ndw, ndwz, ndwerz, ndwesz, ttr, msttr, cttr,"
-    " rttr, logttr, uber, lv, vv1, svv1, cvv1, vv2, nv, adjv, advv, modv"
+    " rttr, logttr, uber, lv, vv1, svv1, cvv1, vv2, nv, adjv, advv, modv\n"
 )
 
 output = filename
-for measure in [
+for measure in (
     word_type_nr,
     sword_type_nr,
     lex_type_nr,
@@ -283,6 +281,6 @@ for measure in [
     adjv,
     advv,
     modv,
-]:
+):
     output += ", " + str(round(measure, 2))
 sys.stdout.write(output)
