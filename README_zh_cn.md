@@ -241,7 +241,7 @@ neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 
 + 一位 Galen Andrew 的 [PPT](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt)
 + [TregexPattern 文档](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
 
-`value_source` 表示该句法结构通过对其他结构的值做算术运算来间接统计。`value_source` 可以包含其他结构的 `name`、整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。`value_source` 的分词用的是 Python 的标准库 tokenize，这个库是专门针对 Python 源代码的，所以如果一个句法结构需要在其他结构的 `value_source` 里被引用，确保它的 `name` 符合 Python 变量的命名规则 (由字母、数字、下划线组成，不能以数字开头；字母指 Unicode 字符集中 Letter 分类的字符，比如英文字母、汉字等)，否则这个 tokenize 库会识别不出来。
+`value_source` 表示该句法结构通过对其他结构的值做算术运算来间接统计。`value_source` 可以包含其他结构的 `name`、整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。`value_source` 的分词用的是 Python 的标准库 tokenize，这个库是专门针对 Python 源代码的，如果一个句法结构需要在其他结构的 `value_source` 里被引用，确保它的 `name` 符合 Python 变量的命名规则 (由字母、数字、下划线组成，不能以数字开头；字母指 Unicode 字符集中 Letter 分类的字符，比如英文字母、汉字等)，否则这个 tokenize 库会识别不出来。
 
 `value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，避免定义循环。
 
