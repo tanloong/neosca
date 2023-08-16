@@ -44,13 +44,13 @@ class NeoSCA:
         self.is_skip_parsing = is_skip_parsing
         self.is_pretokenized = is_pretokenized
 
-        self.user_data, self.user_structure_defs, self.user_defined_snames = (
-            self.load_user_config(config)
+        self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(
+            config
         )
-        logging.debug(f"[NeoSCA] user_defined_snames: {self.user_defined_snames}")
+        logging.debug(f"[NeoSCA] user_snames: {self.user_snames}")
 
         if selected_measures is not None:
-            StructureCounter.check_undefined_measure(selected_measures, self.user_defined_snames)
+            StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
 
         self.counters: List[StructureCounter] = []
         self.io = SCAIO()
@@ -62,16 +62,16 @@ class NeoSCA:
     ) -> Tuple[dict, List[dict], Optional[Set[str]]]:
         user_data: dict = {}
         user_structure_defs: List[Dict[str, str]] = []
-        user_defined_snames: Optional[Set[str]] = None
+        user_snames: Optional[Set[str]] = None
 
         if config is not None:
             with open(config, "r", encoding="utf-8") as f:
                 user_data = json.load(f)
 
             user_structure_defs = user_data["structures"]
-            user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
+            user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
 
-        return user_data, user_structure_defs, user_defined_snames
+        return user_data, user_structure_defs, user_snames
 
     def ensure_stanford_tregex_initialized(self) -> None:
         if not self.is_stanford_tregex_initialized:
@@ -138,6 +138,7 @@ class NeoSCA:
         text = self.io.read_file(ifile)
         if text is None:
             return None
+
         try:
             trees = self.parse_text(text, ofile_parsed)
         except KeyboardInterrupt:
@@ -166,6 +167,7 @@ class NeoSCA:
         trees = self.parse_ifile(ifile)
         if trees is None:
             return None
+
         counter = StructureCounter(
             ifile,
             selected_measures=self.selected_measures,

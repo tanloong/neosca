@@ -110,9 +110,9 @@ class StructureCounter:
     with open(data_file, "r", encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 
-    BUILTIN_STRUCTURES: Dict[str, Structure] = {}
+    BUILTIN_STRUCTURE_DEFS: Dict[str, Structure] = {}
     for kwargs in BUILTIN_DATA["structures"]:
-        BUILTIN_STRUCTURES[kwargs["name"]] = Structure(**kwargs)
+        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Structure(**kwargs)
 
     DEFAULT_MEASURES: List[str] = [
         "W",
@@ -149,39 +149,50 @@ class StructureCounter:
     ) -> None:
         self.ifile = ifile
 
-        user_defined_structures: Dict[str, Structure] = {}
-        user_defined_snames: Optional[Set[str]] = None
+        user_sname_structure_map: Dict[str, Structure] = {}
+        user_snames: Optional[Set[str]] = None
 
         if user_structure_defs is not None:
-            user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
-            logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
+            user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
+            logging.debug(f"[StructureCounter] user_snames: {user_snames}")
 
             for kwargs in user_structure_defs:
-                user_defined_structures[kwargs["name"]] = Structure(**kwargs)
+                user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
 
-        self.structures: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURES)
-        self.structures.update(user_defined_structures)
+        self.structures: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURE_DEFS)
+        self.structures.update(user_sname_structure_map)
 
         default_measures = StructureCounter.DEFAULT_MEASURES + [
             sname
-            for sname in user_defined_structures.keys()
+            for sname in user_sname_structure_map.keys()
             if sname not in StructureCounter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
-            StructureCounter.check_undefined_measure(selected_measures, user_defined_snames)
+            StructureCounter.check_undefined_measure(selected_measures, user_snames)
         self.selected_measures: List[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
         logging.debug(f"[StructureCounter] selected_measures: {self.selected_measures}")
 
     @classmethod
-    def check_duplicated_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+    def check_user_structure_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+        """
+        check duplicated definition, e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
+        check empty definition, e.g., [{"name": "A", "tregex_pattern":""}]
+        """
         user_defined_snames = set()
         for definition in user_structure_defs:
+            for k, v in definition.items():
+                if len(v) == 0:
+                    raise ValueError(f"Error! {k} is left empty.")
+                if len(k) == 0:
+                    raise ValueError(f"Error! {v} is assigned to empty attribute.")
+
             sname = definition["name"]
             if sname in user_defined_snames:
                 raise ValueError(f'Duplicated structure definition "{sname}".')
+
             user_defined_snames.add(sname)
         logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
         return user_defined_snames
@@ -192,9 +203,9 @@ class StructureCounter:
     ) -> None:
         # check undefined selected_measure
         if user_defined_snames is not None:
-            all_measures = StructureCounter.BUILTIN_STRUCTURES.keys() | user_defined_snames
+            all_measures = StructureCounter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
-            all_measures = set(StructureCounter.BUILTIN_STRUCTURES.keys())
+            all_measures = set(StructureCounter.BUILTIN_STRUCTURE_DEFS.keys())
         logging.debug(f"[StructureCounter] all_measures: {all_measures}")
 
         for m in selected_measures:
