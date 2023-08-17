@@ -5,7 +5,6 @@ import logging
 import os.path as os_path
 from typing import Dict, List, Optional, Set, Union
 
-from .querier import StanfordTregex
 from .scaexceptions import StructureNotFoundError
 
 
