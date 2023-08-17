@@ -208,6 +208,8 @@ class NeoSCA:
                 if child_counter is None:
                     continue
                 parent_counter += child_counter
+
+            self.tregex.set_all_values(parent_counter, "")
             self.counters.append(parent_counter)
 
     def run_on_ifiles(self, files: List[str] = [], subfiles_list: List[List[str]] = []) -> None:

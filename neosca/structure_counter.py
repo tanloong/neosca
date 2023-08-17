@@ -5,6 +5,7 @@ import logging
 import os.path as os_path
 from typing import Dict, List, Optional, Set, Union
 
+from .querier import StanfordTregex
 from .scaexceptions import StructureNotFoundError
 
 
@@ -159,8 +160,10 @@ class StructureCounter:
             for kwargs in user_structure_defs:
                 user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
 
-        self.structures: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURE_DEFS)
-        self.structures.update(user_sname_structure_map)
+        self.sname_structure_map: Dict[str, Structure] = deepcopy(
+            StructureCounter.BUILTIN_STRUCTURE_DEFS
+        )
+        self.sname_structure_map.update(user_sname_structure_map)
 
         default_measures = StructureCounter.DEFAULT_MEASURES + [
             sname
@@ -214,31 +217,31 @@ class StructureCounter:
 
     def get_structure(self, structure_name: str) -> Structure:
         try:
-            structure = self.structures[structure_name]
+            structure = self.sname_structure_map[structure_name]
         except KeyError:
             raise StructureNotFoundError(f"{structure_name} not found.")
         else:
             return structure
 
     def set_matches(self, structure_name: str, matches: list) -> None:
-        if structure_name not in self.structures:
+        if structure_name not in self.sname_structure_map:
             raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
             raise ValueError("matches should be a list object")
         else:
-            self.structures[structure_name].matches = matches
+            self.sname_structure_map[structure_name].matches = matches
 
     def get_matches(self, sname: str) -> Optional[list]:
         s = self.get_structure(sname)
         return s.matches
 
     def set_value(self, sname: str, value: Union[int, float]) -> None:
-        if sname not in self.structures:
+        if sname not in self.sname_structure_map:
             raise ValueError(f"{sname} not counted")
         elif not isinstance(value, (float, int)):
             raise ValueError(f"value should be either a float or an integer, got {value}")
         else:
-            self.structures[sname].value = value
+            self.sname_structure_map[sname].value = value
 
     def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
         value = self.get_structure(sname).value
@@ -259,13 +262,22 @@ class StructureCounter:
             dict.fromkeys(self.selected_measures + other.selected_measures)
         )
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
-        for sname in new.structures:
+        snames_defined_by_value_source: List[str] = []
+        for sname, structure in new.sname_structure_map.items():
+            # structures defined by value_source should be re-calculated after
+            # adding up structures defined by tregex_pattern
+            if structure.value_source is not None:
+                logging.debug(
+                    f"[StructureCounter] Skip {sname} which is defined by value_source."
+                )
+                snames_defined_by_value_source.append(sname)
+                continue
+
             this_value = self.get_value(sname)
             that_value = other.get_value(sname)
-            if not (this_value is None and that_value is None):
-                value = (this_value or 0) + (that_value or 0)
-                new.set_value(sname, value)
-                logging.debug(
-                    f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
-                )
+            value = (this_value or 0) + (that_value or 0)
+            new.set_value(sname, value)
+            logging.debug(
+                f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
+            )
         return new
