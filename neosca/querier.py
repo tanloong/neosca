@@ -7,13 +7,15 @@ import os
 import re
 import sys
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import jpype
 from jpype import JClass
 
-from .scaexceptions import InvalidSourceError, CircularDefinitionError
-from .structure_counter import StructureCounter
+from .scaexceptions import CircularDefinitionError, InvalidSourceError
+
+if TYPE_CHECKING:
+    from .structure_counter import StructureCounter
 
 
 class StanfordTregex:
@@ -90,7 +92,7 @@ class StanfordTregex:
 
     @classmethod
     def check_circular_def(
-        cls, descendant_sname: str, ancestor_snames: List[str], counter: StructureCounter
+        cls, descendant_sname: str, ancestor_snames: List[str], counter: "StructureCounter"
     ) -> None:
         if descendant_sname in ancestor_snames:
             circular_definition = ", ".join(
@@ -100,14 +102,14 @@ class StanfordTregex:
             raise CircularDefinitionError(f"Circular definition: {circular_definition}")
         else:
             logging.debug(
-                "[StanfordTregex] Circular definition checked: descendant"
+                "[StanfordTregex] Circular definition check passed: descendant"
                 f" {descendant_sname} not in ancestors {ancestor_snames}"
             )
 
     def tokenize_value_source(
         self,
         value_source: str,
-        counter: StructureCounter,
+        counter: "StructureCounter",
         sname: str,
         trees: str,
         ancestor_snames: List[str],
@@ -136,10 +138,10 @@ class StanfordTregex:
         tokens.extend(((PLUS, "+"), (NUMBER, "0")))
         return tokens
 
-    def has_tregex_pattern(self, counter: StructureCounter, sname: str) -> bool:
+    def has_tregex_pattern(self, counter: "StructureCounter", sname: str) -> bool:
         return counter.get_structure(sname).tregex_pattern is not None
 
-    def set_value_from_pattern(self, counter: StructureCounter, sname: str, trees: str):
+    def set_value_from_pattern(self, counter: "StructureCounter", sname: str, trees: str):
         structure = counter.get_structure(sname)
         tregex_pattern = structure.tregex_pattern
         assert tregex_pattern is not None
@@ -154,7 +156,7 @@ class StanfordTregex:
         counter.set_value(sname, len(matched_subtrees))
 
     def set_value_from_source(
-        self, counter: StructureCounter, sname: str, trees: str, ancestor_snames: List[str]
+        self, counter: "StructureCounter", sname: str, trees: str, ancestor_snames: List[str]
     ) -> None:
         structure = counter.get_structure(sname)
         value_source = structure.value_source
@@ -170,7 +172,11 @@ class StanfordTregex:
         counter.set_value(sname, value)
 
     def set_value(
-        self, counter: StructureCounter, sname: str, trees: str, ancestor_snames: List[str] = []
+        self,
+        counter: "StructureCounter",
+        sname: str,
+        trees: str,
+        ancestor_snames: List[str] = [],
     ) -> None:
         value = counter.get_value(sname)
         if value is not None:
@@ -179,34 +185,37 @@ class StanfordTregex:
             )
             return
 
+        if sname == "W":
+            logging.info(' Searching for "words"')
+            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
+            counter.set_value(sname, value)
+            return
+
         if self.has_tregex_pattern(counter, sname):
             self.set_value_from_pattern(counter, sname, trees)
         else:
             self.set_value_from_source(counter, sname, trees, ancestor_snames)
 
+    def set_all_values(self, counter: "StructureCounter", trees: str) -> None:
+        for sname in counter.selected_measures:
+            self.set_value(counter, sname, trees)
+
     def query(
         self,
-        counter: StructureCounter,
+        counter: "StructureCounter",
         trees: str,
         is_reserve_matched: bool = False,
         odir_matched: str = "",
         is_stdout: bool = False,
-    ) -> StructureCounter:
-        for sname in counter.selected_measures:
-            if sname == "W":
-                logging.info(' Searching for "words"')
-                value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
-                counter.set_value(sname, value)
-                continue
-
-            self.set_value(counter, sname, trees)
+    ) -> "StructureCounter":
+        self.set_all_values(counter, trees)
 
         if is_reserve_matched:  # pragma: no cover
             self.write_match_output(counter, odir_matched, is_stdout)
         return counter
 
     def write_match_output(
-        self, counter: StructureCounter, odir_matched: str = "", is_stdout: bool = False
+        self, counter: "StructureCounter", odir_matched: str = "", is_stdout: bool = False
     ) -> None:  # pragma: no cover
         """
         Save Tregex's match output

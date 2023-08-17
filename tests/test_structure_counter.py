@@ -52,6 +52,7 @@ class TestStructure(BaseTmpl):
 
         self.assertEqual(s1 / 0, 0)
 
+
 class TestStructureCounter(BaseTmpl):
     def test_init(self):
         kwargs_duplicated_defs = {"user_structure_defs": [{"name": "A"}, {"name": "A"}]}
@@ -95,10 +96,22 @@ class TestStructureCounter(BaseTmpl):
 
     def test_check_duplicated_def(self):
         user_structure_defs = [{"name": "A"}, {"name": "A"}]
-        self.assertRaises(ValueError, StructureCounter.check_duplicated_def, user_structure_defs)
+        self.assertRaises(
+            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
+        )
+
+        user_structure_defs = [{"name": ""}]
+        self.assertRaises(
+            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
+        )
+
+        user_structure_defs = [{"": "A"}]
+        self.assertRaises(
+            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
+        )
 
         user_structure_defs = [{"name": "A"}, {"name": "B"}]
-        user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
+        user_defined_snames = StructureCounter.check_user_structure_def(user_structure_defs)
         self.assertEqual(user_defined_snames, {"A", "B"})
 
     def test_get_structure(self):
