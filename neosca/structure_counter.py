@@ -110,9 +110,9 @@ class StructureCounter:
     with open(data_file, "r", encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 
-    BUILTIN_STRUCTURES: Dict[str, Structure] = {}
+    BUILTIN_STRUCTURE_DEFS: Dict[str, Structure] = {}
     for kwargs in BUILTIN_DATA["structures"]:
-        BUILTIN_STRUCTURES[kwargs["name"]] = Structure(**kwargs)
+        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Structure(**kwargs)
 
     DEFAULT_MEASURES: List[str] = [
         "W",
@@ -149,39 +149,52 @@ class StructureCounter:
     ) -> None:
         self.ifile = ifile
 
-        user_defined_structures: Dict[str, Structure] = {}
-        user_defined_snames: Optional[Set[str]] = None
+        user_sname_structure_map: Dict[str, Structure] = {}
+        user_snames: Optional[Set[str]] = None
 
         if user_structure_defs is not None:
-            user_defined_snames = StructureCounter.check_duplicated_def(user_structure_defs)
-            logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
+            user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
+            logging.debug(f"[StructureCounter] user_snames: {user_snames}")
 
             for kwargs in user_structure_defs:
-                user_defined_structures[kwargs["name"]] = Structure(**kwargs)
+                user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
 
-        self.structures: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURES)
-        self.structures.update(user_defined_structures)
+        self.sname_structure_map: Dict[str, Structure] = deepcopy(
+            StructureCounter.BUILTIN_STRUCTURE_DEFS
+        )
+        self.sname_structure_map.update(user_sname_structure_map)
 
         default_measures = StructureCounter.DEFAULT_MEASURES + [
             sname
-            for sname in user_defined_structures.keys()
+            for sname in user_sname_structure_map.keys()
             if sname not in StructureCounter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
-            StructureCounter.check_undefined_measure(selected_measures, user_defined_snames)
+            StructureCounter.check_undefined_measure(selected_measures, user_snames)
         self.selected_measures: List[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
         logging.debug(f"[StructureCounter] selected_measures: {self.selected_measures}")
 
     @classmethod
-    def check_duplicated_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+    def check_user_structure_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+        """
+        check duplicated definition, e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
+        check empty definition, e.g., [{"name": "A", "tregex_pattern":""}]
+        """
         user_defined_snames = set()
         for definition in user_structure_defs:
+            for k, v in definition.items():
+                if len(v) == 0:
+                    raise ValueError(f"Error! {k} is left empty.")
+                if len(k) == 0:
+                    raise ValueError(f"Error! {v} is assigned to empty attribute.")
+
             sname = definition["name"]
             if sname in user_defined_snames:
                 raise ValueError(f'Duplicated structure definition "{sname}".')
+
             user_defined_snames.add(sname)
         logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
         return user_defined_snames
@@ -192,9 +205,9 @@ class StructureCounter:
     ) -> None:
         # check undefined selected_measure
         if user_defined_snames is not None:
-            all_measures = StructureCounter.BUILTIN_STRUCTURES.keys() | user_defined_snames
+            all_measures = StructureCounter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
-            all_measures = set(StructureCounter.BUILTIN_STRUCTURES.keys())
+            all_measures = set(StructureCounter.BUILTIN_STRUCTURE_DEFS.keys())
         logging.debug(f"[StructureCounter] all_measures: {all_measures}")
 
         for m in selected_measures:
@@ -203,31 +216,31 @@ class StructureCounter:
 
     def get_structure(self, structure_name: str) -> Structure:
         try:
-            structure = self.structures[structure_name]
+            structure = self.sname_structure_map[structure_name]
         except KeyError:
             raise StructureNotFoundError(f"{structure_name} not found.")
         else:
             return structure
 
     def set_matches(self, structure_name: str, matches: list) -> None:
-        if structure_name not in self.structures:
+        if structure_name not in self.sname_structure_map:
             raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
             raise ValueError("matches should be a list object")
         else:
-            self.structures[structure_name].matches = matches
+            self.sname_structure_map[structure_name].matches = matches
 
     def get_matches(self, sname: str) -> Optional[list]:
         s = self.get_structure(sname)
         return s.matches
 
     def set_value(self, sname: str, value: Union[int, float]) -> None:
-        if sname not in self.structures:
+        if sname not in self.sname_structure_map:
             raise ValueError(f"{sname} not counted")
         elif not isinstance(value, (float, int)):
             raise ValueError(f"value should be either a float or an integer, got {value}")
         else:
-            self.structures[sname].value = value
+            self.sname_structure_map[sname].value = value
 
     def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
         value = self.get_structure(sname).value
@@ -248,13 +261,22 @@ class StructureCounter:
             dict.fromkeys(self.selected_measures + other.selected_measures)
         )
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
-        for sname in new.structures:
+        snames_defined_by_value_source: List[str] = []
+        for sname, structure in new.sname_structure_map.items():
+            # structures defined by value_source should be re-calculated after
+            # adding up structures defined by tregex_pattern
+            if structure.value_source is not None:
+                logging.debug(
+                    f"[StructureCounter] Skip {sname} which is defined by value_source."
+                )
+                snames_defined_by_value_source.append(sname)
+                continue
+
             this_value = self.get_value(sname)
             that_value = other.get_value(sname)
-            if not (this_value is None and that_value is None):
-                value = (this_value or 0) + (that_value or 0)
-                new.set_value(sname, value)
-                logging.debug(
-                    f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
-                )
+            value = (this_value or 0) + (that_value or 0)
+            new.set_value(sname, value)
+            logging.debug(
+                f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
+            )
         return new

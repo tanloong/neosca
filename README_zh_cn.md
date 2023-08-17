@@ -84,6 +84,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 * 跨平台：支持 **Windows**、macOS 和 Linux 系统。
 * 灵活的命令行选项
 * 支持 txt/docx/odt 格式的输入文件
+* 统计自定义句法结构
 
 ## 安装
 
@@ -233,7 +234,7 @@ neosca 的默认配置文件名为 `nsca.json`，neosca 会尝试在当前工作
 }
 ```
 
-上面是 neosca 内置的句法结构的定义的一部分。定义应遵循键值对的格式，其中键和值都应放在半角引号中。
+上面是 neosca 内置的句法结构定义的一部分。定义应遵循键值对的格式，其中键和值都应放在半角引号中。
 
 neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基于 Tregex 语法的定义。通过 `tregex_pattern` 定义的句法结构，会运行 Stanford Tregex 来统计频次。关于 Tregex pattern 要怎么写，请查看：
 
@@ -241,7 +242,7 @@ neosca 提供了两种定义句法结构的方法：使用 `tregex_pattern` 或 
 + 一位 Galen Andrew 的 [PPT](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt)
 + [TregexPattern 文档](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
 
-`value_source` 表示该句法结构通过对其他结构的值做算术运算来间接统计。`value_source` 可以包含其他结构的 `name`、整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。`value_source` 的分词用的是 Python 的标准库 tokenize，这个库是专门针对 Python 源代码的，所以如果一个句法结构需要在其他结构的 `value_source` 里被引用，确保它的 `name` 符合 Python 变量的命名规则 (由字母、数字、下划线组成，不能以数字开头；字母指 Unicode 字符集中 Letter 分类的字符，比如英文字母、汉字等)，否则这个 tokenize 库会识别不出来。
+`value_source` 表示该句法结构通过对其他结构的值做算术运算来间接统计。`value_source` 可以包含其他结构的 `name`、整数、小数、`+`、`-`、`*`、`/`、半角括号 `(` 和 `)`。`value_source` 的分词用的是 Python 的标准库 tokenize，这个库是专门针对 Python 源代码的，如果一个句法结构需要在其他结构的 `value_source` 里被引用，确保它的 `name` 符合 Python 变量的命名规则 (由字母、数字、下划线组成，不能以数字开头；字母指 Unicode 字符集中 Letter 分类的字符，比如英文字母、汉字等)，否则会识别错误。
 
 `value_source` 的定义可以嵌套，依赖结构自身也可以通过 `value_source` 来定义并依赖于其他结构，形成类似树的关系。但位于叶子节点的句法结构必须通过 `tregex_pattern` 来定义，避免定义循环。
 
@@ -394,7 +395,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.46},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.47},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -409,7 +410,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.46) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.47) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -419,7 +420,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.46, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.47, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
