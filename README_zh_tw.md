@@ -84,6 +84,7 @@ NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntac
 * 跨平臺：支持 **Windows**、macOS 和 Linux 系統。
 * 靈活的命令行選項
 * 支持 txt/docx/odt 格式的輸入文件
+* 統計自定義句法結構
 
 ## 安裝
 
@@ -233,7 +234,7 @@ neosca 的默認配置文件名為 `nsca.json`，neosca 會嘗試在當前工作
 }
 ```
 
-上面是 neosca 內置的句法結構的定義的一部分。定義應遵循鍵值對的格式，其中鍵和值都應放在半角引號中。
+上面是 neosca 內置的句法結構定義的一部分。定義應遵循鍵值對的格式，其中鍵和值都應放在半角引號中。
 
 neosca 提供了兩種定義句法結構的方法：使用 `tregex_pattern` 或 `value_source`。`tregex_pattern` 是基於 Tregex 語法的定義。通過 `tregex_pattern` 定義的句法結構，會運行 Stanford Tregex 來統計頻次。關於 Tregex pattern 要怎麼寫，請查看：
 

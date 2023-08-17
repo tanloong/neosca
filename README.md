@@ -84,6 +84,7 @@ the frequency of 9 structures in the text:
 * Cross-platform compatibility: Windows, macOS, and Linux
 * Flexible command-line options to serve various needs
 * Supports reading txt/docx/odt files
+* Custom syntactic structure search/calculation
 
 ## Install
 
@@ -219,7 +220,7 @@ It is for text with hard line breaks and a blank line between paragraphs.
 
 You can use a configuration file to define custom syntactic structures to search or calculate.
 
-The default filename for neosca is `nsca.json`, neosca will try to find `nsca.json` in current working directory. Alternatively, you can provide your own configuration file with `nsca --config <your_config_file>`. The configuration file should be in JSON format and named with `.json` extension.
+The default configuration filename for neosca is `nsca.json`, neosca will try to find `nsca.json` in current working directory. Alternatively, you can provide your own configuration file with `nsca --config <your_config_file>`. The configuration file should be in JSON format and named with `.json` extension.
 
 ```json
 {
