@@ -1,3 +1,4 @@
+import json
 from math import log, sqrt
 import os.path as os_path
 import random
@@ -74,34 +75,15 @@ def is_sentence(line) -> bool:
     return False
 
 
-# reads information from bnc wordlist
-adj_dict = {}
-verb_dict = {}
-noun_dict = {}
-word_dict = {}
-
-with open("bnc_all_filtered.txt", "r", encoding="utf-8") as f:
-    wordlist = f.readlines()
-
-for word in wordlist:
-    wordinfo = word.strip()
-    if not wordinfo or "Total words" in wordinfo:
-        continue
-
-    lemma, pos, count = wordinfo.split()
-    count = int(count)
-
-    word_dict[lemma] = word_dict.get(lemma, 0) + count
-    if pos == "Adj":
-        adj_dict[lemma] = adj_dict.get(lemma, 0) + count
-    elif pos == "Verb":
-        verb_dict[lemma] = verb_dict.get(lemma, 0) + count
-    elif pos in ("NoC", "NoP"):
-        noun_dict[lemma] = noun_dict.get(lemma, 0) + count
+with open("data/bnc_all_filtered.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+word_dict = data["word_dict"]
+adj_dict = data["adj_dict"]
+verb_dict = data["verb_dict"]
+noun_dict = data["noun_dict"]
 
 word_ranks = sort_by_value(word_dict)
-simple_words = word_ranks[-2000:]
-# verb_ranks = sort_by_value(verb_dict)
+easy_words = word_ranks[-2000:]
 
 # input file is output of morph
 filename = sys.argv[1]
@@ -139,31 +121,31 @@ for lemline in lemlines:
         lemma_lst.append(word)
         word_count_map[word] = word_count_map.get(word, 0) + 1
 
-        if (word not in simple_words) and pos != "cd":
+        if (word not in easy_words) and pos != "cd":
             sword_count_map[word] = sword_count_map.get(word, 0) + 1
 
         if pos[0] == "n":
             lex_count_map[word] = lex_count_map.get(word, 0) + 1
             noun_count_map[word] = noun_count_map.get(word, 0) + 1
 
-            if word not in simple_words:
+            if word not in easy_words:
                 slex_count_map[word] = slex_count_map.get(word, 0) + 1
         elif pos[0] == "j":
             lex_count_map[word] = lex_count_map.get(word, 0) + 1
             adj_count_map[word] = adj_count_map.get(word, 0) + 1
-            if word not in simple_words:
+            if word not in easy_words:
                 slex_count_map[word] = slex_count_map.get(word, 0) + 1
         elif pos[0] == "r" and (
             (word in adj_dict) or (word[-2:] == "ly" and (word[:-2] in adj_dict))
         ):
             lex_count_map[word] = lex_count_map.get(word, 0) + 1
             adv_count_map[word] = adv_count_map.get(word, 0) + 1
-            if word not in simple_words:
+            if word not in easy_words:
                 slex_count_map[word] = slex_count_map.get(word, 0) + 1
         elif pos[0] == "v" and word not in ("be", "have"):
             verb_count_map[word] = verb_count_map.get(word, 0) + 1
             lex_count_map[word] = lex_count_map.get(word, 0) + 1
-            if word not in simple_words:
+            if word not in easy_words:
                 sverb_count_map[word] = sverb_count_map.get(word, 0) + 1
                 slex_count_map[word] = slex_count_map.get(word, 0) + 1
 
