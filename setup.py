@@ -13,7 +13,7 @@ setuptools.setup(
     author="Long Tan",
     author_email="tanloong@foxmail.com",
     url="https://github.com/tanloong/neosca",
-    packages=["neosca"],
+    packages=["neosca", "neosca.lca"],
     package_data={
         "neosca": [
             "data/structure_data.json",
