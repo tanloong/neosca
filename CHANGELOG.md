@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.48](https://github.com/tanloong/neosca/releases/tag/0.0.48) (19 August 2023)
+
+### New features
+
++ Add lexical complexity analyzing feature (`nsca-lca`)
+
 ## [0.0.47](https://github.com/tanloong/neosca/releases/tag/0.0.47) (18 August 2023)
 
 ### Buf fixes
