@@ -485,6 +485,7 @@ MLA (9th edition)
 BibTeX
 </summary>
 
+```BibTeX
 @article{xiaofei2012relationship,
 author  = {Xiaofei Lu},
 title   = {The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives},
@@ -495,6 +496,8 @@ pages   = {190-208},
 doi     = {https://doi.org/10.1111/j.1540-4781.2011.01232\_1.x},
 year    = {2012}
 }
+```
+
 </details>
 
 <details>
