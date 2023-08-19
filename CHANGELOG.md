@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.49](https://github.com/tanloong/neosca/releases/tag/0.0.48) (19 August 2023)
+
+### Bug fixes
+
++ Fix missing filename in the output of nsca-lca
+
 ## [0.0.48](https://github.com/tanloong/neosca/releases/tag/0.0.48) (19 August 2023)
 
 ### New features
@@ -8,7 +14,7 @@
 
 ## [0.0.47](https://github.com/tanloong/neosca/releases/tag/0.0.47) (18 August 2023)
 
-### Buf fixes
+### Bug fixes
 
 + Re-calculate values of structures defined by value_source after '+' operation
 + Check empty key/value when loading custom config file
