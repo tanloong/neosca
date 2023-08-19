@@ -76,7 +76,7 @@ class LCAUI:
         import subprocess
         from subprocess import CalledProcessError
 
-        command = [sys.executable, "-m", "pip", "install", "spacy"]
+        command = [sys.executable, "-m", "pip", "install", "-U", "spacy"]
         try:
             subprocess.run(command, check=True, capture_output=False)
         except CalledProcessError as e:
@@ -94,6 +94,7 @@ class LCAUI:
         try:
             logging.info("Trying to load spaCy...")
             import spacy  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
+            import en_core_web_sm  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
         except ModuleNotFoundError:
             is_install = get_yes_or_no(
                 "Running LCA requires spaCy. Do you want me to install it for you?"
