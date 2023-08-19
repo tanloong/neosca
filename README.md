@@ -393,6 +393,15 @@ CN/C: complex nominals per clause
 
 NeoSCA has a Tregex command line interface `nsca-tregex`, which behaves similar as `tregex.sh` from Tregex package, with additional support for Windows.
 
+#### Lexical complexity analysis
+
+NeoSCA provides an `nsca-lca` command to do the lexical complexity analysis mirroring the functionality of [LCA (Lexical Complexity Analyzer)](https://sites.psu.edu/xxl13/lca/).
+
+```sh
+nsca-lca sample.txt # single input file
+nsca-lca samples/   # multiple input files
+```
+
 ## Citing
 
 If you use NeoSCA in your research, please cite as follows.
@@ -443,7 +452,7 @@ BibTeX
 </summary>
 
 ```BibTeX
-@article{lu2010automatic,
+@article{xiaofei2010automatic,
 title     = {Automatic analysis of syntactic complexity in second language writing},
 author    = {Xiaofei Lu},
 journal   = {International journal of corpus linguistics},
@@ -477,6 +486,47 @@ MLA (9th edition)
 <pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96.</pre>
 
 </details>
+
+If you used the lexical complexity analysis feature, please cite Xiaofei's article about LCA.
+
+<details>
+
+<summary>
+BibTeX
+</summary>
+
+@article{xiaofei2012relationship,
+author  = {Xiaofei Lu},
+title   = {The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives},
+journal = {The Modern Language Journal},
+volume  = {96},
+number  = {2},
+pages   = {190-208},
+doi     = {https://doi.org/10.1111/j.1540-4781.2011.01232\_1.x},
+year    = {2012}
+}
+</details>
+
+<details>
+
+<summary>
+APA (7th edition)
+</summary>
+
+<pre>Lu, X. (2012). The relationship of lexical richness to the quality of ESL learners' oral narratives. <i>The Modern Language Journal, 96</i>(2), 190-208.</pre>
+
+</details>
+
+<details>
+
+<summary>
+MLA (9th edition)
+</summary>
+
+<pre>Lu, Xiaofei. "The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives." <i>The Modern Language Journal</i>, vol. 96, no. 2, Wiley-Blackwell, 2012, pp. 190-208.</pre>
+
+</details>
+
 
 ## Related efforts
 

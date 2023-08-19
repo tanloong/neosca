@@ -383,6 +383,15 @@ CN/C: complex nominals per clause
 
 使用 `nsca-tregex` 可以在命令行下運行 Tregex，該命令和 Tregex package 中的 `tregex.sh` 功能類似，但額外支持 Windows。
 
+#### 詞法複雜度分析
+
+使用 `nsca-lca` 命令可以分析輸入文本的詞法複雜度，功能與 [LCA (Lexical Complexity Analyzer)](https://sites.psu.edu/xxl13/lca/) 類似。
+
+```sh
+nsca-lca sample.txt # 單篇分析
+nsca-lca samples/   # 批量分析
+```
+
 ## 引用
 
 如果你在發表的成果中使用了 NeoSCA，請按如下信息進行引用。
@@ -433,7 +442,7 @@ BibTeX
 </summary>
 
 ```BibTeX
-@article{lu2010automatic,
+@article{xiaofei2010automatic,
 title     = {Automatic analysis of syntactic complexity in second language writing},
 author    = {Xiaofei Lu},
 journal   = {International journal of corpus linguistics},
@@ -465,6 +474,46 @@ MLA (9th edition)
 </summary>
 
 <pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96.</pre>
+
+</details>
+
+如果你使用了詞法複雜度的功能，請引用 Xiaofei 關於 LCA 的文章。
+
+<details>
+
+<summary>
+BibTeX
+</summary>
+
+@article{xiaofei2012relationship,
+author  = {Xiaofei Lu},
+title   = {The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives},
+journal = {The Modern Language Journal},
+volume  = {96},
+number  = {2},
+pages   = {190-208},
+doi     = {https://doi.org/10.1111/j.1540-4781.2011.01232\_1.x},
+year    = {2012}
+}
+</details>
+
+<details>
+
+<summary>
+APA (7th edition)
+</summary>
+
+<pre>Lu, X. (2012). The relationship of lexical richness to the quality of ESL learners' oral narratives. <i>The Modern Language Journal, 96</i>(2), 190-208.</pre>
+
+</details>
+
+<details>
+
+<summary>
+MLA (9th edition)
+</summary>
+
+<pre>Lu, Xiaofei. "The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives." <i>The Modern Language Journal</i>, vol. 96, no. 2, Wiley-Blackwell, 2012, pp. 190-208.</pre>
 
 </details>
 
