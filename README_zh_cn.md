@@ -383,6 +383,15 @@ CN/C: complex nominals per clause
 
 使用 `nsca-tregex` 可以在命令行下运行 Tregex，该命令和 Tregex package 中的 `tregex.sh` 功能类似，但额外支持 Windows。
 
+#### 词法复杂度分析
+
+使用 `nsca-lca` 命令可以分析输入文本的词法复杂度，功能与 [LCA (Lexical Complexity Analyzer)](https://sites.psu.edu/xxl13/lca/) 类似。
+
+```sh
+nsca-lca sample.txt # 单篇分析
+nsca-lca samples/   # 批量分析
+```
+
 ## 引用
 
 如果你在发表的成果中使用了 NeoSCA，请按如下信息进行引用。
@@ -395,7 +404,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.47},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.48},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -410,7 +419,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.47) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.48) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -420,7 +429,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.47, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.48, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -433,7 +442,7 @@ BibTeX
 </summary>
 
 ```BibTeX
-@article{lu2010automatic,
+@article{xiaofei2010automatic,
 title     = {Automatic analysis of syntactic complexity in second language writing},
 author    = {Xiaofei Lu},
 journal   = {International journal of corpus linguistics},
@@ -465,6 +474,46 @@ MLA (9th edition)
 </summary>
 
 <pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96.</pre>
+
+</details>
+
+如果你使用了词法复杂度的功能，请引用 Xiaofei 关于 LCA 的文章。
+
+<details>
+
+<summary>
+BibTeX
+</summary>
+
+@article{xiaofei2012relationship,
+author  = {Xiaofei Lu},
+title   = {The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives},
+journal = {The Modern Language Journal},
+volume  = {96},
+number  = {2},
+pages   = {190-208},
+doi     = {https://doi.org/10.1111/j.1540-4781.2011.01232\_1.x},
+year    = {2012}
+}
+</details>
+
+<details>
+
+<summary>
+APA (7th edition)
+</summary>
+
+<pre>Lu, X. (2012). The relationship of lexical richness to the quality of ESL learners' oral narratives. <i>The Modern Language Journal, 96</i>(2), 190-208.</pre>
+
+</details>
+
+<details>
+
+<summary>
+MLA (9th edition)
+</summary>
+
+<pre>Lu, Xiaofei. "The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives." <i>The Modern Language Journal</i>, vol. 96, no. 2, Wiley-Blackwell, 2012, pp. 190-208.</pre>
 
 </details>
 

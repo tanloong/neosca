@@ -5,10 +5,12 @@ try:
     from xml.etree.cElementTree import XML, fromstring
 except ImportError:
     from xml.etree.ElementTree import XML, fromstring
+import glob
 import logging
 import os
+import os.path as os_path
 import sys
-from typing import ByteString, Callable, Dict, Optional, Union
+from typing import ByteString, Callable, Dict, List, Optional, Union
 import zipfile
 
 from charset_normalizer import detect
@@ -158,3 +160,30 @@ class SCAIO:
             )
         else:
             return True, None
+
+    def load_pickle_lzma_file(self, filepath: str) -> dict:
+        import lzma
+        import pickle
+
+        with open(filepath, "rb") as f:
+            data_pickle_lzma = f.read()
+
+        data_pickle = lzma.decompress(data_pickle_lzma)
+        data = pickle.loads(data_pickle)
+
+        return data
+
+    @classmethod
+    def get_verified_ifile_list(cls, ifile_list: List[str]) -> List[str]:
+        verified_ifile_list = []
+        for path in ifile_list:
+            if os_path.isfile(path):
+                verified_ifile_list.append(path)
+            elif os_path.isdir(path):
+                verified_ifile_list.extend(glob.glob(f"{path}{os_path.sep}*"))
+            elif glob.glob(path):
+                verified_ifile_list.extend(glob.glob(path))
+            else:
+                logging.critical(f"No such file as\n\n{path}")
+                sys.exit(1)
+        return verified_ifile_list

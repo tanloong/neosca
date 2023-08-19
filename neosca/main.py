@@ -317,17 +317,7 @@ Contact:
             logging.info(f"Command-line text: {options.text}")
             self.verified_ifiles = None
         else:
-            verified_ifile_list = []
-            for path in ifile_list:
-                if os_path.isfile(path):
-                    verified_ifile_list.append(path)
-                elif os_path.isdir(path):
-                    verified_ifile_list.extend(glob.glob(f"{path}{os_path.sep}*"))
-                elif glob.glob(path):
-                    verified_ifile_list.extend(glob.glob(path))
-                else:
-                    return (False, f"No such file as\n\n{path}")
-            self.verified_ifiles = verified_ifile_list
+            self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list: List[list] = []
@@ -582,7 +572,7 @@ Contact:
                 sucess, err_msg = SCAIO.is_writable(self.options.ofile_freq)
                 if not sucess:
                     return sucess, err_msg
-            func(self, *args, **kwargs)  # type: ignore
+            func(self, *args, **kwargs)
             self.exit_routine()
             return True, None
 
