@@ -322,7 +322,9 @@ class LCA:
         for ifile in ifiles:
             values = self.run_on_ifile(ifile)
             if values is not None:
-                csv_writer.writerow(map(lambda v: round(v, 4), values))
+                values = [round(v, 4) for v in values]
+                values.insert(0, ifile)
+                csv_writer.writerow(values)
 
         handle.close()
 

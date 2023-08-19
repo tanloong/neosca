@@ -414,7 +414,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.48},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.49},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -429,7 +429,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.48) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.49) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -439,7 +439,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.48, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.49, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -495,6 +495,7 @@ If you used the lexical complexity analyzing feature, please cite Xiaofei's arti
 BibTeX
 </summary>
 
+```BibTeX
 @article{xiaofei2012relationship,
 author  = {Xiaofei Lu},
 title   = {The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives},
@@ -505,6 +506,8 @@ pages   = {190-208},
 doi     = {https://doi.org/10.1111/j.1540-4781.2011.01232\_1.x},
 year    = {2012}
 }
+```
+
 </details>
 
 <details>
