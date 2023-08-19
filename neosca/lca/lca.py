@@ -12,7 +12,9 @@ from ..scaio import SCAIO
 
 
 class LCA:
-    def __init__(self, wordlist: str, ofile: str = "result.csv", is_stdout: bool = False) -> None:
+    def __init__(
+        self, wordlist: str, ofile: str = "result.csv", is_stdout: bool = False
+    ) -> None:
         self.ofile = ofile
         self.is_stdout = is_stdout
 

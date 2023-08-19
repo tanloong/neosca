@@ -414,7 +414,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.47},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.48},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -429,7 +429,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.47) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.48) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -439,7 +439,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.47, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.48, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -487,7 +487,7 @@ MLA (9th edition)
 
 </details>
 
-If you used the lexical complexity analysis feature, please cite Xiaofei's article about LCA.
+If you used the lexical complexity analyzing feature, please cite Xiaofei's article about LCA.
 
 <details>
 
