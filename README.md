@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 English
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA accepts written English texts and computes the following measures:
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA is written by Tan, Long (谭龙)。It accepts written English texts and computes the following measures:
 
 <details>
 
