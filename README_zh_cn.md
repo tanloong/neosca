@@ -161,8 +161,8 @@ nsca "./samples/sample 1.txt"
 在 `nsca` 的右边指定输入文件夹。
 
 ```
-nsca samples/ # 分析 samples/ 文件夹下所有的 txt 和 docx 文件
-nsca samples/ --ftype txt # 只分析 txt 文件
+nsca samples/              # 分析 samples/ 文件夹下所有的 txt 和 docx 文件
+nsca samples/ --ftype txt  # 只分析 txt 文件
 nsca samples/ --ftype docx # 只分析 docx 文件
 ```
 
@@ -177,8 +177,8 @@ nsca sample1.txt sample2.txt
 
 ```sh
 cd ./samples/
-nsca sample*.txt # 指定所有文件名以 “sample” 开头并且以 “.txt” 结尾的文件
-nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
+nsca sample*.txt                                           # 指定所有文件名以 “sample” 开头并且以 “.txt” 结尾的文件
+nsca sample[1-9].txt sample10.txt                          # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 

@@ -168,8 +168,8 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 Specify the input directory after `nsca`.
 
 ```
-nsca samples/ # analyze every txt/docx file under the "samples/" directory
-nsca samples/ --ftype txt # analyze only txt files under "samples/"
+nsca samples/              # analyze every txt/docx file under the "samples/" directory
+nsca samples/ --ftype txt  # analyze only txt files under "samples/"
 nsca samples/ --ftype docx # analyze only docx files under "samples/"
 ```
 
@@ -184,8 +184,8 @@ You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/im
 
 ```sh
 cd ./samples/
-nsca sample*.txt # every file whose name starts with "sample" and ends with ".txt"
-nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
+nsca sample*.txt                                           # every file whose name starts with "sample" and ends with ".txt"
+nsca sample[1-9].txt sample10.txt                          # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
