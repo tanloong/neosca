@@ -155,7 +155,12 @@ class LCA:
 
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-            elif pos == "VERB" and lemma not in ("be", "have"):
+            # Don't have to filter auxiliary verbs, because the VERB tag covers
+            #  main verbs (content verbs) but it does not cover auxiliary verbs
+            #  and verbal copulas (in the narrow sense), for which there is the
+            #  AUX tag.
+            #  https://universaldependencies.org/u/pos/VERB.html
+            elif pos == "VERB":
                 verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
                 lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
 
