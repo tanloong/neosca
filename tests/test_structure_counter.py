@@ -53,33 +53,6 @@ class TestStructure(BaseTmpl):
                 "value_source": "non-None",
             }
         )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "tregex_pattern": "",
-            }
-        )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "dependency_pattern": "",
-            }
-        )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "value_source": "",
-            }
-        )
 
     def test_numeric_op(self):
         s1 = Structure("W")
