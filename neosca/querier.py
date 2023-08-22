@@ -226,11 +226,16 @@ class StanfordTregex:
         subodir_matched = os_path.join(odir_matched, bn_input_noext).strip()
         if not is_stdout:
             os.makedirs(subodir_matched, exist_ok=True)
-        for sname in counter.selected_measures:
-            matches = counter.get_matches(sname)
+        for sname, structure in counter.sname_structure_map.items():
+            matches = structure.matches
             if matches is None or len(matches) == 0:
-                return
+                continue
 
+            meta_data = (
+                f"# name: {structure.name}\n"
+                + f"# description: {structure.description}\n"
+                + f"# tregex_pattern: {structure.tregex_pattern}\n\n"
+            )
             res = "\n".join(matches)
             # only accept alphanumeric chars, underscore, and hypen
             escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
@@ -239,7 +244,9 @@ class StanfordTregex:
                 extension = ".matched"
                 fn_match_output = os_path.join(subodir_matched, matches_id + extension)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
+                    f.write(meta_data)
                     f.write(res)
             else:
                 sys.stdout.write(matches_id + "\n")
+                sys.stdout.write(meta_data)
                 sys.stdout.write(res)

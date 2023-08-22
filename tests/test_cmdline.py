@@ -55,7 +55,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.csv",
                 "cmdline_text.parsed",
-                "result_matches",
+                "result_matches/cmdline_text/cmdline_text-C1.matched",
+                "result_matches/cmdline_text/cmdline_text-S.matched",
+                "result_matches/cmdline_text/cmdline_text-T1.matched",
+                "result_matches/cmdline_text/cmdline_text-VP1.matched",
             ],
         )
 
@@ -78,7 +81,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.csv",
                 "sample.parsed",
-                "result_matches",
+                "result_matches/sample/sample-C1.matched",
+                "result_matches/sample/sample-S.matched",
+                "result_matches/sample/sample-T1.matched",
+                "result_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -94,7 +100,23 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "result.csv",
                 os_path.join(self.samples_dir, "sample1.parsed"),
                 os_path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches",
+                "result_matches/sample1/sample1-C1.matched",
+                "result_matches/sample1/sample1-CN1.matched",
+                "result_matches/sample1/sample1-CP.matched",
+                "result_matches/sample1/sample1-CT.matched",
+                "result_matches/sample1/sample1-DC.matched",
+                "result_matches/sample1/sample1-S.matched",
+                "result_matches/sample1/sample1-T1.matched",
+                "result_matches/sample1/sample1-VP1.matched",
+                "result_matches/sample2/sample2-C1.matched",
+                "result_matches/sample2/sample2-CN1.matched",
+                "result_matches/sample2/sample2-CN2.matched",
+                "result_matches/sample2/sample2-CP.matched",
+                "result_matches/sample2/sample2-CT.matched",
+                "result_matches/sample2/sample2-DC.matched",
+                "result_matches/sample2/sample2-S.matched",
+                "result_matches/sample2/sample2-T1.matched",
+                "result_matches/sample2/sample2-VP1.matched",
             ],
         )
 
@@ -115,7 +137,23 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "result.csv",
                 os_path.join(self.samples_dir, "sample1.parsed"),
                 os_path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches",
+                "result_matches/sample1/sample1-C1.matched",
+                "result_matches/sample1/sample1-CN1.matched",
+                "result_matches/sample1/sample1-CP.matched",
+                "result_matches/sample1/sample1-CT.matched",
+                "result_matches/sample1/sample1-DC.matched",
+                "result_matches/sample1/sample1-S.matched",
+                "result_matches/sample1/sample1-T1.matched",
+                "result_matches/sample1/sample1-VP1.matched",
+                "result_matches/sample2/sample2-C1.matched",
+                "result_matches/sample2/sample2-CN1.matched",
+                "result_matches/sample2/sample2-CN2.matched",
+                "result_matches/sample2/sample2-CP.matched",
+                "result_matches/sample2/sample2-CT.matched",
+                "result_matches/sample2/sample2-DC.matched",
+                "result_matches/sample2/sample2-S.matched",
+                "result_matches/sample2/sample2-T1.matched",
+                "result_matches/sample2/sample2-VP1.matched",
             ],
         )
 
@@ -155,7 +193,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.json",
                 "sample.parsed",
-                "result_matches",
+                "result_matches/sample/sample-C1.matched",
+                "result_matches/sample/sample-S.matched",
+                "result_matches/sample/sample-T1.matched",
+                "result_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -172,7 +213,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "sample.csv",
                 "sample.parsed",
-                "sample_matches",
+                "sample_matches/sample/sample-C1.matched",
+                "sample_matches/sample/sample-S.matched",
+                "sample_matches/sample/sample-T1.matched",
+                "sample_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -189,7 +233,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "sample.json",
                 "sample.parsed",
-                "sample_matches",
+                "sample_matches/sample/sample-C1.matched",
+                "sample_matches/sample/sample-S.matched",
+                "sample_matches/sample/sample-T1.matched",
+                "sample_matches/sample/sample-VP1.matched",
             ],
         )
 
