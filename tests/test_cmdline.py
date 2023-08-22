@@ -1,4 +1,4 @@
-import os
+import os.path as os_path
 import re
 
 from .cmdline_tmpl import CmdlineTmpl
@@ -8,9 +8,9 @@ cmdline_text = "This is a test."
 
 class TestCommandLineBasic(CmdlineTmpl):
     def setUp(self):
-        self.test_dir = os.path.dirname(os.path.abspath(__file__))
-        self.samples_dir = os.path.join(self.test_dir, "data", "samples")
-        self.project_dir = os.path.dirname(self.test_dir)
+        self.test_dir = os_path.dirname(os_path.abspath(__file__))
+        self.samples_dir = os_path.join(self.test_dir, "data", "samples")
+        self.project_dir = os_path.dirname(self.test_dir)
         return super().setUp()
 
     def test_no_file(self):
@@ -67,8 +67,8 @@ class TestCommandLineBasic(CmdlineTmpl):
         self.template(
             ["python", "-m", "neosca", self.samples_dir, "--no-query"],
             expected_output_file=[
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
             ],
         )
 
@@ -92,8 +92,8 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "result.csv",
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
                 "result_matches",
             ],
         )
@@ -107,20 +107,20 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "neosca",
                 self.samples_dir,
                 # gif file
-                os.path.join(self.project_dir, "img"),
+                os_path.join(self.project_dir, "img"),
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
             expected_output_file=[
                 "result.csv",
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
                 "result_matches",
             ],
         )
 
         # skip .parsed files
-        parsed_file = os.path.join(self.samples_dir, "1.parsed")
+        parsed_file = os_path.join(self.samples_dir, "1.parsed")
         open(parsed_file, "a").close()
         self.template(
             ["python", "-m", "neosca", self.samples_dir], expected_output_file=["result.csv"]
