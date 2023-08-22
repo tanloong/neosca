@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 [English](https://github.com/tanloong/neosca#readme)
 
-NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的复刻版，添加了对 Windows 的支持和更多的命令行选项。NeoSCA 对英文语料统计以下内容：
+NeoSCA 是 [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html) 的 [L2 Syntactic Complexity Analyzer (L2SCA)](http://personal.psu.edu/xxl13/downloads/l2sca.html) 的复刻版，添加了对 Windows 的支持和更多的命令行选项，作者谭龙。NeoSCA 对英文语料统计以下内容：
 
 <details>
 
@@ -161,8 +161,8 @@ nsca "./samples/sample 1.txt"
 在 `nsca` 的右边指定输入文件夹。
 
 ```
-nsca samples/ # 分析 samples/ 文件夹下所有的 txt 和 docx 文件
-nsca samples/ --ftype txt # 只分析 txt 文件
+nsca samples/              # 分析 samples/ 文件夹下所有的 txt 和 docx 文件
+nsca samples/ --ftype txt  # 只分析 txt 文件
 nsca samples/ --ftype docx # 只分析 docx 文件
 ```
 
@@ -177,8 +177,8 @@ nsca sample1.txt sample2.txt
 
 ```sh
 cd ./samples/
-nsca sample*.txt # 指定所有文件名以 “sample” 开头并且以 “.txt” 结尾的文件
-nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
+nsca sample*.txt                                           # 指定所有文件名以 “sample” 开头并且以 “.txt” 结尾的文件
+nsca sample[1-9].txt sample10.txt                          # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
@@ -404,7 +404,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.49},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.50},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -419,7 +419,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.49) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.50) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -429,7 +429,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.49, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.50, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

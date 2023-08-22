@@ -14,13 +14,15 @@ class Structure:
         name: str,
         *,
         tregex_pattern: Optional[str] = None,
+        dependency_pattern: Optional[str] = None,
         value_source: Optional[str] = None,
         description: Optional[str] = None,
     ) -> None:
         """
         :param name: name of the structure
         :param description: description of the structure
-        :param pattern: Tregex pattern
+        :param tregex_pattern: Tregex pattern
+        :param dependency_pattern: spaCy dependency pattern
         :param value_source: how to compute the value basing on values of other structures, e.g. "VP1 + VP2". One and only one of pattern and value_source should be given.
         """
         self.name = name
@@ -28,11 +30,19 @@ class Structure:
 
         # no need to check "W" because it uses regex
         if name != "W":
-            is_exclussive = (tregex_pattern is None) ^ (value_source is None)
-            if not is_exclussive:
-                raise ValueError("Exactly one of pattern and value_source must be provided")
+            count_non_none = sum(
+                1
+                for attr in (tregex_pattern, dependency_pattern, value_source)
+                if attr is not None
+            )
+            if count_non_none != 1:
+                raise ValueError(
+                    "Exactly one of (tregex_pattern, dependency_pattern, value_source) should be"
+                    " provided AND non-empty."
+                )
 
         self.tregex_pattern = tregex_pattern
+        self.dependency_pattern = dependency_pattern
         self.value_source = value_source
 
         self.value: Optional[Union[float, int]] = None

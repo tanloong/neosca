@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -85,10 +86,10 @@ class NeoSCA:
 
     def already_parsed(self, ofile_parsed: str, ifile: str) -> bool:
         has_been_parsed = False
-        is_exist = os.path.exists(ofile_parsed)
+        is_exist = os_path.exists(ofile_parsed)
         if is_exist:
-            is_not_empty = os.path.getsize(ofile_parsed) > 0
-            is_parsed_newer_than_input = os.path.getmtime(ofile_parsed) > os.path.getmtime(ifile)
+            is_not_empty = os_path.getsize(ofile_parsed) > 0
+            is_parsed_newer_than_input = os_path.getmtime(ofile_parsed) > os_path.getmtime(ifile)
             if is_not_empty and is_parsed_newer_than_input:
                 has_been_parsed = True
         return has_been_parsed
@@ -125,7 +126,7 @@ class NeoSCA:
             # assume input as parse trees
             return self.io.read_txt(ifile, is_guess_encoding=False)
 
-        ofile_parsed = os.path.splitext(ifile)[0] + ".parsed"
+        ofile_parsed = os_path.splitext(ifile)[0] + ".parsed"
         has_been_parsed = self.already_parsed(ofile_parsed=ofile_parsed, ifile=ifile)
         if has_been_parsed:
             logging.info(
@@ -142,7 +143,7 @@ class NeoSCA:
         try:
             trees = self.parse_text(text, ofile_parsed)
         except KeyboardInterrupt:
-            if os.path.exists(ofile_parsed):
+            if os_path.exists(ofile_parsed):
                 os.remove(ofile_parsed)
             sys.exit(1)
         else:

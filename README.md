@@ -17,7 +17,7 @@
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
 English
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA accepts written English texts and computes the following measures:
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA is written by Tan, Long (谭龙)。It accepts written English texts and computes the following measures:
 
 <details>
 
@@ -168,8 +168,8 @@ This ensures that the entire filename including the spaces, is interpreted as a 
 Specify the input directory after `nsca`.
 
 ```
-nsca samples/ # analyze every txt/docx file under the "samples/" directory
-nsca samples/ --ftype txt # analyze only txt files under "samples/"
+nsca samples/              # analyze every txt/docx file under the "samples/" directory
+nsca samples/ --ftype txt  # analyze only txt files under "samples/"
 nsca samples/ --ftype docx # analyze only docx files under "samples/"
 ```
 
@@ -184,8 +184,8 @@ You can also use [wildcards](https://www.gnu.org/savannah-checkouts/gnu/clisp/im
 
 ```sh
 cd ./samples/
-nsca sample*.txt # every file whose name starts with "sample" and ends with ".txt"
-nsca sample[1-9].txt sample10.txt # sample1.txt -- sample10.txt
+nsca sample*.txt                                           # every file whose name starts with "sample" and ends with ".txt"
+nsca sample[1-9].txt sample10.txt                          # sample1.txt -- sample10.txt
 nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt # sample101.txt -- sample200.txt
 ```
 
@@ -414,7 +414,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.49},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.50},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -429,7 +429,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.49) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.50) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -439,7 +439,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.49, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.50, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

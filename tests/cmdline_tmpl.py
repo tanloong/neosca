@@ -1,10 +1,12 @@
 import json
 import logging
 import os
+import os.path as os_path
 import shutil
 import subprocess
+from typing import Optional, Union
+
 from .base_tmpl import BaseTmpl
-from typing import Union, Optional
 
 
 text = """
@@ -22,21 +24,21 @@ class CmdlineTmpl(BaseTmpl):
         output_file: Union[str, list, None] = "result.csv",
         ifile_name="sample.txt",
     ):
-        if os.path.exists(ifile_name):
+        if os_path.exists(ifile_name):
             os.remove(ifile_name)
         if output_file:
             if isinstance(output_file, list):
                 for f in output_file:
-                    if os.path.exists(f):
-                        if os.path.isdir(f):
+                    if os_path.exists(f):
+                        if os_path.isdir(f):
                             shutil.rmtree(f)
-                        elif os.path.isfile(f):
+                        elif os_path.isfile(f):
                             os.remove(f)
             elif isinstance(output_file, str):
-                if os.path.exists(output_file):
-                    if os.path.isdir(output_file):
+                if os_path.exists(output_file):
+                    if os_path.isdir(output_file):
                         shutil.rmtree(output_file)
-                    elif os.path.isfile(output_file):
+                    elif os_path.isfile(output_file):
                         os.remove(output_file)
             else:
                 raise Exception("Unexpected output file argument")

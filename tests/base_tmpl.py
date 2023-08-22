@@ -3,6 +3,7 @@ import glob
 import io
 import logging
 import os
+import os.path as os_path
 import sys
 import time
 from unittest import TestCase
@@ -27,14 +28,14 @@ tree = """(ROOT
 """
 
 stanford_parser_home = (
-    glob.glob(os.path.join(os.environ["AppData"], "stanford-parser*"))[0]
+    glob.glob(os_path.join(os.environ["AppData"], "stanford-parser*"))[0]
     if IS_WINDOWS
-    else glob.glob(os.path.expanduser("~/.local/share/stanford-parser*"))[0]
+    else glob.glob(os_path.expanduser("~/.local/share/stanford-parser*"))[0]
 )
 stanford_tregex_home = (
-    glob.glob(os.path.join(os.environ["AppData"], "stanford-tregex*"))[0]
+    glob.glob(os_path.join(os.environ["AppData"], "stanford-tregex*"))[0]
     if IS_WINDOWS
-    else glob.glob(os.path.expanduser("~/.local/share/stanford-tregex*"))[0]
+    else glob.glob(os_path.expanduser("~/.local/share/stanford-tregex*"))[0]
 )
 classpaths = unite_classpaths(stanford_parser_home, stanford_tregex_home)
 
@@ -56,12 +57,12 @@ class BaseTmpl(TestCase):
         if msg is not None:
             err_msg = f"file {path} does not exist! {msg}"
         if timeout is None:
-            if not os.path.exists(path):
+            if not os_path.exists(path):
                 raise AssertionError(err_msg)
         else:
             start = time.time()
             while True:
-                if os.path.exists(path):
+                if os_path.exists(path):
                     return
                 elif time.time() - start > timeout:
                     raise AssertionError(err_msg)
@@ -69,7 +70,7 @@ class BaseTmpl(TestCase):
                     time.sleep(0.5)
 
     def assertFileNotExist(self, path):
-        if os.path.exists(path):
+        if os_path.exists(path):
             raise AssertionError(f"file {path} does exist!")
 
     def assertTrueTimeout(self, func, timeout):
