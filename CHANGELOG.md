@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.51](https://github.com/tanloong/neosca/releases/tag/0.0.51) (23 August 2023)
+
+### Bug fixes
+
++ Don't check empty key/value when initializing Structure
+
 ## [0.0.50](https://github.com/tanloong/neosca/releases/tag/0.0.50) (23 August 2023)
 
 ### Bug fixes
