@@ -18,8 +18,66 @@ class TestStructure(BaseTmpl):
             **{
                 "name": "S",
                 "description": "sentence",
-                "tregex_pattern": "ROOT !> __",
-                "value_source": "S1 + S2",
+                "tregex_pattern": "non-None",
+                "value_source": "non-None",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "tregex_pattern": "non-None",
+                "dependency_pattern": "non-None",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "dependency_pattern": "non-None",
+                "value_source": "non-None",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "tregex_pattern": "non-None",
+                "dependency_pattern": "non-None",
+                "value_source": "non-None",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "tregex_pattern": "",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "dependency_pattern": "",
+            }
+        )
+        self.assertRaises(
+            ValueError,
+            Structure,
+            **{
+                "name": "S",
+                "description": "sentence",
+                "value_source": "",
             }
         )
 

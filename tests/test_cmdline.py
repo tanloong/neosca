@@ -1,4 +1,4 @@
-import os
+import os.path as os_path
 import re
 
 from .cmdline_tmpl import CmdlineTmpl
@@ -8,9 +8,9 @@ cmdline_text = "This is a test."
 
 class TestCommandLineBasic(CmdlineTmpl):
     def setUp(self):
-        self.test_dir = os.path.dirname(os.path.abspath(__file__))
-        self.samples_dir = os.path.join(self.test_dir, "data", "samples")
-        self.project_dir = os.path.dirname(self.test_dir)
+        self.test_dir = os_path.dirname(os_path.abspath(__file__))
+        self.samples_dir = os_path.join(self.test_dir, "data", "samples")
+        self.project_dir = os_path.dirname(self.test_dir)
         return super().setUp()
 
     def test_no_file(self):
@@ -55,7 +55,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.csv",
                 "cmdline_text.parsed",
-                "result_matches",
+                "result_matches/cmdline_text/cmdline_text-C1.matched",
+                "result_matches/cmdline_text/cmdline_text-S.matched",
+                "result_matches/cmdline_text/cmdline_text-T1.matched",
+                "result_matches/cmdline_text/cmdline_text-VP1.matched",
             ],
         )
 
@@ -67,8 +70,8 @@ class TestCommandLineBasic(CmdlineTmpl):
         self.template(
             ["python", "-m", "neosca", self.samples_dir, "--no-query"],
             expected_output_file=[
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
             ],
         )
 
@@ -78,7 +81,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.csv",
                 "sample.parsed",
-                "result_matches",
+                "result_matches/sample/sample-C1.matched",
+                "result_matches/sample/sample-S.matched",
+                "result_matches/sample/sample-T1.matched",
+                "result_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -92,9 +98,25 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "result.csv",
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches",
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
+                "result_matches/sample1/sample1-C1.matched",
+                "result_matches/sample1/sample1-CN1.matched",
+                "result_matches/sample1/sample1-CP.matched",
+                "result_matches/sample1/sample1-CT.matched",
+                "result_matches/sample1/sample1-DC.matched",
+                "result_matches/sample1/sample1-S.matched",
+                "result_matches/sample1/sample1-T1.matched",
+                "result_matches/sample1/sample1-VP1.matched",
+                "result_matches/sample2/sample2-C1.matched",
+                "result_matches/sample2/sample2-CN1.matched",
+                "result_matches/sample2/sample2-CN2.matched",
+                "result_matches/sample2/sample2-CP.matched",
+                "result_matches/sample2/sample2-CT.matched",
+                "result_matches/sample2/sample2-DC.matched",
+                "result_matches/sample2/sample2-S.matched",
+                "result_matches/sample2/sample2-T1.matched",
+                "result_matches/sample2/sample2-VP1.matched",
             ],
         )
 
@@ -107,20 +129,36 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "neosca",
                 self.samples_dir,
                 # gif file
-                os.path.join(self.project_dir, "img"),
+                os_path.join(self.project_dir, "img"),
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
             expected_output_file=[
                 "result.csv",
-                os.path.join(self.samples_dir, "sample1.parsed"),
-                os.path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches",
+                os_path.join(self.samples_dir, "sample1.parsed"),
+                os_path.join(self.samples_dir, "sample2.parsed"),
+                "result_matches/sample1/sample1-C1.matched",
+                "result_matches/sample1/sample1-CN1.matched",
+                "result_matches/sample1/sample1-CP.matched",
+                "result_matches/sample1/sample1-CT.matched",
+                "result_matches/sample1/sample1-DC.matched",
+                "result_matches/sample1/sample1-S.matched",
+                "result_matches/sample1/sample1-T1.matched",
+                "result_matches/sample1/sample1-VP1.matched",
+                "result_matches/sample2/sample2-C1.matched",
+                "result_matches/sample2/sample2-CN1.matched",
+                "result_matches/sample2/sample2-CN2.matched",
+                "result_matches/sample2/sample2-CP.matched",
+                "result_matches/sample2/sample2-CT.matched",
+                "result_matches/sample2/sample2-DC.matched",
+                "result_matches/sample2/sample2-S.matched",
+                "result_matches/sample2/sample2-T1.matched",
+                "result_matches/sample2/sample2-VP1.matched",
             ],
         )
 
         # skip .parsed files
-        parsed_file = os.path.join(self.samples_dir, "1.parsed")
+        parsed_file = os_path.join(self.samples_dir, "1.parsed")
         open(parsed_file, "a").close()
         self.template(
             ["python", "-m", "neosca", self.samples_dir], expected_output_file=["result.csv"]
@@ -155,7 +193,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "result.json",
                 "sample.parsed",
-                "result_matches",
+                "result_matches/sample/sample-C1.matched",
+                "result_matches/sample/sample-S.matched",
+                "result_matches/sample/sample-T1.matched",
+                "result_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -172,7 +213,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "sample.csv",
                 "sample.parsed",
-                "sample_matches",
+                "sample_matches/sample/sample-C1.matched",
+                "sample_matches/sample/sample-S.matched",
+                "sample_matches/sample/sample-T1.matched",
+                "sample_matches/sample/sample-VP1.matched",
             ],
         )
         self.template(
@@ -189,7 +233,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=[
                 "sample.json",
                 "sample.parsed",
-                "sample_matches",
+                "sample_matches/sample/sample-C1.matched",
+                "sample_matches/sample/sample-S.matched",
+                "sample_matches/sample/sample-T1.matched",
+                "sample_matches/sample/sample-VP1.matched",
             ],
         )
 

@@ -4,6 +4,7 @@
 import glob
 import logging
 import os
+import os.path as os_path
 from typing import List, Optional
 
 from .scaplatform import IS_DARWIN, IS_LINUX, IS_WINDOWS
@@ -66,7 +67,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
             "fish": "~/.config/fish/config.fish",
             "ion": "~/.config/ion/initrc",
         }
-        rcfile = shell_rcfile.get(os.path.basename(shell), None)
+        rcfile = shell_rcfile.get(os_path.basename(shell), None)
         if rcfile is None:
             logging.warning(
                 "Failed to permanently set environment variables.\nReason: can't detect rc"
@@ -74,8 +75,8 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
-            rcfile = os.path.expanduser(rcfile)
-            if not os.path.isfile(rcfile):
+            rcfile = os_path.expanduser(rcfile)
+            if not os_path.isfile(rcfile):
                 configs = []
             else:
                 with open(rcfile, "r", encoding="utf-8") as f:
@@ -122,25 +123,25 @@ def setenv(
 
 def getenv(env_var: str) -> Optional[str]:
     directory = os.getenv(env_var, "")
-    return directory if os.path.isdir(directory) else None
+    return directory if os_path.isdir(directory) else None
 
 
 def search_java_home() -> Optional[str]:
     candidate = None
     paths = os.getenv("PATH", "").split(os.pathsep)
     for dir_name in paths:
-        if os.path.basename(dir_name) == "bin":
-            if glob.glob(os.path.join(dir_name, "java.*")):
-                candidate = os.path.dirname(dir_name)
+        if os_path.basename(dir_name) == "bin":
+            if glob.glob(os_path.join(dir_name, "java.*")):
+                candidate = os_path.dirname(dir_name)
                 break
     if candidate is None and IS_WINDOWS:
         system_software_dir = os.getenv("ProgramFiles", "")
-        if glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*")):
-            candidate = glob.glob(os.path.join(system_software_dir, "Java", "j[dr][ke]*"))[0]
+        if glob.glob(os_path.join(system_software_dir, "Java", "j[dr][ke]*")):
+            candidate = glob.glob(os_path.join(system_software_dir, "Java", "j[dr][ke]*"))[0]
     return candidate
 
 
 def unite_classpaths(stanford_parser_home, stanford_tregex_home) -> list:
-    cp_parser = os.path.join(stanford_parser_home, "*")
-    cp_tregex = os.path.join(stanford_tregex_home, "stanford-tregex.jar")
+    cp_parser = os_path.join(stanford_parser_home, "*")
+    cp_tregex = os_path.join(stanford_tregex_home, "stanford-tregex.jar")
     return [cp_parser, cp_tregex]

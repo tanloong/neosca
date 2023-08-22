@@ -4,6 +4,7 @@ import glob
 import logging
 import lzma
 import os
+import os.path as os_path
 import re
 import shutil
 import subprocess
@@ -120,7 +121,7 @@ class DependsInstaller:
             raise ValueError(f"Error: {file} has unexpected extension.")
 
     def _extract_files(self, file: str, file_ending: str, destination_folder: str) -> str:
-        if not os.path.isfile(file):
+        if not os_path.isfile(file):
             raise ValueError(f"Error: {file} is not a regular file.")
 
         start_listing = set(os.listdir(destination_folder))
@@ -142,26 +143,26 @@ class DependsInstaller:
         end_listing = set(os.listdir(destination_folder))
         unzipped_directory = end_listing.difference(start_listing).pop()
 
-        return os.path.join(destination_folder, unzipped_directory)
+        return os_path.join(destination_folder, unzipped_directory)
 
     def _path_parse(self, file_path: str) -> _Path:
-        dirname = os.path.dirname(file_path)
-        base = os.path.basename(file_path)
-        name, ext = os.path.splitext(base)
+        dirname = os_path.dirname(file_path)
+        base = os_path.basename(file_path)
+        name, ext = os_path.splitext(base)
         return _Path(dir=dirname, base=base, name=name, ext=ext)
 
     def _unpack_jars(self, fs_path: str, java_bin_path: str) -> None:
-        if os.path.isdir(fs_path):
+        if os_path.isdir(fs_path):
             for f in os.listdir(fs_path):
-                current_path = os.path.join(fs_path, f)
+                current_path = os_path.join(fs_path, f)
                 self._unpack_jars(current_path, java_bin_path)
             return
-        elif os.path.isfile(fs_path):
-            file_ext = os.path.splitext(fs_path)[-1]
+        elif os_path.isfile(fs_path):
+            file_ext = os_path.splitext(fs_path)[-1]
             if file_ext.endswith("pack"):
                 p = self._path_parse(fs_path)
-                name = os.path.join(p.dir, p.name)
-                tool_path = os.path.join(java_bin_path, _UNPACK200)
+                name = os_path.join(p.dir, p.name)
+                tool_path = os_path.join(java_bin_path, _UNPACK200)
                 try:
                     subprocess.run(
                         [tool_path, _UNPACK200_ARGS, f"{name}.pack", f"{name}.jar"],
@@ -178,15 +179,15 @@ class DependsInstaller:
         self, archive_path: str, file_extension: str, target_dir: str
     ) -> str:
         logging.info(f"Decompressing {archive_path} to {target_dir}...")
-        if not os.path.isdir(target_dir):
+        if not os_path.isdir(target_dir):
             os.makedirs(target_dir)
 
-        archive_path = os.path.normpath(archive_path)
+        archive_path = os_path.normpath(archive_path)
 
-        if os.path.isfile(archive_path):
+        if os_path.isfile(archive_path):
             unzipped_directory = self._extract_files(archive_path, file_extension, target_dir)
             return unzipped_directory
-        elif os.path.isdir(archive_path):
+        elif os_path.isdir(archive_path):
             return archive_path
         else:
             raise ValueError(f"Error: {archive_path} is neither a directory not a file.")
@@ -252,7 +253,7 @@ class DependsInstaller:
         else:
             filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
             # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
-        filename = os.path.join(tempfile.gettempdir(), filename)  # type: ignore
+        filename = os_path.join(tempfile.gettempdir(), filename)  # type: ignore
         try:
             opener = urllib.request.build_opener()
             opener.addheaders = list(self.headers.items())
@@ -314,7 +315,7 @@ class DependsInstaller:
         jdk_archive = self._download(url, name=JAVA)
         jdk_ext = self._get_normalized_archive_ext(jdk_archive)
         jdk_dir = self._decompress_archive(jdk_archive, jdk_ext, target_dir)
-        jdk_bin = os.path.join(jdk_dir, "bin")
+        jdk_bin = os_path.join(jdk_dir, "bin")
         self._unpack_jars(jdk_dir, jdk_bin)
         if jdk_archive:
             os.remove(jdk_archive)
