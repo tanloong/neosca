@@ -1,6 +1,6 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.0.50](https://github.com/tanloong/neosca/releases/tag/0.0.50) (19 August 2023)
+## [0.0.50](https://github.com/tanloong/neosca/releases/tag/0.0.50) (23 August 2023)
 
 ### Bug fixes
 
