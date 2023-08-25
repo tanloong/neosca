@@ -9,6 +9,7 @@ import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from ..scaio import SCAIO
+from ..util import SCAProcedureResult
 
 
 class LCA:
@@ -95,19 +96,25 @@ class LCA:
             lemma_lst = lemma_lst[z:]
         return msttr / sample_nr if sample_nr else 0
 
-    def run_on_ifile(
+    def _analyze(
         self,
-        filepath: str,
+        *,
+        filepath: Optional[str] = None,
+        text: Optional[str] = None,
     ):
-        logging.info(f"Processing {filepath}...")
+        assert (not filepath) ^ (not text)
+
+        if filepath is not None:
+            logging.info(f"Processing {filepath}...")
+            text = self.scaio.read_file(filepath)
+
+        if text is None:
+            return None
+
         easy_words = self.easy_words
         adj_dict = self.adj_dict
         # verb_dict = self.verb_dict
         # noun_dict = self.noun_dict
-
-        text = self.scaio.read_file(filepath)
-        if text is None:
-            return None
 
         word_count_map: Dict[str, int] = {}
         sword_count_map: Dict[str, int] = {}
@@ -181,9 +188,11 @@ class LCA:
 
                 verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
                 logging.debug(f"Counted {lemma} as a verb")
+
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
                     logging.debug(f"Counted {lemma} as a sophisticated lexical word")
+
                     sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
                     logging.debug(f"Counted {lemma} as a sophisticated verb")
         return self.compute(
@@ -326,9 +335,11 @@ class LCA:
             modv,
         )
 
-    def run_on_ifiles(self, ifiles: List[str]):
-        if not ifiles:
-            return
+    def analyze(
+        self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
+    ) -> SCAProcedureResult:
+        if not (ifiles is None) ^ (text is None):
+            return False, "One and only one of (input files, text) should be given."
 
         import csv
 
@@ -343,17 +354,27 @@ class LCA:
         csv_writer = csv.writer(handle)
         csv_writer.writerow(fieldnames)
 
-        for ifile in ifiles:
-            values = self.run_on_ifile(ifile)
+        if text is not None:
+            values = self._analyze(text=text)
             if values is not None:
-                values = [round(v, 4) for v in values]
-                values.insert(0, ifile)
+                values = [str(round(v, 4)) for v in values]
+                values.insert(0, "cmdline_text")
                 csv_writer.writerow(values)
+
+        else:
+            for ifile in ifiles:  # type: ignore
+                values = self._analyze(filepath=ifile)
+                if values is not None:
+                    values = [str(round(v, 4)) for v in values]
+                    values.insert(0, ifile)
+                    csv_writer.writerow(values)
 
         handle.close()
 
         if not self.is_stdout:
             logging.info(f"Output has been saved to {self.ofile}. Done.")
+
+        return True, None
 
     def ensure_spacy_initialized(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
