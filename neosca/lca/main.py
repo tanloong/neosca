@@ -46,11 +46,34 @@ class LCAUI:
             default=False,
             help="Write the output to the stdout instead of saving it to a file.",
         )
+        args_parser.add_argument(
+            "--quiet",
+            dest="is_quiet",
+            action="store_true",
+            default=False,
+            help="Stop the program from printing anything except for final results.",
+        )
+        args_parser.add_argument(
+            "--verbose",
+            dest="is_verbose",
+            action="store_true",
+            default=False,
+            help="Print detailed logging messages.",
+        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-        logging.basicConfig(format="%(message)s", level=logging.INFO)
+
+        assert not (
+            options.is_quiet and options.is_verbose
+        ), "logging cannot be quiet and verbose at the same time"
+        if options.is_quiet:
+            logging.basicConfig(format="%(message)s", level=logging.CRITICAL)
+        elif options.is_verbose:
+            logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+        else:
+            logging.basicConfig(format="%(message)s", level=logging.INFO)
 
         ofile = options.ofile
         if ofile is not None:
