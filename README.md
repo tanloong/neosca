@@ -402,33 +402,52 @@ nsca-lca sample.txt # single input file
 nsca-lca samples/   # multiple input files
 ```
 
-| measure | formula |
-| -                                                | -                                                       |
+<details>
+<summary>
+Measures of Lexical Density and Sophistication
+</summary>
+
+| Measure | Formula |
+| -                                                | -                             |
 | Lexical Density                                  | ![Formula](/img/ld.svg)       |
 | Lexical Sophistication-I                         | ![Formula](/img/ls1.svg)      |
 | Lexical Sophistication-II                        | ![Formula](/img/ls2.svg)      |
 | Verb Sophistication-I                            | ![Formula](/img/vs1.svg)      |
-| Corrected VS1                                    | ![Formula](/img/cvs1.svg)     |
+| Corrected Verb Sophistication-I                  | ![Formula](/img/cvs1.svg)     |
 | Verb Sophistication-II                           | ![Formula](/img/vs2.svg)      |
+
+</details>
+
+<details>
+<summary>
+Measures of Lexical Variation
+</summary>
+
+| Measure | Formula |
+| -                                                | -                             |
 | Number of Different Words                        | ![Formula](/img/ndw.svg)      |
+| Number of Different Words                        | ![Formula](/img/ndw.svg "That")      |
+| Number of Different Words                        | <img src="/img/ndw.svg" title="This"/>      |
 | Number of Different Words (first 50 words)       | ![Formula](/img/ndw-50.svg)   |
 | Number of Different Words (expected random 50)   | ![Formula](/img/ndw-er50.svg) |
 | Number of Different Words (expected sequence 50) | ![Formula](/img/ndw-es50.svg) |
 | Type-Token Ratio                                 | ![Formula](/img/ttr.svg)      |
-| Mean Segmental TTR (50)                          | ![Formula](/img/msttr-50.svg) |
-| Corrected TTR                                    | ![Formula](/img/cttr.svg)     |
-| Root TTR                                         | ![Formula](/img/rttr.svg)     |
-| Bilogarithmic TTR                                | ![Formula](/img/logttr.svg)   |
+| Mean Segmental Type-Token Ratio (50)             | ![Formula](/img/msttr-50.svg) |
+| Corrected Type-Token Ratio                       | ![Formula](/img/cttr.svg)     |
+| Root Type-Token Ratio                            | ![Formula](/img/rttr.svg)     |
+| Bilogarithmic Type-Token Ratio                   | ![Formula](/img/logttr.svg)   |
 | Uber Index                                       | ![Formula](/img/uber.svg)     |
 | Lexical Word Variation                           | ![Formula](/img/lv.svg)       |
 | Verb Variation-I                                 | ![Formula](/img/vv1.svg)      |
-| Squared VV1                                      | ![Formula](/img/svv1.svg)     |
-| Corrected VV1                                    | ![Formula](/img/cvv1.svg)     |
+| Squared Verb Variation-I                         | ![Formula](/img/svv1.svg)     |
+| Corrected Verb Variation-I                       | ![Formula](/img/cvv1.svg)     |
 | Verb Variation-II                                | ![Formula](/img/vv2.svg)      |
 | Noun Variation                                   | ![Formula](/img/nv.svg)       |
 | Adjective Variation                              | ![Formula](/img/adjv.svg)     |
 | Adverb Variation                                 | ![Formula](/img/advv.svg)     |
 | Modifier Variation                               | ![Formula](/img/modv.svg)     |
+
+</details>
 
 ## Citing
 
