@@ -534,7 +534,7 @@ MLA (9th edition)
 
 </details>
 
-If you used the lexical complexity analyzing feature, please cite Xiaofei's article about LCA.
+If you use the lexical complexity analyzing feature, please cite Xiaofei's article about LCA.
 
 <details>
 
