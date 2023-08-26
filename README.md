@@ -13,8 +13,8 @@
 
 <!-- ![](img/testing-on-Windows.gif) -->
 
-[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md) |
-[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
+[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)|
+[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)|
 English
 
 NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA is written by Tan, Long (谭龙)。It accepts written English texts and computes the following measures:
@@ -407,14 +407,14 @@ nsca-lca samples/   # multiple input files
 Measures of Lexical Density and Sophistication
 </summary>
 
-| Measure | Formula |
-| -                                                | -                             |
-| Lexical Density                                  | ![Formula](/img/ld.svg)       |
-| Lexical Sophistication-I                         | ![Formula](/img/ls1.svg)      |
-| Lexical Sophistication-II                        | ![Formula](/img/ls2.svg)      |
-| Verb Sophistication-I                            | ![Formula](/img/vs1.svg)      |
-| Corrected Verb Sophistication-I                  | ![Formula](/img/cvs1.svg)     |
-| Verb Sophistication-II                           | ![Formula](/img/vs2.svg)      |
+|Measure|Formula|
+|-|-|
+|Lexical Density|![Formula](/img/ld.svg "the ratio of the number of lexical words to the number of words")|
+|Lexical Sophistication-I|![Formula](/img/ls1.svg "the ratio of the number of sophisticated lexical words to the total number of lexical words")|
+|Lexical Sophistication-II|![Formula](/img/ls2.svg "the ratio of the number of sophisticated word types to the total number of word types")|
+|Verb Sophistication-I|![Formula](/img/vs1.svg "the ratio of the number of sophisticated verb types to the total number of verbs")|
+|Corrected Verb Sophistication-I|![Formula](/img/cvs1.svg "no hover text for this formula")|
+|Verb Sophistication-II|![Formula](/img/vs2.svg "no hover text for this formula")|
 
 </details>
 
@@ -423,29 +423,27 @@ Measures of Lexical Density and Sophistication
 Measures of Lexical Variation
 </summary>
 
-| Measure | Formula |
-| -                                                | -                             |
-| Number of Different Words                        | ![Formula](/img/ndw.svg)      |
-| Number of Different Words                        | ![Formula](/img/ndw.svg "That")      |
-| Number of Different Words                        | <img src="/img/ndw.svg" title="This"/>      |
-| Number of Different Words (first 50 words)       | ![Formula](/img/ndw-50.svg)   |
-| Number of Different Words (expected random 50)   | ![Formula](/img/ndw-er50.svg) |
-| Number of Different Words (expected sequence 50) | ![Formula](/img/ndw-es50.svg) |
-| Type-Token Ratio                                 | ![Formula](/img/ttr.svg)      |
-| Mean Segmental Type-Token Ratio (50)             | ![Formula](/img/msttr-50.svg) |
-| Corrected Type-Token Ratio                       | ![Formula](/img/cttr.svg)     |
-| Root Type-Token Ratio                            | ![Formula](/img/rttr.svg)     |
-| Bilogarithmic Type-Token Ratio                   | ![Formula](/img/logttr.svg)   |
-| Uber Index                                       | ![Formula](/img/uber.svg)     |
-| Lexical Word Variation                           | ![Formula](/img/lv.svg)       |
-| Verb Variation-I                                 | ![Formula](/img/vv1.svg)      |
-| Squared Verb Variation-I                         | ![Formula](/img/svv1.svg)     |
-| Corrected Verb Variation-I                       | ![Formula](/img/cvv1.svg)     |
-| Verb Variation-II                                | ![Formula](/img/vv2.svg)      |
-| Noun Variation                                   | ![Formula](/img/nv.svg)       |
-| Adjective Variation                              | ![Formula](/img/adjv.svg)     |
-| Adverb Variation                                 | ![Formula](/img/advv.svg)     |
-| Modifier Variation                               | ![Formula](/img/modv.svg)     |
+|Measure|Formula|
+|-|-|
+|Number of Different Words|![Formula](/img/ndw.svg "the number of word types")|
+|Number of Different Words (first 50 words)|![Formula](/img/ndw-50.svg "no hover text for this formula")|
+|Number of Different Words (expected random 50)|![Formula](/img/ndw-er50.svg "no hover text for this formula")|
+|Number of Different Words (expected sequence 50)|![Formula](/img/ndw-es50.svg "no hover text for this formula")|
+|Type-Token Ratio|![Formula](/img/ttr.svg "the ratio of the number of word types to the number of words")|
+|Mean Segmental Type-Token Ratio (50)|![Formula](/img/msttr-50.svg "divide a sample into successive 50-word segments, discard the remaining text with fewer words than 50, and then calculate the average TTR of all segments")|
+|Corrected Type-Token Ratio|![Formula](/img/cttr.svg "the number of word types divided by square root of two times the total number of words")|
+|Root Type-Token Ratio|![Formula](/img/rttr.svg "no hover text for this formula")|
+|Bilogarithmic Type-Token Ratio|![Formula](/img/logttr.svg "no hover text for this formula")|
+|Uber Index|![Formula](/img/uber.svg "no hover text for this formula")|
+|Lexical Word Variation|![Formula](/img/lv.svg "the ratio of the number of lexical word types to the total number of lexical words")|
+|Verb Variation-I|![Formula](/img/vv1.svg "the ratio of the number of verb types to the total number of verbs")|
+|Squared Verb Variation-I|![Formula](/img/svv1.svg "the number of verb types squared divided by the number of verbs")|
+|Corrected Verb Variation-I|![Formula](/img/cvv1.svg "the number of verb types divided by square root of two times the total number of verbs")|
+|Verb Variation-II|![Formula](/img/vv2.svg "the ratio of the number of verb types to the number of lexical words")|
+|Noun Variation|![Formula](/img/nv.svg "the ratio of the number of noun types to the number of lexical words")|
+|Adjective Variation|![Formula](/img/adjv.svg "the ratio of the number of adjective types to the number of lexical words")|
+|Adverb Variation|![Formula](/img/advv.svg "the ratio of the number of adverb types to the number of lexical words")|
+|Modifier Variation|![Formula](/img/modv.svg "the ratio of the number of modifier (both adjective and adverb) types to the number of lexical words")|
 
 </details>
 
