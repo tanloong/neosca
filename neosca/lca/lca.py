@@ -139,7 +139,7 @@ class LCA:
 
             if (lemma not in easy_words) and pos != "NUM":
                 sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a sophisticated word")
+                logging.debug(f'Counted "{lemma}" as a sophisticated word')
 
             # |UD    |PTB     |
             # |------|--------|
@@ -147,36 +147,36 @@ class LCA:
             # |PROPN |NNP,NNPS|
             if pos in ("NOUN", "PROPN"):
                 lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a lexical word")
+                logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a noun")
+                logging.debug(f'Counted "{lemma}" as a noun')
 
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-                    logging.debug(f"Counted {lemma} as a sophisticated lexical word")
+                    logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
             elif pos == "ADJ":
                 lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a lexical word")
+                logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as an adjective")
+                logging.debug(f'Counted "{lemma}" as an adjective')
 
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-                    logging.debug(f"Counted {lemma} as a sophisticated lexical word")
+                    logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
             elif pos == "ADV" and (
                 (lemma in adj_dict) or (lemma.endswith("ly") and lemma[:-2] in adj_dict)
             ):
                 lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a lexical word")
+                logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as an adverb")
+                logging.debug(f'Counted "{lemma}" as an adverb')
 
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-                    logging.debug(f"Counted {lemma} as a sophisticated lexical word")
+                    logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
             # Don't have to filter auxiliary verbs, because the VERB tag covers
             #  main verbs (content verbs) but it does not cover auxiliary verbs
             #  and verbal copulas (in the narrow sense), for which there is the
@@ -184,17 +184,17 @@ class LCA:
             #  https://universaldependencies.org/u/pos/VERB.html
             elif pos == "VERB":
                 lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a lexical word")
+                logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
-                logging.debug(f"Counted {lemma} as a verb")
+                logging.debug(f'Counted "{lemma}" as a verb')
 
                 if lemma not in easy_words:
                     slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-                    logging.debug(f"Counted {lemma} as a sophisticated lexical word")
+                    logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
 
                     sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
-                    logging.debug(f"Counted {lemma} as a sophisticated verb")
+                    logging.debug(f'Counted "{lemma}" as a sophisticated verb')
         return self.compute(
             word_count_map,
             sword_count_map,
@@ -372,7 +372,7 @@ class LCA:
             "MSTTR (mean segmental TTR, 50)",
             "CTTR (corrected TTR)",
             "RTTR (root TTR)",
-            "logTTR (bilogarithmic TTR)",
+            "LogTTR (bilogarithmic TTR)",
             "Uber (Uber Index)",
             "LV (lexical word variation)",
             "VV1 (verb variation-I)",
