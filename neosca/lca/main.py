@@ -124,7 +124,7 @@ class LCAUI:
         try:
             subprocess.run(command, check=True, capture_output=False)
         except CalledProcessError as e:
-            return False, f"Failed to install spaCy: {e}"
+            return False, f"Failed to download en_core_web_sm: {e}"
 
         return True, None
 
