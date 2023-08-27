@@ -111,7 +111,7 @@ class SCAIO:
         try:
             logging.info(f"Attempting to read {path} with {self.previous_encoding} encoding...")
             content = self._read_txt(path, "r", self.previous_encoding)  # type:ignore
-        except ValueError:
+        except UnicodeDecodeError:
             logging.info(f"Attempt failed. Reading {path} in binary mode...")
             bytes_ = self._read_txt(path, "rb")
             logging.info("Guessing the encoding of the byte string...")
