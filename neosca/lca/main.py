@@ -32,6 +32,13 @@ class LCAUI:
             ),
         )
         args_parser.add_argument(
+            "--tagset",
+            dest="tagset",
+            choices=("ud", "ptb"),
+            default="ud",
+            help='Choose UD or PTB POS tagset for word classification. The default is "ud".',
+        )
+        args_parser.add_argument(
             "--output-file",
             "-o",
             metavar="<filename>",
@@ -97,13 +104,13 @@ class LCAUI:
             logging.info(f"Command-line text: {options.text}")
             if ifile_list:
                 return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
-            logging.info(f"Command-line text: {options.text}")
             self.verified_ifiles = None
         else:
             self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
 
         self.init_kwargs = {
             "wordlist": options.wordlist,
+            "tagset": options.tagset,
             "ofile": options.ofile,
             "is_stdout": options.is_stdout,
         }
