@@ -94,7 +94,11 @@ class LCA:
         return False
 
     def _is_misc_ptb(self, lemma: str, pos: str) -> bool:
-        if pos in string.punctuation or pos in ("SENT", "SYM"):
+        if not lemma.strip():
+            return True
+        if pos[0] in string.punctuation:
+            return True
+        if pos in ("SENT", "SYM", "HYPH"):
             return True
         return False
 
@@ -162,10 +166,20 @@ class LCA:
         return False
 
     def _is_verb_ptb(self, lemma: str, pos: str) -> bool:
-        if pos.startswith("V") and lemma not in ("be", "have"):
-            # there's no need to use 'lemma.lower()' as lemma has been lowered in self.get_lemma_pos_tuple,
-            return True
-        return False
+        if not pos.startswith("V"):
+            return False
+        if lemma in (
+            "be",
+            "have",
+            "'m",  # I_PRP          'm_VBP  done_VBN ._.
+            "’m",
+            "'s",  # The_DT job_NN  ’s_VBZ  nearly_RB done_VBN ._.
+            "’s",  # He_PRP         ’s_VBZ  got_VBD a_DT degree_NN from_IN Bristol_NNP University_NNP ._.
+            "'ve",  # We_PRP        ’ve_VBP been_VBN spending_VBG too_RB much_JJ money_NN ._.
+            "’ve",
+        ):
+            return False
+        return True
 
     def _sort_by_value(self, d):
         """Returns the keys of dictionary d sorted by their values"""
