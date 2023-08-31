@@ -168,16 +168,7 @@ class LCA:
     def _is_verb_ptb(self, lemma: str, pos: str) -> bool:
         if not pos.startswith("V"):
             return False
-        if lemma in (
-            "be",
-            "have",
-            "'m",  # I_PRP          'm_VBP  done_VBN ._.
-            "’m",
-            "'s",  # The_DT job_NN  ’s_VBZ  nearly_RB done_VBN ._.
-            "’s",  # He_PRP         ’s_VBZ  got_VBD a_DT degree_NN from_IN Bristol_NNP University_NNP ._.
-            "'ve",  # We_PRP        ’ve_VBP been_VBN spending_VBG too_RB much_JJ money_NN ._.
-            "’ve",
-        ):
+        if lemma in ("be", "have"):
             return False
         return True
 
