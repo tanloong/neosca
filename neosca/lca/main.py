@@ -158,6 +158,17 @@ class LCAUI:
             color_print("OKGREEN", "ok", prefix="spaCy has already been installed. ")
             return True, None
 
+    def exit_routine(self) -> None:
+        if self.options.is_quiet or self.options.is_stdout:
+            return
+
+        color_print(
+            "OKGREEN",
+            f"{os_path.abspath(self.options.ofile)}",
+            prefix="Output has been saved to ",
+            postfix=". Done.",
+        )
+
     def run_tmpl(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_spacy()
@@ -168,6 +179,7 @@ class LCAUI:
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)
+            self.exit_routine()
             return True, None
 
         return wrapper
