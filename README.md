@@ -13,8 +13,8 @@
 
 <!-- ![](img/testing-on-Windows.gif) -->
 
-[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md) |
-[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md) |
+[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)|
+[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)|
 English
 
 NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA is written by Tan, Long (谭龙)。It accepts written English texts and computes the following measures:
@@ -252,7 +252,7 @@ There are two approaches to define a structure: using `tregex_pattern` or `value
 + [Powerpoint tutorial](https://nlp.stanford.edu/software/tregex/The_Wonderful_World_of_Tregex.ppt) for Tregex by Galen Andrew
 + [The TregexPattern javadoc page](http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/tregex/TregexPattern.html)
 
-`value_source` specifies an arithmetic operation on values of other structures to calculate the value of the a structure. `value_source` can include names of other structures, integers, decimals, `+`, `-`, `*`, `/`, `(` and `)`. `value_source` are tokenized using Python's standard library `tokenize`, which is specifically designed for Python source code. The name of a structure that is refered to in a `value_source` should adhere to the naming convention of Python variables (composed of *letters*, *numbers*, and *underscores*, cannot start with a *number*; *letters* refer to those characters defined in the Unicode character database as "Letter", such as English letters and Chinese characters), or otherwise the name will not be correctly recognized.
+`value_source` specifies an arithmetic operation on values of other structures to calculate the value of the structure being defined. `value_source` can include names of other structures, integers, decimals, `+`, `-`, `*`, `/`, `(` and `)`. `value_source` are tokenized using Python's standard library `tokenize`, which is specifically designed for Python source code. The name of a structure that is refered to in a `value_source` should adhere to the naming convention of Python variables (composed of *letters*, *numbers*, and *underscores*, cannot start with a *number*; *letters* refer to those characters defined in the Unicode character database as "Letter", such as English letters and Chinese characters), or otherwise the name will not be correctly recognized.
 
 The `value_source` definition can be nested, which means that dependant structures in turn can also be defined through `value_source` and rely on others, forming a tree-like relationship. But the terminal structures must be defined by `tregex_pattern` to avoid circular definition.
 
@@ -395,7 +395,54 @@ NeoSCA has a Tregex command line interface `nsca-tregex`, which behaves similar 
 
 #### Lexical complexity analysis
 
-NeoSCA provides an `nsca-lca` command to do the lexical complexity analysis mirroring the functionality of [LCA (Lexical Complexity Analyzer)](https://sites.psu.edu/xxl13/lca/).
+NeoSCA provides an `nsca-lca` command to do the lexical complexity analysis mirroring the functionality of [LCA (Lexical Complexity Analyzer)](https://sites.psu.edu/xxl13/lca/). Below are the available measures:
+
+<!-- {{{ LCA measures -->
+<details>
+<summary>
+Measures of Lexical Density and Sophistication
+</summary>
+
+|Measure|Formula|
+|-|-|
+|Lexical Density|![Formula](/img/ld.svg "the ratio of the number of lexical words to the number of words")|
+|Lexical Sophistication-I|![Formula](/img/ls1.svg "the ratio of the number of sophisticated lexical words to the total number of lexical words")|
+|Lexical Sophistication-II|![Formula](/img/ls2.svg "the ratio of the number of sophisticated word types to the total number of word types")|
+|Verb Sophistication-I|![Formula](/img/vs1.svg "the ratio of the number of sophisticated verb types to the total number of verbs")|
+|Corrected Verb Sophistication-I|![Formula](/img/cvs1.svg "the ratio of the number of sophisticated verb types to the square root of two times the number of verbs")|
+|Verb Sophistication-II|![Formula](/img/vs2.svg "the ratio of the number of sophisticated verb types squared to the number of verbs")|
+
+</details>
+
+<details>
+<summary>
+Measures of Lexical Variation
+</summary>
+
+|Measure|Formula|
+|-|-|
+|Number of Different Words|![Formula](/img/ndw.svg "the number of word types")|
+|Number of Different Words (first 50 words)|![Formula](/img/ndw-50.svg "no hover text for this formula")|
+|Number of Different Words (expected random 50)|![Formula](/img/ndw-er50.svg "no hover text for this formula")|
+|Number of Different Words (expected sequence 50)|![Formula](/img/ndw-es50.svg "no hover text for this formula")|
+|Type-Token Ratio|![Formula](/img/ttr.svg "the ratio of the number of word types to the number of words")|
+|Mean Segmental Type-Token Ratio (50)|![Formula](/img/msttr-50.svg "divide a sample into successive 50-word segments, discard the remaining text with fewer words than 50, and then calculate the average TTR of all segments")|
+|Corrected Type-Token Ratio|![Formula](/img/cttr.svg "the ratio of the number of word types to the square root of two times the total number of words")|
+|Root Type-Token Ratio|![Formula](/img/rttr.svg "the ratio of the number of word types to the square root of the number of words")|
+|Bilogarithmic Type-Token Ratio|![Formula](/img/logttr.svg "no hover text for this formula")|
+|Uber Index|![Formula](/img/uber.svg "no hover text for this formula")|
+|Lexical Word Variation|![Formula](/img/lv.svg "the ratio of the number of lexical word types to the total number of lexical words")|
+|Verb Variation-I|![Formula](/img/vv1.svg "the ratio of the number of verb types to the total number of verbs")|
+|Squared Verb Variation-I|![Formula](/img/svv1.svg "the ratio of the number of verb types squared to the number of verbs")|
+|Corrected Verb Variation-I|![Formula](/img/cvv1.svg "the ratio of the number of verb types to the square root of two times the total number of verbs")|
+|Verb Variation-II|![Formula](/img/vv2.svg "the ratio of the number of verb types to the number of lexical words")|
+|Noun Variation|![Formula](/img/nv.svg "the ratio of the number of noun types to the number of lexical words")|
+|Adjective Variation|![Formula](/img/adjv.svg "the ratio of the number of adjective types to the number of lexical words")|
+|Adverb Variation|![Formula](/img/advv.svg "the ratio of the number of adverb types to the number of lexical words")|
+|Modifier Variation|![Formula](/img/modv.svg "the ratio of the number of modifier (both adjective and adverb) types to the number of lexical words")|
+
+</details>
+<!-- }}} -->
 
 ```sh
 nsca-lca sample.txt # single input file
@@ -414,7 +461,7 @@ BibTeX
 
 ```BibTeX
 @misc{tan2022neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.51},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.0.52},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2022}
@@ -429,7 +476,7 @@ year         = {2022}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.51) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2022). <i>NeoSCA</i> (version 0.0.52) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -439,7 +486,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.51, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.0.52, GitHub, 2022, https://github.com/tanloong/neosca.</pre>
 
 </details>
 
@@ -487,7 +534,7 @@ MLA (9th edition)
 
 </details>
 
-If you used the lexical complexity analyzing feature, please cite Xiaofei's article about LCA.
+If you use the lexical complexity analyzing feature, please cite Xiaofei's article about LCA.
 
 <details>
 
