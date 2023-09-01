@@ -1,5 +1,20 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.52](https://github.com/tanloong/neosca/releases/tag/0.0.52) (1 September 2023)
+
+### New features
+
++ Add support of PTB POS tagset for `nsca-lca`
++ Add `--text` option for `nsca-lca`
+
+### Improvements
+
++ Add formulae in README for LCA measures
+
+### Bug fixes
+
++ Fix not correctly using Chinese JDK mirror
+
 ## [0.0.51](https://github.com/tanloong/neosca/releases/tag/0.0.51) (23 August 2023)
 
 ### Bug fixes
