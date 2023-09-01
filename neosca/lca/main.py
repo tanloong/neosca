@@ -32,6 +32,13 @@ class LCAUI:
             ),
         )
         args_parser.add_argument(
+            "--tagset",
+            dest="tagset",
+            choices=("ud", "ptb"),
+            default="ud",
+            help='Choose UD or PTB POS tagset for word classification. The default is "ud".',
+        )
+        args_parser.add_argument(
             "--output-file",
             "-o",
             metavar="<filename>",
@@ -46,11 +53,41 @@ class LCAUI:
             default=False,
             help="Write the output to the stdout instead of saving it to a file.",
         )
+        args_parser.add_argument(
+            "--text",
+            "-t",
+            metavar="<text>",
+            default=None,
+            help="Pass text through the command line.",
+        )
+        args_parser.add_argument(
+            "--quiet",
+            dest="is_quiet",
+            action="store_true",
+            default=False,
+            help="Stop the program from printing anything except for final results.",
+        )
+        args_parser.add_argument(
+            "--verbose",
+            dest="is_verbose",
+            action="store_true",
+            default=False,
+            help="Print detailed logging messages.",
+        )
         return args_parser
 
     def parse_args(self, argv: List[str]) -> SCAProcedureResult:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
-        logging.basicConfig(format="%(message)s", level=logging.INFO)
+
+        assert not (
+            options.is_quiet and options.is_verbose
+        ), "logging cannot be quiet and verbose at the same time"
+        if options.is_quiet:
+            logging.basicConfig(format="%(message)s", level=logging.CRITICAL)
+        elif options.is_verbose:
+            logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+        else:
+            logging.basicConfig(format="%(message)s", level=logging.INFO)
 
         ofile = options.ofile
         if ofile is not None:
@@ -63,9 +100,17 @@ class LCAUI:
         else:
             options.ofile = "result.csv"
 
-        self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
+        if options.text is not None:
+            logging.info(f"Command-line text: {options.text}")
+            if ifile_list:
+                return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
+            self.verified_ifiles = None
+        else:
+            self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
+
         self.init_kwargs = {
             "wordlist": options.wordlist,
+            "tagset": options.tagset,
             "ofile": options.ofile,
             "is_stdout": options.is_stdout,
         }
@@ -86,14 +131,14 @@ class LCAUI:
         try:
             subprocess.run(command, check=True, capture_output=False)
         except CalledProcessError as e:
-            return False, f"Failed to install spaCy: {e}"
+            return False, f"Failed to download en_core_web_sm: {e}"
 
         return True, None
 
-    def check_spacy(self):
+    def check_spacy(self) -> SCAProcedureResult:
         try:
             logging.info("Trying to load spaCy...")
-            import spacy  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
+            import spacy  # type: ignore # noqa: F401 'spacy' imported but unused
             import en_core_web_sm  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
         except ModuleNotFoundError:
             is_install = get_yes_or_no(
@@ -128,13 +173,21 @@ class LCAUI:
         return wrapper
 
     @run_tmpl
+    def run_on_text(self) -> SCAProcedureResult:
+        analyzer = LCA(**self.init_kwargs)
+        analyzer.analyze(text=self.options.text)
+        return True, None
+
+    @run_tmpl
     def run_on_ifiles(self) -> SCAProcedureResult:
         analyzer = LCA(**self.init_kwargs)
-        analyzer.run_on_ifiles(self.verified_ifiles)
+        analyzer.analyze(ifiles=self.verified_ifiles)
         return True, None
 
     def run(self) -> SCAProcedureResult:
-        if self.verified_ifiles:
+        if self.options.text is not None:
+            return self.run_on_text()
+        elif self.verified_ifiles:
             return self.run_on_ifiles()
         else:
             self.args_parser.print_help()

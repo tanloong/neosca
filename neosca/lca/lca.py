@@ -5,15 +5,21 @@ import logging
 from math import log, sqrt
 import os.path as os_path
 import random
+import string
 import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from ..scaio import SCAIO
+from ..util import SCAProcedureResult
 
 
 class LCA:
     def __init__(
-        self, wordlist: str, ofile: str = "result.csv", is_stdout: bool = False
+        self,
+        wordlist: str = "bnc",
+        tagset: str = "ud",
+        ofile: str = "result.csv",
+        is_stdout: bool = False,
     ) -> None:
         self.ofile = ofile
         self.is_stdout = is_stdout
@@ -22,10 +28,43 @@ class LCA:
         self.nlp_spacy: Optional[Callable] = None
 
         assert wordlist in ("bnc", "anc")
+        logging.debug(f"Using {wordlist.upper()} wordlist")
+        self.wordlist = wordlist
+
         wordlist_datafile_map = {
             "bnc": "bnc_all_filtered.pickle.lzma",
             "anc": "anc_all_count.pickle.lzma",
         }
+
+        assert tagset in ("ud", "ptb")
+        logging.debug(f"Using {tagset.upper()} POS tagset")
+        self.tagset = tagset
+
+        self.get_lemma_and_pos = {
+            "ud": self.get_lemma_and_udpos,
+            "ptb": self.get_lemma_and_ptbpos,
+        }[tagset]
+
+        tagset_conds_map = {
+            "ud": {
+                "is_misc": self._is_misc_ud,
+                "is_sword": self._is_sword_ud,
+                "is_noun": self._is_noun_ud,
+                "is_adj": self._is_adj_ud,
+                "is_adv": self._is_adv_ud,
+                "is_verb": self._is_verb_ud,
+            },
+            "ptb": {
+                "is_misc": self._is_misc_ptb,
+                "is_sword": self._is_sword_ptb,
+                "is_noun": self._is_noun_ptb,
+                "is_adj": self._is_adj_ptb,
+                "is_adv": self._is_adv_ptb,
+                "is_verb": self._is_verb_ptb,
+            },
+        }
+        self.condition_map = tagset_conds_map[tagset]
+
         data_dir = os_path.join(os_path.dirname(os_path.dirname(__file__)), "data")
         datafile = os_path.join(data_dir, wordlist_datafile_map[wordlist])
         logging.debug(f"Loading {datafile}...")
@@ -42,11 +81,96 @@ class LCA:
         self.adj_dict = adj_dict
         self.verb_dict = verb_dict
         self.noun_dict = noun_dict
+
         self.word_ranks = word_ranks
         self.easy_words = easy_words
 
         # adjust minimum sample size here
         self.standard = 50
+
+    def _is_misc_ud(self, lemma: str, pos: str) -> bool:
+        if pos in ("PUNCT", "SYM", "X", "SPACE"):
+            return True
+        return False
+
+    def _is_misc_ptb(self, lemma: str, pos: str) -> bool:
+        if not lemma.strip():
+            return True
+        if pos[0] in string.punctuation:
+            return True
+        if pos in ("SENT", "SYM", "HYPH"):
+            return True
+        return False
+
+    def _is_sword_ud(self, lemma: str, pos: str) -> bool:
+        # sophisticated word
+        if lemma not in self.easy_words and pos != "NUM":
+            return True
+        return False
+
+    def _is_sword_ptb(self, lemma: str, pos: str) -> bool:
+        if lemma not in self.easy_words and pos != "CD":
+            return True
+        return False
+
+    def _is_noun_ud(self, lemma: str, pos: str) -> bool:
+        # |UD    |PTB     |
+        # |------|--------|
+        # |NOUN  |NN, NNS |
+        # |PROPN |NNP,NNPS|
+        if pos in ("NOUN", "PROPN"):
+            return True
+        return False
+
+    def _is_noun_ptb(self, lemma: str, pos: str) -> bool:
+        if pos.startswith("N"):
+            return True
+        return False
+
+    def _is_adj_ud(self, lemma: str, pos: str) -> bool:
+        if pos == "ADJ":
+            return True
+        return False
+
+    def _is_adj_ptb(self, lemma: str, pos: str) -> bool:
+        if pos.startswith("J"):
+            return True
+        return False
+
+    def _is_adv_ud(self, lemma: str, pos: str) -> bool:
+        if pos != "ADV":
+            return False
+        if lemma in self.adj_dict:
+            return True
+        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
+            return True
+        return False
+
+    def _is_adv_ptb(self, lemma: str, pos: str) -> bool:
+        if not pos.startswith("R"):
+            return False
+        if lemma in self.adj_dict:
+            return True
+        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
+            return True
+        return False
+
+    def _is_verb_ud(self, lemma: str, pos: str) -> bool:
+        # Don't have to filter auxiliary verbs, because the VERB tag covers
+        #  main verbs (content verbs) but it does not cover auxiliary verbs
+        #  and verbal copulas (in the narrow sense), for which there is the
+        #  AUX tag.
+        #  https://universaldependencies.org/u/pos/VERB.html
+        if pos == "VERB":
+            return True
+        return False
+
+    def _is_verb_ptb(self, lemma: str, pos: str) -> bool:
+        if not pos.startswith("V"):
+            return False
+        if lemma in ("be", "have"):
+            return False
+        return True
 
     def _sort_by_value(self, d):
         """Returns the keys of dictionary d sorted by their values"""
@@ -95,92 +219,7 @@ class LCA:
             lemma_lst = lemma_lst[z:]
         return msttr / sample_nr if sample_nr else 0
 
-    def run_on_ifile(
-        self,
-        filepath: str,
-    ):
-        logging.info(f"Processing {filepath}...")
-        easy_words = self.easy_words
-        adj_dict = self.adj_dict
-        # verb_dict = self.verb_dict
-        # noun_dict = self.noun_dict
-
-        text = self.scaio.read_file(filepath)
-        if text is None:
-            return None
-
-        word_count_map: Dict[str, int] = {}
-        sword_count_map: Dict[str, int] = {}
-        lex_count_map: Dict[str, int] = {}
-        slex_count_map: Dict[str, int] = {}
-        verb_count_map: Dict[str, int] = {}
-        sverb_count_map: Dict[str, int] = {}
-        adj_count_map: Dict[str, int] = {}
-        adv_count_map: Dict[str, int] = {}
-        noun_count_map: Dict[str, int] = {}
-        lemma_lst = []
-
-        g = self.get_lemma_pos_tuple(text)
-
-        # Universal POS tags: https://universaldependencies.org/u/pos/
-        for lemma, pos in g:
-            if pos in ("PUNCT", "SYM", "X", "SPACE"):
-                continue
-
-            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
-            lemma_lst.append(lemma)
-
-            if (lemma not in easy_words) and pos != "NUM":
-                sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
-
-            # NOUN  (UD): NN,  NNS (PTB)
-            # PROPN (UD): NNP, NNPS(PTB)
-            if pos in ("NOUN", "PROPN"):
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
-
-                if lemma not in easy_words:
-                    slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-            elif pos == "ADJ":
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
-
-                if lemma not in easy_words:
-                    slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-            elif pos == "ADV" and (
-                (lemma in adj_dict) or (lemma.endswith("ly") and lemma[:-2] in adj_dict)
-            ):
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
-
-                if lemma not in easy_words:
-                    slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-            # Don't have to filter auxiliary verbs, because the VERB tag covers
-            #  main verbs (content verbs) but it does not cover auxiliary verbs
-            #  and verbal copulas (in the narrow sense), for which there is the
-            #  AUX tag.
-            #  https://universaldependencies.org/u/pos/VERB.html
-            elif pos == "VERB":
-                verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-
-                if lemma not in easy_words:
-                    sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
-                    slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-        return self.compute(
-            word_count_map,
-            sword_count_map,
-            lex_count_map,
-            slex_count_map,
-            verb_count_map,
-            sverb_count_map,
-            adj_count_map,
-            adv_count_map,
-            noun_count_map,
-            lemma_lst,
-        )
-
-    def div(self, n1: Union[int, float], n2: Union[int, float]) -> float:
+    def _safe_div(self, n1: Union[int, float], n2: Union[int, float]) -> float:
         return n1 / n2 if n2 else 0
 
     def compute(
@@ -225,17 +264,17 @@ class LCA:
         noun_token_nr = sum(count for count in noun_count_map.values())
 
         # 1. lexical density
-        ld = self.div(lex_token_nr, word_token_nr)
+        ld = self._safe_div(lex_token_nr, word_token_nr)
 
         # 2. lexical sophistication
         # 2.1 lexical sophistication
-        ls1 = self.div(slex_token_nr, lex_token_nr)
-        ls2 = self.div(sword_type_nr, word_type_nr)
+        ls1 = self._safe_div(slex_token_nr, lex_token_nr)
+        ls2 = self._safe_div(sword_type_nr, word_type_nr)
 
         # 2.2 verb sophistication
-        vs1 = self.div(sverb_type_nr, verb_token_nr)
-        vs2 = self.div((sverb_type_nr**2), verb_token_nr)
-        cvs1 = self.div(sverb_type_nr, sqrt(2 * verb_token_nr))
+        vs1 = self._safe_div(sverb_type_nr, verb_token_nr)
+        vs2 = self._safe_div((sverb_type_nr**2), verb_token_nr)
+        cvs1 = self._safe_div(sverb_type_nr, sqrt(2 * verb_token_nr))
 
         # 3 lexical diversity or variation
 
@@ -247,29 +286,29 @@ class LCA:
             ndwesz = self.get_ndw_esz(self.standard, lemma_lst)
 
         # 3.2 TTR
-        msttr = ttr = self.div(word_type_nr, word_token_nr)
+        msttr = ttr = self._safe_div(word_type_nr, word_token_nr)
         if lemma_nr >= self.standard:
             msttr = self.get_msttr(self.standard, lemma_lst)
-        cttr = self.div(word_type_nr, sqrt(2 * word_token_nr))
-        rttr = self.div(word_type_nr, sqrt(word_token_nr))
-        logttr = self.div(log(word_type_nr), log(word_token_nr))
-        uber = self.div(
+        cttr = self._safe_div(word_type_nr, sqrt(2 * word_token_nr))
+        rttr = self._safe_div(word_type_nr, sqrt(word_token_nr))
+        logttr = self._safe_div(log(word_type_nr), log(word_token_nr))
+        uber = self._safe_div(
             log(word_token_nr, 10) * log(word_token_nr, 10),
-            log(self.div(word_token_nr, word_type_nr), 10),
+            log(self._safe_div(word_token_nr, word_type_nr), 10),
         )
 
         # 3.3 verb diversity
-        vv1 = self.div(verb_type_nr, verb_token_nr)
-        svv1 = self.div(verb_type_nr * verb_type_nr, verb_token_nr)
-        cvv1 = self.div(verb_type_nr, sqrt(2 * verb_token_nr))
+        vv1 = self._safe_div(verb_type_nr, verb_token_nr)
+        svv1 = self._safe_div(verb_type_nr * verb_type_nr, verb_token_nr)
+        cvv1 = self._safe_div(verb_type_nr, sqrt(2 * verb_token_nr))
 
         # 3.4 lexical diversity
-        lv = self.div(lex_type_nr, lex_token_nr)
-        vv2 = self.div(verb_type_nr, lex_token_nr)
-        nv = self.div(noun_type_nr, noun_token_nr)
-        adjv = self.div(adj_type_nr, lex_token_nr)
-        advv = self.div(adv_type_nr, lex_token_nr)
-        modv = self.div((adv_type_nr + adj_type_nr), lex_token_nr)
+        lv = self._safe_div(lex_type_nr, lex_token_nr)
+        vv2 = self._safe_div(verb_type_nr, lex_token_nr)
+        nv = self._safe_div(noun_type_nr, noun_token_nr)
+        adjv = self._safe_div(adj_type_nr, lex_token_nr)
+        advv = self._safe_div(adv_type_nr, lex_token_nr)
+        modv = self._safe_div((adv_type_nr + adj_type_nr), lex_token_nr)
 
         return (
             word_type_nr,
@@ -307,9 +346,116 @@ class LCA:
             modv,
         )
 
-    def run_on_ifiles(self, ifiles: List[str]):
-        if not ifiles:
-            return
+    def _analyze(
+        self,
+        *,
+        filepath: Optional[str] = None,
+        text: Optional[str] = None,
+    ):
+        assert (not filepath) ^ (not text)
+
+        if filepath is not None:
+            logging.info(f"Processing {filepath}...")
+            text = self.scaio.read_file(filepath)
+
+        if text is None:
+            return None
+
+        condition_map = self.condition_map
+
+        word_count_map: Dict[str, int] = {}
+        sword_count_map: Dict[str, int] = {}
+        lex_count_map: Dict[str, int] = {}
+        slex_count_map: Dict[str, int] = {}
+        verb_count_map: Dict[str, int] = {}
+        sverb_count_map: Dict[str, int] = {}
+        adj_count_map: Dict[str, int] = {}
+        adv_count_map: Dict[str, int] = {}
+        noun_count_map: Dict[str, int] = {}
+        lemma_lst = []
+
+        g = self.get_lemma_and_pos(text)
+
+        # Universal POS tags: https://universaldependencies.org/u/pos/
+        for lemma, pos in g:
+            if condition_map["is_misc"](lemma, pos):
+                continue
+
+            is_sophisticated = False
+            is_lexical = False
+            is_verb = False
+
+            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
+            lemma_lst.append(lemma)
+
+            if condition_map["is_noun"](lemma, pos):
+                noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a noun')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+
+            elif condition_map["is_adj"](lemma, pos):
+                adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as an adjective')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+
+            elif condition_map["is_adv"](lemma, pos):
+                adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as an adverb')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+
+            elif condition_map["is_verb"](lemma, pos):
+                verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a verb')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+                is_verb = True
+
+            if condition_map["is_sword"](lemma, pos):
+                sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a sophisticated word')
+
+                is_sophisticated = True
+
+            if is_lexical and is_sophisticated:
+                slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
+                if is_verb:
+                    sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
+                    logging.debug(f'Counted "{lemma}" as a sophisticated verb')
+
+        return self.compute(
+            word_count_map,
+            sword_count_map,
+            lex_count_map,
+            slex_count_map,
+            verb_count_map,
+            sverb_count_map,
+            adj_count_map,
+            adv_count_map,
+            noun_count_map,
+            lemma_lst,
+        )
+
+    def analyze(
+        self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
+    ) -> SCAProcedureResult:
+        if not (ifiles is None) ^ (text is None):
+            return False, "One and only one of (input files, text) should be given."
 
         import csv
 
@@ -318,23 +464,66 @@ class LCA:
             if not self.is_stdout
             else sys.stdout
         )
-        # fmt: off
-        fieldnames = ("filename", "wordtypes", "swordtypes", "lextypes", "slextypes", "wordtokens", "swordtokens", "lextokens", "slextokens", "ld", "ls1", "ls2", "vs1", "vs2", "cvs1", "ndw", "ndwz", "ndwerz", "ndwesz", "ttr", "msttr", "cttr", "rttr", "logttr", "uber", "lv", "vv1", "svv1", "cvv1", "vv2", "nv", "adjv", "advv", "modv")
-        # fmt: on
+        fieldnames = (
+            "filename",
+            "wordtypes (word types)",
+            "swordtypes (sophisticated word types)",
+            "lextypes (lexical types)",
+            "slextypes (sophisticated lexical types)",
+            "wordtokens (word tokens)",
+            "swordtokens (sophisticated word tokens)",
+            "lextokens (lexical tokens)",
+            "slextokens (sophisticated lexical tokens)",
+            "LD (lexical density)",
+            "LS1 (lexical sophistication-I)",
+            "LS2 (lexical sophistication-II)",
+            "VS1 (verb sophistication-I)",
+            "VS2 (verb sophistication-II)",
+            "CVS1 (corrected VS1)",
+            "NDW (number of different words)",
+            "NDW-50 (NDW, first 50 words)",
+            "NDW-ER50 (NDW, expected random 50)",
+            "NDW-ES50 (NDW, expected sequence 50)",
+            "TTR (type-token ratio)",
+            "MSTTR (mean segmental TTR, 50)",
+            "CTTR (corrected TTR)",
+            "RTTR (root TTR)",
+            "LogTTR (bilogarithmic TTR)",
+            "Uber (Uber Index)",
+            "LV (lexical word variation)",
+            "VV1 (verb variation-I)",
+            "SVV1 (squared VV1)",
+            "CVV1 (corrected VV1)",
+            "VV2 (verb variation-II)",
+            "NV (noun variation)",
+            "AdjV (adjective variation)",
+            "AdvV (adverb variation)",
+            "ModV (modifier variation)",
+        )
         csv_writer = csv.writer(handle)
         csv_writer.writerow(fieldnames)
 
-        for ifile in ifiles:
-            values = self.run_on_ifile(ifile)
+        if text is not None:
+            values = self._analyze(text=text)
             if values is not None:
-                values = [round(v, 4) for v in values]
-                values.insert(0, ifile)
+                values = [str(round(v, 4)) for v in values]
+                values.insert(0, "cmdline_text")
                 csv_writer.writerow(values)
+
+        else:
+            for ifile in ifiles:  # type: ignore
+                values = self._analyze(filepath=ifile)
+                if values is not None:
+                    values = [str(round(v, 4)) for v in values]
+                    values.insert(0, ifile)
+                    csv_writer.writerow(values)
 
         handle.close()
 
         if not self.is_stdout:
             logging.info(f"Output has been saved to {self.ofile}. Done.")
+
+        return True, None
 
     def ensure_spacy_initialized(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
@@ -351,7 +540,13 @@ class LCA:
         return wrapper
 
     @ensure_spacy_initialized
-    def get_lemma_pos_tuple(self, text: str) -> Generator[Tuple[str, str], Any, None]:
+    def get_lemma_and_udpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
         doc = self.nlp_spacy(text)  # type:ignore
         for token in doc:
             yield (token.lemma_.lower(), token.pos_)
+
+    @ensure_spacy_initialized
+    def get_lemma_and_ptbpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
+        doc = self.nlp_spacy(text)  # type:ignore
+        for token in doc:
+            yield (token.lemma_.lower(), token.tag_)

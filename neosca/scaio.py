@@ -106,26 +106,25 @@ class SCAIO:
 
     def read_txt(self, path: str, is_guess_encoding: bool = True) -> Optional[str]:
         if not is_guess_encoding:
-            content = self._read_txt(path, "r", "utf-8")
-        else:
-            try:
-                logging.info(
-                    f"Attempting to read {path} with {self.previous_encoding} encoding..."
-                )
-                content = self._read_txt(path, "r", self.previous_encoding)  # type:ignore
-            except ValueError:
-                logging.info(f"Attempt failed. Reading {path} in binary mode...")
-                bytes_ = self._read_txt(path, "rb")
-                logging.info("Guessing the encoding of the byte string...")
-                encoding = detect(bytes_)["encoding"]  # type:ignore
+            return self._read_txt(path, "r", "utf-8")  # type:ignore
 
-                if encoding is not None:
-                    logging.info(f"Decoding the byte string with {encoding} encoding...")
-                    content = bytes_.decode(encoding=encoding)  # type:ignore
-                    self.previous_encoding = encoding  # type:ignore
-                else:
-                    logging.warning(f"{path} is of unsupported file type. Skipped.")
-                    return None
+        try:
+            logging.info(f"Attempting to read {path} with {self.previous_encoding} encoding...")
+            content = self._read_txt(path, "r", self.previous_encoding)  # type:ignore
+        except UnicodeDecodeError:
+            logging.info(f"Attempt failed. Reading {path} in binary mode...")
+            bytes_ = self._read_txt(path, "rb")
+            logging.info("Guessing the encoding of the byte string...")
+            encoding = detect(bytes_)["encoding"]  # type:ignore
+
+            if encoding is None:
+                logging.warning(f"{path} is of unsupported file type. Skipped.")
+                return None
+
+            self.previous_encoding = encoding  # type:ignore
+            logging.info(f"Decoding the byte string with {encoding} encoding...")
+            content = bytes_.decode(encoding=encoding)  # type:ignore
+
         return content  # type:ignore
 
     def read_file(self, path: str) -> Optional[str]:

@@ -91,7 +91,7 @@ class DependsInstaller:
             "Do you want to download Java from a Chinese mirror site? If you are inside of"
             " China, you may want to use this for a faster network connection."
         )
-        if self.is_use_chinese_jdk_mirror:
+        if not self.is_use_chinese_jdk_mirror:
             return self._URL_JAVA_TEMPLATE.format(version, operating_system, arch, impl)
         else:
             index_url = self._URL_JAVA_TEMPLATE_CHINA.format(version, arch, operating_system)

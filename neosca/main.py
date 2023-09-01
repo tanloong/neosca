@@ -410,6 +410,7 @@ Contact:
     def check_java(self) -> SCAProcedureResult:
         java_home = getenv(JAVA_HOME)
         if java_home is None:
+            logging.debug("JAVA_HOME either does not exist or is not a valid dirname.")
             java_home = search_java_home()
             if java_home is None:
                 from .depends_installer import DependsInstaller
