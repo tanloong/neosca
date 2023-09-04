@@ -37,6 +37,7 @@ class SCAIO:
         # only exclude non-text files
         self.extensions_to_exclude: tuple = (
             ".parsed",
+            ".prd",
             ".csv",
             ".tsv",
             ".xml",
