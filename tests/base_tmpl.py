@@ -47,6 +47,10 @@ class BaseTmpl(TestCase):
         self.stdout = io.StringIO()
         self.stdout_orig, sys.stdout = sys.stdout, self.stdout
 
+        self.test_dir = os_path.dirname(os_path.abspath(__file__))
+        self.samples_dir = os_path.join(self.test_dir, "data", "samples")
+        self.project_dir = os_path.dirname(self.test_dir)
+
     def tearDown(self):
         sys.stdout = self.stdout_orig
         logging.info(f"{self.id()} finish")

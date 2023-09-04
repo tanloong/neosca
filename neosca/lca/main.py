@@ -14,6 +14,7 @@ class LCAUI:
     def __init__(self) -> None:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
+        self.scaio = SCAIO()
 
         self.is_spacy_initialized: bool = False
 
@@ -106,7 +107,7 @@ class LCAUI:
                 return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
             self.verified_ifiles = None
         else:
-            self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
+            self.verified_ifiles = self.scaio.get_verified_ifile_list(ifile_list)
 
         self.init_kwargs = {
             "wordlist": options.wordlist,

@@ -7,12 +7,6 @@ cmdline_text = "This is a test."
 
 
 class TestCommandLineBasic(CmdlineTmpl):
-    def setUp(self):
-        self.test_dir = os_path.dirname(os_path.abspath(__file__))
-        self.samples_dir = os_path.join(self.test_dir, "data", "samples")
-        self.project_dir = os_path.dirname(self.test_dir)
-        return super().setUp()
-
     def test_no_file(self):
         result = self.template(["python", "-m", "neosca"], expected_output_file=None)
         result_stdout = result.stdout.decode("utf8")

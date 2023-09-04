@@ -7,7 +7,6 @@ except ImportError:
     from xml.etree.ElementTree import XML, fromstring
 import glob
 import logging
-import os
 import os.path as os_path
 import sys
 from typing import ByteString, Callable, Dict, List, Optional, Union
@@ -28,42 +27,46 @@ class SCAIO:
 
     def __init__(self):
         self.ext_read_map: Dict[str, Callable] = {
-            ".txt": self.read_txt,
-            ".docx": self.read_docx,
-            ".odt": self.read_odt,
+            "txt": self.read_txt,
+            "docx": self.read_docx,
+            "odt": self.read_odt,
         }
         # .parsed files, along with other types of files, should be explicitly
         # checked and excluded, because they are text files and self.read_txt can
         # only exclude non-text files
         self.extensions_to_exclude: tuple = (
-            ".parsed",
-            ".prd",
-            ".csv",
-            ".tsv",
-            ".xml",
-            ".json",
-            ".md",
-            ".yml",
-            ".toml",
-            ".html",
-            ".htm",
-            ".cfg",
-            ".conf",
-            ".ini",
-            ".rtf",
-            ".log",
-            ".bat",
-            ".sh",
-            ".py",
-            ".r",
-            ".R",
-            ".h",
-            ".java",
-            ".cpp",
-            ".sql",
-            ".textile",
-            ".srt",
-            ".tex",
+            "parsed",
+            "prd",
+            "csv",
+            "tsv",
+            "xml",
+            "json",
+            "md",
+            "yml",
+            "toml",
+            "html",
+            "htm",
+            "svg",
+            "cfg",
+            "conf",
+            "log",
+            "png",
+            "jpg",
+            "gif",
+            "ini",
+            "rtf",
+            "bat",
+            "sh",
+            "py",
+            "r",
+            "R",
+            "h",
+            "java",
+            "cpp",
+            "sql",
+            "textile",
+            "srt",
+            "tex",
         )
         self.previous_encoding: str = "utf-8"
 
@@ -128,22 +131,28 @@ class SCAIO:
 
         return content  # type:ignore
 
-    def read_file(self, path: str) -> Optional[str]:
-        _, ext = os.path.splitext(path)
+    def _is_to_exclude(self, path: str) -> bool:
+        *_, ext = path.split(".")
         if ext in self.extensions_to_exclude:
-            logging.warning(f"{path} does not appear to be an input file. Skipped.")
+            return True
+        return False
+
+    def read_file(self, path: str) -> Optional[str]:
+        if self._is_to_exclude(path):
+            logging.warning(f"[SCAIO] {path} does not appear to be an input file. Skipping.")
             return None
 
+        *_, ext = path.split(".")
         if ext not in self.ext_read_map:
             # assume files with other extensions as text files; if not so,
             # read_txt() will fail and log them and return None
-            ext = ".txt"
+            ext = "txt"
         return self.ext_read_map[ext](path)  # type:ignore
 
     @classmethod
     def is_writable(cls, filename: str) -> SCAProcedureResult:
         """check whether files are opened by such other processes as WPS"""
-        if not os.path.exists(filename):
+        if not os_path.exists(filename):
             return True, None
         try:
             with open(filename, "w", encoding="utf-8"):
@@ -173,14 +182,23 @@ class SCAIO:
 
         return data
 
-    @classmethod
-    def get_verified_ifile_list(cls, ifile_list: List[str]) -> List[str]:
+    def get_verified_ifile_list(self, ifile_list: List[str]) -> List[str]:
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
+                if self._is_to_exclude(path):
+                    logging.warning(
+                        f"[SCAIO] {path} does not appear to be an input file. Skipping."
+                    )
+                    continue
+                logging.debug(f"[SCAIO] Adding {path} to input file list")
                 verified_ifile_list.append(path)
             elif os_path.isdir(path):
-                verified_ifile_list.extend(glob.glob(f"{path}{os_path.sep}*"))
+                verified_ifile_list.extend(
+                    path
+                    for path in glob.glob(f"{path}{os_path.sep}*")
+                    if not self._is_to_exclude(path)
+                )
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
             else:
