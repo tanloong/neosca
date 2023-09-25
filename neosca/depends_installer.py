@@ -245,29 +245,28 @@ class DependsInstaller:
         )
         same_line_print(s, width=100)
 
-    def _download(self, download_url: str, name: str) -> str:
-        logging.info(f"Downloading {download_url}...")
-        if name == JAVA:
-            filename = self._get_java_filename(download_url)
-            # e.g., jdk-18.0.2
-        else:
-            filename = urllib.parse.urlparse(download_url).path.rpartition("/")[-1]
+    def download(self, url: str, target_basename: Optional[str] = None) -> str:
+        logging.info(f"Downloading {url}...")
+        if target_basename is None:
+            target_basename = urllib.parse.urlparse(url).path.rpartition("/")[-1]
             # e.g. stanford-tregex-4.2.0.zip, stanford-parser-4.2.0.zip
-        filename = os_path.join(tempfile.gettempdir(), filename)  # type: ignore
+        target_path = os_path.join(tempfile.gettempdir(), target_basename)  # type: ignore
+
         try:
             opener = urllib.request.build_opener()
             opener.addheaders = list(self.headers.items())
             urllib.request.install_opener(opener)
-            urllib.request.urlretrieve(download_url, filename, self._callbackfunc)
+            urllib.request.urlretrieve(url, target_path, self._callbackfunc)
             same_line_print("", width=100)
         except URLError as e:
             if hasattr(e, "reason"):
-                raise URLError(f"Requesting to {download_url} failed.\nReason: {e.reason}")
+                raise URLError(f"Requesting to {url} failed.\nReason: {e.reason}")
             elif hasattr(e, "code"):
-                raise URLError(f"Requesting to {download_url} failed.\nReason: {e.code}")
+                raise URLError(f"Requesting to {url} failed.\nReason: {e.code}")
             else:
-                raise URLError(f"Requesting to {download_url} failed.")
-        return filename
+                raise URLError(f"Requesting to {url} failed.")
+
+        return target_path
 
     def ask_install(self, name: str, is_assume_yes: bool = False) -> bool:
         reason_dict = {
@@ -312,7 +311,9 @@ class DependsInstaller:
                 ),
             )
         url = self.get_java_download_url(version, operating_system, arch, impl)
-        jdk_archive = self._download(url, name=JAVA)
+        target_basename = self._get_java_filename(url)  # e.g., jdk-18.0.2
+        jdk_archive = self.download(url, target_basename)
+
         jdk_ext = self._get_normalized_archive_ext(jdk_archive)
         jdk_dir = self._decompress_archive(jdk_archive, jdk_ext, target_dir)
         jdk_bin = os_path.join(jdk_dir, "bin")
@@ -344,7 +345,7 @@ class DependsInstaller:
                 ),
             }
             return False, manual_install_prompt_dict[name]
-        archive_file = self._download(url, name=name)
+        archive_file = self.download(url)
         archive_ext = self._get_normalized_archive_ext(archive_file)
         unzipped_directory = self._decompress_archive(archive_file, archive_ext, target_dir)
         if archive_file:
