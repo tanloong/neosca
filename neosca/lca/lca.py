@@ -520,9 +520,6 @@ class LCA:
 
         handle.close()
 
-        if not self.is_stdout:
-            logging.info(f"Output has been saved to {self.ofile}. Done.")
-
         return True, None
 
     def ensure_spacy_initialized(func: Callable):  # type:ignore

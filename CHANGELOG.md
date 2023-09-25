@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.53](https://github.com/tanloong/neosca/releases/tag/0.0.53) (25 September 2023)
+
+### Improvements
+
++ Add option to install spaCy from Chinese mirror site and en\_core\_web\_sm from sourceforge.net
+
 ## [0.0.52](https://github.com/tanloong/neosca/releases/tag/0.0.52) (1 September 2023)
 
 ### New features
