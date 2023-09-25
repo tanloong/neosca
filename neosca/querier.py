@@ -142,7 +142,7 @@ class StanfordTregex:
     def has_tregex_pattern(self, counter: "StructureCounter", sname: str) -> bool:
         return counter.get_structure(sname).tregex_pattern is not None
 
-    def set_value_from_tregex_pattern(self, counter: "StructureCounter", sname: str, trees: str):
+    def set_value_from_pattern(self, counter: "StructureCounter", sname: str, trees: str):
         structure = counter.get_structure(sname)
         tregex_pattern = structure.tregex_pattern
         assert tregex_pattern is not None
@@ -192,12 +192,8 @@ class StanfordTregex:
             counter.set_value(sname, value)
             return
 
-        s = counter.get_structure(sname)
-        if s.tregex_pattern is not None:
-            self.set_value_from_tregex_pattern(counter, sname, trees)
-        elif s.dependency_pattern is not None:
-            ...
-            # self.set_value_from_dependency_pattern(counter, sname, )
+        if self.has_tregex_pattern(counter, sname):
+            self.set_value_from_pattern(counter, sname, trees)
         else:
             self.set_value_from_source(counter, sname, trees, ancestor_snames)
 
