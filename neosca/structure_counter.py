@@ -20,10 +20,10 @@ class Structure:
     ) -> None:
         """
         :param name: name of the structure
-        :param description: description of the structure
         :param tregex_pattern: Tregex pattern
         :param dependency_pattern: spaCy dependency pattern
         :param value_source: how to compute the value basing on values of other structures, e.g. "VP1 + VP2". One and only one of pattern and value_source should be given.
+        :param description: description of the structure
         """
         self.name = name
         self.description = description

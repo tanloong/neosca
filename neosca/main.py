@@ -22,7 +22,8 @@ from .util import SCAProcedureResult
 
 class SCAUI:
     def __init__(self) -> None:
-        self.supported_ifile_types = [".txt", ".docx", ".odt"]
+        self.scaio = SCAIO()
+        self.supported_ifile_types = list(self.scaio.ext_read_map.keys())
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -317,7 +318,7 @@ Contact:
             logging.info(f"Command-line text: {options.text}")
             self.verified_ifiles = None
         else:
-            self.verified_ifiles = SCAIO.get_verified_ifile_list(ifile_list)
+            self.verified_ifiles = self.scaio.get_verified_ifile_list(ifile_list)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list: List[list] = []
