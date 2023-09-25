@@ -123,6 +123,12 @@ class LCAUI:
         from subprocess import CalledProcessError
 
         command = [sys.executable, "-m", "pip", "install", "-U", "spacy"]
+        if get_yes_or_no(
+            "Do you want to download spaCy from a Chinese mirror site? If you are inside of"
+            " China, you may want to use this for a faster network connection."
+        ):
+            command.extend(["-i", "https://pypi.tuna.tsinghua.edu.cn/simple"])
+
         try:
             subprocess.run(command, check=True, capture_output=False)
         except CalledProcessError as e:
