@@ -6,7 +6,7 @@ import os.path as os_path
 import sys
 
 IS_WINDOWS = sys.platform == "win32"
-IS_DARWIN = sys.platform == "darwin"
+IS_MAC = sys.platform == "darwin"
 IS_LINUX = sys.platform == "linux"
 user_home = os_path.expanduser("~")
 if IS_WINDOWS:  # pragma: no cover
