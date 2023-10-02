@@ -151,7 +151,7 @@ class LCAUI:
                 "-m",
                 "pip",
                 "install",
-                "https://master.dl.sourceforge.net/project/en-core-web-sm/en_core_web_sm-3.6.0-py3-none-any.whl?viasf=1",
+                "https://master.dl.sourceforge.net/project/en-core-web-sm/en_core_web_sm-3.7.0-py3-none-any.whl?viasf=1",
             ]
         else:
             command = [sys.executable, "-m", "spacy", "download", "en_core_web_sm"]
@@ -164,44 +164,83 @@ class LCAUI:
         return True, None
 
     def check_spacy_and_model(self) -> SCAProcedureResult:
+        required_version_prefix = "3.7."
+        required_version_range = ">=3.7.0,<3.8.0"
+        ask_install_spacy = False
+        ask_install_model = False
+
         try:
             logging.info("Trying to load spaCy...")
             import spacy  # type: ignore # noqa: F401 'spacy' imported but unused
+
         except ModuleNotFoundError:
-            is_install = get_yes_or_no(
-                "Running LCA requires spaCy. Do you want me to install it for you?"
-            )
-            if not is_install:
-                return (
-                    False,
-                    (
-                        "\nspaCy installation is refused. You need to manually install it using:"
-                        "\npip install spacy"
-                    ),
-                )
-            return self.install_spacy()
+            ask_install_spacy = True
         else:
-            color_print("OKGREEN", "ok", prefix="spaCy has already been installed. ")
+            spacy_version = spacy.__version__
+            if not spacy_version.startswith(required_version_prefix):
+                logging.info(
+                    f"The installed version {spacy_version} of spaCy does not match the version"
+                    f" required by NeoSCA: {required_version_range}"
+                )
+                ask_install_spacy = True
+            else:
+                color_print(
+                    "OKGREEN",
+                    "ok",
+                    prefix=f"spaCy{required_version_range} has already been installed. ",
+                )
 
         try:
             logging.info("Trying to load en_core_web_sm...")
             import en_core_web_sm  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
         except ModuleNotFoundError:
+            ask_install_model = True
+        else:
+            model_version = en_core_web_sm.__version__
+            if not model_version.startswith(required_version_prefix):
+                logging.info(
+                    f"The installed version {model_version} of en_core_web_sm does not match the"
+                    f" version required by NeoSCA: {required_version_range}"
+                )
+                ask_install_model = True
+            else:
+                color_print(
+                    "OKGREEN",
+                    "ok",
+                    prefix=(
+                        f"en_core_web_sm{required_version_range} has already been installed. "
+                    ),
+                )
+
+        if ask_install_spacy:
             is_install = get_yes_or_no(
-                "Running LCA requires spaCy's en_core_web_sm model. Do you want me to install it for you?"
+                f"\nRunning LCA requires spaCy{required_version_range}, do you want me to"
+                " install/update it for you?"
             )
-            if not is_install:
+            if is_install:
+                return self.install_spacy()
+            else:
+                return (
+                    False,
+                    "\nYou need to manually install it using:\npip install -U spacy",
+                )
+        if ask_install_model:
+            is_install = get_yes_or_no(
+                f"\nRunning LCA requires spaCy's model en_core_web_sm{required_version_range},"
+                " do you want me to install it for you?"
+            )
+            if is_install:
+                return self.install_model()
+            else:
                 return (
                     False,
                     (
-                        "\nen_core_web_sm installation is refused. You need to manually install it using:"
+                        "\nYou need to manually install it using:"
                         "\npython -m spacy download en_core_web_sm"
                     ),
                 )
-            return self.install_model()
-        else:
-            color_print("OKGREEN", "ok", prefix="en_core_web_sm has already been installed. ")
-            return True, None
+
+        return True, None
 
     def exit_routine(self) -> None:
         if self.options.is_quiet or self.options.is_stdout:
