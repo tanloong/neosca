@@ -165,6 +165,7 @@ class LCAUI:
 
     def check_spacy_and_model(self) -> SCAProcedureResult:
         required_version_prefix = "3.7."
+        required_version_range = ">=3.7.0,<3.8.0"
         ask_install_spacy = False
         ask_install_model = False
 
@@ -179,11 +180,15 @@ class LCAUI:
             if not spacy_version.startswith(required_version_prefix):
                 logging.info(
                     f"The installed version {spacy_version} of spaCy does not match the version"
-                    " required by NeoSCA: >=3.7.0,<3.8.0"
+                    f" required by NeoSCA: {required_version_range}"
                 )
                 ask_install_spacy = True
             else:
-                color_print("OKGREEN", "ok", prefix="spaCy has already been installed. ")
+                color_print(
+                    "OKGREEN",
+                    "ok",
+                    prefix=f"spaCy{required_version_range} has already been installed. ",
+                )
 
         try:
             logging.info("Trying to load en_core_web_sm...")
@@ -195,18 +200,22 @@ class LCAUI:
             if not model_version.startswith(required_version_prefix):
                 logging.info(
                     f"The installed version {model_version} of en_core_web_sm does not match the"
-                    " version required by NeoSCA: >=3.7.0,<3.8.0"
+                    f" version required by NeoSCA: {required_version_range}"
                 )
                 ask_install_model = True
             else:
                 color_print(
-                    "OKGREEN", "ok", prefix="en_core_web_sm has already been installed. "
+                    "OKGREEN",
+                    "ok",
+                    prefix=(
+                        f"en_core_web_sm{required_version_range} has already been installed. "
+                    ),
                 )
 
         if ask_install_spacy:
             is_install = get_yes_or_no(
-                "\nRunning LCA requires spaCy>=3.7.0,<3.8.0, do you want me to install/update it"
-                " for you?"
+                f"\nRunning LCA requires spaCy{required_version_range}, do you want me to"
+                " install/update it for you?"
             )
             if is_install:
                 return self.install_spacy()
@@ -217,8 +226,8 @@ class LCAUI:
                 )
         if ask_install_model:
             is_install = get_yes_or_no(
-                "\nRunning LCA requires spaCy's model en_core_web_sm>=3.7.0,<3.8.0, do you want me"
-                " to install it for you?"
+                f"\nRunning LCA requires spaCy's model en_core_web_sm{required_version_range},"
+                " do you want me to install it for you?"
             )
             if is_install:
                 return self.install_model()
