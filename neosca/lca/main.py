@@ -218,26 +218,21 @@ class LCAUI:
                 " install/update it for you?"
             )
             if is_install:
-                return self.install_spacy()
+                self.install_spacy()
             else:
-                return (
-                    False,
-                    "\nYou need to manually install it using:\npip install -U spacy",
-                )
+                logging.info("\nYou need to manually install it using:\npip install -U spacy")
+
         if ask_install_model:
             is_install = get_yes_or_no(
                 f"\nRunning LCA requires spaCy's model en_core_web_sm{required_version_range},"
                 " do you want me to install it for you?"
             )
             if is_install:
-                return self.install_model()
+                self.install_model()
             else:
-                return (
-                    False,
-                    (
-                        "\nYou need to manually install it using:"
-                        "\npython -m spacy download en_core_web_sm"
-                    ),
+                logging.info(
+                    "\nYou need to manually install it using:"
+                    "\npython -m spacy download en_core_web_sm"
                 )
 
         return True, None
