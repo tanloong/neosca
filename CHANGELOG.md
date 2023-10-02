@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.54](https://github.com/tanloong/neosca/releases/tag/0.0.54) (2 October 2023)
+
+### Dependency Changes
+
++ Update dependency on spaCy to 3.7.0
+
 ## [0.0.53](https://github.com/tanloong/neosca/releases/tag/0.0.53) (25 September 2023)
 
 ### Improvements

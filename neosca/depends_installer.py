@@ -17,11 +17,11 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from .scaplatform import IS_DARWIN, IS_WINDOWS, USER_SOFTWARE_DIR
+from .scaplatform import IS_MAC, IS_WINDOWS, USER_SOFTWARE_DIR
 from .scaprint import get_yes_or_no, same_line_print
 from .util import SCAProcedureResult
 
-if IS_DARWIN:
+if IS_MAC:
     import ssl
 
     try:
@@ -34,7 +34,7 @@ if IS_DARWIN:
 _UNPACK200 = "unpack200.exe" if IS_WINDOWS else "unpack200"
 _UNPACK200_ARGS = '-r -v -l ""' if IS_WINDOWS else ""
 
-OS = "windows" if IS_WINDOWS else "mac" if IS_DARWIN else platform
+OS = "windows" if IS_WINDOWS else "mac" if IS_MAC else platform
 ARCH = "x64" if maxsize > 2**32 else "x32"
 
 _TAR = ".tar"

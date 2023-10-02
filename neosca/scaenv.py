@@ -7,7 +7,7 @@ import os
 import os.path as os_path
 from typing import List, Optional
 
-from .scaplatform import IS_DARWIN, IS_LINUX, IS_WINDOWS
+from .scaplatform import IS_MAC, IS_LINUX, IS_WINDOWS
 from .scaprint import color_print
 
 JAVA_HOME = "JAVA_HOME"
@@ -58,7 +58,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
         )
     else:
         shell_rcfile = {
-            "bash": "~/.bash_profile" if IS_DARWIN else "~/.bashrc",
+            "bash": "~/.bash_profile" if IS_MAC else "~/.bashrc",
             "zsh": "~/.zshrc",
             "ksh": "~/.kshrc",
             "tcsh": "~/.tcshrc",
@@ -107,7 +107,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
 def setenv(
     env_var: str, paths: List[str], is_override: bool = False, is_quiet: bool = False
 ) -> None:
-    assert any((IS_WINDOWS, IS_DARWIN, IS_LINUX))
+    assert any((IS_WINDOWS, IS_MAC, IS_LINUX))
     if IS_WINDOWS:
         _setenv_windows(env_var, paths, is_override)
     else:
