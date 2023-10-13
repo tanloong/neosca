@@ -9,7 +9,7 @@ import glob
 import logging
 import os.path as os_path
 import sys
-from typing import ByteString, Callable, Dict, List, Optional, Union
+from typing import ByteString, Callable, Dict, List, Optional, Union, Iterable
 import zipfile
 
 from charset_normalizer import detect
@@ -182,7 +182,7 @@ class SCAIO:
 
         return data
 
-    def get_verified_ifile_list(self, ifile_list: List[str]) -> List[str]:
+    def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> List[str]:
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
@@ -197,7 +197,7 @@ class SCAIO:
                 verified_ifile_list.extend(
                     path
                     for path in glob.glob(f"{path}{os_path.sep}*")
-                    if not self._is_to_exclude(path)
+                    if os_path.isfile(path) and not self._is_to_exclude(path)
                 )
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
