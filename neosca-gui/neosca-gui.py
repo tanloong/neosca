@@ -12,19 +12,21 @@ from tkinter import *
 from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 from typing import Iterable
+from tksheet import Sheet
 
 from neosca.scaio import SCAIO
+from neosca.structure_counter import StructureCounter
 
 
 class SCAGUI:
     def __init__(self, *, with_restart_button: bool = False) -> None:
         self.root = Tk()
         self.root.title("NeoSCA")
-        self.root.option_add('*tearOff', FALSE) # disable tear-off menus
+        self.root.option_add("*tearOff", FALSE)  # disable tear-off menus
 
         # menubar
         menubar = Menu(self.root)
-        self.root['menu'] = menubar
+        self.root["menu"] = menubar
         file_menu = Menu(menubar)
         menubar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Open File", command=self.open_file)
@@ -34,24 +36,30 @@ class SCAGUI:
         if with_restart_button:
             file_menu.add_command(label="Restart", command=self.restart)
 
-
         self.mainframe = ttk.Frame(self.root, padding=3, borderwidth=5, relief="ridge")
         self.mainframe.grid(column=0, row=0)
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
 
-        p = ttk.Panedwindow(self.mainframe, orient='vertical')
+        p = ttk.Panedwindow(self.mainframe, orient="vertical")
         p.grid(column=0, row=0, sticky="nswe")
+        self.mainframe.grid_rowconfigure(0, weight=1)
+        self.mainframe.grid_columnconfigure(0, weight=1)
 
-        self.upper_pane = ttk.Frame(p, borderwidth=1, relief="solid")
+        self.upper_pane = ttk.Frame(p, borderwidth=1, relief="solid", width=300, height=300)
         self.upper_pane.grid(column=0, row=0, sticky="nswe")
         self.upper_pane.grid_rowconfigure(0, weight=1)
         self.upper_pane.grid_columnconfigure(0, weight=1)
         p.add(self.upper_pane, weight=3)
 
-        self.bottom_pane = ttk.Frame(p, borderwidth=1, relief="solid")
+        self.bottom_pane = ttk.Frame(p, borderwidth=1, relief="solid", width=300, height=300)
         self.bottom_pane.grid(column=0, row=1, sticky="nswe")
         self.bottom_pane.grid_rowconfigure(0, weight=1)
         self.bottom_pane.grid_columnconfigure(0, weight=1)
         p.add(self.bottom_pane, weight=1)
+
+        p.grid_rowconfigure(0, weight=1)
+        p.grid_columnconfigure(0, weight=1)
 
         self.notebook = ttk.Notebook(self.upper_pane)
         self.notebook.grid(column=0, row=0, sticky="nswe")
@@ -64,11 +72,12 @@ class SCAGUI:
         self.lcaframe.grid(column=0, row=0, sticky="nswe")
         self.notebook.add(self.lcaframe, text="LCA")
 
+        self.notebook.grid_rowconfigure(0, weight=1)
+        self.notebook.grid_columnconfigure(0, weight=1)
+
         ttk.Style().theme_use("alt")
         self.initialize_bottom_pane()
 
-        self.scaframe.grid_rowconfigure(0, weight=1)
-        self.scaframe.grid_columnconfigure(0, weight=1)
         self.initialize_scaframe()
 
         self.lcaframe.grid_rowconfigure(0, weight=1)
@@ -115,16 +124,22 @@ class SCAGUI:
         # preview frame
         self.sca_preview_frame = ttk.Frame(self.scaframe)
         self.sca_preview_frame.grid(column=0, row=0, sticky="nswe")
+        self.scaframe.grid_rowconfigure(0, weight=1)
+        self.scaframe.grid_columnconfigure(0, weight=1)
 
         rowno = 0
         colno = 0
-        self.sca_preview_text = Text(self.sca_preview_frame, width=80, height=24)
-        self.sca_preview_text.grid(column=colno, row=rowno, sticky="nswe")
+        self.preview_sheet = Sheet(self.sca_preview_frame, header=StructureCounter.DEFAULT_MEASURES, data=[""])
+        self.preview_sheet.edit_bindings(enable=False)
+        self.preview_sheet.set_all_cell_sizes_to_text(redraw=True)
+        self.preview_sheet.grid(column=colno, row=rowno, sticky="nswe")
         self.sca_preview_frame.grid_rowconfigure(0, weight=1)
         self.sca_preview_frame.grid_columnconfigure(0, weight=1)
 
         rowno += 1
-        ttk.Button(self.sca_preview_frame, text="Run SCA", command=self.run_sca).grid(column=colno, row=rowno, sticky="sw")
+        ttk.Button(self.sca_preview_frame, text="Generate Table", command=self.run_sca).grid(
+            column=colno, row=rowno, sticky="sw"
+        )
 
         # setting frame
         self.sca_setting_frame = ttk.Frame(self.scaframe)
@@ -154,45 +169,73 @@ class SCAGUI:
         self.reserve_parsed_trees_checkbox.grid(column=colno, row=rowno, sticky="nswe")
 
     def initialize_bottom_pane(self):
-        self.file_listbox = Listbox(self.bottom_pane)
-        self.file_listbox.grid(column=0, row=0, sticky="nswe")
-        # Configure row and column weights to make the Text widget expand
+        self.file_sheet = Sheet(self.bottom_pane, header=["Filename"], data=[""])
+        self.file_sheet.set_all_cell_sizes_to_text(redraw=True)
+        self.file_sheet.enable_bindings(
+            "single_select",  # single left click to select a cell
+            "drag_select",  # drag mouse to select an area of cells
+            "select_all",  # click upper left corner button to select all
+            # "column_select",  # click a column name
+            "row_select",  # click a row name
+            "column_width_resize",  # hover cursor in between two column names
+            "arrowkeys",  # use arrowkeys to navigate across cells
+            "row_height_resize",  # hover cursor in between two row names
+            "right_click_popup_menu",
+            "rc_select",
+            # "rc_delete_row",  # show "Delete rows" option in the pop-up menu when right clicking a row name
+        )
+        self.file_sheet.popup_menu_add_command("Remove File", self.remove_from_filesheet)
+        self.file_sheet.grid(column=0, row=0, sticky="nswe")
         self.bottom_pane.grid_rowconfigure(0, weight=1)
         self.bottom_pane.grid_columnconfigure(0, weight=1)
 
         # Bind right-click event
-        self.file_listbox.bind("<Button-3>", self.show_context_menu)
+        # self.file_listbox.bind("<Button-3>", self.show_context_menu)
 
         # Context menu for right-click
-        self.context_menu = Menu(self.file_listbox)
-        self.context_menu.add_command(label="Delete", command=self.delete_file)
+        # self.context_menu = Menu(self.file_listbox)
+        # self.context_menu.add_command(label="Delete", command=self.delete_file)
 
-    def show_context_menu(self, event):
-        self.context_menu.post(event.x_root, event.y_root)
+    # def show_context_menu(self, event):
+    #     self.context_menu.post(event.x_root, event.y_root)
 
-    def delete_file(self):
-        selected_index = self.file_listbox.curselection()
-        if selected_index:
-            index = selected_index[0]
-            del self.input_files[index]
-            self.update_file_listbox()
+    # def delete_file(self):
+    #     selected_index = self.file_listbox.curselection()
+    #     if selected_index:
+    #         index = selected_index[0]
+    #         del self.input_files[index]
+    #         self.update_file_listbox()
 
-    def update_file_listbox(self):
-        self.file_listbox.delete(0, END)
-        for file_path in self.input_files:
-            self.file_listbox.insert(END, file_path)
+    def add_to_filesheet(self):
+        self.file_sheet.set_sheet_data([(file_path,) for file_path in self.input_files])
+        self.file_sheet.set_all_cell_sizes_to_text(redraw=True)
+
+    def remove_from_filesheet(self, event=None):
+        rownos = self.file_sheet.get_selected_rows(return_tuple=False)
+        if not rownos:
+            rownos = set(cell[0] for cell in self.file_sheet.get_selected_cells())
+        rows_to_remove = len(rownos)
+        rows_existing = self.file_sheet.get_total_rows(include_index=False)
+        if rows_to_remove == rows_existing:
+            self.file_sheet.set_sheet_data([""])
+            self.input_files.clear()
+        else:
+            self.file_sheet.delete_rows(rownos)  # type:ignore
+            filepath_indice = 0
+            self.input_files = self.file_sheet.get_column_data(filepath_indice)
 
     def open_file(self):
         file_paths = filedialog.askopenfilenames(
-                    filetypes=(
-                        ("txt files", "*.txt"),
-                        ("docx files", "*.docx"),
-                        ("all files", "*"),
-                    ))
+            filetypes=(
+                ("txt files", "*.txt"),
+                ("docx files", "*.docx"),
+                ("all files", "*"),
+            )
+        )
         if file_paths:
             verified_input_files = self.scaio.get_verified_ifile_list(list(file_paths))
             self.input_files.extend(verified_input_files)
-            self.update_file_listbox()
+            self.add_to_filesheet()
 
             logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
 
@@ -201,7 +244,7 @@ class SCAGUI:
         if folder_path:
             verified_input_files = self.scaio.get_verified_ifile_list([folder_path])
             self.input_files.extend(verified_input_files)
-            self.update_file_listbox()
+            self.add_to_filesheet()
 
             logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
 
@@ -319,5 +362,6 @@ class LogUI:
             record = self.log_queue.get(block=False)
             self.display(record)
         self.frame.after(100, self.poll_log_queue)
+
 
 gui = SCAGUI(with_restart_button=True)
