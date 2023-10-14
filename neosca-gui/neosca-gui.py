@@ -18,82 +18,75 @@ from neosca.scaio import SCAIO
 
 class SCAGUI:
     def __init__(self, *, with_restart_button: bool = False) -> None:
-        root = Tk()
-        root.title("NeoSCA")
-        mainframe = ttk.Frame(root, padding=3, borderwidth=5, relief="ridge")
-        mainframe.grid(column=0, row=0)
+        self.root = Tk()
+        self.root.title("NeoSCA")
+        self.root.option_add('*tearOff', FALSE) # disable tear-off menus
+
+        # menubar
+        menubar = Menu(self.root)
+        self.root['menu'] = menubar
+        file_menu = Menu(menubar)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Open File", command=self.open_file)
+        file_menu.add_command(label="Open Folder", command=self.open_folder)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        if with_restart_button:
+            file_menu.add_command(label="Restart", command=self.restart)
+
+
+        self.mainframe = ttk.Frame(self.root, padding=3, borderwidth=5, relief="ridge")
+        self.mainframe.grid(column=0, row=0)
+
+        p = ttk.Panedwindow(self.mainframe, orient='vertical')
+        p.grid(column=0, row=0, sticky="nswe")
+
+        self.upper_pane = ttk.Frame(p, borderwidth=1, relief="solid")
+        self.upper_pane.grid(column=0, row=0, sticky="nswe")
+        self.upper_pane.grid_rowconfigure(0, weight=1)
+        self.upper_pane.grid_columnconfigure(0, weight=1)
+        p.add(self.upper_pane, weight=3)
+
+        self.bottom_pane = ttk.Frame(p, borderwidth=1, relief="solid")
+        self.bottom_pane.grid(column=0, row=1, sticky="nswe")
+        self.bottom_pane.grid_rowconfigure(0, weight=1)
+        self.bottom_pane.grid_columnconfigure(0, weight=1)
+        p.add(self.bottom_pane, weight=1)
+
+        self.notebook = ttk.Notebook(self.upper_pane)
+        self.notebook.grid(column=0, row=0, sticky="nswe")
+
+        self.scaframe = ttk.Frame(self.notebook, borderwidth=1, relief="solid")
+        self.scaframe.grid(column=0, row=0, sticky="nswe")
+        self.notebook.add(self.scaframe, text="SCA")
+
+        self.lcaframe = ttk.Frame(self.notebook)
+        self.lcaframe.grid(column=0, row=0, sticky="nswe")
+        self.notebook.add(self.lcaframe, text="LCA")
 
         ttk.Style().theme_use("alt")
+        self.initialize_bottom_pane()
+
+        self.scaframe.grid_rowconfigure(0, weight=1)
+        self.scaframe.grid_columnconfigure(0, weight=1)
+        self.initialize_scaframe()
+
+        self.lcaframe.grid_rowconfigure(0, weight=1)
+        self.lcaframe.grid_columnconfigure(0, weight=1)
 
         rowno = 0
-        rowno += 1
-        reserve_parsed_trees = BooleanVar(value=True)
-        reserve_parsed_trees_checkbox = ttk.Checkbutton(
-            mainframe,
-            text="Reserve parsed trees",
-            variable=reserve_parsed_trees,
-            onvalue=True,
-            offvalue=False,
-        )
-        reserve_parsed_trees_checkbox.grid(column=2, row=rowno, columnspan=2, sticky="sw")
-
-        reserve_matched_subtrees = BooleanVar(value=True)
-        reserve_parsed_trees_checkbox = ttk.Checkbutton(
-            mainframe,
-            text="Reserve matched subtrees",
-            variable=reserve_matched_subtrees,
-            onvalue=True,
-            offvalue=False,
-        )
-        reserve_parsed_trees_checkbox.grid(column=4, row=rowno, columnspan=2, sticky="sw")
-
-        rowno += 1
-        choose_file_button = ttk.Button(
-            mainframe,
-            text="Choose File",
-            command=lambda: self.append_input_file(
-                filedialog.askopenfilenames(
-                    filetypes=(
-                        ("txt files", "*.txt"),
-                        ("docx files", "*.docx"),
-                        ("all files", "*"),
-                    )
-                )
-            ),
-        )
-        choose_file_button.grid(column=2, row=rowno, sticky="w")
-
-        choose_folder_button = ttk.Button(
-            mainframe,
-            text="Choose Folder",
-            command=lambda: self.append_input_folder(filedialog.askdirectory(mustexist=True)),
-        )
-        choose_folder_button.grid(column=3, row=rowno, sticky="w")
 
         # rowno += 1
-        # log_console = ScrolledText(mainframe, state="disabled", width=80, height=24, wrap="char")
+        # log_console = ScrolledText(scaframe, state="disabled", width=80, height=24, wrap="char")
         # log_console.grid(column=1, row=rowno, columnspan=5, sticky="nswe")
 
-        rowno += 1
-        # logging_pane = ttk.Panedwindow(mainframe, orient='vertical')
-        # logging_pane.grid(column=0, row=rowno, sticky="nswe")
-        logging_frame = ttk.Frame(mainframe)
-        logging_frame.grid(column=1, row=rowno, columnspan=10)
-        log_console = LogUI(logging_frame)
+        # rowno += 1
+        # self.logging_frame = ttk.Frame(self.scaframe)
+        # self.logging_frame.grid(column=1, row=rowno, columnspan=10)
+        # self.log_console = LogUI(self.logging_frame)
 
-        rowno += 1
-        ttk.Button(mainframe, text="Run SCA", command=self.run_sca).grid(column=3, row=rowno)
-        if with_restart_button:
-            # for tuning and debugging
-            ttk.Button(mainframe, text="Restart", command=self.restart).grid(
-                column=4, row=rowno, sticky="sw"
-            )
-            ttk.Button(mainframe, text="Quit", command=lambda: root.destroy()).grid(
-                column=5, row=rowno, sticky="sw"
-            )
-
-        for child in mainframe.winfo_children():
-            child.grid_configure(padx=1, pady=1)
+        # for child in self.scaframe.winfo_children():
+        #     child.grid_configure(padx=1, pady=1)
 
         neosca_gui_home = os_path.dirname(os_path.dirname(os_path.abspath(__file__)))
         libs_dir = os_path.join(neosca_gui_home, "libs")
@@ -106,32 +99,110 @@ class SCAGUI:
         self.env = os.environ.copy()
 
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
-        self.root = root
-        self.mainframe = mainframe
-        self.log_console = log_console
-        self.is_reserve_parsed_trees = reserve_parsed_trees
-        self.is_reserve_matched_subtrees = reserve_matched_subtrees
         self.input_files = []
         self.scaio = SCAIO()
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
-        handler = QueueHandler(self.log_console.log_queue)
-        formatter = logging.Formatter("%(levelname)s: %(message)s")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        # self.logger = logging.getLogger()
+        # self.logger.setLevel(logging.DEBUG)
+        # handler = QueueHandler(self.log_console.log_queue)
+        # formatter = logging.Formatter("%(levelname)s: %(message)s")
+        # handler.setFormatter(formatter)
+        # self.logger.addHandler(handler)
 
+        self.root.bind("<Control-r>", self.restart)
         self.root.mainloop()
 
-    def append_input_file(self, paths: Iterable) -> None:
-        if paths:
-            verified_input_files = self.scaio.get_verified_ifile_list(list(paths))
+    def initialize_scaframe(self):
+        # preview frame
+        self.sca_preview_frame = ttk.Frame(self.scaframe)
+        self.sca_preview_frame.grid(column=0, row=0, sticky="nswe")
+
+        rowno = 0
+        colno = 0
+        self.sca_preview_text = Text(self.sca_preview_frame, width=80, height=24)
+        self.sca_preview_text.grid(column=colno, row=rowno, sticky="nswe")
+        self.sca_preview_frame.grid_rowconfigure(0, weight=1)
+        self.sca_preview_frame.grid_columnconfigure(0, weight=1)
+
+        rowno += 1
+        ttk.Button(self.sca_preview_frame, text="Run SCA", command=self.run_sca).grid(column=colno, row=rowno, sticky="sw")
+
+        # setting frame
+        self.sca_setting_frame = ttk.Frame(self.scaframe)
+        self.sca_setting_frame.grid(column=1, row=0, sticky="nswe")
+
+        rowno = 0
+        colno = 0
+        self.is_reserve_parsed_trees = BooleanVar(value=True)
+        self.reserve_parsed_trees_checkbox = ttk.Checkbutton(
+            self.sca_setting_frame,
+            text="Reserve parsed trees",
+            variable=self.is_reserve_parsed_trees,
+            onvalue=True,
+            offvalue=False,
+        )
+        self.reserve_parsed_trees_checkbox.grid(column=colno, row=rowno, sticky="nswe")
+
+        rowno += 1
+        self.is_reserve_matched_subtrees = BooleanVar(value=True)
+        self.reserve_parsed_trees_checkbox = ttk.Checkbutton(
+            self.sca_setting_frame,
+            text="Reserve matched subtrees",
+            variable=self.is_reserve_matched_subtrees,
+            onvalue=True,
+            offvalue=False,
+        )
+        self.reserve_parsed_trees_checkbox.grid(column=colno, row=rowno, sticky="nswe")
+
+    def initialize_bottom_pane(self):
+        self.file_listbox = Listbox(self.bottom_pane)
+        self.file_listbox.grid(column=0, row=0, sticky="nswe")
+        # Configure row and column weights to make the Text widget expand
+        self.bottom_pane.grid_rowconfigure(0, weight=1)
+        self.bottom_pane.grid_columnconfigure(0, weight=1)
+
+        # Bind right-click event
+        self.file_listbox.bind("<Button-3>", self.show_context_menu)
+
+        # Context menu for right-click
+        self.context_menu = Menu(self.file_listbox)
+        self.context_menu.add_command(label="Delete", command=self.delete_file)
+
+    def show_context_menu(self, event):
+        self.context_menu.post(event.x_root, event.y_root)
+
+    def delete_file(self):
+        selected_index = self.file_listbox.curselection()
+        if selected_index:
+            index = selected_index[0]
+            del self.input_files[index]
+            self.update_file_listbox()
+
+    def update_file_listbox(self):
+        self.file_listbox.delete(0, END)
+        for file_path in self.input_files:
+            self.file_listbox.insert(END, file_path)
+
+    def open_file(self):
+        file_paths = filedialog.askopenfilenames(
+                    filetypes=(
+                        ("txt files", "*.txt"),
+                        ("docx files", "*.docx"),
+                        ("all files", "*"),
+                    ))
+        if file_paths:
+            verified_input_files = self.scaio.get_verified_ifile_list(list(file_paths))
             self.input_files.extend(verified_input_files)
+            self.update_file_listbox()
+
             logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
 
-    def append_input_folder(self, path: str) -> None:
-        if path:
-            verified_input_files = self.scaio.get_verified_ifile_list([path])
+    def open_folder(self):
+        folder_path = filedialog.askdirectory(mustexist=True)
+        if folder_path:
+            verified_input_files = self.scaio.get_verified_ifile_list([folder_path])
             self.input_files.extend(verified_input_files)
+            self.update_file_listbox()
+
             logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
 
     def run_sca(self) -> None:
@@ -163,12 +234,14 @@ class SCAGUI:
             message="NeoSCA is running. It may take a few minutes to finit the job. Please wait."
         )
         sca_analyzer = NeoSCA(**sca_kwargs)
-        thread = threading.Thread(target=sca_analyzer.run_on_ifiles, args=(verified_input_files,))
+        thread = threading.Thread(
+            target=sca_analyzer.run_on_ifiles, args=(verified_input_files,)
+        )
         thread.start()
         self.show_message_afterwards(thread, "Done. The result has been saved to your Desktop.")
         # sca_analyzer.run_on_ifiles(verified_input_files)
 
-    def show_message_afterwards(self, thread, msg:str):
+    def show_message_afterwards(self, thread, msg: str):
         if thread.is_alive():
             # Thread is still running, keep checking every second (1000 milliseconds)
             self.root.after(1000, self.show_message_afterwards, thread, msg)
@@ -195,7 +268,8 @@ class SCAGUI:
 
 
 class QueueHandler(logging.Handler):
-    """Class to send logging records to a queue. It can be used from different threads """
+    """Class to send logging records to a queue. It can be used from different threads"""
+
     # https://beenje.github.io/blog/posts/logging-to-a-tkinter-scrolledtext-widget/
 
     def __init__(self, log_queue):
@@ -208,6 +282,7 @@ class QueueHandler(logging.Handler):
 
 class LogUI:
     """Poll messages from a logging queue and display them in a scrolled text widget"""
+
     # https://beenje.github.io/blog/posts/logging-to-a-tkinter-scrolledtext-widget/
 
     def __init__(self, frame):
@@ -244,6 +319,5 @@ class LogUI:
             record = self.log_queue.get(block=False)
             self.display(record)
         self.frame.after(100, self.poll_log_queue)
-
 
 gui = SCAGUI(with_restart_button=True)
