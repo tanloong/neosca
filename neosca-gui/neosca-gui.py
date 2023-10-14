@@ -9,7 +9,7 @@ import subprocess
 import sys
 import threading
 from tkinter import *
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk, filedialog, messagebox, font
 from tkinter.scrolledtext import ScrolledText
 from typing import Iterable
 from tksheet import Sheet
@@ -23,6 +23,11 @@ class SCAGUI:
         self.root = Tk()
         self.root.title("NeoSCA")
         self.root.option_add("*tearOff", FALSE)  # disable tear-off menus
+        self.default_font = font.nametofont("TkTextFont").actual()
+        # https://github.com/ragardner/tksheet/wiki/Version-6#text-font-and-alignment
+        self.tksheet_font = tuple(
+            self.default_font[attr] for attr in ("family", "size", "weight")
+        )
 
         # menubar
         menubar = Menu(self.root)
@@ -129,7 +134,14 @@ class SCAGUI:
 
         rowno = 0
         colno = 0
-        self.preview_sheet = Sheet(self.sca_preview_frame, header=StructureCounter.DEFAULT_MEASURES, data=[""])
+        self.preview_sheet = Sheet(
+            self.sca_preview_frame,
+            header=StructureCounter.DEFAULT_MEASURES,
+            data=[""],
+            font=self.tksheet_font,
+            header_font=self.tksheet_font,
+            index_font=self.tksheet_font,
+        )
         self.preview_sheet.edit_bindings(enable=False)
         self.preview_sheet.set_all_cell_sizes_to_text(redraw=True)
         self.preview_sheet.grid(column=colno, row=rowno, sticky="nswe")
@@ -169,7 +181,15 @@ class SCAGUI:
         self.reserve_parsed_trees_checkbox.grid(column=colno, row=rowno, sticky="nswe")
 
     def initialize_bottom_pane(self):
-        self.file_sheet = Sheet(self.bottom_pane, header=["Filename"], data=[""])
+        self.file_sheet = Sheet(
+            self.bottom_pane,
+            header=["Filename"],
+            data=[""],
+            font=self.tksheet_font,
+            header_font=self.tksheet_font,
+            index_font=self.tksheet_font,
+        )
+
         self.file_sheet.set_all_cell_sizes_to_text(redraw=True)
         self.file_sheet.enable_bindings(
             "single_select",  # single left click to select a cell
