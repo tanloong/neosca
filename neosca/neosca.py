@@ -29,6 +29,7 @@ class NeoSCA:
         is_skip_querying: bool = False,
         is_skip_parsing: bool = False,
         is_pretokenized: bool = False,
+        is_auto_save: bool = True,
         config: Optional[str] = None,
     ) -> None:
         self.ofile_freq = ofile_freq
@@ -44,6 +45,7 @@ class NeoSCA:
         self.is_skip_querying = is_skip_querying
         self.is_skip_parsing = is_skip_parsing
         self.is_pretokenized = is_pretokenized
+        self.is_auto_save = is_auto_save
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(
             config
@@ -162,7 +164,8 @@ class NeoSCA:
         )
         counter = self.query_against_trees(trees, counter)
         self.counters.append(counter)
-        self.write_value_output()
+        if self.is_auto_save:
+            self.write_value_output()
 
     def parse_and_query_ifile(self, ifile: str) -> Optional[StructureCounter]:
         trees = self.parse_ifile(ifile)
@@ -221,7 +224,8 @@ class NeoSCA:
 
         self.parse_and_query_ifiles(files)
         self.parse_and_query_subfiles_list(subfiles_list)
-        self.write_value_output()
+        if self.is_auto_save:
+            self.write_value_output()
 
     def write_value_output(self) -> None:
         logging.debug("[NeoSCA] Writting counts and/or frequencies...")
