@@ -25,7 +25,7 @@ class TestLCAMain(BaseTmpl):
             {"wordlist": "bnc", "tagset": "ud", "ofile": "result.csv", "is_stdout": False},
         )
         self.assertIsNone(ui.options.text)
-        self.assertIsInstance(ui.verified_ifiles, list)
+        self.assertIsInstance(ui.verified_ifiles, set)
         self.assertFalse(ui.options.is_verbose)
         self.assertFalse(ui.options.is_quiet)
 
@@ -36,7 +36,7 @@ class TestLCAMain(BaseTmpl):
             {"wordlist": "bnc", "tagset": "ud", "ofile": "output.csv", "is_stdout": False},
         )
         self.assertIsNone(ui.options.text)
-        self.assertIsInstance(ui.verified_ifiles, list)
+        self.assertIsInstance(ui.verified_ifiles, set)
         self.assertFalse(ui.options.is_verbose)
         self.assertFalse(ui.options.is_quiet)
 
@@ -47,7 +47,7 @@ class TestLCAMain(BaseTmpl):
             {"wordlist": "bnc", "tagset": "ud", "ofile": "output.csv", "is_stdout": False},
         )
         self.assertIsNone(ui.options.text)
-        self.assertIsInstance(ui.verified_ifiles, list)
+        self.assertIsInstance(ui.verified_ifiles, set)
         self.assertFalse(ui.options.is_verbose)
         self.assertFalse(ui.options.is_quiet)
 
@@ -82,6 +82,7 @@ class TestLCAMain(BaseTmpl):
         expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.docx")))
         expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.odt")))
         map(os_path.abspath, expected_ifiles)
+        expected_ifiles = set(expected_ifiles)
 
         args = ["nsca-lca", os_path.join(self.samples_dir, "*.txt")]
         ui.parse_args(args)
@@ -106,7 +107,7 @@ class TestLCAMain(BaseTmpl):
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         map(os_path.abspath, ui.verified_ifiles)
-        self.assertEqual(ui.verified_ifiles, [])
+        self.assertFalse(ui.verified_ifiles)
 
         # wordlist
         args = ["nsca-lca", filepath]

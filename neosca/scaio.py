@@ -9,7 +9,7 @@ import glob
 import logging
 import os.path as os_path
 import sys
-from typing import ByteString, Callable, Dict, List, Optional, Union, Iterable
+from typing import ByteString, Callable, Dict, Iterable, List, Optional, Set, Union
 import zipfile
 
 from charset_normalizer import detect
@@ -182,7 +182,7 @@ class SCAIO:
 
         return data
 
-    def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> List[str]:
+    def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> Set[str]:
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
@@ -204,4 +204,4 @@ class SCAIO:
             else:
                 logging.critical(f"No such file as\n\n{path}")
                 sys.exit(1)
-        return verified_ifile_list
+        return set(verified_ifile_list)
