@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
+import glob
 import logging
 import os
 import os.path as os_path
@@ -9,17 +10,17 @@ import subprocess
 import sys
 import threading
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox, font
+from tkinter import filedialog, font, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
-from typing import Iterable
-from tksheet import Sheet
+from typing import Dict, Iterable, List, Set
 
-from neosca.scaio import SCAIO
 from neosca.structure_counter import StructureCounter
+from tksheet import Sheet
 
 
 class SCAGUI:
     def __init__(self, *, with_restart_button: bool = False) -> None:
+        self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
         self.root = Tk()
         self.root.title("NeoSCA")
         self.root.option_add("*tearOff", FALSE)  # disable tear-off menus
@@ -69,9 +70,9 @@ class SCAGUI:
         self.notebook = ttk.Notebook(self.upper_pane)
         self.notebook.grid(column=0, row=0, sticky="nswe")
 
-        self.scaframe = ttk.Frame(self.notebook, borderwidth=1, relief="solid")
-        self.scaframe.grid(column=0, row=0, sticky="nswe")
-        self.notebook.add(self.scaframe, text="SCA")
+        self.sca_frame = ttk.Frame(self.notebook, borderwidth=1, relief="solid")
+        self.sca_frame.grid(column=0, row=0, sticky="nswe")
+        self.notebook.add(self.sca_frame, text="SCA")
 
         self.lcaframe = ttk.Frame(self.notebook)
         self.lcaframe.grid(column=0, row=0, sticky="nswe")
@@ -83,21 +84,14 @@ class SCAGUI:
         ttk.Style().theme_use("alt")
         self.initialize_bottom_pane()
 
+        self.generate_table_buttons = []
+        self.export_table_buttons = []
         self.initialize_scaframe()
 
         self.lcaframe.grid_rowconfigure(0, weight=1)
         self.lcaframe.grid_columnconfigure(0, weight=1)
 
         rowno = 0
-
-        # rowno += 1
-        # log_console = ScrolledText(scaframe, state="disabled", width=80, height=24, wrap="char")
-        # log_console.grid(column=1, row=rowno, columnspan=5, sticky="nswe")
-
-        # rowno += 1
-        # self.logging_frame = ttk.Frame(self.scaframe)
-        # self.logging_frame.grid(column=1, row=rowno, columnspan=10)
-        # self.log_console = LogUI(self.logging_frame)
 
         # for child in self.scaframe.winfo_children():
         #     child.grid_configure(padx=1, pady=1)
@@ -113,48 +107,88 @@ class SCAGUI:
         self.env = os.environ.copy()
 
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
-        self.input_files = []
-        self.scaio = SCAIO()
-        # self.logger = logging.getLogger()
-        # self.logger.setLevel(logging.DEBUG)
-        # handler = QueueHandler(self.log_console.log_queue)
-        # formatter = logging.Formatter("%(levelname)s: %(message)s")
-        # handler.setFormatter(formatter)
-        # self.logger.addHandler(handler)
+        self.input_files: Set[str] = set()
 
         self.root.bind("<Control-r>", self.restart)
+        self.root.bind("<Control-q>", lambda event: self.root.quit())
         self.root.mainloop()
+
+    def disable_generate_table_buttons(self):
+        for bt in self.generate_table_buttons:
+            bt.config(state="disable")
+
+    def enable_generate_table_buttons(self):
+        for bt in self.generate_table_buttons:
+            bt.config(state="normal")
 
     def initialize_scaframe(self):
         # preview frame
-        self.sca_preview_frame = ttk.Frame(self.scaframe)
+        self.sca_preview_frame = ttk.Frame(self.sca_frame)
         self.sca_preview_frame.grid(column=0, row=0, sticky="nswe")
-        self.scaframe.grid_rowconfigure(0, weight=1)
-        self.scaframe.grid_columnconfigure(0, weight=1)
+        self.sca_button_frame = ttk.Frame(self.sca_frame)
+        self.sca_button_frame.grid(column=0, row=1, sticky="nswe")
+        self.sca_frame.grid_rowconfigure(0, weight=1)
+        self.sca_frame.grid_columnconfigure(0, weight=1)
 
         rowno = 0
         colno = 0
-        self.preview_sheet = Sheet(
+        self.sca_preview_sheet = Sheet(
             self.sca_preview_frame,
-            header=StructureCounter.DEFAULT_MEASURES,
+            header=["Path"] + StructureCounter.DEFAULT_MEASURES,
             data=[""],
+            align="e",  # right-align numbers
             font=self.tksheet_font,
             header_font=self.tksheet_font,
             index_font=self.tksheet_font,
         )
-        self.preview_sheet.edit_bindings(enable=False)
-        self.preview_sheet.set_all_cell_sizes_to_text(redraw=True)
-        self.preview_sheet.grid(column=colno, row=rowno, sticky="nswe")
+        self.sca_preview_sheet.enable_bindings(
+            "single_select",  # single left click to select a cell
+            "drag_select",  # drag mouse to select an area of cells
+            "select_all",  # click upper left corner button to select all
+            "ctrl_select",
+            "column_select",  # click a column name
+            "row_select",  # click a row name
+            "column_width_resize",  # hover cursor in between two column names
+            "arrowkeys",  # use arrowkeys to navigate across cells
+            "row_height_resize",  # hover cursor in between two row names
+            "right_click_popup_menu",
+            "rc_select",
+        )
+        self.sca_preview_sheet.edit_bindings(enable=False)
+        self.sca_preview_sheet.set_all_cell_sizes_to_text(redraw=True)
+        self.sca_preview_sheet.align_columns(columns=[0], align="w")
+        self.sca_preview_sheet.grid(column=colno, row=rowno, sticky="nswe")
         self.sca_preview_frame.grid_rowconfigure(0, weight=1)
         self.sca_preview_frame.grid_columnconfigure(0, weight=1)
 
-        rowno += 1
-        ttk.Button(self.sca_preview_frame, text="Generate Table", command=self.run_sca).grid(
-            column=colno, row=rowno, sticky="sw"
+        colno = 0
+        rowno = 0
+        self.sca_generate_table_button = ttk.Button(
+            self.sca_button_frame,
+            text="Generate table",
+            # Here use lambda to avoid RuntimeError("threads can only be started once")
+            # Daemon thread keeps running even after the main program exists,
+            #  normal thread prevents the main program from existing
+            command=lambda: threading.Thread(
+                target=self.sca_generate_table, daemon=True
+            ).start(),
+            state="disable",
         )
+        self.sca_generate_table_button.grid(column=colno, row=rowno, sticky="sw")
+        self.generate_table_buttons.append(self.sca_generate_table_button)
+
+        colno += 1
+        self.sca_export_table_button = ttk.Button(
+            self.sca_button_frame,
+            text="Export all cells...",
+            command=self.sca_export_table,
+            state="disable",
+        )
+        self.sca_export_table_button.grid(column=colno, row=rowno, sticky="sw")
+        self.export_table_buttons.append(self.sca_export_table_button)
 
         # setting frame
-        self.sca_setting_frame = ttk.Frame(self.scaframe)
+        self.sca_setting_frame = ttk.Frame(self.sca_frame)
         self.sca_setting_frame.grid(column=1, row=0, sticky="nswe")
 
         rowno = 0
@@ -183,7 +217,7 @@ class SCAGUI:
     def initialize_bottom_pane(self):
         self.file_sheet = Sheet(
             self.bottom_pane,
-            header=["Filename"],
+            header=["Path"],
             data=[""],
             font=self.tksheet_font,
             header_font=self.tksheet_font,
@@ -195,42 +229,25 @@ class SCAGUI:
             "single_select",  # single left click to select a cell
             "drag_select",  # drag mouse to select an area of cells
             "select_all",  # click upper left corner button to select all
-            # "column_select",  # click a column name
+            "ctrl_select",
+            "column_select",  # click a column name
             "row_select",  # click a row name
             "column_width_resize",  # hover cursor in between two column names
             "arrowkeys",  # use arrowkeys to navigate across cells
             "row_height_resize",  # hover cursor in between two row names
             "right_click_popup_menu",
             "rc_select",
-            # "rc_delete_row",  # show "Delete rows" option in the pop-up menu when right clicking a row name
         )
         self.file_sheet.popup_menu_add_command("Remove File", self.remove_from_filesheet)
         self.file_sheet.grid(column=0, row=0, sticky="nswe")
         self.bottom_pane.grid_rowconfigure(0, weight=1)
         self.bottom_pane.grid_columnconfigure(0, weight=1)
 
-        # Bind right-click event
-        # self.file_listbox.bind("<Button-3>", self.show_context_menu)
-
-        # Context menu for right-click
-        # self.context_menu = Menu(self.file_listbox)
-        # self.context_menu.add_command(label="Delete", command=self.delete_file)
-
-    # def show_context_menu(self, event):
-    #     self.context_menu.post(event.x_root, event.y_root)
-
-    # def delete_file(self):
-    #     selected_index = self.file_listbox.curselection()
-    #     if selected_index:
-    #         index = selected_index[0]
-    #         del self.input_files[index]
-    #         self.update_file_listbox()
-
     def add_to_filesheet(self):
         self.file_sheet.set_sheet_data([(file_path,) for file_path in self.input_files])
         self.file_sheet.set_all_cell_sizes_to_text(redraw=True)
 
-    def remove_from_filesheet(self, event=None):
+    def remove_from_filesheet(self):
         rownos = self.file_sheet.get_selected_rows(return_tuple=False)
         if not rownos:
             rownos = set(cell[0] for cell in self.file_sheet.get_selected_cells())
@@ -239,37 +256,106 @@ class SCAGUI:
         if rows_to_remove == rows_existing:
             self.file_sheet.set_sheet_data([""])
             self.input_files.clear()
+            self.disable_generate_table_buttons()
         else:
             self.file_sheet.delete_rows(rownos)  # type:ignore
             filepath_indice = 0
-            self.input_files = self.file_sheet.get_column_data(filepath_indice)
+            self.input_files = set(self.file_sheet.get_column_data(filepath_indice))
+        self.file_sheet.set_all_cell_sizes_to_text(redraw=True)
 
     def open_file(self):
         file_paths = filedialog.askopenfilenames(
             filetypes=(
                 ("txt files", "*.txt"),
                 ("docx files", "*.docx"),
-                ("all files", "*"),
             )
         )
         if file_paths:
-            verified_input_files = self.scaio.get_verified_ifile_list(list(file_paths))
-            self.input_files.extend(verified_input_files)
+            self.input_files.update(file_paths)
             self.add_to_filesheet()
-
-            logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
+            self.enable_generate_table_buttons()
 
     def open_folder(self):
         folder_path = filedialog.askdirectory(mustexist=True)
         if folder_path:
-            verified_input_files = self.scaio.get_verified_ifile_list([folder_path])
-            self.input_files.extend(verified_input_files)
+            for ext in ("*.txt", "*.docx"):
+                self.input_files.update(glob.glob(f"{folder_path}{os_path.sep}{ext}"))
             self.add_to_filesheet()
+            self.enable_generate_table_buttons()
 
-            logging.debug("[SCAGUI] Chosen files:\n {}".format("\n".join(verified_input_files)))
+    def put_window_on_center(self, window, width, height):
+        # Get the screen width and height
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
 
-    def run_sca(self) -> None:
+        # Calculate x and y coordinates to center the window
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+
+        # Set the window dimensions and position
+        window.geometry(f"{width}x{height}+{x}+{y}")
+
+    def start_logging_to_frame(self, frame):
+        self.log_console = LogUI(frame)
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.DEBUG)
+        handler = QueueHandler(self.log_console.log_queue)
+        self.logger.addHandler(handler)
+
+    def sca_export_table(self) -> None:
+        # https://github.com/ragardner/tksheet/wiki/Version-6#example-saving-tksheet-as-a-csv-file
+        file_path = filedialog.asksaveasfilename(
+            title="Export Table",
+            filetypes=[("Excel Workbook", ".xlsx"), ("CSV File", ".csv"), ("TSV File", ".tsv")],
+            defaultextension=".xlsx",
+            confirmoverwrite=True,
+            initialdir=self.desktop,
+            initialfile="neosca-gui_sca_result.xlsx",
+        )
+        if not file_path:
+            return
+        ext = os_path.splitext(file_path)[-1]
+        data = self.sca_preview_sheet.get_sheet_data(get_header=True, get_index=False)
+        if data is None:
+            return
+        try:
+            if ext == ".xlsx":
+                import openpyxl
+
+                workbook = openpyxl.Workbook()
+                worksheet = workbook.active
+
+                for row in data:
+                    worksheet.append(row)
+                workbook.save(file_path)
+            elif ext in (".csv", ".tsv"):
+                import csv
+
+                dialect = csv.excel if ext == ".csv" else csv.excel_tab
+                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
+                    writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
+                    writer.writerows(data)  # type:ignore
+            messagebox.showinfo(message=f"The table has been successfully exported to {file_path}.")
+        except Exception as e:
+            messagebox.showerror(message=f"{e}")
+            return
+
+    def sca_generate_table(self) -> None:
         from neosca.neosca import NeoSCA
+
+        self.sca_generate_table_button.config(state="disable")
+        self.log_window = Toplevel(self.root)
+        self.log_window.title("NeoSCA Logs")
+        self.put_window_on_center(self.log_window, width=400, height=300)
+        ttk.Label(
+            self.log_window,
+            text="NeoSCA is running. It may take a few minutes to finish the job. Please wait.",
+        ).grid(column=0, row=0)
+        log_frame = ttk.Frame(self.log_window)
+        log_frame.grid(column=0, row=1)
+        self.log_window.grid_rowconfigure(0, weight=1)
+        self.log_window.grid_columnconfigure(0, weight=1)
+        self.start_logging_to_frame(log_frame)
 
         output_dir = os_path.join(self.desktop, "neosca-results")
         os.makedirs(output_dir, exist_ok=True)
@@ -289,35 +375,29 @@ class SCAGUI:
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "is_pretokenized": False,
+            "is_auto_save": False,
             "config": None,
         }
-        verified_input_files = self.scaio.get_verified_ifile_list(self.input_files)
 
-        messagebox.showinfo(
-            message="NeoSCA is running. It may take a few minutes to finit the job. Please wait."
-        )
-        sca_analyzer = NeoSCA(**sca_kwargs)
-        thread = threading.Thread(
-            target=sca_analyzer.run_on_ifiles, args=(verified_input_files,)
-        )
-        thread.start()
-        self.show_message_afterwards(thread, "Done. The result has been saved to your Desktop.")
-        # sca_analyzer.run_on_ifiles(verified_input_files)
-
-    def show_message_afterwards(self, thread, msg: str):
-        if thread.is_alive():
-            # Thread is still running, keep checking every second (1000 milliseconds)
-            self.root.after(1000, self.show_message_afterwards, thread, msg)
+        attrname = "sca_analyzer"
+        try:
+            sca_analyzer = getattr(self, attrname)
+        except AttributeError:
+            sca_analyzer = NeoSCA(**sca_kwargs)
+            setattr(self, attrname, sca_analyzer)
         else:
-            # Thread has finished
-            messagebox.showinfo(message=msg)
+            sca_analyzer.update_options(sca_kwargs)
 
-    # def write_to_log(self, msg: str) -> None:
-    #     self.log_console["state"] = "normal"
-    #     # if self.log_console.index("end-1c") != "1.0":
-    #     #     self.log_console.insert("end", "\n")
-    #     self.log_console.insert("end", msg)
-    #     self.log_console["state"] = "disabled"
+        sca_analyzer.run_on_ifiles(self.input_files)
+        self.log_window.destroy()
+        sname_value_maps: List[Dict[str, str]] = [
+            counter.get_all_values() for counter in sca_analyzer.counters
+        ]
+        self.sca_preview_sheet.set_sheet_data([list(map_.values()) for map_ in sname_value_maps])
+        self.sca_preview_sheet.set_all_cell_sizes_to_text(redraw=True)
+        self.sca_export_table_button.config(state="normal")
+        # don't have to enbale generate buttons here as they should only be
+        # enabled when more input files are added
 
     def restart(self, *args) -> None:
         self.root.destroy()
@@ -351,8 +431,8 @@ class LogUI:
     def __init__(self, frame):
         self.frame = frame
         # Create a ScrolledText wdiget
-        self.scrolled_text = ScrolledText(frame, state="disabled", width=120, height=24)
-        self.scrolled_text.grid(row=0, column=0, sticky="nswe")
+        self.scrolled_text = ScrolledText(frame, state="disabled")
+        self.scrolled_text.grid(column=0, row=0, sticky="nswe")
         self.scrolled_text.configure(font="TkFixedFont")
         self.scrolled_text.tag_config("INFO", foreground="black")
         self.scrolled_text.tag_config("DEBUG", foreground="gray")
@@ -362,7 +442,8 @@ class LogUI:
         # Create a logging handler using a queue
         self.log_queue = queue.Queue()
         self.queue_handler = QueueHandler(self.log_queue)
-        self.queue_handler.setFormatter(logging.Formatter("%(message)s"))
+        formatter = logging.Formatter("%(message)s")
+        self.queue_handler.setFormatter(formatter)
 
         # Start polling messages from the queue
         self.frame.after(100, self.poll_log_queue)
