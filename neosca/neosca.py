@@ -60,6 +60,9 @@ class NeoSCA:
         self.is_stanford_parser_initialized = False
         self.is_stanford_tregex_initialized = False
 
+    def update_options(self, kwargs: Dict):
+        self.__init__(**kwargs)
+
     def load_user_config(
         self, config: Optional[str]
     ) -> Tuple[dict, List[dict], Optional[Set[str]]]:
