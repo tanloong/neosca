@@ -20,6 +20,7 @@ coverage.xml
 *.tar.gz
 *.parsed
 *.mp4
+*.pdf
 doc
 note.txt
 test.py
