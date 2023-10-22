@@ -3,6 +3,7 @@
 
 import os
 import os.path as os_path
+import re
 import subprocess
 import sys
 from typing import Dict, List
@@ -47,13 +48,17 @@ class MyWidget(QtWidgets.QMainWindow):
         self.table_preview.setModel(self.model)
         self.model.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
-        self.model.setRowCount(1)
+        # self.model.setRowCount(1)
+        self.model.appendRow(
+            [QtGui.QStandardItem(str(i)) for i in range(len(StructureCounter.DEFAULT_MEASURES))]
+        )
         layout_preview_button = QtWidgets.QHBoxLayout()
         self.button_generate_table = QtWidgets.QPushButton("Generate table")
         self.button_generate_table.setEnabled(False)
         self.button_generate_table.clicked.connect(self.sca_generate_table)
         self.button_export_table = QtWidgets.QPushButton("Export all cells...")
-        self.button_export_table.setEnabled(False)
+        # self.button_export_table.setEnabled(False)
+        self.button_export_table.clicked.connect(self.sca_export_table)
         self.button_export_selected_cells = QtWidgets.QPushButton("Export selected cells...")
         self.button_export_selected_cells.setEnabled(False)
         layout_preview_button.addWidget(self.button_generate_table)
@@ -98,6 +103,7 @@ class MyWidget(QtWidgets.QMainWindow):
         self.setCentralWidget(container)
 
     def setup_env(self) -> None:
+        self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
         neosca_gui_home = os_path.dirname(os_path.dirname(os_path.abspath(__file__)))
         libs_dir = os_path.join(neosca_gui_home, "libs")
         self.java_home = os_path.join(libs_dir, "jdk8u372")
@@ -157,10 +163,62 @@ class MyWidget(QtWidgets.QMainWindow):
         self.model.setRowCount(0)
         for i, map_ in enumerate(sname_value_maps):
             items = [QtGui.QStandardItem(value) for value in map_.values()]
-            self.model.insertRow(i, items)
+            self.model.appendRow(items)
         self.button_export_table.setEnabled(True)
+        self.button_export_table.clicked.connect(self.sca_export_table)
         # don't have to enbale generate buttons here as they should only be
         # enabled when more input files are added
+
+    def sca_export_table(self) -> None:
+        file_path, file_type = QtWidgets.QFileDialog.getSaveFileName(
+            parent=self,
+            caption="Export Table",
+            dir=self.desktop,
+            filter="Excel Workbook (*.xlsx);;CSV File (*.csv);;TSV File (*.tsv)",
+        )
+        if not file_path:
+            return
+
+        col_count = self.model.columnCount()
+        row_count = self.model.rowCount()
+        try:
+            if ".xlsx" in file_type:
+                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
+                import openpyxl
+
+                workbook = openpyxl.Workbook()
+                worksheet = workbook.active
+                # Header
+                for colno_cell, colno_item in enumerate(range(col_count)):
+                    cell = worksheet.cell(1, 1 + colno_cell)
+                    cell.value = self.model.horizontalHeaderItem(colno_item).text()
+                # Cells
+                for rowno_cell, rowno in enumerate(range(row_count)):
+                    for colno_cell, colno_item in enumerate(range(col_count)):
+                        cell = worksheet.cell(2 + rowno_cell, 1 + colno_cell)
+                        cell.value = self.model.item(rowno, colno_item).text()
+                workbook.save(file_path)
+            elif ".csv" in file_type or ".tsv" in file_type:
+                import csv
+
+                dialect = csv.excel if ".csv" in file_type else csv.excel_tab
+                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
+                    csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
+                    csv_writer.writerow(
+                        self.model.horizontalHeaderItem(colno).text()
+                        for colno in range(col_count)
+                    )
+                    for rowno in range(row_count):
+                        csv_writer.writerow(
+                            self.model.item(rowno, colno).text() for colno in range(col_count)
+                        )
+            QtWidgets.QMessageBox.information(
+                self, "Success", f"The table has been successfully exported to {file_path}."
+            )
+        except PermissionError:
+            QtWidgets.QMessageBox.critical(
+                self, "Error", f"PermissionError: failed to export the table to {file_path}."
+            )
 
     def browse_file(self):
         file_dialog = QtWidgets.QFileDialog(
