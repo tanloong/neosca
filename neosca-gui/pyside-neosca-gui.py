@@ -50,6 +50,7 @@ class MyWidget(QtWidgets.QMainWindow):
         self.model.setRowCount(1)
         layout_preview_button = QtWidgets.QHBoxLayout()
         self.button_generate_table = QtWidgets.QPushButton("Generate table")
+        self.button_generate_table.setEnabled(False)
         self.button_generate_table.clicked.connect(self.sca_generate_table)
         self.button_export_table = QtWidgets.QPushButton("Export all cells...")
         self.button_export_table.setEnabled(False)
@@ -86,7 +87,7 @@ class MyWidget(QtWidgets.QMainWindow):
         self.listwidget_file.setStyleSheet("background-color: red;")
         self.listwidget_file.setMaximumHeight(150)
         self.listwidget_file.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.listwidget_file.customContextMenuRequested.connect(self.showContextMenu)
+        self.listwidget_file.customContextMenuRequested.connect(self.menu_listwidget_file)
         self.listwidget_file.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         layout_main = QtWidgets.QVBoxLayout()
@@ -110,12 +111,13 @@ class MyWidget(QtWidgets.QMainWindow):
     def sca_generate_table(self) -> None:
         from neosca.neosca import NeoSCA
 
-        input_file_items = self.listwidget_file.findItems(".*", QtCore.Qt.MatchFlag.MatchRegularExpression)
-        if not input_file_items:
-            QtWidgets.QMessageBox.warning(self, "Warning", f"{len(input_file_items)} Please select files to merge.")
+        input_file_paths = [
+            self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
+        ]
+        if not input_file_paths:
+            QtWidgets.QMessageBox.warning(self, "Warning", f"Please select files to process.")
             return
 
-        input_files = [item.text() for item in input_file_items]
         self.button_generate_table.setEnabled(False)
         # ttk.Label(
         #     self.log_window,
@@ -148,7 +150,7 @@ class MyWidget(QtWidgets.QMainWindow):
         else:
             sca_analyzer.update_options(sca_kwargs)
 
-        sca_analyzer.run_on_ifiles(input_files)
+        sca_analyzer.run_on_ifiles(input_file_paths)
         sname_value_maps: List[Dict[str, str]] = [
             counter.get_all_values() for counter in sca_analyzer.counters
         ]
@@ -164,14 +166,30 @@ class MyWidget(QtWidgets.QMainWindow):
         file_dialog = QtWidgets.QFileDialog(
             directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
         )
-        files, _ = file_dialog.getOpenFileNames(
+        file_paths_to_add, _ = file_dialog.getOpenFileNames(
             self, "Open Files", "", "Text Files (*.txt);;Docx Files (*.docx)"
         )
-        if files:
-            self.listwidget_file.clear()
-            self.listwidget_file.addItems(files)
+        if not file_paths_to_add:
+            return
 
-    def showContextMenu(self, position):
+        unique_file_paths_to_add = set(file_paths_to_add)
+        added_file_paths = set(
+            self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
+        )
+        file_paths_dup = unique_file_paths_to_add & added_file_paths
+        file_paths_ok = unique_file_paths_to_add - added_file_paths
+        if file_paths_ok:
+            self.listwidget_file.addItems(file_paths_ok)
+            self.button_generate_table.setEnabled(True)
+
+        if file_paths_dup:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Warning",
+                "These duplicated files are skipped:\n- {}".format("\n- ".join(file_paths_dup)),
+            )
+
+    def menu_listwidget_file(self, position):
         menu = QtWidgets.QMenu()
         remove_action = menu.addAction("Remove")
         action = menu.exec_(self.listwidget_file.mapToGlobal(position))
@@ -179,6 +197,8 @@ class MyWidget(QtWidgets.QMainWindow):
             selected_items = self.listwidget_file.selectedItems()
             for item in selected_items:
                 self.listwidget_file.takeItem(self.listwidget_file.row(item))
+        if self.listwidget_file.count() <= 0:
+            self.button_generate_table.setEnabled(False)
 
     def restart(self):
         self.close()
