@@ -51,6 +51,11 @@ class LCA:
         "ModV (modifier variation)",
     )
 
+    WORDLIST_DATAFILE_MAP = {
+        "bnc": "bnc_all_filtered.pickle.lzma",
+        "anc": "anc_all_count.pickle.lzma",
+    }
+
     def __init__(
         self,
         wordlist: str = "bnc",
@@ -67,11 +72,6 @@ class LCA:
         assert wordlist in ("bnc", "anc")
         logging.debug(f"Using {wordlist.upper()} wordlist")
         self.wordlist = wordlist
-
-        wordlist_datafile_map = {
-            "bnc": "bnc_all_filtered.pickle.lzma",
-            "anc": "anc_all_count.pickle.lzma",
-        }
 
         assert tagset in ("ud", "ptb")
         logging.debug(f"Using {tagset.upper()} POS tagset")
@@ -103,7 +103,7 @@ class LCA:
         self.condition_map = tagset_conds_map[tagset]
 
         data_dir = os_path.join(os_path.dirname(os_path.dirname(__file__)), "data")
-        datafile = os_path.join(data_dir, wordlist_datafile_map[wordlist])
+        datafile = os_path.join(data_dir, self.WORDLIST_DATAFILE_MAP[wordlist])
         logging.debug(f"Loading {datafile}...")
         data = self.scaio.load_pickle_lzma_file(datafile)
 
@@ -124,6 +124,9 @@ class LCA:
 
         # adjust minimum sample size here
         self.standard = 50
+
+    def update_options(self, kwargs: Dict):
+        self.__init__(**kwargs)
 
     def _is_misc_ud(self, lemma: str, pos: str) -> bool:
         if pos in ("PUNCT", "SYM", "X", "SPACE"):
@@ -477,23 +480,23 @@ class LCA:
                     sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
                     logging.debug(f'Counted "{lemma}" as a sophisticated verb')
 
-            values = self.compute(
-                word_count_map,
-                sword_count_map,
-                lex_count_map,
-                slex_count_map,
-                verb_count_map,
-                sverb_count_map,
-                adj_count_map,
-                adv_count_map,
-                noun_count_map,
-                lemma_lst,
-            )
-            if values is None:
-                return values
-            values = [str(round(v, 4)) for v in values]
-            values.insert(0, file_path)
+        values = self.compute(
+            word_count_map,
+            sword_count_map,
+            lex_count_map,
+            slex_count_map,
+            verb_count_map,
+            sverb_count_map,
+            adj_count_map,
+            adv_count_map,
+            noun_count_map,
+            lemma_lst,
+        )
+        if values is None:
             return values
+        values = [str(round(v, 4)) for v in values]
+        values.insert(0, file_path)
+        return values
 
     def analyze(
         self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
