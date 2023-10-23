@@ -386,14 +386,16 @@ class LCA:
     def _analyze(
         self,
         *,
-        filepath: Optional[str] = None,
+        file_path: Optional[str] = None,
         text: Optional[str] = None,
     ):
-        assert (not filepath) ^ (not text)
+        assert (not file_path) ^ (not text)
 
-        if filepath is not None:
-            logging.info(f"Processing {filepath}...")
-            text = self.scaio.read_file(filepath)
+        if file_path is not None:
+            logging.info(f"Processing {file_path}...")
+            text = self.scaio.read_file(file_path)
+        else:
+            file_path = "cmdline_text"
 
         if text is None:
             return None
@@ -475,18 +477,23 @@ class LCA:
                     sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
                     logging.debug(f'Counted "{lemma}" as a sophisticated verb')
 
-        return self.compute(
-            word_count_map,
-            sword_count_map,
-            lex_count_map,
-            slex_count_map,
-            verb_count_map,
-            sverb_count_map,
-            adj_count_map,
-            adv_count_map,
-            noun_count_map,
-            lemma_lst,
-        )
+            values = self.compute(
+                word_count_map,
+                sword_count_map,
+                lex_count_map,
+                slex_count_map,
+                verb_count_map,
+                sverb_count_map,
+                adj_count_map,
+                adv_count_map,
+                noun_count_map,
+                lemma_lst,
+            )
+            if values is None:
+                return values
+            values = [str(round(v, 4)) for v in values]
+            values.insert(0, file_path)
+            return values
 
     def analyze(
         self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
@@ -508,16 +515,12 @@ class LCA:
         if text is not None:
             values = self._analyze(text=text)
             if values is not None:
-                values = [str(round(v, 4)) for v in values]
-                values.insert(0, "cmdline_text")
                 csv_writer.writerow(values)
 
         else:
             for ifile in ifiles:  # type: ignore
-                values = self._analyze(filepath=ifile)
+                values = self._analyze(file_path=ifile)
                 if values is not None:
-                    values = [str(round(v, 4)) for v in values]
-                    values.insert(0, ifile)
                     csv_writer.writerow(values)
 
         handle.close()
