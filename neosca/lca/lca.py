@@ -14,6 +14,43 @@ from ..util import SCAProcedureResult
 
 
 class LCA:
+    FIELDNAMES = (
+        "Filepath",
+        "wordtypes (word types)",
+        "swordtypes (sophisticated word types)",
+        "lextypes (lexical types)",
+        "slextypes (sophisticated lexical types)",
+        "wordtokens (word tokens)",
+        "swordtokens (sophisticated word tokens)",
+        "lextokens (lexical tokens)",
+        "slextokens (sophisticated lexical tokens)",
+        "LD (lexical density)",
+        "LS1 (lexical sophistication-I)",
+        "LS2 (lexical sophistication-II)",
+        "VS1 (verb sophistication-I)",
+        "VS2 (verb sophistication-II)",
+        "CVS1 (corrected VS1)",
+        "NDW (number of different words)",
+        "NDW-50 (NDW, first 50 words)",
+        "NDW-ER50 (NDW, expected random 50)",
+        "NDW-ES50 (NDW, expected sequence 50)",
+        "TTR (type-token ratio)",
+        "MSTTR (mean segmental TTR, 50)",
+        "CTTR (corrected TTR)",
+        "RTTR (root TTR)",
+        "LogTTR (bilogarithmic TTR)",
+        "Uber (Uber Index)",
+        "LV (lexical word variation)",
+        "VV1 (verb variation-I)",
+        "SVV1 (squared VV1)",
+        "CVV1 (corrected VV1)",
+        "VV2 (verb variation-II)",
+        "NV (noun variation)",
+        "AdjV (adjective variation)",
+        "AdvV (adverb variation)",
+        "ModV (modifier variation)",
+    )
+
     def __init__(
         self,
         wordlist: str = "bnc",
@@ -464,44 +501,9 @@ class LCA:
             if not self.is_stdout
             else sys.stdout
         )
-        fieldnames = (
-            "filename",
-            "wordtypes (word types)",
-            "swordtypes (sophisticated word types)",
-            "lextypes (lexical types)",
-            "slextypes (sophisticated lexical types)",
-            "wordtokens (word tokens)",
-            "swordtokens (sophisticated word tokens)",
-            "lextokens (lexical tokens)",
-            "slextokens (sophisticated lexical tokens)",
-            "LD (lexical density)",
-            "LS1 (lexical sophistication-I)",
-            "LS2 (lexical sophistication-II)",
-            "VS1 (verb sophistication-I)",
-            "VS2 (verb sophistication-II)",
-            "CVS1 (corrected VS1)",
-            "NDW (number of different words)",
-            "NDW-50 (NDW, first 50 words)",
-            "NDW-ER50 (NDW, expected random 50)",
-            "NDW-ES50 (NDW, expected sequence 50)",
-            "TTR (type-token ratio)",
-            "MSTTR (mean segmental TTR, 50)",
-            "CTTR (corrected TTR)",
-            "RTTR (root TTR)",
-            "LogTTR (bilogarithmic TTR)",
-            "Uber (Uber Index)",
-            "LV (lexical word variation)",
-            "VV1 (verb variation-I)",
-            "SVV1 (squared VV1)",
-            "CVV1 (corrected VV1)",
-            "VV2 (verb variation-II)",
-            "NV (noun variation)",
-            "AdjV (adjective variation)",
-            "AdvV (adverb variation)",
-            "ModV (modifier variation)",
-        )
+
         csv_writer = csv.writer(handle)
-        csv_writer.writerow(fieldnames)
+        csv_writer.writerow(self.FIELDNAMES)
 
         if text is not None:
             values = self._analyze(text=text)
