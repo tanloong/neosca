@@ -57,6 +57,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         self.table_preview_sca.setEditTriggers(
             QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
         )
+        self.table_preview_sca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         layout_preview_button = QtWidgets.QHBoxLayout()
         self.button_generate_table_sca = QtWidgets.QPushButton("Generate table")
         self.button_generate_table_sca.setEnabled(False)
@@ -109,6 +110,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         self.table_preview_lca.setEditTriggers(
             QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
         )
+        self.table_preview_lca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         layout_preview_button = QtWidgets.QHBoxLayout()
         self.button_generate_table_lca = QtWidgets.QPushButton("Generate table")
         self.button_generate_table_lca.setEnabled(False)
@@ -229,6 +231,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             items = [QtGui.QStandardItem(value) for value in values]
             self.model_lca.appendRow(items)
         if self.model_lca.rowCount() >= 1:
+            self.table_preview_lca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
             self.button_export_table_lca.setEnabled(True)
         else:
             self.model_lca.setRowCount(1)
@@ -284,6 +287,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             items = [QtGui.QStandardItem(value) for value in map_.values()]
             self.model_sca.appendRow(items)
         if self.model_sca.rowCount() >= 1:
+            self.table_preview_sca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
             self.button_export_table_sca.setEnabled(True)
         else:
             self.model_sca.setRowCount(1)
