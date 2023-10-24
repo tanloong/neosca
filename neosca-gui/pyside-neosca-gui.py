@@ -8,14 +8,45 @@ import subprocess
 import sys
 from typing import Dict, List
 
-from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
+from PySide6.QtGui import (
+    QAction,
+    QKeySequence,
+    QPalette,
+    QStandardItem,
+    QStandardItemModel,
+)
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QCheckBox,
+    QFileDialog,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QListWidget,
+    QMainWindow,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSizePolicy,
+    QSplitter,
+    QTabWidget,
+    QTableView,
+    QWidget,
+)
+
+from neosca.lca.lca import LCA
 from neosca.neosca import NeoSCA
 from neosca.structure_counter import StructureCounter
-from neosca.lca.lca import LCA
 
 
-class NeoSCA_GUI(QtWidgets.QMainWindow):
+class NeoSCA_GUI(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setup_menu()
@@ -23,18 +54,18 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         self.setup_env()
 
     def setup_menu(self):
-        menubar = QtWidgets.QMenuBar()
+        menubar = QMenuBar()
         # menubar.setStyleSheet("background-color: cyan;")
-        menu_file = QtWidgets.QMenu("File")
-        action_open_file = QtGui.QAction("Open File", menu_file)
-        action_open_file.setShortcut(QtGui.QKeySequence(Qt.CTRL | Qt.Key_O))
+        menu_file = QMenu("File")
+        action_open_file = QAction("Open File", menu_file)
+        action_open_file.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_O))
         action_open_file.triggered.connect(self.browse_file)
-        action_open_folder = QtGui.QAction("Open Folder", menu_file)
-        action_restart = QtGui.QAction("Restart", menu_file)
+        action_open_folder = QAction("Open Folder", menu_file)
+        action_restart = QAction("Restart", menu_file)
         action_restart.triggered.connect(self.restart)
-        action_restart.setShortcut(QtGui.QKeySequence(Qt.CTRL | Qt.Key_R))
-        action_close = QtGui.QAction("Close", menu_file)
-        action_close.setShortcut(QtGui.QKeySequence(Qt.CTRL | Qt.Key_Q))
+        action_restart.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_R))
+        action_close = QAction("Close", menu_file)
+        action_close.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_Q))
         action_close.triggered.connect(self.close)
         menu_file.addAction(action_open_file)
         menu_file.addAction(action_open_folder)
@@ -44,141 +75,125 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         self.setMenuBar(menubar)
 
     def setup_tab_sca(self):
-        frame_preview_sca = QtWidgets.QFrame()
         # frame_preview.setStyleSheet("background-color: green;")
-        self.model_sca = QtGui.QStandardItemModel()
+        self.model_sca = QStandardItemModel()
         self.model_sca.setColumnCount(1 + len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(
             ["Filepath"] + StructureCounter.DEFAULT_MEASURES
         )
         self.model_sca.setRowCount(1)
-        self.table_preview_sca = QtWidgets.QTableView()
+        self.table_preview_sca = QTableView()
         self.table_preview_sca.setModel(self.model_sca)
-        self.table_preview_sca.setEditTriggers(
-            QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
+        # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
+        self.table_preview_sca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_preview_sca.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
         )
-        self.table_preview_sca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        layout_preview_button = QtWidgets.QHBoxLayout()
-        self.button_generate_table_sca = QtWidgets.QPushButton("Generate table")
+
+        self.button_generate_table_sca = QPushButton("Generate table")
         self.button_generate_table_sca.setEnabled(False)
         self.button_generate_table_sca.clicked.connect(self.sca_generate_table)
-        self.button_generate_table_sca.setShortcut(QtGui.QKeySequence(Qt.CTRL | Qt.Key_G))
-        self.button_export_table_sca = QtWidgets.QPushButton("Export all cells...")
+        self.button_generate_table_sca.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_G))
+        self.button_export_table_sca = QPushButton("Export all cells...")
         self.button_export_table_sca.setEnabled(False)
-        self.button_export_table_sca.clicked.connect(lambda :self.export_table(self.model_sca))
-        # self.button_export_selected_cells = QtWidgets.QPushButton("Export selected cells...")
+        self.button_export_table_sca.clicked.connect(lambda: self.export_table(self.model_sca))
+        # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
-        layout_preview_button.addWidget(self.button_generate_table_sca)
-        layout_preview_button.addWidget(self.button_export_table_sca)
-        # layout_preview_button.addWidget(self.button_export_selected_cells)
-        layout_preview_sca = QtWidgets.QVBoxLayout()
-        layout_preview_sca.addWidget(self.table_preview_sca)
-        layout_preview_sca.addLayout(layout_preview_button)
-        frame_preview_sca.setLayout(layout_preview_sca)
 
-        frame_setting_sca = QtWidgets.QFrame()
-        frame_setting_sca.setStyleSheet("background-color: white;")
-        self.checkbox_reserve_parsed_trees = QtWidgets.QCheckBox(
-            "Reserve parsed trees", frame_setting_sca
+        # frame_setting_sca.setStyleSheet("background-color: pink;")
+        self.checkbox_reserve_parsed_trees = QCheckBox(
+            "Reserve parsed trees",
         )
         self.checkbox_reserve_parsed_trees.setChecked(True)
-        self.checkbox_reserve_matched_subtrees = QtWidgets.QCheckBox(
-            "Reserve matched subtrees", frame_setting_sca
-        )
+        self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matched subtrees")
         self.checkbox_reserve_matched_subtrees.setChecked(True)
-        layout_setting_sca = QtWidgets.QVBoxLayout()
-        layout_setting_sca.addWidget(self.checkbox_reserve_parsed_trees)
-        layout_setting_sca.addWidget(self.checkbox_reserve_matched_subtrees)
-        frame_setting_sca.setLayout(layout_setting_sca)
+        widget_settings_sca = QWidget()
+        widget_settings_sca.setLayout(QGridLayout())
+        widget_settings_sca.layout().addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
+        widget_settings_sca.layout().addWidget(self.checkbox_reserve_matched_subtrees, 1, 0)
 
-        layout_tab_sca = QtWidgets.QHBoxLayout()
-        layout_tab_sca.addWidget(frame_preview_sca)
-        layout_tab_sca.addWidget(frame_setting_sca)
+        scrollarea_settings_sca = QScrollArea()
+        scrollarea_settings_sca.setLayout(QGridLayout())
+        scrollarea_settings_sca.setWidgetResizable(True)
+        scrollarea_settings_sca.setFixedWidth(200)
+        scrollarea_settings_sca.setBackgroundRole(QPalette.Light)
+        scrollarea_settings_sca.setWidget(widget_settings_sca)
 
-        self.tab_sca = QtWidgets.QWidget()
-        self.tab_sca.setLayout(layout_tab_sca)
+        self.tab_sca = QWidget()
+        self.tab_sca.setLayout(QGridLayout())
+        self.tab_sca.layout().addWidget(self.table_preview_sca, 0, 0, 1, 2)
+        self.tab_sca.layout().addWidget(self.button_generate_table_sca, 1, 0)
+        self.tab_sca.layout().addWidget(self.button_export_table_sca, 1, 1)
+        self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, 2, 2, 1)
+        self.tab_sca.layout().setContentsMargins(6, 4, 6, 4)
 
     def setup_tab_lca(self):
-        frame_preview_lca = QtWidgets.QFrame()
         # frame_preview.setStyleSheet("background-color: green;")
-        self.model_lca = QtGui.QStandardItemModel()
+        self.model_lca = QStandardItemModel()
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES))
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES)
         self.model_lca.setRowCount(1)
-        self.table_preview_lca = QtWidgets.QTableView()
+        self.table_preview_lca = QTableView()
         self.table_preview_lca.setModel(self.model_lca)
-        self.table_preview_lca.setEditTriggers(
-            QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
+        self.table_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_preview_lca.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
         )
-        self.table_preview_lca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        layout_preview_button = QtWidgets.QHBoxLayout()
-        self.button_generate_table_lca = QtWidgets.QPushButton("Generate table")
+
+        self.button_generate_table_lca = QPushButton("Generate table")
         self.button_generate_table_lca.setEnabled(False)
         self.button_generate_table_lca.clicked.connect(self.lca_generate_table)
-        self.button_generate_table_lca.setShortcut(QtGui.QKeySequence(Qt.CTRL | Qt.Key_G))
-        self.button_export_table_lca = QtWidgets.QPushButton("Export all cells...")
+        self.button_generate_table_lca.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_G))
+        self.button_export_table_lca = QPushButton("Export all cells...")
         self.button_export_table_lca.setEnabled(False)
-        self.button_export_table_lca.clicked.connect(lambda :self.export_table(self.model_lca))
-        # self.button_export_selected_cells = QtWidgets.QPushButton("Export selected cells...")
+        self.button_export_table_lca.clicked.connect(lambda: self.export_table(self.model_lca))
+        # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
-        layout_preview_button.addWidget(self.button_generate_table_lca)
-        layout_preview_button.addWidget(self.button_export_table_lca)
-        # layout_preview_button.addWidget(self.button_export_selected_cells)
-        layout_preview_lca = QtWidgets.QVBoxLayout()
-        layout_preview_lca.addWidget(self.table_preview_lca)
-        layout_preview_lca.addLayout(layout_preview_button)
-        frame_preview_lca.setLayout(layout_preview_lca)
 
-        frame_setting_lca = QtWidgets.QFrame()
-        frame_setting_lca.setStyleSheet("background-color: white;")
-        self.radiobutton_wordlist_BNC = QtWidgets.QRadioButton(
-            "British National Corpus (BNC) wordlist"
-        )
+        self.radiobutton_wordlist_BNC = QRadioButton("British National Corpus (BNC) wordlist")
         self.radiobutton_wordlist_BNC.setChecked(True)
-        self.radiobutton_wordlist_ANC = QtWidgets.QRadioButton(
-            "American National Corpus (ANC) wordlist"
-        )
-        layout_wordlist = QtWidgets.QVBoxLayout()
-        layout_wordlist.addWidget(self.radiobutton_wordlist_BNC)
-        layout_wordlist.addWidget(self.radiobutton_wordlist_ANC)
-        self.groupbox_wordlist = QtWidgets.QGroupBox("Wordlist")
-        self.groupbox_wordlist.setLayout(layout_wordlist)
-        self.radiobutton_tagset_ud = QtWidgets.QRadioButton("Universal POS Tagset")
+        self.radiobutton_wordlist_ANC = QRadioButton("American National Corpus (ANC) wordlist")
+        self.radiobutton_tagset_ud = QRadioButton("Universal POS Tagset")
         self.radiobutton_tagset_ud.setChecked(True)
-        self.radiobutton_tagset_ptb = QtWidgets.QRadioButton("Penn Treebank POS Tagset")
-        layout_tagset = QtWidgets.QVBoxLayout()
-        layout_tagset.addWidget(self.radiobutton_tagset_ud)
-        layout_tagset.addWidget(self.radiobutton_tagset_ptb)
-        self.groupbox_tagset = QtWidgets.QGroupBox("Tagset")
-        self.groupbox_tagset.setLayout(layout_tagset)
-        layout_setting_lca = QtWidgets.QVBoxLayout()
-        layout_setting_lca.addWidget(self.groupbox_wordlist)
-        layout_setting_lca.addWidget(self.groupbox_tagset)
-        frame_setting_lca.setLayout(layout_setting_lca)
+        self.radiobutton_tagset_ptb = QRadioButton("Penn Treebank POS Tagset")
 
-        layout_tab_lca = QtWidgets.QHBoxLayout()
-        layout_tab_lca.addWidget(frame_preview_lca)
-        layout_tab_lca.addWidget(frame_setting_lca)
+        widget_settings_lca = QWidget()
+        widget_settings_lca.setLayout(QGridLayout())
+        widget_settings_lca.layout().addWidget(self.radiobutton_wordlist_BNC, 0, 0)
+        widget_settings_lca.layout().addWidget(self.radiobutton_wordlist_ANC, 1, 0)
+        widget_settings_lca.layout().addWidget(self.radiobutton_tagset_ud, 2, 0)
+        widget_settings_lca.layout().addWidget(self.radiobutton_tagset_ptb, 3, 0)
 
-        self.tab_lca = QtWidgets.QWidget()
-        self.tab_lca.setLayout(layout_tab_lca)
+        scrollarea_settings_lca = QScrollArea()
+        scrollarea_settings_lca.setFixedWidth(200)
+        scrollarea_settings_lca.setWidgetResizable(True)
+        scrollarea_settings_lca.setBackgroundRole(QPalette.Light)
+        scrollarea_settings_lca.setWidget(widget_settings_lca)
+
+        self.tab_lca = QWidget()
+        self.tab_lca.setLayout(QGridLayout())
+        self.tab_lca.layout().addWidget(self.table_preview_lca, 0, 0, 1, 2)
+        self.tab_lca.layout().addWidget(self.button_generate_table_lca, 1, 0)
+        self.tab_lca.layout().addWidget(self.button_export_table_lca, 1, 1)
+        self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, 2, 2, 1)
+        self.tab_lca.layout().setContentsMargins(6, 4, 6, 4)
 
     def setup_main_window(self):
         self.setup_tab_sca()
         self.setup_tab_lca()
 
-        self.listwidget_file = QtWidgets.QListWidget()
+        self.listwidget_file = QListWidget()
         # self.listwidget_file.setStyleSheet("background-color: red;")
-        self.listwidget_file.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.listwidget_file.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listwidget_file.customContextMenuRequested.connect(
             self.add_menu_for_listwidget_file
         )
-        self.listwidget_file.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.listwidget_file.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.tab_bar = QtWidgets.QTabWidget()
+        self.tab_bar = QTabWidget()
         self.tab_bar.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
         self.tab_bar.addTab(self.tab_lca, "Lexical Complexity Analyzer")
-        self.splitter_central_widget = QtWidgets.QSplitter(Qt.Orientation.Vertical)
+        self.splitter_central_widget = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tab_bar)
         self.splitter_central_widget.setStretchFactor(0, 2)
@@ -203,9 +218,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
         ]
         if not input_file_paths:
-            QtWidgets.QMessageBox.warning(
-                self, "No input files", f"Please select files to process."
-            )
+            QMessageBox.warning(self, "No input files", f"Please select files to process.")
             return
 
         self.button_generate_table_lca.setEnabled(False)
@@ -228,10 +241,12 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             values = lca_analyzer._analyze(file_path=file_path)
             if values is None:  # TODO: should pop up warning window
                 continue
-            items = [QtGui.QStandardItem(value) for value in values]
+            items = [QStandardItem(value) for value in values]
             self.model_lca.appendRow(items)
         if self.model_lca.rowCount() >= 1:
-            self.table_preview_lca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+            self.table_preview_lca.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
             self.button_export_table_lca.setEnabled(True)
         else:
             self.model_lca.setRowCount(1)
@@ -241,13 +256,11 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
         ]
         if not input_file_paths:
-            QtWidgets.QMessageBox.warning(
-                self, "No input files", f"Please select files to process."
-            )
+            QMessageBox.warning(self, "No input files", f"Please select files to process.")
             return
 
         self.button_generate_table_sca.setEnabled(False)
-        # messagebox_processing = QtWidgets.QMessageBox(self)
+        # messagebox_processing = QMessageBox(self)
         # messagebox_processing.setWindowTitle("Please waite.")
         # # dialog_processing.resize(300, 200)
         # messagebox_processing.setText("NeoSCA is running. It may take a few minutes to finish the job. Please wait.")
@@ -284,10 +297,12 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         ]
         self.model_sca.setRowCount(0)
         for i, map_ in enumerate(sname_value_maps):
-            items = [QtGui.QStandardItem(value) for value in map_.values()]
+            items = [QStandardItem(value) for value in map_.values()]
             self.model_sca.appendRow(items)
         if self.model_sca.rowCount() >= 1:
-            self.table_preview_sca.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+            self.table_preview_sca.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
             self.button_export_table_sca.setEnabled(True)
         else:
             self.model_sca.setRowCount(1)
@@ -295,8 +310,8 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
         # enabled when more input files are added
         # messagebox_processing.close()
 
-    def export_table(self, model: QtGui.QStandardItemModel) -> None:
-        file_path, file_type = QtWidgets.QFileDialog.getSaveFileName(
+    def export_table(self, model: QStandardItemModel) -> None:
+        file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
             caption="Export Table",
             dir=self.desktop,
@@ -337,16 +352,16 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
                         csv_writer.writerow(
                             model.item(rowno, colno).text() for colno in range(col_count)
                         )
-            QtWidgets.QMessageBox.information(
+            QMessageBox.information(
                 self, "Success", f"The table has been successfully exported to {file_path}."
             )
         except PermissionError:
-            QtWidgets.QMessageBox.critical(
+            QMessageBox.critical(
                 self, "Error", f"PermissionError: failed to export the table to {file_path}."
             )
 
     def browse_file(self):
-        file_dialog = QtWidgets.QFileDialog(
+        file_dialog = QFileDialog(
             directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
         )
         file_paths_to_add, _ = file_dialog.getOpenFileNames(
@@ -372,14 +387,14 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
             self.button_generate_table_lca.setEnabled(True)
 
         if file_paths_dup:
-            QtWidgets.QMessageBox.information(
+            QMessageBox.information(
                 self,
                 "Duplication",
                 "These duplicated files are skipped:\n- {}".format("\n- ".join(file_paths_dup)),
             )
 
     def add_menu_for_listwidget_file(self, position):
-        menu = QtWidgets.QMenu()
+        menu = QMenu()
         remove_action = menu.addAction("Remove")
         action = menu.exec(self.listwidget_file.mapToGlobal(position))
         if action == remove_action:
@@ -397,7 +412,7 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     widget = NeoSCA_GUI()
     widget.show()
     sys.exit(app.exec())
