@@ -167,22 +167,22 @@ class NeoSCA_GUI(QtWidgets.QMainWindow):
 
         self.listwidget_file = QtWidgets.QListWidget()
         # self.listwidget_file.setStyleSheet("background-color: red;")
-        self.listwidget_file.setMaximumHeight(150)
         self.listwidget_file.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.listwidget_file.customContextMenuRequested.connect(
             self.add_menu_for_listwidget_file
         )
         self.listwidget_file.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
-        tab_bar = QtWidgets.QTabWidget()
-        tab_bar.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
-        tab_bar.addTab(self.tab_lca, "Lexical Complexity Analyzer")
-        layout_main = QtWidgets.QVBoxLayout()
-        layout_main.addWidget(tab_bar, stretch=3)
-        layout_main.addWidget(self.listwidget_file, stretch=1)
-        container = QtWidgets.QWidget()
-        container.setLayout(layout_main)
-        self.setCentralWidget(container)
+        self.tab_bar = QtWidgets.QTabWidget()
+        self.tab_bar.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
+        self.tab_bar.addTab(self.tab_lca, "Lexical Complexity Analyzer")
+        self.splitter_central_widget = QtWidgets.QSplitter(Qt.Orientation.Vertical)
+        self.splitter_central_widget.setChildrenCollapsible(False)
+        self.splitter_central_widget.addWidget(self.tab_bar)
+        self.splitter_central_widget.setStretchFactor(0, 2)
+        self.splitter_central_widget.addWidget(self.listwidget_file)
+        self.splitter_central_widget.setStretchFactor(1, 1)
+        self.setCentralWidget(self.splitter_central_widget)
 
     def setup_env(self) -> None:
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
