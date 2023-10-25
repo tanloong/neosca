@@ -6,15 +6,17 @@ import os.path as os_path
 import re
 import subprocess
 import sys
-from typing import Dict, List
+from typing import Dict, Iterable, List, Set
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QModelIndex, QPoint, Qt
 from PySide6.QtGui import (
     QAction,
+    QCursor,
     QKeySequence,
     QPalette,
     QStandardItem,
     QStandardItemModel,
+    QTextCursor,
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -77,18 +79,17 @@ class NeoSCA_GUI(QMainWindow):
     def setup_tab_sca(self):
         # frame_preview.setStyleSheet("background-color: green;")
         self.model_sca = QStandardItemModel()
-        self.model_sca.setColumnCount(1 + len(StructureCounter.DEFAULT_MEASURES))
-        self.model_sca.setHorizontalHeaderLabels(
-            ["Filepath"] + StructureCounter.DEFAULT_MEASURES
-        )
+        self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
+        self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.setRowCount(1)
-        self.table_preview_sca = QTableView()
-        self.table_preview_sca.setModel(self.model_sca)
+        self.tableview_preview_sca = QTableView()
+        self.tableview_preview_sca.setModel(self.model_sca)
         # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
-        self.table_preview_sca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table_preview_sca.horizontalHeader().setSectionResizeMode(
+        self.tableview_preview_sca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+        self.tableview_preview_sca.setSelectionBehavior(QTableView.SelectRows)
 
         self.button_generate_table_sca = QPushButton("Generate table")
         self.button_generate_table_sca.setEnabled(False)
@@ -121,7 +122,7 @@ class NeoSCA_GUI(QMainWindow):
 
         self.tab_sca = QWidget()
         self.tab_sca.setLayout(QGridLayout())
-        self.tab_sca.layout().addWidget(self.table_preview_sca, 0, 0, 1, 2)
+        self.tab_sca.layout().addWidget(self.tableview_preview_sca, 0, 0, 1, 2)
         self.tab_sca.layout().addWidget(self.button_generate_table_sca, 1, 0)
         self.tab_sca.layout().addWidget(self.button_export_table_sca, 1, 1)
         self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, 2, 2, 1)
@@ -133,12 +134,13 @@ class NeoSCA_GUI(QMainWindow):
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES))
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES)
         self.model_lca.setRowCount(1)
-        self.table_preview_lca = QTableView()
-        self.table_preview_lca.setModel(self.model_lca)
-        self.table_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table_preview_lca.horizontalHeader().setSectionResizeMode(
+        self.tableview_preview_lca = QTableView()
+        self.tableview_preview_lca.setModel(self.model_lca)
+        self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+        self.tableview_preview_lca.setSelectionBehavior(QTableView.SelectRows)
 
         self.button_generate_table_lca = QPushButton("Generate table")
         self.button_generate_table_lca.setEnabled(False)
@@ -172,7 +174,7 @@ class NeoSCA_GUI(QMainWindow):
 
         self.tab_lca = QWidget()
         self.tab_lca.setLayout(QGridLayout())
-        self.tab_lca.layout().addWidget(self.table_preview_lca, 0, 0, 1, 2)
+        self.tab_lca.layout().addWidget(self.tableview_preview_lca, 0, 0, 1, 2)
         self.tab_lca.layout().addWidget(self.button_generate_table_lca, 1, 0)
         self.tab_lca.layout().addWidget(self.button_export_table_lca, 1, 1)
         self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, 2, 2, 1)
@@ -182,13 +184,19 @@ class NeoSCA_GUI(QMainWindow):
         self.setup_tab_sca()
         self.setup_tab_lca()
 
-        self.listwidget_file = QListWidget()
-        # self.listwidget_file.setStyleSheet("background-color: red;")
-        self.listwidget_file.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.listwidget_file.customContextMenuRequested.connect(
-            self.add_menu_for_listwidget_file
+        self.model_file = QStandardItemModel()
+        self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
+        self.model_file.setRowCount(1)
+        self.tableview_file = QTableView()
+        self.tableview_file.setModel(self.model_file)
+        self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tableview_file.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
         )
-        self.listwidget_file.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tableview_file.setSelectionBehavior(QTableView.SelectRows)
+        self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
+        self.tableview_file.customContextMenuRequested.connect(self.show_menu_for_tableview_file)
 
         self.tab_bar = QTabWidget()
         self.tab_bar.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
@@ -197,7 +205,7 @@ class NeoSCA_GUI(QMainWindow):
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tab_bar)
         self.splitter_central_widget.setStretchFactor(0, 2)
-        self.splitter_central_widget.addWidget(self.listwidget_file)
+        self.splitter_central_widget.addWidget(self.tableview_file)
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
 
@@ -214,9 +222,8 @@ class NeoSCA_GUI(QMainWindow):
         self.env = os.environ.copy()
 
     def lca_generate_table(self) -> None:
-        input_file_paths = [
-            self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
-        ]
+        colno_path = 1
+        input_file_paths = list(self.yield_added_file_paths())
         if not input_file_paths:
             QMessageBox.warning(self, "No input files", f"Please select files to process.")
             return
@@ -236,7 +243,7 @@ class NeoSCA_GUI(QMainWindow):
         else:
             lca_analyzer.update_options(lca_kwargs)
 
-        self.model_lca.setRowCount(0)
+        self.remove_model_rows(self.model_lca)
         for file_path in input_file_paths:
             values = lca_analyzer._analyze(file_path=file_path)
             if values is None:  # TODO: should pop up warning window
@@ -244,7 +251,7 @@ class NeoSCA_GUI(QMainWindow):
             items = [QStandardItem(value) for value in values]
             self.model_lca.appendRow(items)
         if self.model_lca.rowCount() >= 1:
-            self.table_preview_lca.horizontalHeader().setSectionResizeMode(
+            self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
             self.button_export_table_lca.setEnabled(True)
@@ -252,9 +259,8 @@ class NeoSCA_GUI(QMainWindow):
             self.model_lca.setRowCount(1)
 
     def sca_generate_table(self) -> None:
-        input_file_paths = [
-            self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
-        ]
+        colno_path = 1
+        input_file_paths = list(self.yield_added_file_paths())
         if not input_file_paths:
             QMessageBox.warning(self, "No input files", f"Please select files to process.")
             return
@@ -295,20 +301,19 @@ class NeoSCA_GUI(QMainWindow):
         sname_value_maps: List[Dict[str, str]] = [
             counter.get_all_values() for counter in sca_analyzer.counters
         ]
-        self.model_sca.setRowCount(0)
+        if not sname_value_maps:
+            return
+
+        self.remove_model_rows(self.model_sca)
         for i, map_ in enumerate(sname_value_maps):
             items = [QStandardItem(value) for value in map_.values()]
             self.model_sca.appendRow(items)
-        if self.model_sca.rowCount() >= 1:
-            self.table_preview_sca.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
-            self.button_export_table_sca.setEnabled(True)
-        else:
-            self.model_sca.setRowCount(1)
+        self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.button_export_table_sca.setEnabled(True)
         # don't have to enbale generate buttons here as they should only be
         # enabled when more input files are added
-        # messagebox_processing.close()
 
     def export_table(self, model: QStandardItemModel) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
@@ -360,38 +365,105 @@ class NeoSCA_GUI(QMainWindow):
                 self, "Error", f"PermissionError: failed to export the table to {file_path}."
             )
 
-    def browse_file(self):
-        file_dialog = QFileDialog(
-            directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
-        )
-        file_paths_to_add, _ = file_dialog.getOpenFileNames(
-            self, "Open Files", "", "Text Files (*.txt);;Docx Files (*.docx)"
-        )
-        if not file_paths_to_add:
-            return
+    def show_menu_for_tableview_file(self) -> None:
+        action_remove_file = QAction("Remove")
+        action_remove_file.triggered.connect(self.remove_file_paths)
+        menu = QMenu()
+        menu.addAction(action_remove_file)
+        menu.exec(QCursor.pos())
 
-        unique_file_paths_to_add = set(file_paths_to_add)
-        added_file_paths = set(
-            self.listwidget_file.item(i).text() for i in range(self.listwidget_file.count())
+    def remove_file_paths(self) -> None:
+        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
+        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
+        # Remove rows from bottom to top, or otherwise the lower row indexes will change as upper rows are removed
+        rownos = sorted((index.row() for index in indexes), reverse=True)
+        for rowno in rownos:
+            self.model_file.takeRow(rowno)
+
+    def remove_model_rows(self, model: QStandardItemModel, *rownos: int) -> None:
+        if not rownos:
+            # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
+            model.setRowCount(0)
+        else:
+            for rowno in rownos:
+                model.takeRow(rowno)
+
+    def remove_model_single_empty_row(self, model: QStandardItemModel) -> None:
+        if model.rowCount() == 1 and model.item(0, 0) is None:
+            model.setRowCount(0)
+
+    # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
+    def yield_model_column(self, model: QStandardItemModel, colno: int) -> Iterable[str]:
+        items = (model.item(rowno, colno) for rowno in range(model.rowCount()))
+        return (item.text() for item in items if item is not None)
+
+    def yield_added_file_paths(self) -> Iterable[str]:
+        colno_path = 1
+        return self.yield_model_column(self.model_file, colno_path)
+
+    def set_model_items_from_row_start(
+        self, model: QStandardItemModel, rowno: int, *items: str
+    ) -> None:
+        for colno, item in enumerate(items):
+            model.setItem(rowno, colno, QStandardItem(item))
+
+    def add_file_paths(self, file_paths_to_add: List[str]) -> None:
+        unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
+        already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
+        file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
+        file_paths_empty: Set[str] = set(
+            filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add)
         )
-        file_paths_dup = unique_file_paths_to_add & added_file_paths
-        file_paths_ok = [
-            file_path
-            for file_path in (unique_file_paths_to_add - added_file_paths)
-            if os_path.getsize(file_path)
-        ]
+        file_paths_ok: Set[str] = (
+            unique_file_paths_to_add
+            - already_added_file_paths
+            - file_paths_dup
+            - file_paths_empty
+        )
         if file_paths_ok:
-            self.listwidget_file.addItems(file_paths_ok)
+            self.remove_model_single_empty_row(self.model_file)
+            colno_name = 0
+            already_added_file_names = list(
+                self.yield_model_column(self.model_file, colno_name)
+            )  # Here the already_added_file_names will have no duplicates
+            for file_path in file_paths_ok:
+                file_name = os_path.splitext(os_path.basename(file_path))[0]
+                if file_name in already_added_file_names:
+                    occurrences = 2
+                    while f"{file_name} ({occurrences})" in already_added_file_names:
+                        occurrences += 1
+                    file_name = f"{file_name} ({occurrences})"
+                already_added_file_names.append(file_name)
+                self.set_model_items_from_row_start(
+                    self.model_file, self.model_file.rowCount(), file_name, file_path
+                )
+
+            self.tableview_file.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
             # Enable "generate_table" button when new files are added
             self.button_generate_table_sca.setEnabled(True)
             self.button_generate_table_lca.setEnabled(True)
 
-        if file_paths_dup:
+        if any((file_paths_dup, file_paths_empty)):  # TODO
             QMessageBox.information(
                 self,
-                "Duplication",
-                "These duplicated files are skipped:\n- {}".format("\n- ".join(file_paths_dup)),
+                "Error Adding Files",
+                "These files are skipped:\n- {}".format(
+                    "\n- ".join(file_paths_dup | file_paths_empty)
+                ),
             )
+
+    def browse_file(self):
+        file_dialog = QFileDialog(
+            directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
+        )  # TODO remove this before releasing
+        file_paths_to_add, _ = file_dialog.getOpenFileNames(
+            self, "Open Files", "", "All files (*);;Text files (*.txt);;Docx files (*.docx)"
+        )
+        if not file_paths_to_add:
+            return
+        self.add_file_paths(file_paths_to_add)
 
     def add_menu_for_listwidget_file(self, position):
         menu = QMenu()
@@ -412,7 +484,7 @@ class NeoSCA_GUI(QMainWindow):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    widget = NeoSCA_GUI()
-    widget.show()
-    sys.exit(app.exec())
+    ns_app = QApplication(sys.argv)
+    ns_window = NeoSCA_GUI()
+    ns_window.show()
+    sys.exit(ns_app.exec())
