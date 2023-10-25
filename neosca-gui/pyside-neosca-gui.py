@@ -3,12 +3,11 @@
 
 import os
 import os.path as os_path
-import re
 import subprocess
 import sys
-from typing import Dict, Iterable, List, Set
+from typing import Dict, Iterable, List, Literal, Optional, Set
 
-from PySide6.QtCore import QModelIndex, QPoint, Qt
+from PySide6.QtCore import QModelIndex, Qt
 from PySide6.QtGui import (
     QAction,
     QCursor,
@@ -16,19 +15,16 @@ from PySide6.QtGui import (
     QPalette,
     QStandardItem,
     QStandardItemModel,
-    QTextCursor,
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QButtonGroup,
     QCheckBox,
     QFileDialog,
-    QFrame,
     QGridLayout,
     QGroupBox,
-    QHBoxLayout,
     QHeaderView,
-    QListWidget,
     QMainWindow,
     QMenu,
     QMenuBar,
@@ -36,7 +32,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QRadioButton,
     QScrollArea,
-    QSizePolicy,
     QSplitter,
     QTabWidget,
     QTableView,
@@ -59,20 +54,22 @@ class NeoSCA_GUI(QMainWindow):
         menubar = QMenuBar()
         # menubar.setStyleSheet("background-color: cyan;")
         menu_file = QMenu("File")
-        action_open_file = QAction("Open File", menu_file)
+        action_open_file = QAction("Open File...", menu_file)
         action_open_file.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_O))
         action_open_file.triggered.connect(self.browse_file)
-        action_open_folder = QAction("Open Folder", menu_file)
-        action_restart = QAction("Restart", menu_file)
-        action_restart.triggered.connect(self.restart)
-        action_restart.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_R))
-        action_close = QAction("Close", menu_file)
-        action_close.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_Q))
-        action_close.triggered.connect(self.close)
+        action_open_folder = QAction("Open Folder...", menu_file)
+        action_restart = QAction("Restart", menu_file)  # TODO remove this before releasing
+        action_restart.triggered.connect(self.restart)  # TODO remove this before releasing
+        action_restart.setShortcut(
+            QKeySequence(Qt.CTRL | Qt.Key_R)
+        )  # TODO remove this before releasing
+        action_quit = QAction("Quit", menu_file)
+        action_quit.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_Q))
+        action_quit.triggered.connect(self.close)
         menu_file.addAction(action_open_file)
         menu_file.addAction(action_open_folder)
         menu_file.addAction(action_restart)
-        menu_file.addAction(action_close)
+        menu_file.addAction(action_quit)
         menubar.addMenu(menu_file)
         self.setMenuBar(menubar)
 
@@ -81,7 +78,7 @@ class NeoSCA_GUI(QMainWindow):
         self.model_sca = QStandardItemModel()
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
-        self.model_sca.setRowCount(1)
+        self.reset_model(self.model_sca, orientation="hor")
         self.tableview_preview_sca = QTableView()
         self.tableview_preview_sca.setModel(self.model_sca)
         # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
@@ -89,6 +86,8 @@ class NeoSCA_GUI(QMainWindow):
         self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+        self.tableview_preview_sca.horizontalHeader().setHighlightSections(False)
+        # self.tableview_preview_sca.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.tableview_preview_sca.setSelectionBehavior(QTableView.SelectRows)
 
         self.button_generate_table_sca = QPushButton("Generate table")
@@ -131,15 +130,17 @@ class NeoSCA_GUI(QMainWindow):
     def setup_tab_lca(self):
         # frame_preview.setStyleSheet("background-color: green;")
         self.model_lca = QStandardItemModel()
-        self.model_lca.setColumnCount(len(LCA.FIELDNAMES))
-        self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES)
-        self.model_lca.setRowCount(1)
+        self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
+        self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
+        self.reset_model(self.model_lca, orientation="hor")
         self.tableview_preview_lca = QTableView()
         self.tableview_preview_lca.setModel(self.model_lca)
         self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+        self.tableview_preview_lca.horizontalHeader().setHighlightSections(False)
+        # self.tableview_preview_lca.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.tableview_preview_lca.setSelectionBehavior(QTableView.SelectRows)
 
         self.button_generate_table_lca = QPushButton("Generate table")
@@ -155,16 +156,22 @@ class NeoSCA_GUI(QMainWindow):
         self.radiobutton_wordlist_BNC = QRadioButton("British National Corpus (BNC) wordlist")
         self.radiobutton_wordlist_BNC.setChecked(True)
         self.radiobutton_wordlist_ANC = QRadioButton("American National Corpus (ANC) wordlist")
+        groupbox_wordlist = QGroupBox("Wordlist")
+        groupbox_wordlist.setLayout(QGridLayout())
+        groupbox_wordlist.layout().addWidget(self.radiobutton_wordlist_BNC, 0, 0)
+        groupbox_wordlist.layout().addWidget(self.radiobutton_wordlist_ANC, 1, 0)
         self.radiobutton_tagset_ud = QRadioButton("Universal POS Tagset")
         self.radiobutton_tagset_ud.setChecked(True)
         self.radiobutton_tagset_ptb = QRadioButton("Penn Treebank POS Tagset")
+        groupbox_tagset = QGroupBox("Tagset")
+        groupbox_tagset.setLayout(QGridLayout())
+        groupbox_tagset.layout().addWidget(self.radiobutton_tagset_ud, 0, 0)
+        groupbox_tagset.layout().addWidget(self.radiobutton_tagset_ptb, 1, 0)
 
         widget_settings_lca = QWidget()
         widget_settings_lca.setLayout(QGridLayout())
-        widget_settings_lca.layout().addWidget(self.radiobutton_wordlist_BNC, 0, 0)
-        widget_settings_lca.layout().addWidget(self.radiobutton_wordlist_ANC, 1, 0)
-        widget_settings_lca.layout().addWidget(self.radiobutton_tagset_ud, 2, 0)
-        widget_settings_lca.layout().addWidget(self.radiobutton_tagset_ptb, 3, 0)
+        widget_settings_lca.layout().addWidget(groupbox_wordlist, 0, 0)
+        widget_settings_lca.layout().addWidget(groupbox_tagset, 1, 0)
 
         scrollarea_settings_lca = QScrollArea()
         scrollarea_settings_lca.setFixedWidth(200)
@@ -181,23 +188,24 @@ class NeoSCA_GUI(QMainWindow):
         self.tab_lca.layout().setContentsMargins(6, 4, 6, 4)
 
     def setup_main_window(self):
-        self.setup_tab_sca()
-        self.setup_tab_lca()
-
         self.model_file = QStandardItemModel()
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
-        self.model_file.setRowCount(1)
+        self.reset_model(self.model_file)
         self.tableview_file = QTableView()
         self.tableview_file.setModel(self.model_file)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+        self.tableview_file.horizontalHeader().setHighlightSections(False)
+        # self.tableview_file.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.tableview_file.setSelectionBehavior(QTableView.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_for_tableview_file)
 
+        self.setup_tab_sca()
+        self.setup_tab_lca()
         self.tab_bar = QTabWidget()
         self.tab_bar.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
         self.tab_bar.addTab(self.tab_lca, "Lexical Complexity Analyzer")
@@ -208,6 +216,17 @@ class NeoSCA_GUI(QMainWindow):
         self.splitter_central_widget.addWidget(self.tableview_file)
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
+
+    def reset_model(
+        self, model: QStandardItemModel, orientation: Literal["hor", "ver"] = "hor"
+    ) -> None:
+        # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
+        if orientation == "hor":
+            model.setRowCount(0)
+            model.setRowCount(1)
+        elif orientation == "ver":
+            model.setColumnCount(0)
+            model.setColumnCount(1)
 
     def setup_env(self) -> None:
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
@@ -222,13 +241,12 @@ class NeoSCA_GUI(QMainWindow):
         self.env = os.environ.copy()
 
     def lca_generate_table(self) -> None:
-        colno_path = 1
-        input_file_paths = list(self.yield_added_file_paths())
+        input_file_names = self.yield_added_file_names()
+        input_file_paths = self.yield_added_file_paths()
         if not input_file_paths:
             QMessageBox.warning(self, "No input files", f"Please select files to process.")
             return
 
-        self.button_generate_table_lca.setEnabled(False)
         lca_kwargs = {
             "wordlist": "bnc" if self.radiobutton_wordlist_BNC.isChecked() else "anc",
             "tagset": "ud" if self.radiobutton_tagset_ud.isChecked() else "ptb",
@@ -244,29 +262,43 @@ class NeoSCA_GUI(QMainWindow):
             lca_analyzer.update_options(lca_kwargs)
 
         self.remove_model_rows(self.model_lca)
-        for file_path in input_file_paths:
-            values = lca_analyzer._analyze(file_path=file_path)
-            if values is None:  # TODO: should pop up warning window
+        err_file_paths = []
+        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
+            try:
+                values = lca_analyzer._analyze(file_path=file_path)
+            except:
+                err_file_paths.append(file_path)
                 continue
-            items = [QStandardItem(value) for value in values]
-            self.model_lca.appendRow(items)
-        if self.model_lca.rowCount() >= 1:
+            if values is None:  # TODO: should pop up warning window
+                err_file_paths.append(file_path)
+                continue
+            _, *items = (QStandardItem(value) for value in values)
+            self.model_lca.insertRow(rowno, items)
+            self.model_lca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+        if self.model_lca.rowCount() >= 1:# TODO: here need to change when transpose the table to vertical
             self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
             self.button_export_table_lca.setEnabled(True)
         else:
-            self.model_lca.setRowCount(1)
+            self.reset_model(self.model_lca)
 
+        if err_file_paths: # TODO: should show a table
+            QMessageBox.information(
+                self,
+                "Error Processing Files",
+                "These files are skipped:\n- {}".format(
+                    "\n- ".join(err_file_paths)
+                ),
+            )
     def sca_generate_table(self) -> None:
-        colno_path = 1
-        input_file_paths = list(self.yield_added_file_paths())
+        input_file_names = self.yield_added_file_names()
+        input_file_paths = self.yield_added_file_paths()
         if not input_file_paths:
-            QMessageBox.warning(self, "No input files", f"Please select files to process.")
+            QMessageBox.warning(self, "No Input Files", f"Please select files to begin.")
             return
 
-        self.button_generate_table_sca.setEnabled(False)
-        # messagebox_processing = QMessageBox(self)
+        # TODO messagebox_processing = QMessageBox(self)
         # messagebox_processing.setWindowTitle("Please waite.")
         # # dialog_processing.resize(300, 200)
         # messagebox_processing.setText("NeoSCA is running. It may take a few minutes to finish the job. Please wait.")
@@ -297,23 +329,39 @@ class NeoSCA_GUI(QMainWindow):
         else:
             sca_analyzer.update_options(sca_kwargs)
 
-        sca_analyzer.run_on_ifiles(input_file_paths)
-        sname_value_maps: List[Dict[str, str]] = [
-            counter.get_all_values() for counter in sca_analyzer.counters
-        ]
-        if not sname_value_maps:
-            return
-
         self.remove_model_rows(self.model_sca)
-        for i, map_ in enumerate(sname_value_maps):
-            items = [QStandardItem(value) for value in map_.values()]
-            self.model_sca.appendRow(items)
-        self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
+        err_file_paths = []
+        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
+            try:
+                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(file_path) # TODO should concern --no-parse, --no-query, ... after adding all available options
+            except:
+                err_file_paths.append(file_path)
+                continue
+            if counter is None:
+                err_file_paths.append(file_path)
+                continue
+            sname_value_map: Dict[str, str] = counter.get_all_values()
+            _, *items = (QStandardItem(value) for value in sname_value_map.values())
+            self.model_sca.insertRow(rowno, items)
+            self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+
+        if self.model_sca.rowCount() >= 1: # TODO: here need to change when transpose the table to vertical
+            self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
-        self.button_export_table_sca.setEnabled(True)
-        # don't have to enbale generate buttons here as they should only be
-        # enabled when more input files are added
+            self.button_export_table_sca.setEnabled(True)
+            # don't have to enbale generate buttons here as they should only be
+            # enabled when more input files are added
+        else:
+            self.reset_model(self.model_sca)
+        if err_file_paths: # TODO: should show a table
+            QMessageBox.information(
+                self,
+                "Error Processing Files",
+                "These files are skipped:\n- {}".format(
+                    "\n- ".join(err_file_paths)
+                ),
+            )
 
     def export_table(self, model: QStandardItemModel) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
@@ -334,14 +382,18 @@ class NeoSCA_GUI(QMainWindow):
 
                 workbook = openpyxl.Workbook()
                 worksheet = workbook.active
-                # Header
+                # Horizontal header
                 for colno_cell, colno_item in enumerate(range(col_count)):
-                    cell = worksheet.cell(1, 1 + colno_cell)
+                    cell = worksheet.cell(1, 2 + colno_cell)
                     cell.value = model.horizontalHeaderItem(colno_item).text()
+                # Vertical header
+                for rowno_cell, rowno_item in enumerate(range(row_count)):
+                    cell = worksheet.cell(2 + rowno_cell, 1)
+                    cell.value = model.verticalHeaderItem(rowno_item).text()
                 # Cells
                 for rowno_cell, rowno in enumerate(range(row_count)):
                     for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet.cell(2 + rowno_cell, 1 + colno_cell)
+                        cell = worksheet.cell(2 + rowno_cell, 2 + colno_cell)
                         cell.value = model.item(rowno, colno_item).text()
                 workbook.save(file_path)
             elif ".csv" in file_type or ".tsv" in file_type:
@@ -350,13 +402,13 @@ class NeoSCA_GUI(QMainWindow):
                 dialect = csv.excel if ".csv" in file_type else csv.excel_tab
                 with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
-                    csv_writer.writerow(
-                        model.horizontalHeaderItem(colno).text() for colno in range(col_count)
-                    )
+                    hor_header: List[str] = [""]
+                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
+                    csv_writer.writerow(hor_header)
                     for rowno in range(row_count):
-                        csv_writer.writerow(
-                            model.item(rowno, colno).text() for colno in range(col_count)
-                        )
+                        row: List[str] = [model.verticalHeaderItem(rowno).text()]
+                        row.extend(model.item(rowno, colno).text() for colno in range(col_count))
+                        csv_writer.writerow(row)
             QMessageBox.information(
                 self, "Success", f"The table has been successfully exported to {file_path}."
             )
@@ -372,6 +424,10 @@ class NeoSCA_GUI(QMainWindow):
         menu.addAction(action_remove_file)
         menu.exec(QCursor.pos())
 
+    def setenable_button_generate_table(self, enabled: bool=False) -> None:
+        self.button_generate_table_sca.setEnabled(enabled)
+        self.button_generate_table_lca.setEnabled(enabled)
+
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
         indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
@@ -379,7 +435,10 @@ class NeoSCA_GUI(QMainWindow):
         rownos = sorted((index.row() for index in indexes), reverse=True)
         for rowno in rownos:
             self.model_file.takeRow(rowno)
+        if self.model_file.rowCount() == 0:
+            self.setenable_button_generate_table(False)
 
+    
     def remove_model_rows(self, model: QStandardItemModel, *rownos: int) -> None:
         if not rownos:
             # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
@@ -396,6 +455,10 @@ class NeoSCA_GUI(QMainWindow):
     def yield_model_column(self, model: QStandardItemModel, colno: int) -> Iterable[str]:
         items = (model.item(rowno, colno) for rowno in range(model.rowCount()))
         return (item.text() for item in items if item is not None)
+
+    def yield_added_file_names(self) -> Iterable[str]:
+        colno_path = 0
+        return self.yield_model_column(self.model_file, colno_path)
 
     def yield_added_file_paths(self) -> Iterable[str]:
         colno_path = 1
@@ -429,10 +492,10 @@ class NeoSCA_GUI(QMainWindow):
             for file_path in file_paths_ok:
                 file_name = os_path.splitext(os_path.basename(file_path))[0]
                 if file_name in already_added_file_names:
-                    occurrences = 2
-                    while f"{file_name} ({occurrences})" in already_added_file_names:
-                        occurrences += 1
-                    file_name = f"{file_name} ({occurrences})"
+                    occurrence = 2
+                    while f"{file_name} ({occurrence})" in already_added_file_names:
+                        occurrence += 1
+                    file_name = f"{file_name} ({occurrence})"
                 already_added_file_names.append(file_name)
                 self.set_model_items_from_row_start(
                     self.model_file, self.model_file.rowCount(), file_name, file_path
@@ -442,10 +505,9 @@ class NeoSCA_GUI(QMainWindow):
                 QHeaderView.ResizeMode.ResizeToContents
             )
             # Enable "generate_table" button when new files are added
-            self.button_generate_table_sca.setEnabled(True)
-            self.button_generate_table_lca.setEnabled(True)
+            self.setenable_button_generate_table(True)
 
-        if any((file_paths_dup, file_paths_empty)):  # TODO
+        if any((file_paths_dup, file_paths_empty)):  # TODO should show a table
             QMessageBox.information(
                 self,
                 "Error Adding Files",
@@ -459,23 +521,11 @@ class NeoSCA_GUI(QMainWindow):
             directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
         )  # TODO remove this before releasing
         file_paths_to_add, _ = file_dialog.getOpenFileNames(
-            self, "Open Files", "", "All files (*);;Text files (*.txt);;Docx files (*.docx)"
+            self, "Open Files", "", "All files (*.*);;Text files (*.txt);;Docx files (*.docx)"
         )
         if not file_paths_to_add:
             return
         self.add_file_paths(file_paths_to_add)
-
-    def add_menu_for_listwidget_file(self, position):
-        menu = QMenu()
-        remove_action = menu.addAction("Remove")
-        action = menu.exec(self.listwidget_file.mapToGlobal(position))
-        if action == remove_action:
-            selected_items = self.listwidget_file.selectedItems()
-            for item in selected_items:
-                self.listwidget_file.takeItem(self.listwidget_file.row(item))
-        if self.listwidget_file.count() <= 0:
-            self.button_generate_table_sca.setEnabled(False)
-            self.button_generate_table_lca.setEnabled(False)
 
     def restart(self):
         self.close()
