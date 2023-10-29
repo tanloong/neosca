@@ -241,7 +241,7 @@ class StanfordTregex:
             escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
             matches_id = bn_input_noext + "-" + escaped_sname
             if not is_stdout:
-                extension = ".matched"
+                extension = ".txt"
                 fn_match_output = os_path.join(subodir_matched, matches_id + extension)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
                     f.write(meta_data)
