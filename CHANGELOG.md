@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.0.56](https://github.com/tanloong/neosca/releases/tag/0.0.56) (XXX)
+
+### Improvements
+
++ Replace ".matched" extension with ".txt" in result\_matches
+
 ## [0.0.55](https://github.com/tanloong/neosca/releases/tag/0.0.55) (2 October 2023)
 
 ### Bug fixes
