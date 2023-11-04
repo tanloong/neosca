@@ -1,0 +1,34 @@
+QTableView::item:hover {
+    background-color: #C7C7C7;
+    color: #000;
+}
+QTableView::item:selected {
+    background-color: #C7C7C7;
+    color: #000;
+}
+
+QHeaderView::section {
+    color: #FFF;
+    font-weight: bold;
+}
+
+QHeaderView::section:horizontal {
+    background-color: #5C88C5;
+}
+QHeaderView::section:horizontal:hover {
+    background-color: #3265B2;
+}
+QHeaderView::section:horizontal:pressed {
+    background-color: #3265B2;
+}
+
+QHeaderView::section:vertical {
+    background-color: #737373;
+}
+QHeaderView::section:vertical:hover {
+    background-color: #606060;
+}
+QHeaderView::section:vertical:pressed {
+    background-color: #606060;
+}
+    
