@@ -7,7 +7,7 @@ import subprocess
 import sys
 from typing import Dict, Iterable, List, Literal, Optional, Set
 
-from PySide6.QtCore import QModelIndex, QObject, QThread, Qt
+from PySide6.QtCore import QModelIndex, QObject, QThread, Qt, Signal
 from PySide6.QtGui import (
     QAction,
     QCursor,
@@ -149,7 +149,7 @@ class Ng_Main(QMainWindow):
 
         self.button_generate_table_lca = QPushButton("Generate table")
         self.button_generate_table_lca.setEnabled(False)
-        self.button_generate_table_lca.clicked.connect(self.lca_generate_table)
+        self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_generate_table_lca.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_G))
         self.button_export_table_lca = QPushButton("Export all cells...")
         self.button_export_table_lca.setEnabled(False)
@@ -224,10 +224,34 @@ class Ng_Main(QMainWindow):
 
     def setup_worker(self) -> None:
         self.processing_dialog = QDialog(self)
-        QLabel("Please wait...", self.processing_dialog)
+        self.processing_dialog.setWindowTitle("Please waite.")
+        self.processing_dialog.resize(300, 200)
+        QLabel(
+            "NeoSCA is running. It may take a few minutes to finish the job. Please wait.",
+            self.processing_dialog,
+        )
 
-        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(self, self.processing_dialog)
+        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(
+            self, self.processing_dialog
+        )
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
+        self.ng_thread_sca_generate_table.finished.connect(
+            lambda: self.resize_tableview(self.tableview_preview_sca)
+        )
+        self.ng_thread_sca_generate_table.finished.connect(
+            lambda: self.button_export_table_sca.setEnabled(True)
+        )
+
+        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(
+            self, self.processing_dialog
+        )
+        self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
+        self.ng_thread_lca_generate_table.finished.connect(
+            lambda: self.resize_tableview(self.tableview_preview_lca)
+        )
+        self.ng_thread_lca_generate_table.finished.connect(
+            lambda: self.button_export_table_lca.setEnabled(True)
+        )
 
     def reset_model(
         self, model: QStandardItemModel, orientation: Literal["hor", "ver"] = "hor"
@@ -239,6 +263,19 @@ class Ng_Main(QMainWindow):
         elif orientation == "ver":
             model.setColumnCount(0)
             model.setColumnCount(1)
+
+    def resize_tableview(
+        self, tableview: QTableView, orientation: Literal["hor", "ver"] = "hor"
+    ) -> None:
+        model = tableview.model()
+        if (
+            model.rowCount() >= 1
+        ):  # TODO: here need to change when transpose the table to vertical
+            tableview.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
+        else:
+            self.reset_model(model, orientation)
 
     def setup_env(self) -> None:
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
@@ -252,132 +289,6 @@ class Ng_Main(QMainWindow):
         os.environ["STANFORD_PARSER_HOME"] = self.stanford_parser_home
         os.environ["STANFORD_TREGEX_HOME"] = self.stanford_tregex_home
         self.env = os.environ.copy()
-
-    def lca_generate_table(self) -> None:
-        input_file_names = self.yield_added_file_names()
-        input_file_paths = self.yield_added_file_paths()
-        if not input_file_paths:
-            QMessageBox.warning(self, "No input files", f"Please select files to process.")
-            return
-
-        lca_kwargs = {
-            "wordlist": "bnc" if self.radiobutton_wordlist_BNC.isChecked() else "anc",
-            "tagset": "ud" if self.radiobutton_tagset_ud.isChecked() else "ptb",
-            "is_stdout": False,
-        }
-        attrname = "lca_analyzer"
-        try:
-            lca_analyzer = getattr(self, attrname)
-        except AttributeError:
-            lca_analyzer = LCA(**lca_kwargs)
-            setattr(self, attrname, lca_analyzer)
-        else:
-            lca_analyzer.update_options(lca_kwargs)
-
-        self.remove_model_rows(self.model_lca)
-        err_file_paths = []
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
-            try:
-                values = lca_analyzer._analyze(file_path=file_path)
-            except:
-                err_file_paths.append(file_path)
-                continue
-            if values is None:  # TODO: should pop up warning window
-                err_file_paths.append(file_path)
-                continue
-            _, *items = (QStandardItem(value) for value in values)
-            self.model_lca.insertRow(rowno, items)
-            self.model_lca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        if (
-            self.model_lca.rowCount() >= 1
-        ):  # TODO: here need to change when transpose the table to vertical
-            self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
-            self.button_export_table_lca.setEnabled(True)
-        else:
-            self.reset_model(self.model_lca)
-
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                self,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
-
-    def sca_generate_table(self) -> None:
-        input_file_names = self.yield_added_file_names()
-        input_file_paths = self.yield_added_file_paths()
-        if not input_file_paths:
-            QMessageBox.warning(self, "No Input Files", f"Please select files to begin.")
-            return
-
-        # TODO messagebox_processing = QMessageBox(self)
-        # messagebox_processing.setWindowTitle("Please waite.")
-        # # dialog_processing.resize(300, 200)
-        # messagebox_processing.setText("NeoSCA is running. It may take a few minutes to finish the job. Please wait.")
-        # messagebox_processing.open()
-
-        sca_kwargs = {
-            "is_auto_save": False,
-            "stanford_parser_home": self.stanford_parser_home,
-            "stanford_tregex_home": self.stanford_tregex_home,
-            "odir_matched": "",
-            "newline_break": "never",
-            "max_length": None,
-            "selected_measures": None,
-            "is_reserve_parsed": self.checkbox_reserve_parsed_trees.isChecked(),
-            "is_reserve_matched": self.checkbox_reserve_matched_subtrees.isChecked(),
-            "is_skip_querying": False,
-            "is_skip_parsing": False,
-            "is_pretokenized": False,
-            "config": None,
-        }
-
-        attrname = "sca_analyzer"
-        try:
-            sca_analyzer = getattr(self, attrname)
-        except AttributeError:
-            sca_analyzer = NeoSCA(**sca_kwargs)
-            setattr(self, attrname, sca_analyzer)
-        else:
-            sca_analyzer.update_options(sca_kwargs)
-
-        self.remove_model_rows(self.model_sca)
-        err_file_paths = []
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
-            try:
-                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(
-                    file_path
-                )  # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except:
-                err_file_paths.append(file_path)
-                continue
-            if counter is None:
-                err_file_paths.append(file_path)
-                continue
-            sname_value_map: Dict[str, str] = counter.get_all_values()
-            _, *items = (QStandardItem(value) for value in sname_value_map.values())
-            self.model_sca.insertRow(rowno, items)
-            self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-
-        if (
-            self.model_sca.rowCount() >= 1
-        ):  # TODO: here need to change when transpose the table to vertical
-            self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
-            self.button_export_table_sca.setEnabled(True)
-            # don't have to enbale generate buttons here as they should only be
-            # enabled when more input files are added
-        else:
-            self.reset_model(self.model_sca)
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                self,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
 
     def export_table(self, model: QStandardItemModel) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
@@ -575,18 +486,11 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
         super().__init__(main, dialog)
 
     def run(self) -> None:
-        print("starting!!!")
         input_file_names = self.main.yield_added_file_names()
         input_file_paths = self.main.yield_added_file_paths()
         if not input_file_paths:
             QMessageBox.warning(self.main, "No Input Files", f"Please select files to begin.")
             return
-
-        # TODO messagebox_processing = QMessageBox(self.main)
-        # messagebox_processing.setWindowTitle("Please waite.")
-        # # dialog_processing.resize(300, 200)
-        # messagebox_processing.setText("NeoSCA is running. It may take a few minutes to finish the job. Please wait.")
-        # messagebox_processing.open()
 
         sca_kwargs = {
             "is_auto_save": False,
@@ -631,17 +535,54 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             self.main.model_sca.insertRow(rowno, items)
             self.main.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
 
-        if (
-            self.main.model_sca.rowCount() >= 1
-        ):  # TODO: here need to change when transpose the table to vertical
-            self.main.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
+        if err_file_paths:  # TODO: should show a table
+            QMessageBox.information(
+                self.main,
+                "Error Processing Files",
+                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
-            self.main.button_export_table_sca.setEnabled(True)
-            # don't have to enbale generate buttons here as they should only be
-            # enabled when more input files are added
+
+
+class Ng_Worker_LCA_Generate_Table(Ng_Worker):
+    def __init__(self, main, dialog) -> None:
+        super().__init__(main, dialog)
+
+    def run(self) -> None:
+        input_file_names = self.main.yield_added_file_names()
+        input_file_paths = self.main.yield_added_file_paths()
+        if not input_file_paths:
+            QMessageBox.warning(self.main, "No input files", f"Please select files to process.")
+            return
+
+        lca_kwargs = {
+            "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
+            "tagset": "ud" if self.main.radiobutton_tagset_ud.isChecked() else "ptb",
+            "is_stdout": False,
+        }
+        attrname = "lca_analyzer"
+        try:
+            lca_analyzer = getattr(self.main, attrname)
+        except AttributeError:
+            lca_analyzer = LCA(**lca_kwargs)
+            setattr(self.main, attrname, lca_analyzer)
         else:
-            self.main.reset_model(self.main.model_sca)
+            lca_analyzer.update_options(lca_kwargs)
+
+        self.main.remove_model_rows(self.main.model_lca)
+        err_file_paths = []
+        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
+            try:
+                values = lca_analyzer._analyze(file_path=file_path)
+            except:
+                err_file_paths.append(file_path)
+                continue
+            if values is None:  # TODO: should pop up warning window
+                err_file_paths.append(file_path)
+                continue
+            _, *items = (QStandardItem(value) for value in values)
+            self.main.model_lca.insertRow(rowno, items)
+            self.main.model_lca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
                 self.main,
@@ -663,6 +604,7 @@ class Ng_Thread(QThread):
     def run(self):
         self.start()
         self.worker.run()
+
 
 class Ng_QSS_Loader:
     def __init__(self):
