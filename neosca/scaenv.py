@@ -10,10 +10,6 @@ from typing import List, Optional
 from .scaplatform import IS_MAC, IS_LINUX, IS_WINDOWS
 from .scaprint import color_print
 
-JAVA_HOME = "JAVA_HOME"
-STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
-STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
-
 
 def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
     import winreg  # Allows access to the windows registry
@@ -124,24 +120,3 @@ def setenv(
 def getenv(env_var: str) -> Optional[str]:
     directory = os.getenv(env_var, "")
     return directory if os_path.isdir(directory) else None
-
-
-def search_java_home() -> Optional[str]:
-    candidate = None
-    paths = os.getenv("PATH", "").split(os.pathsep)
-    for dir_name in paths:
-        if os_path.basename(dir_name) == "bin":
-            if glob.glob(os_path.join(dir_name, "java.*")):
-                candidate = os_path.dirname(dir_name)
-                break
-    if candidate is None and IS_WINDOWS:
-        system_software_dir = os.getenv("ProgramFiles", "")
-        if glob.glob(os_path.join(system_software_dir, "Java", "j[dr][ke]*")):
-            candidate = glob.glob(os_path.join(system_software_dir, "Java", "j[dr][ke]*"))[0]
-    return candidate
-
-
-def unite_classpaths(stanford_parser_home, stanford_tregex_home) -> list:
-    cp_parser = os_path.join(stanford_parser_home, "*")
-    cp_tregex = os_path.join(stanford_tregex_home, "stanford-tregex.jar")
-    return [cp_parser, cp_tregex]

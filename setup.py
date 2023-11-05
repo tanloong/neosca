@@ -24,7 +24,7 @@ setuptools.setup(
     description="Another syntactic complexity analyzer of written English language samples",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=["JPype1", "charset-normalizer"],
+    install_requires=["stanza", "charset-normalizer"],
     classifiers=[
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",

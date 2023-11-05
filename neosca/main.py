@@ -7,14 +7,6 @@ import sys
 from typing import Callable, List, Optional
 
 from .about import __version__
-from .scaenv import (
-    JAVA_HOME,
-    STANFORD_PARSER_HOME,
-    STANFORD_TREGEX_HOME,
-    getenv,
-    search_java_home,
-    setenv,
-)
 from .scaio import SCAIO
 from .scaprint import color_print
 from .util import SCAProcedureResult
@@ -407,108 +399,6 @@ Contact:
         }
         self.options = options
         return True, None
-
-    def check_java(self) -> SCAProcedureResult:
-        java_home = getenv(JAVA_HOME)
-        if java_home is None:
-            logging.debug("JAVA_HOME either does not exist or is not a valid dirname.")
-            java_home = search_java_home()
-            if java_home is None:
-                from .depends_installer import DependsInstaller
-                from .depends_installer import JAVA
-
-                installer = DependsInstaller()
-                sucess, err_msg = installer.install(
-                    JAVA, is_assume_yes=self.options.is_assume_yes
-                )
-                if not sucess:
-                    return sucess, err_msg
-                else:
-                    java_home = err_msg
-            java_bin = os_path.join(java_home, "bin")  # type:ignore
-            path_orig = os.getenv("PATH", "")
-            setenv(
-                "JAVA_HOME",
-                [java_home],  # type:ignore
-                is_override=True,
-                is_quiet=self.options.is_quiet,
-            )
-            setenv(
-                "PATH", [java_bin], is_override=False, is_quiet=self.options.is_quiet
-            )  # type:ignore
-            os.environ["JAVA_HOME"] = java_home  # type:ignore
-            os.environ["PATH"] = java_bin + os.pathsep + path_orig  # type:ignore
-        elif not self.options.is_quiet:
-            color_print("OKGREEN", "ok", prefix="Java has already been installed. ")
-        return True, None
-
-    def check_stanford_parser(self) -> SCAProcedureResult:
-        stanford_parser_home = getenv(STANFORD_PARSER_HOME)
-        if stanford_parser_home is None:
-            from .depends_installer import DependsInstaller
-            from .depends_installer import STANFORD_PARSER
-
-            installer = DependsInstaller()
-            sucess, err_msg = installer.install(
-                STANFORD_PARSER, is_assume_yes=self.options.is_assume_yes
-            )
-            if not sucess:
-                return sucess, err_msg
-            else:
-                stanford_parser_home = err_msg
-                assert stanford_parser_home is not None
-                setenv(
-                    STANFORD_PARSER_HOME,
-                    [stanford_parser_home],
-                    is_override=True,
-                    is_quiet=self.options.is_quiet,
-                )
-        elif not self.options.is_quiet:
-            color_print("OKGREEN", "ok", prefix="Stanford Parser has already been installed. ")
-
-        self.init_kwargs.update({"stanford_parser_home": stanford_parser_home})
-        return True, None
-
-    def check_stanford_tregex(self) -> SCAProcedureResult:
-        stanford_tregex_home = getenv(STANFORD_TREGEX_HOME)
-        if stanford_tregex_home is None:
-            from .depends_installer import DependsInstaller
-            from .depends_installer import STANFORD_TREGEX
-
-            installer = DependsInstaller()
-            sucess, err_msg = installer.install(
-                STANFORD_TREGEX, is_assume_yes=self.options.is_assume_yes
-            )
-            if not sucess:
-                return sucess, err_msg
-            else:
-                stanford_tregex_home = err_msg
-                assert stanford_tregex_home is not None
-                setenv(
-                    STANFORD_TREGEX_HOME,
-                    [stanford_tregex_home],
-                    is_override=True,
-                    is_quiet=self.options.is_quiet,
-                )
-        elif not self.options.is_quiet:
-            color_print("OKGREEN", "ok", prefix="Stanford Tregex has already been installed. ")
-        self.init_kwargs.update({"stanford_tregex_home": stanford_tregex_home})
-        return True, None
-
-    def check_depends(self) -> SCAProcedureResult:
-        success_java, err_msg_java = self.check_java()
-        success_parser, err_msg_parser = self.check_stanford_parser()
-        success_tregex, err_msg_tregex = self.check_stanford_tregex()
-
-        sucesses = (success_java, success_parser, success_tregex)
-        err_msges = (err_msg_java, err_msg_parser, err_msg_tregex)
-        if all(sucesses):
-            return True, None
-        else:
-            err_msg = "\n\n".join(
-                map(lambda p: p[1] if not p[0] else "", zip(sucesses, err_msges))  # type:ignore
-            )
-            return False, err_msg.strip()
 
     def check_python(self) -> SCAProcedureResult:
         v_info = sys.version_info

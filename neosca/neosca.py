@@ -5,8 +5,7 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
-from .parser import StanfordParser
-from .scaenv import unite_classpaths
+from .parser import Ns_Stanza
 from .querier import Ns_PyTregex
 from .scaio import SCAIO
 from .structure_counter import StructureCounter
@@ -34,7 +33,6 @@ class NeoSCA:
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
-        self.classpaths = unite_classpaths(stanford_parser_home, stanford_tregex_home)
         self.odir_matched = odir_matched
         self.newline_break = newline_break
         self.max_length = max_length
@@ -86,7 +84,7 @@ class NeoSCA:
 
     def ensure_stanford_parser_initialized(self) -> None:
         if not self.is_stanford_parser_initialized:
-            self.parser = StanfordParser(classpaths=self.classpaths)
+            self.parser = Ns_Stanza()
             self.is_stanford_parser_initialized = True
 
     def already_parsed(self, ofile_parsed: str, ifile: str) -> bool:

@@ -1,2 +1,2 @@
-JPype1
+stanza
 charset-normalizer
