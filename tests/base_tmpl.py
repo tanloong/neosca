@@ -13,15 +13,19 @@ from neosca.scaplatform import IS_WINDOWS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 text = "There was no possibility of taking a walk that day."
-tree = """(ROOT
+tree = """\
+(ROOT
   (S
     (NP (EX There))
-    (VP (VBD was)
+    (VP
+      (VBD was)
       (NP
         (NP (DT no) (NN possibility))
-        (PP (IN of)
+        (PP
+          (IN of)
           (S
-            (VP (VBG taking)
+            (VP
+              (VBG taking)
               (NP (DT a) (NN walk))
               (NP (DT that) (NN day)))))))
     (. .)))

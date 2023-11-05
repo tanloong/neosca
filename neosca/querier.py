@@ -6,6 +6,7 @@ import logging
 import os
 import os.path as os_path
 import re
+import shutil
 import sys
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import List, TYPE_CHECKING
@@ -177,14 +178,12 @@ class Ns_PyTregex:
     def write_match_output(
         self, counter: "StructureCounter", odir_matched: str = "", is_stdout: bool = False
     ) -> None:  # pragma: no cover
-        """
-        Save Tregex's match output
-        """
         bn_input = os_path.basename(counter.ifile)
         bn_input_noext = os_path.splitext(bn_input)[0]
         subodir_matched = os_path.join(odir_matched, bn_input_noext).strip()
         if not is_stdout:
-            os.makedirs(subodir_matched, exist_ok=True)
+            shutil.rmtree(subodir_matched, ignore_errors=True)
+            os.makedirs(subodir_matched)
         for sname, structure in counter.sname_structure_map.items():
             matches = structure.matches
             if matches is None or len(matches) == 0:
