@@ -16,10 +16,7 @@ class NeoSCA:
         self,
         ofile_freq: str = "result.csv",
         oformat_freq: str = "csv",
-        stanford_parser_home: str = "",
-        stanford_tregex_home: str = "",
         odir_matched: str = "",
-        newline_break: str = "never",
         max_length: Optional[int] = None,
         selected_measures: Optional[List[str]] = None,
         is_reserve_parsed: bool = False,
@@ -27,14 +24,12 @@ class NeoSCA:
         is_stdout: bool = False,
         is_skip_querying: bool = False,
         is_skip_parsing: bool = False,
-        is_pretokenized: bool = False,
         is_auto_save: bool = True,
         config: Optional[str] = None,
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
         self.odir_matched = odir_matched
-        self.newline_break = newline_break
         self.max_length = max_length
         self.selected_measures = selected_measures
         self.is_reserve_parsed = is_reserve_parsed
@@ -42,7 +37,6 @@ class NeoSCA:
         self.is_stdout = is_stdout
         self.is_skip_querying = is_skip_querying
         self.is_skip_parsing = is_skip_parsing
-        self.is_pretokenized = is_pretokenized
         self.is_auto_save = is_auto_save
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(
@@ -115,9 +109,6 @@ class NeoSCA:
         self.ensure_stanford_parser_initialized()
         trees = self.parser.parse(
             text,
-            max_length=self.max_length,
-            newline_break=self.newline_break,
-            is_pretokenized=self.is_pretokenized,
             is_reserve_parsed=self.is_reserve_parsed,
             ofile_parsed=ofile_parsed,
             is_stdout=self.is_stdout,

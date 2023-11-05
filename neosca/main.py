@@ -50,36 +50,6 @@ class SCAUI:
             ),
         )
         args_parser.add_argument(
-            "--max-length",
-            metavar="<max_length>",
-            dest="max_length",
-            type=int,
-            default=None,
-            help=(
-                "Set the longest sentence to parse (inclusively). Sentences longer than"
-                " <max_length> will be skipped, with a message printed to stderr. When this is"
-                " not specified, the program will try to analyze sentences of any lengths, but"
-                " may run out of memory trying to do so"
-                " (https://nlp.stanford.edu/software/parser-faq.html#k)."
-            ),
-        )
-        args_parser.add_argument(
-            "--newline-break",
-            dest="newline_break",
-            choices=["never", "always", "two"],
-            default="never",
-            help=(
-                "Whether to treat newlines as sentence breaks. This option has 3 legal values."
-                ' "never" means to ignore newlines for the purpose of sentence splitting, and is'
-                " appropriate for continuous text with hard line breaks when just the"
-                " non-whitespace characters should be used to determine sentence breaks."
-                ' "always" means to treat a newline as a sentence break, but there still may be'
-                ' more than one sentences per line. "two" means to take two or more consecutive'
-                " newlines as a sentence break, and is for text with hard line breaks and a"
-                ' blank line between paragraphs. The default is "never".'
-            ),
-        )
-        args_parser.add_argument(
             "--combine-files",
             "-c",
             metavar="<subfile>",
@@ -106,13 +76,6 @@ class SCAUI:
                 "Analyze files of the specified type(s). If not set, the program will process"
                 " files of all supported types."
             ),
-        )
-        args_parser.add_argument(
-            "--pretokenized",
-            dest="is_pretokenized",
-            action="store_true",
-            default=False,
-            help="Assume that the text has already been tokenized.",
         )
         args_parser.add_argument(
             "--output-file",
@@ -354,12 +317,6 @@ Contact:
         else:
             options.ofile_freq = "result." + options.oformat_freq
 
-        is_max_length_given_and_lt_zero = (
-            options.max_length is not None and options.max_length < 0
-        )
-        if is_max_length_given_and_lt_zero or options.max_length == 0:
-            return False, 'The value of "--max-length" should be greater than 0.'
-
         if options.selected_measures is not None:
             # Drop duplicates while retain order. Starting from Python 3.7, the
             # built-in dictionary is guaranteed to maintain the insertion order
@@ -383,18 +340,13 @@ Contact:
         self.init_kwargs = {
             "ofile_freq": options.ofile_freq,
             "oformat_freq": options.oformat_freq,
-            "stanford_parser_home": "",
-            "stanford_tregex_home": "",
             "odir_matched": self.odir_matched,
-            "newline_break": options.newline_break,
-            "max_length": options.max_length,
             "selected_measures": options.selected_measures,
             "is_reserve_parsed": options.is_reserve_parsed,
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
             "is_skip_querying": options.is_skip_querying,
             "is_skip_parsing": options.is_skip_parsing,
-            "is_pretokenized": options.is_pretokenized,
             "config": user_config,
         }
         self.options = options
