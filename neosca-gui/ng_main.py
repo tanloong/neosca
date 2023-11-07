@@ -228,10 +228,11 @@ class Ng_Main(QMainWindow):
         self.processing_dialog = QDialog(self)
         self.processing_dialog.setWindowTitle("Please waite.")
         self.processing_dialog.resize(300, 200)
-        QLabel(
+        self.label_wait = QLabel(
             "NeoSCA is running. It may take a few minutes to finish the job. Please wait.",
             self.processing_dialog,
         )
+        self.label_wait.setWordWrap(True)
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(
             self, self.processing_dialog
