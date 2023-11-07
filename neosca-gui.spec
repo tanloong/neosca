@@ -1,10 +1,22 @@
 # vim:ft=python
 
 a = Analysis(
-    ["neosca-gui/ng_main.py"],
+    ["neosca_gui/ng_main.py"],
     pathex=[],
     binaries=[],
     datas=[
+        (
+            "neosca_gui/neosca/data/anc_all_count.pickle.lzma",
+            "neosca_gui/neosca/data/anc_all_count.pickle.lzma",
+        ),
+        (
+            "neosca_gui/neosca/data/bnc_all_filtered.pickle.lzma",
+            "neosca_gui/neosca/data/bnc_all_filtered.pickle.lzma",
+        ),
+        (
+            "neosca_gui/neosca/data/structure_data.json",
+            "neosca_gui/neosca/data/structure_data.json",
+        ),
     ],
     hiddenimports=["neosca"],
     hookspath=[],

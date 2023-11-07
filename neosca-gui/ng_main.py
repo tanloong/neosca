@@ -38,6 +38,7 @@ from PySide6.QtWidgets import (
     QTableView,
     QWidget,
 )
+
 from .neosca.lca.lca import LCA
 from .neosca.neosca import NeoSCA
 from .neosca.structure_counter import StructureCounter

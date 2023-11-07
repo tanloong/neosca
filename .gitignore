@@ -8,7 +8,6 @@ dist/
 
 # data
 libs/
-neosca-gui/neosca
 tests/data/
 
 # unit test / coverage report
@@ -25,6 +24,7 @@ coverage.xml
 *.tar.gz
 *.parsed
 *.mp4
+*.matched
 doc
 note.txt
 test.py
