@@ -1,7 +1,7 @@
 # vim:ft=python
 
 a = Analysis(
-    ["neosca-gui/neosca-gui.py"],
+    ["neosca-gui/ng_main.py"],
     pathex=[],
     binaries=[],
     datas=[

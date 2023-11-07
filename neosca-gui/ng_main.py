@@ -38,19 +38,20 @@ from PySide6.QtWidgets import (
     QTableView,
     QWidget,
 )
-from neosca.lca.lca import LCA
-from neosca.neosca import NeoSCA
-from neosca.structure_counter import StructureCounter
+from .neosca.lca.lca import LCA
+from .neosca.neosca import NeoSCA
+from .neosca.structure_counter import StructureCounter
 
 
 class Ng_Main(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setup_env()
+
         self.setWindowTitle("NeoSCA-GUI")
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
-        self.setup_env()
 
     def setup_menu(self):
         menubar = QMenuBar()
@@ -235,23 +236,11 @@ class Ng_Main(QMainWindow):
             self, self.processing_dialog
         )
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
-        self.ng_thread_sca_generate_table.finished.connect(
-            lambda: self.resize_tableview(self.tableview_preview_sca)
-        )
-        self.ng_thread_sca_generate_table.finished.connect(
-            lambda: self.button_export_table_sca.setEnabled(True)
-        )
 
         self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(
             self, self.processing_dialog
         )
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
-        self.ng_thread_lca_generate_table.finished.connect(
-            lambda: self.resize_tableview(self.tableview_preview_lca)
-        )
-        self.ng_thread_lca_generate_table.finished.connect(
-            lambda: self.button_export_table_lca.setEnabled(True)
-        )
 
     def reset_model(
         self, model: QStandardItemModel, orientation: Literal["hor", "ver"] = "hor"
@@ -466,6 +455,8 @@ class Ng_Main(QMainWindow):
 
 
 class Ng_Worker(QObject):
+    worker_done = Signal()
+
     def __init__(self, main, dialog) -> None:
         super().__init__()
         self.main = main
@@ -484,8 +475,13 @@ class Ng_Worker(QObject):
 class Ng_Worker_SCA_Generate_Table(Ng_Worker):
     def __init__(self, main, dialog) -> None:
         super().__init__(main, dialog)
+        self.worker_done.connect(
+            lambda: self.main.resize_tableview(self.main.tableview_preview_sca)
+        )
+        self.worker_done.connect(lambda: self.main.button_export_table_sca.setEnabled(True))
 
     def run(self) -> None:
+        self.main.button_generate_table_sca.setEnabled(False)
         input_file_names = self.main.yield_added_file_names()
         input_file_paths = self.main.yield_added_file_paths()
         if not input_file_paths:
@@ -494,17 +490,12 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
 
         sca_kwargs = {
             "is_auto_save": False,
-            "stanford_parser_home": self.main.stanford_parser_home,
-            "stanford_tregex_home": self.main.stanford_tregex_home,
             "odir_matched": "",
-            "newline_break": "never",
-            "max_length": None,
             "selected_measures": None,
             "is_reserve_parsed": self.main.checkbox_reserve_parsed_trees.isChecked(),
             "is_reserve_matched": self.main.checkbox_reserve_matched_subtrees.isChecked(),
             "is_skip_querying": False,
             "is_skip_parsing": False,
-            "is_pretokenized": False,
             "config": None,
         }
 
@@ -541,13 +532,19 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 "Error Processing Files",
                 "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
+        self.worker_done.emit()
 
 
 class Ng_Worker_LCA_Generate_Table(Ng_Worker):
     def __init__(self, main, dialog) -> None:
         super().__init__(main, dialog)
+        self.worker_done.connect(
+            lambda: self.main.resize_tableview(self.main.tableview_preview_lca)
+        )
+        self.worker_done.connect(lambda: self.main.button_export_table_lca.setEnabled(True))
 
     def run(self) -> None:
+        self.main.button_generate_table_lca.setEnabled(False)
         input_file_names = self.main.yield_added_file_names()
         input_file_paths = self.main.yield_added_file_paths()
         if not input_file_paths:
@@ -589,6 +586,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
                 "Error Processing Files",
                 "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
+        self.worker_done.emit()
 
 
 class Ng_Thread(QThread):
