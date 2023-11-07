@@ -35,8 +35,6 @@ class SCAIO:
         # checked and excluded, because they are text files and self.read_txt can
         # only exclude non-text files
         self.extensions_to_exclude: tuple = (
-            "parsed",
-            "prd",
             "csv",
             "tsv",
             "xml",
