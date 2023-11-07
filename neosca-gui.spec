@@ -5,9 +5,6 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ("libs/jdk8u372-b07/jre", "jdk8u372-b07/jre"),
-        ("libs/stanford-parser-full-2020-11-17", "stanford-parser-full-2020-11-17"),
-        ("libs/stanford-tregex-2020-11-17", "stanford-tregex-2020-11-17"),
     ],
     hiddenimports=["neosca"],
     hookspath=[],
