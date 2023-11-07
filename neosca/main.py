@@ -209,31 +209,27 @@ class SCAUI:
     Analyze files ranging from sample101.txt to sample200.txt.
 10. nsca sample10[1-9].txt sample1[1-9][0-9].txt sample200.txt --expand-wildcards
     Expand the specified wildcards and exit.
-11. nsca sample1.txt --max-length 100
-    Only analyze sentences with lengths shorter than or equal to 100.
-12. nsca sample1.txt --newline-break always
-    Consider newlines as sentence breaks.
-13. nsca --select VP T DC/C -- sample1.txt
+11. nsca --select VP T DC/C -- sample1.txt
     Select a subset of measures to analyze. Use -- to separate input
     filenames from the selected measures, or otherwise the program will take
     "sample1.txt" as a measure and then raise an error. Arguments other than
     input filenames should be specified at the left side of --.
-14. nsca -c sample1-sub1.txt sample1-sub2.txt
+12. nsca -c sample1-sub1.txt sample1-sub2.txt
     Add up frequencies of the 9 syntactic structures of the subfiles and compute
     values of the 14 syntactic complexity indices for the imaginary parent file.
-15. nsca -c samples/
+13. nsca -c samples/
     Combine all the input files within the "samples/" directory
-16. nsca -c sample1-sub*.txt
+14. nsca -c sample1-sub*.txt
     Wildcards are supported for -c.
-17. nsca -c sample1-sub*.txt -c sample2-sub*.txt
+15. nsca -c sample1-sub*.txt -c sample2-sub*.txt
     Use multiple -c to combine different lists of subfiles respectively.
-18. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
+16. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
     Use -- to separate input filenames from names of the subfiles.
-19. nsca sample1.txt --no-query
+17. nsca sample1.txt --no-query
     Parse the input files, save the parsed trees and exit.
-20. nsca sample1.parsed --no-parse
+18. nsca sample1.parsed --no-parse
     Assume input as parse trees. Skip the parsing step and proceed directly to querying.
-21. nsca --config nsca.json sample1.txt
+19. nsca --config nsca.json sample1.txt
     Use nsca.json where you can defined your own syntactic structures to search or calculate.
 
 Contact:
