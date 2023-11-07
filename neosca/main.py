@@ -164,16 +164,6 @@ class SCAUI:
             help="Print detailed logging messages.",
         )
         args_parser.add_argument(
-            "--check-depends",
-            dest="check_depends",
-            action="store_true",
-            default=False,
-            help=(
-                "Check and install NeoSCA's dependencies: Java, Stanford Parser, and"
-                " Stanford Tregex."
-            ),
-        )
-        args_parser.add_argument(
             "--yes",
             dest="is_assume_yes",
             action="store_true",
@@ -405,9 +395,6 @@ Contact:
             sucess, err_msg = self.check_python()
             if not sucess:
                 return sucess, err_msg
-            sucess, err_msg = self.check_depends()
-            if not sucess:
-                return sucess, err_msg
             if not self.options.is_stdout:
                 sucess, err_msg = SCAIO.is_writable(self.options.ofile_freq)
                 if not sucess:
@@ -442,8 +429,6 @@ Contact:
             return self.list_fields()
         elif self.options.expand_wildcards:
             return self.expand_wildcards()
-        elif self.options.check_depends:
-            return self.check_depends()
         elif self.options.text is not None:
             return self.run_on_text()  # type: ignore
         elif self.verified_ifiles or self.verified_subfiles_list:
