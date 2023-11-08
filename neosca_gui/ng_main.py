@@ -109,6 +109,11 @@ class Ng_Main(QMainWindow):
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
 
+        # TODO comment this out before releasing
+        self.button_custom_func = QPushButton("Custom func")
+        # TODO comment this out before releasing
+        self.button_custom_func.clicked.connect(self.custom_func)
+
         # frame_setting_sca.setStyleSheet("background-color: pink;")
         self.checkbox_reserve_parsed_trees = QCheckBox(
             "Reserve parsed trees",
@@ -130,11 +135,21 @@ class Ng_Main(QMainWindow):
 
         self.tab_sca = QWidget()
         self.tab_sca.setLayout(QGridLayout())
-        self.tab_sca.layout().addWidget(self.tableview_preview_sca, 0, 0, 1, 2)
-        self.tab_sca.layout().addWidget(self.button_generate_table_sca, 1, 0)
-        self.tab_sca.layout().addWidget(self.button_export_table_sca, 1, 1)
-        self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, 2, 2, 1)
+        for btn_no, btn in enumerate(
+            (
+                self.button_generate_table_sca,
+                self.button_export_table_sca,
+                self.button_custom_func,
+            ),
+            start=1,
+        ):
+            self.tab_sca.layout().addWidget(btn, 1, btn_no - 1)
+        self.tab_sca.layout().addWidget(self.tableview_preview_sca, 0, 0, 1, btn_no)
+        self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
         self.tab_sca.layout().setContentsMargins(6, 4, 6, 4)
+
+    def custom_func(self):
+        breakpoint()
 
     def setup_tab_lca(self):
         # frame_preview.setStyleSheet("background-color: green;")
@@ -191,10 +206,17 @@ class Ng_Main(QMainWindow):
 
         self.tab_lca = QWidget()
         self.tab_lca.setLayout(QGridLayout())
-        self.tab_lca.layout().addWidget(self.tableview_preview_lca, 0, 0, 1, 2)
-        self.tab_lca.layout().addWidget(self.button_generate_table_lca, 1, 0)
-        self.tab_lca.layout().addWidget(self.button_export_table_lca, 1, 1)
-        self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, 2, 2, 1)
+
+        for btn_no, btn in enumerate(
+            (
+                self.button_generate_table_lca,
+                self.button_export_table_lca,
+            ),
+            start=1,
+        ):
+            self.tab_lca.layout().addWidget(btn, 1, btn_no - 1)
+        self.tab_lca.layout().addWidget(self.tableview_preview_lca, 0, 0, 1, btn_no)
+        self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
         self.tab_lca.layout().setContentsMargins(6, 4, 6, 4)
 
     def setup_main_window(self):
