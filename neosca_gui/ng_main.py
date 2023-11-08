@@ -285,9 +285,8 @@ class Ng_Main(QMainWindow):
         self, tableview: QTableView, orientation: Literal["hor", "ver"] = "hor"
     ) -> None:
         model = tableview.model()
-        if (
-            model.rowCount() >= 1
-        ):  # TODO: here need to change when transpose the table to vertical
+        # TODO: here need to change when transpose the table to vertical
+        if model.rowCount() >= 1:
             tableview.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
@@ -358,9 +357,9 @@ class Ng_Main(QMainWindow):
                 for rowno_cell, rowno in enumerate(range(row_count)):
                     for colno_cell, colno_item in enumerate(range(col_count)):
                         cell = worksheet_cell(2 + rowno_cell, 2 + colno_cell)
-                        # TODO: currently has only the numberic type, in the future
-                        # might need to do the conversion based on type info from
-                        # QStandardItem
+                        # TODO: currently has only the numberic type, in the
+                        #  future might need to do the conversion based on type
+                        #  info from QStandardItem
                         cell.value = float(model.item(rowno, colno_item).text())
                 # Column width
                 #  https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
@@ -537,6 +536,7 @@ class Ng_Main(QMainWindow):
             )
 
     def browse_folder(self):
+        # TODO: 合法后缀列表，暂时在这个函数里硬编码，等 scaio 移动到顶层后要改成从 scaio 读取
         folder_dialog = QFileDialog(
             directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
         )
