@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
 
+import glob
 import os
 import os.path as os_path
 import subprocess
@@ -62,6 +63,8 @@ class Ng_Main(QMainWindow):
         action_open_file.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_O))
         action_open_file.triggered.connect(self.browse_file)
         action_open_folder = QAction("Open Folder...", menu_file)
+        action_open_folder.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_F))
+        action_open_folder.triggered.connect(self.browse_folder)
         action_restart = QAction("Restart", menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.restart)  # TODO remove this before releasing
         action_restart.setShortcut(
@@ -438,6 +441,21 @@ class Ng_Main(QMainWindow):
                     "\n- ".join(file_paths_dup | file_paths_empty)
                 ),
             )
+
+    def browse_folder(self):
+        folder_dialog = QFileDialog(
+            directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
+        )
+        folder_path = folder_dialog.getExistingDirectory(
+            dir="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/"
+        )
+        if not folder_path:
+            return
+
+        file_paths_to_add = []
+        for extension in (".txt", ".docx"):
+            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*{extension}")))
+        self.add_file_paths(file_paths_to_add)
 
     def browse_file(self):
         file_dialog = QFileDialog(
