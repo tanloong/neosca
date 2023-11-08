@@ -4,6 +4,7 @@
 import glob
 import os
 import os.path as os_path
+import re
 import subprocess
 import sys
 from typing import Dict, Iterable, List, Literal, Optional, Set
@@ -284,6 +285,23 @@ class Ng_Main(QMainWindow):
         os.environ["STANFORD_TREGEX_HOME"] = self.stanford_tregex_home
         self.env = os.environ.copy()
 
+    def get_qss_attr(self, qss: str, selector: str, attrname: str) -> Optional[str]:
+        """
+        >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
+        >>> get_qss_attr(qss, "QHeaderView::section:horizontal", "background-color")
+        5C88C5
+        """
+        # Notice that only the 1st selector will be matched here
+        matched_selector = re.search(selector, qss)
+        if matched_selector is None:
+            return None
+        matched_value = re.search(
+            rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :]
+        )
+        if matched_value is None:
+            return None
+        return matched_value.group(1)
+
     def export_table(self, model: QStandardItemModel) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
@@ -300,36 +318,76 @@ class Ng_Main(QMainWindow):
             if ".xlsx" in file_type:
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
                 import openpyxl
+                from openpyxl.styles import Font, PatternFill
                 from openpyxl.utils import get_column_letter
 
                 workbook = openpyxl.Workbook()
                 worksheet = workbook.active
+                worksheet_cell = worksheet.cell
                 # Horizontal header
                 for colno_cell, colno_item in enumerate(range(col_count)):
-                    cell = worksheet.cell(1, 2 + colno_cell)
+                    cell = worksheet_cell(1, 2 + colno_cell)
                     cell.value = model.horizontalHeaderItem(colno_item).text()
                 # Vertical header
                 for rowno_cell, rowno_item in enumerate(range(row_count)):
-                    cell = worksheet.cell(2 + rowno_cell, 1)
+                    cell = worksheet_cell(2 + rowno_cell, 1)
                     cell.value = model.verticalHeaderItem(rowno_item).text()
                 # Cells
                 for rowno_cell, rowno in enumerate(range(row_count)):
                     for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet.cell(2 + rowno_cell, 2 + colno_cell)
-                        # TODO: currently can only be numberic, in the future
-                        # might need to convert basing on type info from
+                        cell = worksheet_cell(2 + rowno_cell, 2 + colno_cell)
+                        # TODO: currently has only the numberic type, in the future
+                        # might need to do the conversion based on type info from
                         # QStandardItem
                         cell.value = float(model.item(rowno, colno_item).text())
-                # Fit column width
+                # Column width
                 #  https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
                 #  https://stackoverflow.com/questions/60182474/auto-size-column-width
                 for colno, col_cells in enumerate(worksheet.columns, start=1):
-                # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.worksheet.html#openpyxl.worksheet.worksheet.Worksheet.columns
+                    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.worksheet.html#openpyxl.worksheet.worksheet.Worksheet.columns
                     valid_values = filter(
                         lambda v: v is not None, (cell.value for cell in col_cells)
                     )
                     width = max(map(len, map(str, valid_values)))
                     worksheet.column_dimensions[get_column_letter(colno)].width = width * 1.23
+                # Horizontal header background
+                #  TODO: Currently all tabs share the same style sheet and the
+                #   single QSS file is loaded from MainWindow, thus here the
+                #   style sheet is accessed from self. In the future different
+                #   tabs might load their own QSS files, and the style sheet
+                #   should be accessed from the QTabWidget. This is also the
+                #   case for all other "self.styleSheet()" expressions, when
+                #   making this change, remember to edit all of them.
+                horizon_bacolor: Optional[str] = self.get_qss_attr(
+                    self.styleSheet(), "QHeaderView::section:horizontal", "background-color"
+                )
+                if horizon_bacolor is not None:
+                    horizon_bacolor = horizon_bacolor.lstrip("#")
+                    for colno_cell, colno_item in enumerate(range(col_count)):
+                        cell = worksheet_cell(1, 2 + colno_cell)
+                        cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
+                # Vertical header background
+                vertical_bacolor: Optional[str] = self.get_qss_attr(
+                    self.styleSheet(), "QHeaderView::section:vertical", "background-color"
+                )
+                if vertical_bacolor is not None:
+                    vertical_bacolor = vertical_bacolor.lstrip("#")
+                    for rowno_cell, rowno_item in enumerate(range(row_count)):
+                        cell = worksheet_cell(2 + rowno_cell, 1)
+                        cell.fill = PatternFill(fill_type="solid", fgColor=vertical_bacolor)
+                # Header font, currently only consider color and boldness
+                #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
+                #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
+                font_color = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "color")
+                font_color = font_color.lstrip("#") if font_color is not None else "000"
+                font_weight = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "font-weight")
+                is_bold = (font_weight == "bold") if font_weight is not None else False
+                for colno_cell, colno_item in enumerate(range(col_count)):
+                    cell = worksheet_cell(1, 2 + colno_cell)
+                    cell.font = Font(color=font_color, bold=is_bold)
+                for rowno_cell, rowno_item in enumerate(range(row_count)):
+                    cell = worksheet_cell(2 + rowno_cell, 1)
+                    cell.font = Font(color=font_color, bold=is_bold)
                 workbook.save(file_path)
             elif ".csv" in file_type or ".tsv" in file_type:
                 import csv
