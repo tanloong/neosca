@@ -556,7 +556,7 @@ class Ng_Main(QMainWindow):
             directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
         )  # TODO remove this before releasing
         file_paths_to_add, _ = file_dialog.getOpenFileNames(
-            self, "Open Files", "", "All files (*.*);;Text files (*.txt);;Docx files (*.docx)"
+            self, "Open Files", "", "Text files (*.txt);;Docx files (*.docx);;All files (*.*)"
         )
         if not file_paths_to_add:
             return
