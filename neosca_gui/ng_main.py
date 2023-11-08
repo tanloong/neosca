@@ -300,6 +300,7 @@ class Ng_Main(QMainWindow):
             if ".xlsx" in file_type:
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
                 import openpyxl
+                from openpyxl.utils import get_column_letter
 
                 workbook = openpyxl.Workbook()
                 worksheet = workbook.active
@@ -319,6 +320,16 @@ class Ng_Main(QMainWindow):
                         # might need to convert basing on type info from
                         # QStandardItem
                         cell.value = float(model.item(rowno, colno_item).text())
+                # Fit column width
+                #  https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
+                #  https://stackoverflow.com/questions/60182474/auto-size-column-width
+                for colno, col_cells in enumerate(worksheet.columns, start=1):
+                # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.worksheet.html#openpyxl.worksheet.worksheet.Worksheet.columns
+                    valid_values = filter(
+                        lambda v: v is not None, (cell.value for cell in col_cells)
+                    )
+                    width = max(map(len, map(str, valid_values)))
+                    worksheet.column_dimensions[get_column_letter(colno)].width = width * 1.23
                 workbook.save(file_path)
             elif ".csv" in file_type or ".tsv" in file_type:
                 import csv
