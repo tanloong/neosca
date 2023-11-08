@@ -315,7 +315,10 @@ class Ng_Main(QMainWindow):
                 for rowno_cell, rowno in enumerate(range(row_count)):
                     for colno_cell, colno_item in enumerate(range(col_count)):
                         cell = worksheet.cell(2 + rowno_cell, 2 + colno_cell)
-                        cell.value = model.item(rowno, colno_item).text()
+                        # TODO: currently can only be numberic, in the future
+                        # might need to convert basing on type info from
+                        # QStandardItem
+                        cell.value = float(model.item(rowno, colno_item).text())
                 workbook.save(file_path)
             elif ".csv" in file_type or ".tsv" in file_type:
                 import csv
