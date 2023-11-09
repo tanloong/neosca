@@ -116,8 +116,9 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
         else:
             sca_analyzer.update_options(sca_kwargs)
 
-        self.main.remove_model_rows(self.main.model_sca)
-        err_file_paths = []
+        err_file_paths: List[str] = []
+        model: Ng_Model = self.main.model_sca
+        has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(
@@ -131,8 +132,11 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 continue
             sname_value_map: Dict[str, str] = counter.get_all_values()
             _, *items = (QStandardItem(value) for value in sname_value_map.values())
-            self.main.model_sca.insertRow(rowno, items)
-            self.main.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+            if has_trailing_rows:
+                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
+            model.insertRow(rowno, items)
+            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+        model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -140,7 +144,6 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 "Error Processing Files",
                 "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
-        self.main.model_sca.data_updated.emit()
         self.worker_done.emit()
 
 
@@ -174,8 +177,9 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
         else:
             lca_analyzer.update_options(lca_kwargs)
 
-        self.main.remove_model_rows(self.main.model_lca)
-        err_file_paths = []
+        err_file_paths: List[str] = []
+        model: Ng_Model = self.main.mode_lca
+        has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 values = lca_analyzer._analyze(file_path=file_path)
@@ -186,8 +190,11 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
                 err_file_paths.append(file_path)
                 continue
             _, *items = (QStandardItem(value) for value in values)
-            self.main.model_lca.insertRow(rowno, items)
-            self.main.model_lca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+            if has_trailing_rows:
+                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
+            model.insertRow(rowno, items)
+            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+        model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -196,7 +203,6 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
                 "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
 
-        self.main.model_lca.data_updated.emit()
         self.worker_done.emit()
 
 
@@ -323,7 +329,7 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_sca = QPushButton("Clear table")
         self.button_clear_table_sca.setEnabled(False)
         self.button_clear_table_sca.clicked.connect(
-            lambda: self.ask_reset_model(self.model_sca, "hor")
+            lambda: self.ask_clear_model(self.model_sca, "hor")
         )
 
         # TODO comment this out before releasing
@@ -355,7 +361,7 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(
             lambda: self.button_generate_table_sca.setEnabled(False)
         )
-        self.reset_model(self.model_sca, orientation="hor")
+        self.clear_model(self.model_sca, orientation="hor")
         self.tableview_preview_sca = QTableView()
         self.tableview_preview_sca.setModel(self.model_sca)
         # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
@@ -414,7 +420,7 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
         self.button_clear_table_lca.clicked.connect(
-            lambda: self.ask_reset_model(self.model_lca, "hor")
+            lambda: self.ask_clear_model(self.model_lca, "hor")
         )
 
         self.model_lca = Ng_Model()
@@ -436,7 +442,7 @@ class Ng_Main(QMainWindow):
         self.model_lca.data_updated.connect(
             lambda: self.button_generate_table_lca.setEnabled(False)
         )
-        self.reset_model(self.model_lca, orientation="hor")
+        self.clear_model(self.model_lca, orientation="hor")
         self.tableview_preview_lca = QTableView()
         self.tableview_preview_lca.setModel(self.model_lca)
         self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -499,7 +505,7 @@ class Ng_Main(QMainWindow):
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
-        self.reset_model(self.model_file)
+        self.clear_model(self.model_file)
         self.tableview_file = QTableView()
         self.tableview_file.setModel(self.model_file)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -550,11 +556,11 @@ class Ng_Main(QMainWindow):
         )
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
 
-    def ask_reset_model(
+    def ask_clear_model(
         self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor"
     ) -> None:
         if model.has_been_exported:
-            self.reset_model(model, orientation)
+            self.clear_model(model, orientation)
         else:
             messagebox = QMessageBox()
             messagebox.setWindowTitle("Clear Table")
@@ -565,10 +571,10 @@ class Ng_Main(QMainWindow):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
 
-            messagebox.accepted.connect(lambda: self.reset_model(model, orientation))
+            messagebox.accepted.connect(lambda: self.clear_model(model, orientation))
             messagebox.exec()
 
-    def reset_model(self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor") -> None:
+    def clear_model(self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor") -> None:
         # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
         if orientation == "hor":
             model.setRowCount(0)
@@ -588,13 +594,14 @@ class Ng_Main(QMainWindow):
                 QHeaderView.ResizeMode.ResizeToContents
             )
         else:
-            self.reset_model(model, orientation)
+            self.clear_model(model, orientation)
 
     def setup_env(self) -> None:
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
         self.here = os_path.dirname(os_path.abspath(__file__))
         ng_home = os_path.dirname(self.here)
         libs_dir = os_path.join(ng_home, "libs")
+        # TODO: remove these
         self.java_home = os_path.join(libs_dir, "jdk8u372")
         self.stanford_parser_home = os_path.join(libs_dir, "stanford-parser-full-2020-11-17")
         self.stanford_tregex_home = os_path.join(libs_dir, "stanford-tregex-2020-11-17")
