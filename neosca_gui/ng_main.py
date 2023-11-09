@@ -331,7 +331,7 @@ class Ng_Main(QMainWindow):
         has_vertical_header: bool = True,
     ) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
-            parent=self,
+            parent=None,
             caption="Export Table",
             dir=self.desktop,
             filter="Excel Workbook (*.xlsx);;CSV File (*.csv);;TSV File (*.tsv)",
@@ -586,27 +586,30 @@ class Ng_Main(QMainWindow):
             )
 
     def browse_folder(self):
-        # TODO: 合法后缀列表，暂时在这个函数里硬编码，等 scaio 移动到顶层后要改成从 scaio 读取
-        folder_dialog = QFileDialog(
-            directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
-        )
+        # TODO: Currently only include files of supported types, should include
+        #  all files, and popup error for unsupported files
+        folder_dialog = QFileDialog()
+        # TODO remove default directory before releasing
         folder_path = folder_dialog.getExistingDirectory(
-            dir="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/"
+            caption="Open Folder",
+            dir='directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/',
         )
         if not folder_path:
             return
 
         file_paths_to_add = []
-        for extension in (".txt", ".docx"):
-            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*{extension}")))
+        for extension in SCAIO.SUPPORTED_EXTENSIONS:
+            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
         self.add_file_paths(file_paths_to_add)
 
     def browse_file(self):
-        file_dialog = QFileDialog(
-            directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/"
-        )  # TODO remove this before releasing
+        file_dialog = QFileDialog()
         file_paths_to_add, _ = file_dialog.getOpenFileNames(
-            self, "Open Files", "", "Text files (*.txt);;Docx files (*.docx);;All files (*.*)"
+            parent=None,
+            caption="Open Files",
+            dir="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/",
+            # TODO remove this before releasing
+            filter="Text files (*.txt);;Docx files (*.docx);;Odt files (*.odt);;All files (*.*)",
         )
         if not file_paths_to_add:
             return
