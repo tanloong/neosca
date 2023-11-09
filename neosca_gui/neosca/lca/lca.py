@@ -68,6 +68,7 @@ class LCA:
 
         self.scaio = SCAIO()
         self.nlp_spacy: Optional[Callable] = None
+        self.nlp_stanza: Optional[Callable] = None
 
         assert wordlist in ("bnc", "anc")
         logging.debug(f"Using {wordlist.upper()} wordlist")
@@ -530,6 +531,18 @@ class LCA:
 
         return True, None
 
+    def ensure_stanza_initialized(func: Callable):  # type:ignore
+        def wrapper(self, *args, **kwargs):
+            if self.nlp_stanza is None:
+                logging.info("Initializing Stanza...")
+                import stanza  # type: ignore
+
+                self.nlp_stanza = stanza.Pipeline("en", processors="tokenize,pos,lemma", download_method=None)
+
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
     def ensure_spacy_initialized(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
             if self.nlp_spacy is None:
@@ -544,14 +557,16 @@ class LCA:
 
         return wrapper
 
-    @ensure_spacy_initialized
+    @ensure_stanza_initialized
     def get_lemma_and_udpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
-        doc = self.nlp_spacy(text)  # type:ignore
-        for token in doc:
-            yield (token.lemma_.lower(), token.pos_)
+        doc = self.nlp_stanza(text)  # type:ignore
+        for sent in doc.sentences:
+            for word in sent.words:
+                yield (word.lemma.lower(), word.upos)
 
-    @ensure_spacy_initialized
+    @ensure_stanza_initialized
     def get_lemma_and_ptbpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
-        doc = self.nlp_spacy(text)  # type:ignore
-        for token in doc:
-            yield (token.lemma_.lower(), token.tag_)
+        doc = self.nlp_stanza(text)  # type:ignore
+        for sent in doc.sentences:
+            for word in sent.words:
+                yield (word.lemma.lower(), word.xpos)
