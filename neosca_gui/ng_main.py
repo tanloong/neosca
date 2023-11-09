@@ -409,6 +409,13 @@ class Ng_Main(QMainWindow):
                 for rowno_cell, rowno_item in enumerate(range(row_count)):
                     cell = worksheet_cell(2 + rowno_cell, 1)
                     cell.font = Font(color=font_color, bold=is_bold)
+                # 6. Freeze panes
+                # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
+                # Using "2" in both cases means to always freeze the 1st column
+                if has_horizontal_header:
+                    worksheet.freeze_panes = "B2"
+                else:
+                    worksheet.freeze_panes = "A2"
                 workbook.save(file_path)
             elif ".csv" in file_type or ".tsv" in file_type:
                 import csv
