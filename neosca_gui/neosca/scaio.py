@@ -9,7 +9,7 @@ import glob
 import logging
 import os.path as os_path
 import sys
-from typing import ByteString, Callable, Dict, Iterable, List, Optional, Set, Union
+from typing import ByteString, Callable, Dict, Iterable, Optional, Set, Union
 import zipfile
 
 from charset_normalizer import detect
@@ -18,6 +18,8 @@ from .util import SCAProcedureResult
 
 
 class SCAIO:
+    SUPPORTED_EXTENSIONS = ("txt", "docx", "odt")
+
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"
     DOCX_TEXT = DOCX_NAMESPACE + "t"
@@ -26,46 +28,10 @@ class SCAIO:
     ODT_PARA = ODT_NAMESPACE + "p"
 
     def __init__(self):
-        self.ext_read_map: Dict[str, Callable] = {
-            "txt": self.read_txt,
-            "docx": self.read_docx,
-            "odt": self.read_odt,
+        self.extension_readfunc_map: Dict[str, Callable] = {
+            extension: getattr(self, f"read_{extension}")
+            for extension in self.SUPPORTED_EXTENSIONS
         }
-        # .parsed files, along with other types of files, should be explicitly
-        # checked and excluded, because they are text files and self.read_txt can
-        # only exclude non-text files
-        self.extensions_to_exclude: tuple = (
-            "csv",
-            "tsv",
-            "xml",
-            "json",
-            "md",
-            "yml",
-            "toml",
-            "html",
-            "htm",
-            "svg",
-            "cfg",
-            "conf",
-            "log",
-            "png",
-            "jpg",
-            "gif",
-            "ini",
-            "rtf",
-            "bat",
-            "sh",
-            "py",
-            "r",
-            "R",
-            "h",
-            "java",
-            "cpp",
-            "sql",
-            "textile",
-            "srt",
-            "tex",
-        )
         self.previous_encoding: str = "utf-8"
 
     def read_docx(self, path: str) -> str:
@@ -129,23 +95,18 @@ class SCAIO:
 
         return content  # type:ignore
 
-    def _is_to_exclude(self, path: str) -> bool:
-        *_, ext = path.split(".")
-        if ext in self.extensions_to_exclude:
-            return True
-        return False
+    @classmethod
+    def suffix(cls, path: str) -> str:
+        *_, extension = path.split(".")
+        return extension
 
     def read_file(self, path: str) -> Optional[str]:
-        if self._is_to_exclude(path):
-            logging.warning(f"[SCAIO] {path} does not appear to be an input file. Skipping.")
+        extension = self.suffix(path)
+        if extension not in self.SUPPORTED_EXTENSIONS:
+            logging.warning(f"[SCAIO] {path} is of unsupported filetype. Skipping.")
             return None
 
-        *_, ext = path.split(".")
-        if ext not in self.ext_read_map:
-            # assume files with other extensions as text files; if not so,
-            # read_txt() will fail and log them and return None
-            ext = "txt"
-        return self.ext_read_map[ext](path)  # type:ignore
+        return self.extension_readfunc_map[extension](path)
 
     @classmethod
     def is_writable(cls, filename: str) -> SCAProcedureResult:
@@ -184,10 +145,9 @@ class SCAIO:
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
-                if self._is_to_exclude(path):
-                    logging.warning(
-                        f"[SCAIO] {path} does not appear to be an input file. Skipping."
-                    )
+                extension = self.suffix(path)
+                if extension not in self.SUPPORTED_EXTENSIONS:
+                    logging.warning(f"[SCAIO] {path} is of unsupported filetype. Skipping.")
                     continue
                 logging.debug(f"[SCAIO] Adding {path} to input file list")
                 verified_ifile_list.append(path)
@@ -195,7 +155,7 @@ class SCAIO:
                 verified_ifile_list.extend(
                     path
                     for path in glob.glob(f"{path}{os_path.sep}*")
-                    if os_path.isfile(path) and not self._is_to_exclude(path)
+                    if os_path.isfile(path) and self.suffix(path) in self.SUPPORTED_EXTENSIONS
                 )
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
