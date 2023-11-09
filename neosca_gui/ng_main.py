@@ -52,14 +52,26 @@ class Ng_Model(QStandardItemModel):
     data_updated = Signal()
     data_exported = Signal()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.orientation = orientation
+
         self.has_been_exported: bool = False
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
         self.data_updated.connect(lambda: self.set_has_been_exported(False))
 
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
+
+    def clear_data(self) -> None:
+        # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
+        if self.orientation == "hor":
+            self.setRowCount(0)
+            self.setRowCount(1)
+        elif self.orientation == "ver":
+            self.setColumnCount(0)
+            self.setColumnCount(1)
+        self.data_cleared.emit()
 
 
 class Ng_Worker(QObject):
@@ -83,18 +95,10 @@ class Ng_Worker(QObject):
 class Ng_Worker_SCA_Generate_Table(Ng_Worker):
     def __init__(self, main, dialog) -> None:
         super().__init__(main, dialog)
-        self.worker_done.connect(
-            lambda: self.main.resize_tableview(self.main.tableview_preview_sca)
-        )
-        self.worker_done.connect(lambda: self.main.button_export_table_sca.setEnabled(True))
-        self.worker_done.connect(lambda: self.main.button_clear_table_sca.setEnabled(True))
 
     def run(self) -> None:
-        input_file_names = self.main.yield_added_file_names()
-        input_file_paths = self.main.yield_added_file_paths()
-        if not input_file_paths:
-            QMessageBox.warning(self.main, "No Input Files", f"Please select files to begin.")
-            return
+        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
+        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
 
         sca_kwargs = {
             "is_auto_save": False,
@@ -150,18 +154,10 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
 class Ng_Worker_LCA_Generate_Table(Ng_Worker):
     def __init__(self, main, dialog) -> None:
         super().__init__(main, dialog)
-        self.worker_done.connect(
-            lambda: self.main.resize_tableview(self.main.tableview_preview_lca)
-        )
-        self.worker_done.connect(lambda: self.main.button_export_table_lca.setEnabled(True))
-        self.worker_done.connect(lambda: self.main.button_clear_table_lca.setEnabled(True))
 
     def run(self) -> None:
-        input_file_names = self.main.yield_added_file_names()
-        input_file_paths = self.main.yield_added_file_paths()
-        if not input_file_paths:
-            QMessageBox.warning(self.main, "No input files", f"Please select files to process.")
-            return
+        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
+        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
 
         lca_kwargs = {
             "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
@@ -361,7 +357,10 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(
             lambda: self.button_generate_table_sca.setEnabled(False)
         )
-        self.clear_model(self.model_sca, orientation="hor")
+        self.model_sca.data_updated.connect(
+            lambda: self.resize_horizontal_header(self.tableview_preview_sca)
+        )
+        self.model_sca.clear_data()
         self.tableview_preview_sca = QTableView()
         self.tableview_preview_sca.setModel(self.model_sca)
         # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
@@ -442,7 +441,10 @@ class Ng_Main(QMainWindow):
         self.model_lca.data_updated.connect(
             lambda: self.button_generate_table_lca.setEnabled(False)
         )
-        self.clear_model(self.model_lca, orientation="hor")
+        self.model_lca.data_updated.connect(
+            lambda: self.resize_horizontal_header(self.tableview_preview_lca)
+        )
+        self.model_lca.clear_data()
         self.tableview_preview_lca = QTableView()
         self.tableview_preview_lca.setModel(self.model_lca)
         self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -500,12 +502,20 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_sca.setEnabled(enabled)
         self.button_generate_table_lca.setEnabled(enabled)
 
+    def resize_horizontal_header(self, tableview: QTableView) -> None:
+        tableview.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+
     def setup_tableview_file(self) -> None:
         self.model_file = Ng_Model()
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
-        self.clear_model(self.model_file)
+        self.model_file.data_updated.connect(
+            lambda: self.resize_horizontal_header(self.tableview_file)
+        )
+        self.model_file.clear_data()
         self.tableview_file = QTableView()
         self.tableview_file.setModel(self.model_file)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -560,7 +570,7 @@ class Ng_Main(QMainWindow):
         self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor"
     ) -> None:
         if model.has_been_exported:
-            self.clear_model(model, orientation)
+            model.clear_data()
         else:
             messagebox = QMessageBox()
             messagebox.setWindowTitle("Clear Table")
@@ -571,30 +581,8 @@ class Ng_Main(QMainWindow):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
 
-            messagebox.accepted.connect(lambda: self.clear_model(model, orientation))
+            messagebox.accepted.connect(model.clear_data)
             messagebox.exec()
-
-    def clear_model(self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor") -> None:
-        # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
-        if orientation == "hor":
-            model.setRowCount(0)
-            model.setRowCount(1)
-        elif orientation == "ver":
-            model.setColumnCount(0)
-            model.setColumnCount(1)
-        model.data_cleared.emit()
-
-    def resize_tableview(
-        self, tableview: QTableView, orientation: Literal["hor", "ver"] = "hor"
-    ) -> None:
-        model = tableview.model()
-        # TODO: here need to change when transpose the table to vertical
-        if model.rowCount() >= 1:
-            tableview.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
-        else:
-            self.clear_model(model, orientation)
 
     def setup_env(self) -> None:
         self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
@@ -870,9 +858,6 @@ class Ng_Main(QMainWindow):
                     self.model_file, self.model_file.rowCount(), file_name, file_path
                 )
 
-            self.tableview_file.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
             self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
