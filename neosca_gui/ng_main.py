@@ -43,6 +43,7 @@ from PySide6.QtWidgets import (
 
 from .neosca.lca.lca import LCA
 from .neosca.neosca import NeoSCA
+from .neosca.scaio import SCAIO
 from .neosca.structure_counter import StructureCounter
 
 
@@ -537,6 +538,11 @@ class Ng_Main(QMainWindow):
         unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
         already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
         file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
+        file_paths_unsupported: Set[str] = set(
+            filter(
+                lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add
+            )
+        )
         file_paths_empty: Set[str] = set(
             filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add)
         )
@@ -544,6 +550,7 @@ class Ng_Main(QMainWindow):
             unique_file_paths_to_add
             - already_added_file_paths
             - file_paths_dup
+            - file_paths_unsupported
             - file_paths_empty
         )
         if file_paths_ok:
@@ -570,8 +577,7 @@ class Ng_Main(QMainWindow):
             # Enable "generate_table" button when new files are added
             self.setenable_button_generate_table(True)
 
-        if any((file_paths_dup, file_paths_empty)):  # TODO should show a table
-            QMessageBox.information(
+        if file_paths_dup or file_paths_unsupported or file_paths_empty:
                 self,
                 "Error Adding Files",
                 "These files are skipped:\n- {}".format(
