@@ -7,7 +7,7 @@ import os.path as os_path
 import re
 import subprocess
 import sys
-from typing import Dict, Iterable, List, Literal, Optional, Set
+from typing import Dict, Iterable, List, Literal, Optional, Set, Tuple
 
 from PySide6.QtCore import QModelIndex, QObject, QThread, Qt, Signal
 from PySide6.QtGui import (
@@ -578,12 +578,35 @@ class Ng_Main(QMainWindow):
             self.setenable_button_generate_table(True)
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-                self,
-                "Error Adding Files",
-                "These files are skipped:\n- {}".format(
-                    "\n- ".join(file_paths_dup | file_paths_empty)
-                ),
+            model_err_files = QStandardItemModel()
+            model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
+            for reason, file_paths in (
+                ("Duplicate file", file_paths_dup),
+                ("Unsupported file type", file_paths_unsupported),
+                ("Empty file", file_paths_empty),
+            ):
+                for file_path in file_paths:
+                    model_err_files.insertRow(
+                        model_err_files.rowCount(),
+                        (QStandardItem(reason), QStandardItem(file_path)),
+                    )
+            tableview_err_files = QTableView()
+            tableview_err_files.setModel(model_err_files)
+            tableview_err_files.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
             )
+
+            dialog = Ng_Dialog_Table(
+                self,
+                main=self,
+                title="Error Adding Files",
+                text="Failed to add the following files.",
+                size=(300, 200),
+                tableview=tableview_err_files,
+                model_has_horizontal_header=True,
+                model_has_vertical_header=False,
+            )
+            dialog.open()
 
     def browse_folder(self):
         # TODO: Currently only include files of supported types, should include
@@ -769,6 +792,67 @@ class Ng_Thread(QThread):
     def run(self):
         self.start()
         self.worker.run()
+
+
+class Ng_Dialog(QDialog):
+    def __init__(self, *args, main, title: str, size: Tuple[int, int], **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.main = main
+        self.setWindowTitle(title)
+        self.resize(*size)
+        # ┌———————————┐
+        # │           │
+        # │  content  │
+        # │           │
+        # │———————————│
+        # │  buttons  │
+        # └———————————┘
+        self.content_layout = QGridLayout()
+        self.button_layout = QGridLayout()
+
+        self.grid_layout = QGridLayout()
+        self.grid_layout.addLayout(self.content_layout, 0, 0)
+        self.grid_layout.addLayout(self.button_layout, 1, 0)
+        self.setLayout(self.grid_layout)
+
+        self.setSizeGripEnabled(True)
+
+    def addWidget(self, *args, **kwargs) -> None:
+        self.content_layout.addWidget(*args, **kwargs)
+
+
+class Ng_Dialog_Table(Ng_Dialog):
+    def __init__(
+        self,
+        *args,
+        text: str,
+        tableview: QTableView,
+        model_has_horizontal_header: bool = True,
+        model_has_vertical_header: bool = True,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.model = tableview.model()
+        self.model_has_horizontal_header = model_has_horizontal_header
+        self.model_has_vertical_header = model_has_vertical_header
+
+        self.content_layout.addWidget(QLabel(text), 0, 0)
+        self.content_layout.addWidget(tableview, 1, 0)
+
+        self.button_ok = QPushButton("OK")
+        self.button_ok.clicked.connect(self.accept)
+        self.button_export_table = QPushButton("Export table...")
+        self.button_export_table.clicked.connect(
+            lambda: self.main.export_table(
+                self.model,
+                has_horizontal_header=self.model_has_horizontal_header,
+                has_vertical_header=self.model_has_vertical_header,
+            )
+        )
+        self.button_layout.addWidget(
+            self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft
+        )
+        self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
 
 
 class Ng_QSS_Loader:
