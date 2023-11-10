@@ -12,15 +12,16 @@ from PySide6.QtCore import QModelIndex, QObject, Qt, QThread, Signal
 from PySide6.QtGui import (
     QAction,
     QCursor,
-    QKeySequence,
     QPalette,
     QStandardItem,
     QStandardItemModel,
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QAbstractScrollArea,
     QApplication,
     QCheckBox,
+    QComboBox,
     QDialog,
     QFileDialog,
     QGridLayout,
@@ -37,6 +38,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QTableView,
     QTabWidget,
+    QTextEdit,
     QWidget,
 )
 
@@ -216,7 +218,7 @@ class Ng_Thread(QThread):
 
 
 class Ng_Dialog(QDialog):
-    def __init__(self, *args, main, title: str, size: Tuple[int, int], **kwargs) -> None:
+    def __init__(self, *args, main, title: str = "", size: Tuple[int, int] = (300, 200), **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.main = main
         self.setWindowTitle(title)
@@ -236,10 +238,13 @@ class Ng_Dialog(QDialog):
         self.grid_layout.addLayout(self.button_layout, 1, 0)
         self.setLayout(self.grid_layout)
 
-        self.setSizeGripEnabled(True)
+        # self.setSizeGripEnabled(True)
 
     def addWidget(self, *args, **kwargs) -> None:
         self.content_layout.addWidget(*args, **kwargs)
+
+    def addButton(self, *args, **kwargs) -> None:
+        self.button_layout.addWidget(*args, **kwargs)
 
 
 class Ng_Dialog_Table(Ng_Dialog):
@@ -285,32 +290,70 @@ class Ng_Main(QMainWindow):
         self.setup_main_window()
 
     def setup_menu(self):
-        menubar = QMenuBar()
-        # menubar.setStyleSheet("background-color: cyan;")
+        # File
         menu_file = QMenu("File")
         action_open_file = QAction("Open File...", menu_file)
-        action_open_file.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_O))
+        action_open_file.setShortcut("CTRL+O")
         action_open_file.triggered.connect(self.browse_file)
         action_open_folder = QAction("Open Folder...", menu_file)
-        action_open_folder.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_F))
+        action_open_folder.setShortcut("CTRL+F")
         action_open_folder.triggered.connect(self.browse_folder)
         action_restart = QAction("Restart", menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.restart)  # TODO remove this before releasing
-        action_restart.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_R))  # TODO remove this before releasing
+        action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
         action_quit = QAction("Quit", menu_file)
-        action_quit.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_Q))
+        action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         menu_file.addAction(action_open_file)
         menu_file.addAction(action_open_folder)
         menu_file.addAction(action_restart)
         menu_file.addAction(action_quit)
-        menubar.addMenu(menu_file)
-        self.setMenuBar(menubar)
+        # Help
+        menu_help = QMenu("Help")
+        action_citing = QAction("Citing", menu_help)
+        action_citing.triggered.connect(self.show_help_citing)
+        menu_help.addAction(action_citing)
+
+        self.menuBar().addMenu(menu_file)
+        self.menuBar().addMenu(menu_help)
+
+    def show_help_citing(self) -> None:
+        import json
+
+        with open(os_path.join(self.here, "citing.json")) as f:
+            style_citation_mapping = json.load(f)
+        label_citing = QLabel("If you use NeoSCA-GUI in your research, please kindly cite as follows.")
+        label_citing.setWordWrap(True)
+        textedit_citing = QTextEdit()
+        textedit_citing.setReadOnly(True)
+        textedit_citing.setText(next(iter(style_citation_mapping.values())))
+        label_choose_citation_style = QLabel("Choose citation style: ")
+        combobox_choose_citation_style = QComboBox()
+        combobox_choose_citation_style.addItems(tuple(style_citation_mapping.keys()))
+        combobox_choose_citation_style.currentTextChanged.connect(
+            lambda key: textedit_citing.setText(style_citation_mapping[key])
+        )
+
+        dialog_citing = Ng_Dialog(self, main=self, title="Citing")
+        dialog_citing.addWidget(label_citing, 0, 0, 1, 2)
+        dialog_citing.addWidget(label_choose_citation_style, 1, 0)
+        dialog_citing.addWidget(combobox_choose_citation_style, 1, 1)
+        dialog_citing.addWidget(textedit_citing, 2, 0, 1, 2)
+
+        button_copy = QPushButton("Copy")
+        button_copy.clicked.connect(textedit_citing.selectAll)
+        button_copy.clicked.connect(textedit_citing.copy)
+        button_close = QPushButton("Close")
+        button_close.clicked.connect(dialog_citing.reject)
+
+        dialog_citing.addButton(button_copy, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        dialog_citing.addButton(button_close, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+        dialog_citing.open()
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
-        self.button_generate_table_sca.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_G))
+        self.button_generate_table_sca.setShortcut("CTRL+G")
         self.button_export_table_sca = QPushButton("Export all cells...")
         self.button_export_table_sca.setEnabled(False)
         self.button_export_table_sca.clicked.connect(lambda: self.export_table(self.model_sca))
@@ -390,7 +433,7 @@ class Ng_Main(QMainWindow):
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
-        self.button_generate_table_lca.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_G))
+        self.button_generate_table_lca.setShortcut("CTRL+G")
         self.button_export_table_lca = QPushButton("Export all cells...")
         self.button_export_table_lca.setEnabled(False)
         self.button_export_table_lca.clicked.connect(lambda: self.export_table(self.model_lca))
