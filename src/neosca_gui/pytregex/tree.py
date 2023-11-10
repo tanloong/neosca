@@ -19,7 +19,7 @@ class Tree:
         children: Optional[List["Tree"]] = None,
         parent: Optional["Tree"] = None,
     ):
-        self.label = label
+        self.set_label(label)
         if children is None:
             self.children = []
         else:
@@ -311,9 +311,9 @@ class Tree:
                 return i
         return -1
 
-    def set_label(self, label: str) -> None:
+    def set_label(self, label: Optional[str]) -> None:
         if isinstance(label, str):
-            self.label = label
+            self.label = self.normalize(label)
         else:
             raise TypeError(f"label must be str, not {type(label).__name__}")
 
@@ -323,6 +323,10 @@ class Tree:
     def add_child(self, node: "Tree") -> None:
         node.set_parent(self)
         self.children.append(node)
+
+    @classmethod
+    def normalize(cls, text):
+        return text.replace("-LRB-", "(").replace("-RRB-", ")")
 
     @classmethod
     def fromstring(cls, string: str, brackets: str = "()") -> Generator["Tree", None, None]:
