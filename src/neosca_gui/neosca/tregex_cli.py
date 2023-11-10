@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import os
 import subprocess
-from subprocess import CalledProcessError
 import sys
+from subprocess import CalledProcessError
 
-from .scaenv import getenv, STANFORD_TREGEX_HOME
+from .scaenv import STANFORD_TREGEX_HOME, getenv
 
 
 def tregex_cli():

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import glob
 import os
@@ -9,7 +8,7 @@ import subprocess
 import sys
 from typing import Dict, Generator, List, Literal, Optional, Set, Tuple
 
-from PySide6.QtCore import QModelIndex, QObject, QThread, Qt, Signal
+from PySide6.QtCore import QModelIndex, QObject, Qt, QThread, Signal
 from PySide6.QtGui import (
     QAction,
     QCursor,
@@ -36,8 +35,8 @@ from PySide6.QtWidgets import (
     QRadioButton,
     QScrollArea,
     QSplitter,
-    QTabWidget,
     QTableView,
+    QTabWidget,
     QWidget,
 )
 
@@ -125,9 +124,8 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
-                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(
-                    file_path
-                )  # TODO should concern --no-parse, --no-query, ... after adding all available options
+                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(file_path)
+                # TODO should concern --no-parse, --no-query, ... after adding all available options
             except:
                 err_file_paths.append(file_path)
                 continue
@@ -272,9 +270,7 @@ class Ng_Dialog_Table(Ng_Dialog):
                 has_vertical_header=self.model_has_vertical_header,
             )
         )
-        self.button_layout.addWidget(
-            self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft
-        )
+        self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
         self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
 
 
@@ -300,9 +296,7 @@ class Ng_Main(QMainWindow):
         action_open_folder.triggered.connect(self.browse_folder)
         action_restart = QAction("Restart", menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.restart)  # TODO remove this before releasing
-        action_restart.setShortcut(
-            QKeySequence(Qt.CTRL | Qt.Key_R)
-        )  # TODO remove this before releasing
+        action_restart.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_R))  # TODO remove this before releasing
         action_quit = QAction("Quit", menu_file)
         action_quit.setShortcut(QKeySequence(Qt.CTRL | Qt.Key_Q))
         action_quit.triggered.connect(self.close)
@@ -324,9 +318,7 @@ class Ng_Main(QMainWindow):
         # self.button_export_selected_cells.setEnabled(False)
         self.button_clear_table_sca = QPushButton("Clear table")
         self.button_clear_table_sca.setEnabled(False)
-        self.button_clear_table_sca.clicked.connect(
-            lambda: self.ask_clear_model(self.model_sca, "hor")
-        )
+        self.button_clear_table_sca.clicked.connect(lambda: self.ask_clear_model(self.model_sca, "hor"))
 
         # TODO comment this out before releasing
         self.button_custom_func = QPushButton("Custom func")
@@ -341,25 +333,13 @@ class Ng_Main(QMainWindow):
         self.model_sca = Ng_Model()
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
-        self.model_sca.data_cleared.connect(
-            lambda: self.button_generate_table_sca.setEnabled(True)
-        )
-        self.model_sca.data_cleared.connect(
-            lambda: self.button_export_table_sca.setEnabled(False)
-        )
-        self.model_sca.data_cleared.connect(
-            lambda: self.button_clear_table_sca.setEnabled(False)
-        )
-        self.model_sca.data_updated.connect(
-            lambda: self.button_export_table_sca.setEnabled(True)
-        )
+        self.model_sca.data_cleared.connect(lambda: self.button_generate_table_sca.setEnabled(True))
+        self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
+        self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
+        self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(
-            lambda: self.button_generate_table_sca.setEnabled(False)
-        )
-        self.model_sca.data_updated.connect(
-            lambda: self.resize_horizontal_header(self.tableview_preview_sca)
-        )
+        self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
+        self.model_sca.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_preview_sca))
         self.model_sca.clear_data()
         self.tableview_preview_sca = QTableView()
         self.tableview_preview_sca.setModel(self.model_sca)
@@ -418,32 +398,18 @@ class Ng_Main(QMainWindow):
         # self.button_export_selected_cells.setEnabled(False)
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
-        self.button_clear_table_lca.clicked.connect(
-            lambda: self.ask_clear_model(self.model_lca, "hor")
-        )
+        self.button_clear_table_lca.clicked.connect(lambda: self.ask_clear_model(self.model_lca, "hor"))
 
         self.model_lca = Ng_Model()
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
-        self.model_lca.data_cleared.connect(
-            lambda: self.button_generate_table_lca.setEnabled(True)
-        )
-        self.model_lca.data_cleared.connect(
-            lambda: self.button_export_table_lca.setEnabled(False)
-        )
-        self.model_lca.data_cleared.connect(
-            lambda: self.button_clear_table_lca.setEnabled(False)
-        )
-        self.model_lca.data_updated.connect(
-            lambda: self.button_export_table_lca.setEnabled(True)
-        )
+        self.model_lca.data_cleared.connect(lambda: self.button_generate_table_lca.setEnabled(True))
+        self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
+        self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
+        self.model_lca.data_updated.connect(lambda: self.button_export_table_lca.setEnabled(True))
         self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
-        self.model_lca.data_updated.connect(
-            lambda: self.button_generate_table_lca.setEnabled(False)
-        )
-        self.model_lca.data_updated.connect(
-            lambda: self.resize_horizontal_header(self.tableview_preview_lca)
-        )
+        self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
+        self.model_lca.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_preview_lca))
         self.model_lca.clear_data()
         self.tableview_preview_lca = QTableView()
         self.tableview_preview_lca.setModel(self.model_lca)
@@ -503,25 +469,19 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def resize_horizontal_header(self, tableview: QTableView) -> None:
-        tableview.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
+        tableview.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
     def setup_tableview_file(self) -> None:
         self.model_file = Ng_Model()
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
-        self.model_file.data_updated.connect(
-            lambda: self.resize_horizontal_header(self.tableview_file)
-        )
+        self.model_file.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_file))
         self.model_file.clear_data()
         self.tableview_file = QTableView()
         self.tableview_file.setModel(self.model_file)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableview_file.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
+        self.tableview_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.tableview_file.horizontalHeader().setHighlightSections(False)
         self.tableview_file.verticalHeader().setHighlightSections(False)
         # self.tableview_file.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -556,19 +516,13 @@ class Ng_Main(QMainWindow):
         )
         self.label_wait.setWordWrap(True)
 
-        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(
-            self, self.processing_dialog
-        )
+        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(self, self.processing_dialog)
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
 
-        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(
-            self, self.processing_dialog
-        )
+        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(self, self.processing_dialog)
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
 
-    def ask_clear_model(
-        self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor"
-    ) -> None:
+    def ask_clear_model(self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor") -> None:
         if model.has_been_exported:
             model.clear_data()
         else:
@@ -577,9 +531,7 @@ class Ng_Main(QMainWindow):
             messagebox.setText(
                 "All the data that has not been exported will be lost. Are you sure to clear it?"
             )
-            messagebox.setStandardButtons(
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
+            messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
 
             messagebox.accepted.connect(model.clear_data)
             messagebox.exec()
@@ -608,9 +560,7 @@ class Ng_Main(QMainWindow):
         matched_selector = re.search(selector, qss)
         if matched_selector is None:
             return None
-        matched_value = re.search(
-            rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :]
-        )
+        matched_value = re.search(rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :])
         if matched_value is None:
             return None
         return matched_value.group(1)
@@ -674,13 +624,9 @@ class Ng_Main(QMainWindow):
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = self.get_qss_attr(
-                    self.styleSheet(), "QHeaderView::section", "color"
-                )
+                font_color = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "color")
                 font_color = font_color.lstrip("#") if font_color is not None else "000"
-                font_weight = self.get_qss_attr(
-                    self.styleSheet(), "QHeaderView::section", "font-weight"
-                )
+                font_weight = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "font-weight")
                 is_bold = (font_weight == "bold") if font_weight is not None else False
                 # 3.1 Horizontal header background and font
                 if has_horizontal_header:
@@ -694,11 +640,11 @@ class Ng_Main(QMainWindow):
                     #   making this change, remember to edit all of them.
                     if horizon_bacolor is not None:
                         horizon_bacolor = horizon_bacolor.lstrip("#")
-                        for colno_cell, colno_item in enumerate(range(col_count)):
+                        for colno_cell in range(col_count):
                             cell = worksheet_cell(1, colno_cell_offset + colno_cell)
                             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
                     # 3.1.2 Horizontal header font
-                    for colno_cell, colno_item in enumerate(range(col_count)):
+                    for colno_cell in range(col_count):
                         cell = worksheet_cell(1, colno_cell_offset + colno_cell)
                         cell.font = Font(color=font_color, bold=is_bold)
                 # 3.2 Vertical header background and font
@@ -706,20 +652,18 @@ class Ng_Main(QMainWindow):
                     # 3.2.1 Vertial header background
                     if vertical_bacolor is not None:
                         vertical_bacolor = vertical_bacolor.lstrip("#")
-                        for rowno_cell, rowno_item in enumerate(range(row_count)):
+                        for rowno_cell in range(row_count):
                             cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
                             cell.fill = PatternFill(fill_type="solid", fgColor=vertical_bacolor)
                     # 3.2.2 Vertical header font
-                    for rowno_cell, rowno_item in enumerate(range(row_count)):
+                    for rowno_cell in range(row_count):
                         cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
                         cell.font = Font(color=font_color, bold=is_bold)
 
                 # 4. Cells
                 for rowno_cell, rowno in enumerate(range(row_count)):
                     for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet_cell(
-                            rowno_cell_offset + rowno_cell, colno_cell_offset + colno_cell
-                        )
+                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, colno_cell_offset + colno_cell)
                         item_value = model.item(rowno, colno_item).text()
                         try:
                             item_value = float(item_value)
@@ -733,9 +677,7 @@ class Ng_Main(QMainWindow):
                 #  https://stackoverflow.com/questions/60182474/auto-size-column-width
                 for colno, col_cells in enumerate(worksheet.columns, start=1):
                     # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.worksheet.html#openpyxl.worksheet.worksheet.Worksheet.columns
-                    valid_values = filter(
-                        lambda v: v is not None, (cell.value for cell in col_cells)
-                    )
+                    valid_values = filter(lambda v: v is not None, (cell.value for cell in col_cells))
                     width = max(map(len, map(str, valid_values)))
                     worksheet.column_dimensions[get_column_letter(colno)].width = width * 1.23
                 # 6. Freeze panes
@@ -754,9 +696,7 @@ class Ng_Main(QMainWindow):
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
                     # Horizontal header
                     hor_header: List[str] = [""]
-                    hor_header.extend(
-                        model.horizontalHeaderItem(colno).text() for colno in range(col_count)
-                    )
+                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
                     csv_writer.writerow(hor_header)
                     # Vertical header + cells
                     for rowno in range(row_count):
@@ -785,7 +725,8 @@ class Ng_Main(QMainWindow):
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
         indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        # Remove rows from bottom to top, or otherwise the lower row indexes will change as upper rows are removed
+        # Remove rows from bottom to top, or otherwise the lower row indexes
+        #  will change as upper rows are removed
         rownos = sorted((index.row() for index in indexes), reverse=True)
         for rowno in rownos:
             self.model_file.takeRow(rowno)
@@ -826,13 +767,9 @@ class Ng_Main(QMainWindow):
         already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
         file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
         file_paths_unsupported: Set[str] = set(
-            filter(
-                lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add
-            )
+            filter(lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add)
         )
-        file_paths_empty: Set[str] = set(
-            filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add)
-        )
+        file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
         file_paths_ok: Set[str] = (
             unique_file_paths_to_add
             - already_added_file_paths
@@ -875,9 +812,7 @@ class Ng_Main(QMainWindow):
                     )
             tableview_err_files = QTableView()
             tableview_err_files.setModel(model_err_files)
-            tableview_err_files.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.ResizeToContents
-            )
+            tableview_err_files.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
             dialog = Ng_Dialog_Table(
                 self,
@@ -933,15 +868,13 @@ class Ng_QSS_Loader:
 
     @staticmethod
     def read_qss_file(qss_file_path):
-        with open(qss_file_path, "r", encoding="utf-8") as file:
+        with open(qss_file_path, encoding="utf-8") as file:
             return file.read()
 
 
 if __name__ == "__main__":
     ng_app = QApplication(sys.argv)
     ng_window = Ng_Main()
-    ng_window.setStyleSheet(
-        Ng_QSS_Loader.read_qss_file(os_path.join(ng_window.here, "ng_style.qss"))
-    )
+    ng_window.setStyleSheet(Ng_QSS_Loader.read_qss_file(os_path.join(ng_window.here, "ng_style.qss")))
     ng_window.show()
     sys.exit(ng_app.exec())

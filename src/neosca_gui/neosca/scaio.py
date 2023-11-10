@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 try:
-    from xml.etree.cElementTree import XML, fromstring
+    from xml.etree.ElementTree import XML, fromstring
 except ImportError:
     from xml.etree.ElementTree import XML, fromstring
 import glob
 import logging
 import os.path as os_path
 import sys
-from typing import ByteString, Callable, Dict, Iterable, Optional, Set, Union
 import zipfile
+from typing import ByteString, Callable, Dict, Iterable, Optional, Set, Union
 
 from charset_normalizer import detect
 

@@ -63,7 +63,7 @@ class NeoSCA:
         user_snames: Optional[Set[str]] = None
 
         if config is not None:
-            with open(config, "r", encoding="utf-8") as f:
+            with open(config, encoding="utf-8") as f:
                 user_data = json.load(f)
 
             user_structure_defs = user_data["structures"]

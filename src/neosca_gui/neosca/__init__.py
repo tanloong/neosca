@@ -1,6 +1,6 @@
+from .lca import lca_main
 from .main import main
 from .tregex_cli import tregex_cli
-from .lca import lca_main
 
 __all__ = [
     "main",

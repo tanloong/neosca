@@ -2,9 +2,9 @@
 
 # TODO use camel case to match java tregex's convention
 
-from collections import deque
 import re
-from typing import Deque, Generator, List, Optional, TYPE_CHECKING, Tuple
+from collections import deque
+from typing import TYPE_CHECKING, Deque, Generator, List, Optional, Tuple
 
 from .peekable import peekable
 
@@ -343,12 +343,12 @@ class Tree:
 
         # store `token_re` to avoid repeated regex compiling
         try:
-            token_re = getattr(cls, "token_re")
+            token_re = cls.token_re
         except AttributeError:
             token_re = re.compile(
                 rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+"
             )
-            setattr(cls, "token_re", token_re)
+            cls.token_re = token_re
 
         stack_parent: Deque["Tree"] = deque()
         current_tree = None
@@ -496,8 +496,7 @@ class Tree:
         if self:
             yield self
             for child in self.children:
-                for descendant in child.preorder_iter():
-                    yield descendant
+                yield from child.preorder_iter()
 
     def getLeaves(self) -> List["Tree"]:
         """

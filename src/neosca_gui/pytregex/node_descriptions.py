@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import re
-from typing import Iterable, NamedTuple
-from typing import Generator, Iterator, List, Optional
+from typing import Generator, Iterable, Iterator, List, NamedTuple, Optional
 
 from .tree import Tree
 

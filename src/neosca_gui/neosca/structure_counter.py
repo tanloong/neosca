@@ -1,8 +1,8 @@
-from collections import OrderedDict
-from copy import deepcopy
 import json
 import logging
 import os.path as os_path
+from collections import OrderedDict
+from copy import deepcopy
 from typing import Dict, List, Optional, Set, Union
 
 from .scaexceptions import StructureNotFoundError
@@ -117,7 +117,7 @@ class Structure:
 
 class StructureCounter:
     data_file = os_path.join(os_path.dirname(__file__), "data", "structure_data.json")
-    with open(data_file, "r", encoding="utf-8") as f:
+    with open(data_file, encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 
     BUILTIN_STRUCTURE_DEFS: Dict[str, Structure] = {}

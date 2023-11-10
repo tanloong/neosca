@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
-from io import BytesIO
 import logging
 import os
 import os.path as os_path
 import re
 import shutil
 import sys
+from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
-from typing import List, TYPE_CHECKING
-from typing import Generator
+from typing import TYPE_CHECKING, Generator, List
 
 from ..pytregex.node_descriptions import NODE_ANY, NODE_ID
 from ..pytregex.relation import (
@@ -18,8 +16,8 @@ from ..pytregex.relation import (
     DOMINATED_BY,
     DOMINATES,
     HAS_LEFTMOST_CHILD,
-    IMMEDIATELY_HEADED_BY,
     IMMEDIATE_LEFT_SISTER_OF,
+    IMMEDIATELY_HEADED_BY,
     LEFT_SISTER_OF,
     PARENT_OF,
     RIGHT_SISTER_OF,

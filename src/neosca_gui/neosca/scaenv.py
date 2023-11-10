@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import logging
 import os
 import os.path as os_path
 from typing import List, Optional
 
-from .scaplatform import IS_MAC, IS_LINUX, IS_WINDOWS
+from .scaplatform import IS_LINUX, IS_MAC, IS_WINDOWS
 from .scaprint import color_print
 
 # JAVA_HOME = "JAVA_HOME"
@@ -14,8 +13,8 @@ from .scaprint import color_print
 STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
 def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
-    import winreg  # Allows access to the windows registry
     import ctypes  # Allows interface with low-level C API's
+    import winreg  # Allows access to the windows registry
 
     with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as root:  # type:ignore
         # Get the current user registry
@@ -77,7 +76,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
             if not os_path.isfile(rcfile):
                 configs = []
             else:
-                with open(rcfile, "r", encoding="utf-8") as f:
+                with open(rcfile, encoding="utf-8") as f:
                     configs = [line.strip() for line in f.readlines()]
             new_config = (
                 f"export {env_var}={new_paths}"

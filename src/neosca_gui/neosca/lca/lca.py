@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import logging
-from math import log, sqrt
 import os.path as os_path
 import random
 import string
 import sys
+from math import log, sqrt
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from ..scaio import SCAIO

@@ -1,4 +1,5 @@
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Set
+
 from .head_finder import HeadFinder
 
 # translated from https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/AbstractCollinsHeadFinder.java

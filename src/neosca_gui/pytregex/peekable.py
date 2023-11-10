@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 # borrowed from more-itertools
 # https://more-itertools.readthedocs.io/en/stable/_modules/more_itertools/more.html#peekable
