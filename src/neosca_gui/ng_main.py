@@ -6,7 +6,7 @@ import os.path as os_path
 import re
 import subprocess
 import sys
-from typing import Dict, Generator, List, Literal, Optional, Set, Tuple
+from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
 
 from PySide6.QtCore import QModelIndex, QObject, Qt, QThread, Signal
 from PySide6.QtGui import (
@@ -18,19 +18,18 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QAbstractScrollArea,
     QApplication,
     QCheckBox,
     QComboBox,
     QDialog,
     QFileDialog,
+    QFontDialog,
     QGridLayout,
     QGroupBox,
     QHeaderView,
     QLabel,
     QMainWindow,
     QMenu,
-    QMenuBar,
     QMessageBox,
     QPushButton,
     QRadioButton,
@@ -48,9 +47,35 @@ from .neosca.scaio import SCAIO
 from .neosca.structure_counter import StructureCounter
 
 
+class Ng_QSS_Loader:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def read_qss_file(qss_file_path):
+        with open(qss_file_path, encoding="utf-8") as file:
+            return file.read()
+
+    @staticmethod
+    def get_qss_value(qss: str, selector: str, attrname: str) -> Optional[str]:
+        """
+        >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
+        >>> get_qss_value(qss, "QHeaderView::section:horizontal", "background-color")
+        5C88C5
+        """
+        # Notice that only the 1st selector will be matched here
+        matched_selector = re.search(selector, qss)
+        if matched_selector is None:
+            return None
+        matched_value = re.search(rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :])
+        if matched_value is None:
+            return None
+        return matched_value.group(1)
+
+
 class Ng_Model(QStandardItemModel):
     data_cleared = Signal()
-    data_updated = Signal()
+    data_changed = Signal()
     data_exported = Signal()
 
     def __init__(self, *args, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
@@ -59,12 +84,32 @@ class Ng_Model(QStandardItemModel):
 
         self.has_been_exported: bool = False
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
-        self.data_updated.connect(lambda: self.set_has_been_exported(False))
+        self.data_changed.connect(lambda: self.set_has_been_exported(False))
+
+    def set_item_str(self, rowno: int, colno: int, value: str) -> None:
+        item = QStandardItem(value)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.setItem(rowno, colno, item)
+
+    def set_row_str(self, rowno: int, values: Iterable[str]) -> None:
+        for colno, value in enumerate(values):
+            self.set_item_str(rowno, colno, value)
+
+    def set_item_num(self, rowno: int, colno: int, value: Union[int, float, str]) -> None:
+        if not isinstance(value, str):
+            value = str(value)
+        item = QStandardItem(value)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.setItem(rowno, colno, item)
+
+    def set_row_num(self, rowno: int, values: Iterable[Union[int, float, str]]) -> None:
+        for colno, value in enumerate(values):
+            self.set_item_num(rowno, colno, value)
 
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
 
-    def clear_data(self) -> None:
+    def set_single_empty_row(self) -> None:
         # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
         if self.orientation == "hor":
             self.setRowCount(0)
@@ -73,6 +118,253 @@ class Ng_Model(QStandardItemModel):
             self.setColumnCount(0)
             self.setColumnCount(1)
         self.data_cleared.emit()
+
+    def remove_single_empty_row(self) -> None:
+        if self.rowCount() == 1 and self.item(0, 0) is None:
+            self.setRowCount(0)
+
+
+class Ng_TableView(QTableView):
+    def __init__(
+        self,
+        *args,
+        main,
+        model: Ng_Model,
+        has_horizontal_header: bool = True,
+        has_vertical_header: bool = True,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.main = main
+        self.setModel(model)
+        self.model_: Ng_Model = model
+        self.model_.data_changed.connect(self.after_data_changed)
+        self.model_.data_cleared.connect(self.after_data_changed)
+        self.has_horizontal_header = has_horizontal_header
+        self.has_vertical_header = has_vertical_header
+
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
+        self.horizontalHeader().setHighlightSections(False)
+        self.verticalHeader().setHighlightSections(False)
+        self.after_data_changed()
+
+    def after_data_changed(self) -> None:
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+
+    def model(self) -> Ng_Model:
+        """Override QTableView().model()"""
+        return self.model_
+
+    def set_openpyxl_horizontal_header_alignment(self, cell) -> None:
+        from openpyxl.styles import Alignment
+
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    def set_openpyxl_vertical_header_alignment(self, cell) -> None:
+        from openpyxl.styles import Alignment
+
+        if self.has_vertical_header:
+            cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    def set_openpyxl_cell_alignment(self, cell, item: QStandardItem) -> None:
+        # https://doc.qt.io/qtforpython-6/PySide6/QtCore/Qt.html#PySide6.QtCore.PySide6.QtCore.Qt.AlignmentFlag
+        # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.alignment.html
+        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L887
+        # Qt
+        #  Horizontal: Qt.AlignLeft, Qt.AlignRight,  Qt.AlignHCenter, Qt.AlignJustify
+        #  Vertical:   Qt.AlignTop,  Qt.AlignBottom, Qt.AlignVCenter, Qt.AlignBaseline
+        # OpenPyXL
+        #  Horizontal: justify, center, distributed, left, right, fill, general, centerContinuous
+        #  Vertical:   justify, center, distributed, top,  bottom
+
+        from openpyxl.styles import Alignment
+
+        alignment_item: Qt.AlignmentFlag = item.textAlignment()
+
+        # Horizontal
+        if Qt.AlignmentFlag.AlignLeft in alignment_item:
+            alignment_cell_horizontal = "left"
+        elif Qt.AlignmentFlag.AlignRight in alignment_item:
+            alignment_cell_horizontal = "right"
+        elif Qt.AlignmentFlag.AlignHCenter in alignment_item:
+            alignment_cell_horizontal = "center"
+        elif Qt.AlignmentFlag.AlignJustify in alignment_item:
+            alignment_cell_horizontal = "justify"
+        else:
+            alignment_cell_horizontal = "left"
+
+        # Vertical
+        if Qt.AlignmentFlag.AlignTop in alignment_item:
+            alignment_cell_vertical = "top"
+        elif Qt.AlignmentFlag.AlignBottom in alignment_item:
+            alignment_cell_vertical = "bottom"
+        elif Qt.AlignmentFlag.AlignVCenter in alignment_item:
+            alignment_cell_vertical = "center"
+        # > Wordless: Not sure
+        elif Qt.AlignmentFlag.AlignBaseline in alignment_item:
+            alignment_cell_vertical = "justify"
+        else:
+            alignment_cell_vertical = "center"
+
+        cell.alignment = Alignment(
+            horizontal=alignment_cell_horizontal, vertical=alignment_cell_vertical, wrap_text=True
+        )
+
+    def export_table(self) -> None:
+        file_path, file_type = QFileDialog.getSaveFileName(
+            parent=None,
+            caption="Export Table",
+            dir=os_path.normpath(os_path.expanduser("~/Desktop")),
+            filter="Excel Workbook (*.xlsx);;CSV File (*.csv);;TSV File (*.tsv)",
+        )
+        if not file_path:
+            return
+
+        model: Ng_Model = self.model()
+        col_count = model.columnCount()
+        row_count = model.rowCount()
+        try:
+            if ".xlsx" in file_type:
+                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
+                import openpyxl
+                from openpyxl.styles import Alignment, Font, PatternFill
+                from openpyxl.utils import get_column_letter
+
+                workbook = openpyxl.Workbook()
+                worksheet = workbook.active
+                worksheet_cell = worksheet.cell
+
+                rowno_cell_offset = 2 if self.has_horizontal_header else 1
+                colno_cell_offset = 2 if self.has_vertical_header else 1
+
+                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L628C3-L629C82
+                dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
+                dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
+
+                # 1. Horizontal header text and alignment
+                if self.has_horizontal_header:
+                    for colno_cell, colno_item in enumerate(range(col_count)):
+                        cell = worksheet_cell(1, colno_cell_offset + colno_cell)
+                        cell.value = model.horizontalHeaderItem(colno_item).text()
+                        self.set_openpyxl_horizontal_header_alignment(cell)
+                # 2. Vertical header text and alignment
+                if self.has_vertical_header:
+                    for rowno_cell, rowno_item in enumerate(range(row_count)):
+                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
+                        cell.value = model.verticalHeaderItem(rowno_item).text()
+                        self.set_openpyxl_vertical_header_alignment(cell)
+
+                # 3. Both header background and font
+                # 3.0.1 Get header background
+                horizon_bacolor: Optional[str] = Ng_QSS_Loader.get_qss_value(
+                    self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
+                )
+                vertical_bacolor: Optional[str] = Ng_QSS_Loader.get_qss_value(
+                    self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
+                )
+                # 3.0.2 Get header font, currently only consider color and boldness
+                #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
+                #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
+                font_color = Ng_QSS_Loader.get_qss_value(self.main.styleSheet(), "QHeaderView::section", "color")
+                font_color = font_color.lstrip("#") if font_color is not None else "000"
+                font_weight = Ng_QSS_Loader.get_qss_value(
+                    self.main.styleSheet(), "QHeaderView::section", "font-weight"
+                )
+                is_bold = (font_weight == "bold") if font_weight is not None else False
+                # 3.1 Horizontal header background and font
+                if self.has_horizontal_header:
+                    # 3.1.1 Horizontal header background
+                    #  TODO: Currently all tabs share the same style sheet and the
+                    #   single QSS file is loaded from MainWindow, thus here the
+                    #   style sheet is accessed from self. In the future different
+                    #   tabs might load their own QSS files, and the style sheet
+                    #   should be accessed from the QTabWidget. This is also the
+                    #   case for all other "self.styleSheet()" expressions, when
+                    #   making this change, remember to edit all of them.
+                    if horizon_bacolor is not None:
+                        horizon_bacolor = horizon_bacolor.lstrip("#")
+                        for colno in range(col_count):
+                            cell = worksheet_cell(1, colno_cell_offset + colno)
+                            cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
+                    # 3.1.2 Horizontal header font
+                    for colno in range(col_count):
+                        cell = worksheet_cell(1, colno_cell_offset + colno)
+                        cell.font = Font(color=font_color, bold=is_bold)
+                # 3.2 Vertical header background and font
+                if self.has_vertical_header:
+                    # 3.2.1 Vertial header background
+                    if vertical_bacolor is not None:
+                        vertical_bacolor = vertical_bacolor.lstrip("#")
+                        for rowno in range(row_count):
+                            cell = worksheet_cell(rowno_cell_offset + rowno, 1)
+                            cell.fill = PatternFill(fill_type="solid", fgColor=vertical_bacolor)
+                    # 3.2.2 Vertical header font
+                    for rowno in range(row_count):
+                        cell = worksheet_cell(rowno_cell_offset + rowno, 1)
+                        cell.font = Font(color=font_color, bold=is_bold)
+
+                # 4. Cells
+                for rowno in range(row_count):
+                    for colno in range(col_count):
+                        cell = worksheet_cell(rowno_cell_offset + rowno, colno_cell_offset + colno)
+                        item = model.item(rowno, colno)
+                        item_value = item.text()
+                        try:  # noqa: SIM105
+                            item_value = float(item_value)
+                        except ValueError:
+                            pass
+                        cell.value = item_value
+                        self.set_openpyxl_cell_alignment(cell, item)
+                # 5. Column width
+                for colno in range(col_count):
+                    # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L729
+                    worksheet.column_dimensions[get_column_letter(colno_cell_offset + colno)].width = (
+                        self.horizontalHeader().sectionSize(colno) / dpi_horizontal * 13 + 3
+                    )
+
+                if self.has_vertical_header:
+                    # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L731
+                    worksheet.column_dimensions[get_column_letter(1)].width = (
+                        self.verticalHeader().width() / dpi_horizontal * 13 + 3
+                    )
+                # 6. Row height
+                worksheet.row_dimensions[1].height = self.horizontalHeader().height() / dpi_vertical * 72
+                # 7. Freeze panes
+                # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
+                # Using "2" in both cases means to always freeze the 1st column
+                if self.has_horizontal_header:
+                    worksheet.freeze_panes = "B2"
+                else:
+                    worksheet.freeze_panes = "A2"
+                workbook.save(file_path)
+            elif ".csv" in file_type or ".tsv" in file_type:
+                import csv
+
+                dialect = csv.excel if ".csv" in file_type else csv.excel_tab
+                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
+                    csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
+                    # Horizontal header
+                    hor_header: List[str] = [""]
+                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
+                    csv_writer.writerow(hor_header)
+                    # Vertical header + cells
+                    for rowno in range(row_count):
+                        row: List[str] = [model.verticalHeaderItem(rowno).text()]
+                        row.extend(model.item(rowno, colno).text() for colno in range(col_count))
+                        csv_writer.writerow(row)
+            QMessageBox.information(self, "Success", f"The table has been successfully exported to {file_path}.")
+        except PermissionError:
+            QMessageBox.critical(
+                self,
+                "Error Exporting Cells",
+                f"PermissionError: failed to export the table to {file_path}.",
+            )
+        else:
+            model.data_exported.emit()
 
 
 class Ng_Worker(QObject):
@@ -135,18 +427,19 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 err_file_paths.append(file_path)
                 continue
             sname_value_map: Dict[str, str] = counter.get_all_values()
-            _, *items = (QStandardItem(value) for value in sname_value_map.values())
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            model.insertRow(rowno, items)
+            # Drop file_path
+            _, *values = sname_value_map.values()
+            model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_updated.emit()
+        model.data_changed.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
-                self.main,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
+                parent=None,
+                title="Error Processing Files",
+                text="These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
         self.worker_done.emit()
 
@@ -174,7 +467,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             lca_analyzer.update_options(lca_kwargs)
 
         err_file_paths: List[str] = []
-        model: Ng_Model = self.main.mode_lca
+        model: Ng_Model = self.main.model_lca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
@@ -185,18 +478,19 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             if values is None:  # TODO: should pop up warning window
                 err_file_paths.append(file_path)
                 continue
-            _, *items = (QStandardItem(value) for value in values)
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            model.insertRow(rowno, items)
+            # Drop file_path
+            del values[0]
+            model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_updated.emit()
+        model.data_changed.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
-                self.main,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
+                parent=None,
+                title="Error Processing Files",
+                text="These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
 
         self.worker_done.emit()
@@ -252,15 +546,11 @@ class Ng_Dialog_Table(Ng_Dialog):
         self,
         *args,
         text: str,
-        tableview: QTableView,
-        model_has_horizontal_header: bool = True,
-        model_has_vertical_header: bool = True,
+        tableview: Ng_TableView,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self.model = tableview.model()
-        self.model_has_horizontal_header = model_has_horizontal_header
-        self.model_has_vertical_header = model_has_vertical_header
+        self.tableview: Ng_TableView = tableview
 
         self.content_layout.addWidget(QLabel(text), 0, 0)
         self.content_layout.addWidget(tableview, 1, 0)
@@ -268,13 +558,7 @@ class Ng_Dialog_Table(Ng_Dialog):
         self.button_ok = QPushButton("OK")
         self.button_ok.clicked.connect(self.accept)
         self.button_export_table = QPushButton("Export table...")
-        self.button_export_table.clicked.connect(
-            lambda: self.main.export_table(
-                self.model,
-                has_horizontal_header=self.model_has_horizontal_header,
-                has_vertical_header=self.model_has_vertical_header,
-            )
-        )
+        self.button_export_table.clicked.connect(self.tableview.export_table)
         self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
         self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
 
@@ -365,16 +649,13 @@ class Ng_Main(QMainWindow):
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
-        self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
         self.button_generate_table_sca.setShortcut("CTRL+G")
         self.button_export_table_sca = QPushButton("Export all cells...")
         self.button_export_table_sca.setEnabled(False)
-        self.button_export_table_sca.clicked.connect(lambda: self.export_table(self.model_sca))
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
         self.button_clear_table_sca = QPushButton("Clear table")
         self.button_clear_table_sca.setEnabled(False)
-        self.button_clear_table_sca.clicked.connect(lambda: self.ask_clear_model(self.model_sca, "hor"))
 
         # TODO comment this out before releasing
         self.button_custom_func = QPushButton("Custom func")
@@ -389,25 +670,19 @@ class Ng_Main(QMainWindow):
         self.model_sca = Ng_Model()
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
+        self.model_sca.set_single_empty_row()
+        self.tableview_preview_sca = Ng_TableView(main=self, model=self.model_sca)
+
+        # Bind
+        self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
+        self.button_export_table_sca.clicked.connect(self.tableview_preview_sca.export_table)
+        self.button_clear_table_sca.clicked.connect(lambda: self.ask_clear_model(self.model_sca))
         self.model_sca.data_cleared.connect(lambda: self.button_generate_table_sca.setEnabled(True))
         self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
         self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
-        self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
-        self.model_sca.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_preview_sca))
-        self.model_sca.clear_data()
-        self.tableview_preview_sca = QTableView()
-        self.tableview_preview_sca.setModel(self.model_sca)
-        # self.table_preview_sca.setStyleSheet("background-color: #C7C7C7;")
-        self.tableview_preview_sca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableview_preview_sca.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.tableview_preview_sca.horizontalHeader().setHighlightSections(False)
-        self.tableview_preview_sca.verticalHeader().setHighlightSections(False)
-        # self.tableview_preview_sca.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        self.tableview_preview_sca.setSelectionBehavior(QTableView.SelectRows)
+        self.model_sca.data_changed.connect(lambda: self.button_export_table_sca.setEnabled(True))
+        self.model_sca.data_changed.connect(lambda: self.button_clear_table_sca.setEnabled(True))
+        self.model_sca.data_changed.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
         self.checkbox_reserve_parsed_trees.setChecked(True)
         self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matched subtrees")
@@ -445,38 +720,29 @@ class Ng_Main(QMainWindow):
 
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
-        self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_generate_table_lca.setShortcut("CTRL+G")
         self.button_export_table_lca = QPushButton("Export all cells...")
         self.button_export_table_lca.setEnabled(False)
-        self.button_export_table_lca.clicked.connect(lambda: self.export_table(self.model_lca))
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
-        self.button_clear_table_lca.clicked.connect(lambda: self.ask_clear_model(self.model_lca, "hor"))
 
         self.model_lca = Ng_Model()
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
+        self.model_lca.set_single_empty_row()
+        self.tableview_preview_lca = Ng_TableView(main=self, model=self.model_lca)
+
+        self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
+        self.button_export_table_lca.clicked.connect(self.tableview_preview_lca.export_table)
+        self.button_clear_table_lca.clicked.connect(lambda: self.ask_clear_model(self.model_lca))
         self.model_lca.data_cleared.connect(lambda: self.button_generate_table_lca.setEnabled(True))
         self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
         self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
-        self.model_lca.data_updated.connect(lambda: self.button_export_table_lca.setEnabled(True))
-        self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
-        self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
-        self.model_lca.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_preview_lca))
-        self.model_lca.clear_data()
-        self.tableview_preview_lca = QTableView()
-        self.tableview_preview_lca.setModel(self.model_lca)
-        self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableview_preview_lca.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.tableview_preview_lca.horizontalHeader().setHighlightSections(False)
-        self.tableview_preview_lca.verticalHeader().setHighlightSections(False)
-        # self.tableview_preview_lca.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        self.tableview_preview_lca.setSelectionBehavior(QTableView.SelectRows)
+        self.model_lca.data_changed.connect(lambda: self.button_export_table_lca.setEnabled(True))
+        self.model_lca.data_changed.connect(lambda: self.button_clear_table_lca.setEnabled(True))
+        self.model_lca.data_changed.connect(lambda: self.button_generate_table_lca.setEnabled(False))
 
         self.radiobutton_wordlist_BNC = QRadioButton("British National Corpus (BNC) wordlist")
         self.radiobutton_wordlist_BNC.setChecked(True)
@@ -524,24 +790,13 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_sca.setEnabled(enabled)
         self.button_generate_table_lca.setEnabled(enabled)
 
-    def resize_horizontal_header(self, tableview: QTableView) -> None:
-        tableview.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
     def setup_tableview_file(self) -> None:
         self.model_file = Ng_Model()
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
-        self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
-        self.model_file.data_updated.connect(lambda: self.resize_horizontal_header(self.tableview_file))
-        self.model_file.clear_data()
-        self.tableview_file = QTableView()
-        self.tableview_file.setModel(self.model_file)
-        self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableview_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.tableview_file.horizontalHeader().setHighlightSections(False)
-        self.tableview_file.verticalHeader().setHighlightSections(False)
-        # self.tableview_file.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        self.tableview_file.setSelectionBehavior(QTableView.SelectRows)
+        self.model_file.data_changed.connect(lambda: self.enable_button_generate_table(True))
+        self.model_file.set_single_empty_row()
+        self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_for_tableview_file)
@@ -563,37 +818,34 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def setup_worker(self) -> None:
-        self.processing_dialog = QDialog(self)
-        self.processing_dialog.setWindowTitle("Please waite.")
-        self.processing_dialog.resize(300, 200)
+        self.dialog_processing = QDialog(self)
+        self.dialog_processing.setWindowTitle("Please Wait")
+        self.dialog_processing.resize(300, 200)
         self.label_wait = QLabel(
             "NeoSCA is running. It may take a few minutes to finish the job. Please wait.",
-            self.processing_dialog,
+            self.dialog_processing,
         )
         self.label_wait.setWordWrap(True)
 
-        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(self, self.processing_dialog)
+        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(self, self.dialog_processing)
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
 
-        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(self, self.processing_dialog)
+        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(self, self.dialog_processing)
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
 
-    def ask_clear_model(self, model: Ng_Model, orientation: Literal["hor", "ver"] = "hor") -> None:
+    def ask_clear_model(self, model: Ng_Model) -> None:
         if model.has_been_exported:
-            model.clear_data()
+            model.set_single_empty_row()
         else:
-            messagebox = QMessageBox()
+            messagebox = QMessageBox(self)
             messagebox.setWindowTitle("Clear Table")
-            messagebox.setText(
-                "All the data that has not been exported will be lost. Are you sure to clear it?"
-            )
+            messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
             messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
 
-            messagebox.accepted.connect(model.clear_data)
+            messagebox.accepted.connect(model.set_single_empty_row)
             messagebox.exec()
 
     def setup_env(self) -> None:
-        self.desktop = os_path.normpath(os_path.expanduser("~/Desktop"))
         self.here = os_path.dirname(os_path.abspath(__file__))
         ng_home = os_path.dirname(self.here)
         libs_dir = os_path.join(ng_home, "libs")
@@ -606,175 +858,10 @@ class Ng_Main(QMainWindow):
         os.environ["STANFORD_TREGEX_HOME"] = self.stanford_tregex_home
         self.env = os.environ.copy()
 
-    def get_qss_attr(self, qss: str, selector: str, attrname: str) -> Optional[str]:
-        """
-        >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
-        >>> get_qss_attr(qss, "QHeaderView::section:horizontal", "background-color")
-        5C88C5
-        """
-        # Notice that only the 1st selector will be matched here
-        matched_selector = re.search(selector, qss)
-        if matched_selector is None:
-            return None
-        matched_value = re.search(rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :])
-        if matched_value is None:
-            return None
-        return matched_value.group(1)
-
-    def export_table(
-        self,
-        model: Ng_Model,
-        has_horizontal_header: bool = True,
-        has_vertical_header: bool = True,
-    ) -> None:
-        file_path, file_type = QFileDialog.getSaveFileName(
-            parent=None,
-            caption="Export Table",
-            dir=self.desktop,
-            filter="Excel Workbook (*.xlsx);;CSV File (*.csv);;TSV File (*.tsv)",
-        )
-        if not file_path:
-            return
-
-        col_count = model.columnCount()
-        row_count = model.rowCount()
-        try:
-            if ".xlsx" in file_type:
-                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
-                import openpyxl
-                from openpyxl.styles import Alignment, Font, PatternFill
-                from openpyxl.utils import get_column_letter
-
-                workbook = openpyxl.Workbook()
-                worksheet = workbook.active
-                worksheet_cell = worksheet.cell
-
-                rowno_cell_offset = 2 if has_horizontal_header else 1
-                colno_cell_offset = 2 if has_vertical_header else 1
-
-                horizontal_left_alignment = Alignment(horizontal="left")
-                horizontal_center_alignment = Alignment(horizontal="center")
-                horizontal_right_alignment = Alignment(horizontal="right")
-
-                # 1. Horizontal header text
-                if has_horizontal_header:
-                    for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet_cell(1, colno_cell_offset + colno_cell)
-                        cell.value = model.horizontalHeaderItem(colno_item).text()
-                        cell.alignment = horizontal_center_alignment
-                # 2. Vertical header text
-                if has_vertical_header:
-                    for rowno_cell, rowno_item in enumerate(range(row_count)):
-                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
-                        cell.value = model.verticalHeaderItem(rowno_item).text()
-                        cell.alignment = horizontal_left_alignment
-
-                # 3. Both header background and font
-                # 3.0.1 Get header background
-                horizon_bacolor: Optional[str] = self.get_qss_attr(
-                    self.styleSheet(), "QHeaderView::section:horizontal", "background-color"
-                )
-                vertical_bacolor: Optional[str] = self.get_qss_attr(
-                    self.styleSheet(), "QHeaderView::section:vertical", "background-color"
-                )
-                # 3.0.2 Get header font, currently only consider color and boldness
-                #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
-                #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "color")
-                font_color = font_color.lstrip("#") if font_color is not None else "000"
-                font_weight = self.get_qss_attr(self.styleSheet(), "QHeaderView::section", "font-weight")
-                is_bold = (font_weight == "bold") if font_weight is not None else False
-                # 3.1 Horizontal header background and font
-                if has_horizontal_header:
-                    # 3.1.1 Horizontal header background
-                    #  TODO: Currently all tabs share the same style sheet and the
-                    #   single QSS file is loaded from MainWindow, thus here the
-                    #   style sheet is accessed from self. In the future different
-                    #   tabs might load their own QSS files, and the style sheet
-                    #   should be accessed from the QTabWidget. This is also the
-                    #   case for all other "self.styleSheet()" expressions, when
-                    #   making this change, remember to edit all of them.
-                    if horizon_bacolor is not None:
-                        horizon_bacolor = horizon_bacolor.lstrip("#")
-                        for colno_cell in range(col_count):
-                            cell = worksheet_cell(1, colno_cell_offset + colno_cell)
-                            cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
-                    # 3.1.2 Horizontal header font
-                    for colno_cell in range(col_count):
-                        cell = worksheet_cell(1, colno_cell_offset + colno_cell)
-                        cell.font = Font(color=font_color, bold=is_bold)
-                # 3.2 Vertical header background and font
-                if has_vertical_header:
-                    # 3.2.1 Vertial header background
-                    if vertical_bacolor is not None:
-                        vertical_bacolor = vertical_bacolor.lstrip("#")
-                        for rowno_cell in range(row_count):
-                            cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
-                            cell.fill = PatternFill(fill_type="solid", fgColor=vertical_bacolor)
-                    # 3.2.2 Vertical header font
-                    for rowno_cell in range(row_count):
-                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
-                        cell.font = Font(color=font_color, bold=is_bold)
-
-                # 4. Cells
-                for rowno_cell, rowno in enumerate(range(row_count)):
-                    for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, colno_cell_offset + colno_cell)
-                        item_value = model.item(rowno, colno_item).text()
-                        try:
-                            item_value = float(item_value)
-                        except ValueError:
-                            cell.alignment = horizontal_left_alignment
-                        else:
-                            cell.alignment = horizontal_right_alignment
-                        cell.value = item_value
-                # 5. Column width
-                #  https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
-                #  https://stackoverflow.com/questions/60182474/auto-size-column-width
-                for colno, col_cells in enumerate(worksheet.columns, start=1):
-                    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.worksheet.html#openpyxl.worksheet.worksheet.Worksheet.columns
-                    valid_values = filter(lambda v: v is not None, (cell.value for cell in col_cells))
-                    width = max(map(len, map(str, valid_values)))
-                    worksheet.column_dimensions[get_column_letter(colno)].width = width * 1.23
-                # 6. Freeze panes
-                # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
-                # Using "2" in both cases means to always freeze the 1st column
-                if has_horizontal_header:
-                    worksheet.freeze_panes = "B2"
-                else:
-                    worksheet.freeze_panes = "A2"
-                workbook.save(file_path)
-            elif ".csv" in file_type or ".tsv" in file_type:
-                import csv
-
-                dialect = csv.excel if ".csv" in file_type else csv.excel_tab
-                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
-                    csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
-                    # Horizontal header
-                    hor_header: List[str] = [""]
-                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
-                    csv_writer.writerow(hor_header)
-                    # Vertical header + cells
-                    for rowno in range(row_count):
-                        row: List[str] = [model.verticalHeaderItem(rowno).text()]
-                        row.extend(model.item(rowno, colno).text() for colno in range(col_count))
-                        csv_writer.writerow(row)
-            QMessageBox.information(
-                self, "Success", f"The table has been successfully exported to {file_path}."
-            )
-        except PermissionError:
-            QMessageBox.critical(
-                self,
-                "Error Exporting Cells",
-                f"PermissionError: failed to export the table to {file_path}.",
-            )
-        else:
-            model.data_exported.emit()
-
     def show_menu_for_tableview_file(self) -> None:
-        action_remove_file = QAction("Remove")
+        menu = QMenu(self)
+        action_remove_file = QAction("Remove", menu)
         action_remove_file.triggered.connect(self.remove_file_paths)
-        menu = QMenu()
         menu.addAction(action_remove_file)
         menu.exec(QCursor.pos())
 
@@ -787,7 +874,7 @@ class Ng_Main(QMainWindow):
         for rowno in rownos:
             self.model_file.takeRow(rowno)
         if self.model_file.rowCount() == 0:
-            self.model_file.data_cleared.emit()
+            self.model_file.set_single_empty_row()
 
     def remove_model_rows(self, model: Ng_Model, *rownos: int) -> None:
         if not rownos:
@@ -796,10 +883,6 @@ class Ng_Main(QMainWindow):
         else:
             for rowno in rownos:
                 model.takeRow(rowno)
-
-    def remove_model_single_empty_row(self, model: Ng_Model) -> None:
-        if model.rowCount() == 1 and model.item(0, 0) is None:
-            model.setRowCount(0)
 
     # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
     def yield_model_column(self, model: Ng_Model, colno: int) -> Generator[str, None, None]:
@@ -813,10 +896,6 @@ class Ng_Main(QMainWindow):
     def yield_added_file_paths(self) -> Generator[str, None, None]:
         colno_path = 1
         return self.yield_model_column(self.model_file, colno_path)
-
-    def set_model_items_from_row_start(self, model: Ng_Model, rowno: int, *items: str) -> None:
-        for colno, item in enumerate(items):
-            model.setItem(rowno, colno, QStandardItem(item))
 
     def add_file_paths(self, file_paths_to_add: List[str]) -> None:
         unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
@@ -834,7 +913,7 @@ class Ng_Main(QMainWindow):
             - file_paths_empty
         )
         if file_paths_ok:
-            self.remove_model_single_empty_row(self.model_file)
+            self.model_file.remove_single_empty_row()
             colno_name = 0
             already_added_file_names = list(
                 self.yield_model_column(self.model_file, colno_name)
@@ -847,11 +926,10 @@ class Ng_Main(QMainWindow):
                         occurrence += 1
                     file_name = f"{file_name} ({occurrence})"
                 already_added_file_names.append(file_name)
-                self.set_model_items_from_row_start(
-                    self.model_file, self.model_file.rowCount(), file_name, file_path
-                )
+                rowno = self.model_file.rowCount()
+                self.model_file.set_row_str(rowno, (file_name, file_path))
 
-            self.model_file.data_updated.emit()
+            self.model_file.data_changed.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ng_Model()
@@ -866,9 +944,7 @@ class Ng_Main(QMainWindow):
                         model_err_files.rowCount(),
                         (QStandardItem(reason), QStandardItem(file_path)),
                     )
-            tableview_err_files = QTableView()
-            tableview_err_files.setModel(model_err_files)
-            tableview_err_files.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+            tableview_err_files = Ng_TableView(main=self, model=model_err_files, has_vertical_header=False)
 
             dialog = Ng_Dialog_Table(
                 self,
@@ -877,15 +953,13 @@ class Ng_Main(QMainWindow):
                 text="Failed to add the following files.",
                 size=(300, 200),
                 tableview=tableview_err_files,
-                model_has_horizontal_header=True,
-                model_has_vertical_header=False,
             )
             dialog.open()
 
     def menubar_file_open_folder(self):
         # TODO: Currently only include files of supported types, should include
         #  all files, and popup error for unsupported files
-        folder_dialog = QFileDialog()
+        folder_dialog = QFileDialog(self)
         # TODO remove default directory before releasing
         folder_path = folder_dialog.getExistingDirectory(
             caption="Open Folder",
@@ -918,17 +992,7 @@ class Ng_Main(QMainWindow):
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
 
 
-class Ng_QSS_Loader:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def read_qss_file(qss_file_path):
-        with open(qss_file_path, encoding="utf-8") as file:
-            return file.read()
-
-
-if __name__ == "__main__":
+def main():
     ng_app = QApplication(sys.argv)
     ng_window = Ng_Main()
     ng_window.setStyleSheet(Ng_QSS_Loader.read_qss_file(os_path.join(ng_window.here, "ng_style.qss")))
