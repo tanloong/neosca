@@ -919,5 +919,5 @@ if __name__ == "__main__":
     ng_app = QApplication(sys.argv)
     ng_window = Ng_Main()
     ng_window.setStyleSheet(Ng_QSS_Loader.read_qss_file(os_path.join(ng_window.here, "ng_style.qss")))
-    ng_window.show()
+    ng_window.showMaximized()
     sys.exit(ng_app.exec())
