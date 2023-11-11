@@ -901,7 +901,7 @@ class Ng_Main(QMainWindow):
 
     def restart(self):
         self.close()
-        command = [sys.executable] + sys.argv
+        command = [sys.executable, "-m", "neosca_gui"]
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
 
 
