@@ -291,33 +291,46 @@ class Ng_Main(QMainWindow):
 
     def setup_menu(self):
         # File
-        menu_file = QMenu("File")
-        action_open_file = QAction("Open File...", menu_file)
+        self.menu_file = QMenu("File", self.menuBar())
+        action_open_file = QAction("Open File...", self.menu_file)
         action_open_file.setShortcut("CTRL+O")
-        action_open_file.triggered.connect(self.browse_file)
-        action_open_folder = QAction("Open Folder...", menu_file)
+        action_open_file.triggered.connect(self.menubar_file_open_file)
+        action_open_folder = QAction("Open Folder...", self.menu_file)
         action_open_folder.setShortcut("CTRL+F")
-        action_open_folder.triggered.connect(self.browse_folder)
-        action_restart = QAction("Restart", menu_file)  # TODO remove this before releasing
-        action_restart.triggered.connect(self.restart)  # TODO remove this before releasing
+        action_open_folder.triggered.connect(self.menubar_file_open_folder)
+        action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
+        action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("Quit", menu_file)
+        action_quit = QAction("Quit", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
-        menu_file.addAction(action_open_file)
-        menu_file.addAction(action_open_folder)
-        menu_file.addAction(action_restart)
-        menu_file.addAction(action_quit)
+        self.menu_file.addAction(action_open_file)
+        self.menu_file.addAction(action_open_folder)
+        self.menu_file.addAction(action_restart)
+        self.menu_file.addAction(action_quit)
+        # Preferences
+        self.menu_preferences = QMenu("Preferences", self.menuBar())
+        action_font = QAction("Font", self.menu_preferences)
+        action_font.triggered.connect(self.menubar_preferences_font)
+        self.menu_preferences.addAction(action_font)
         # Help
-        menu_help = QMenu("Help")
-        action_citing = QAction("Citing", menu_help)
-        action_citing.triggered.connect(self.show_help_citing)
-        menu_help.addAction(action_citing)
+        self.menu_help = QMenu("Help", self.menuBar())
+        action_citing = QAction("Citing", self.menu_help)
+        action_citing.triggered.connect(self.menubar_help_citing)
+        self.menu_help.addAction(action_citing)
 
-        self.menuBar().addMenu(menu_file)
-        self.menuBar().addMenu(menu_help)
+        self.menuBar().addMenu(self.menu_file)
+        self.menuBar().addMenu(self.menu_preferences)
+        self.menuBar().addMenu(self.menu_help)
 
-    def show_help_citing(self) -> None:
+    def menubar_preferences_font(self) -> None:
+        ok, font = QFontDialog.getFont()
+        if not ok:
+            return
+        breakpoint()
+        print(ok, font)
+
+    def menubar_help_citing(self) -> None:
         import json
 
         with open(os_path.join(self.here, "citing.json")) as f:
@@ -869,7 +882,7 @@ class Ng_Main(QMainWindow):
             )
             dialog.open()
 
-    def browse_folder(self):
+    def menubar_file_open_folder(self):
         # TODO: Currently only include files of supported types, should include
         #  all files, and popup error for unsupported files
         folder_dialog = QFileDialog()
@@ -886,8 +899,8 @@ class Ng_Main(QMainWindow):
             file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
         self.add_file_paths(file_paths_to_add)
 
-    def browse_file(self):
-        file_dialog = QFileDialog()
+    def menubar_file_open_file(self):
+        file_dialog = QFileDialog(self)
         file_paths_to_add, _ = file_dialog.getOpenFileNames(
             parent=None,
             caption="Open Files",
@@ -899,7 +912,7 @@ class Ng_Main(QMainWindow):
             return
         self.add_file_paths(file_paths_to_add)
 
-    def restart(self):
+    def menubar_file_restart(self):
         self.close()
         command = [sys.executable, "-m", "neosca_gui"]
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
