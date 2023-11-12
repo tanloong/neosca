@@ -83,9 +83,7 @@ class L2SCA_VP2(L2SCA_Structure):
                 lambda node: NODE_ID.satisfies(node, "SQ"),
                 CHILD_OF.searchNodeIterator(candidate),
             ):
-                if not any(
-                    NODE_ID.satisfies(node, "VP") for node in PARENT_OF.searchNodeIterator(sq)
-                ):
+                if not any(NODE_ID.satisfies(node, "VP") for node in PARENT_OF.searchNodeIterator(sq)):
                     yield candidate
 
 
@@ -130,9 +128,7 @@ class L2SCA_C1(L2SCA_Structure):
                 ):
                     yield candidate
                 # Branch 3.2: S|SINV|SQ < (VP < CC < (VP <# MD|VBP|VBZ|VBD))
-                for _ in filter(
-                    lambda node: NODE_ID.satisfies(node, "CC"), PARENT_OF.searchNodeIterator(vp)
-                ):
+                for _ in filter(lambda node: NODE_ID.satisfies(node, "CC"), PARENT_OF.searchNodeIterator(vp)):
                     for vp2 in filter(
                         lambda node: NODE_ID.satisfies(node, "VP"),
                         PARENT_OF.searchNodeIterator(vp),
@@ -153,10 +149,7 @@ class L2SCA_C2(L2SCA_Structure):
         for candidate in t.preorder_iter():
             if not NODE_ID.satisfies(candidate, "FRAG"):
                 continue
-            if not any(
-                NODE_ID.satisfies(node, "ROOT")
-                for node in CHILD_OF.searchNodeIterator(candidate)
-            ):
+            if not any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
 
             is_satisfied = True
@@ -165,9 +158,7 @@ class L2SCA_C2(L2SCA_Structure):
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SINV|SQ > ROOT <, (VP <# VB)
-                if any(
-                    NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)
-                ) and any(
+                if any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)) and any(
                     NODE_ID.satisfies(node, "VB")
                     for vp in filter(
                         lambda node: NODE_ID.satisfies(node, "VP"),
@@ -185,19 +176,14 @@ class L2SCA_C2(L2SCA_Structure):
                     is_satisfied = False
                     break
                 # Branch 3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
-                for vp in filter(
-                    lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)
-                ):
+                for vp in filter(lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
                     if any(
                         NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD"))
                         for node in IMMEDIATELY_HEADED_BY.searchNodeIterator(vp)
                     ):
                         is_satisfied = False
                         break
-                    if any(
-                        NODE_ID.satisfies(node, "CC")
-                        for node in PARENT_OF.searchNodeIterator(vp)
-                    ) and any(
+                    if any(NODE_ID.satisfies(node, "CC") for node in PARENT_OF.searchNodeIterator(vp)) and any(
                         NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD"))
                         for vp2 in filter(
                             lambda node: NODE_ID.satisfies(node, "VP"),
@@ -230,8 +216,7 @@ class L2SCA_T1(L2SCA_Structure):
                 RIGHT_SISTER_OF.searchNodeIterator(candidate),
             ):
                 if not any(
-                    NODE_ID.in_(node2, ("SBAR", "VP"))
-                    for node2 in DOMINATED_BY.searchNodeIterator(candidate)
+                    NODE_ID.in_(node2, ("SBAR", "VP")) for node2 in DOMINATED_BY.searchNodeIterator(candidate)
                 ):
                     yield candidate
 
@@ -245,10 +230,7 @@ class L2SCA_T2(L2SCA_Structure):
         for candidate in t.preorder_iter():
             if not NODE_ID.satisfies(candidate, "FRAG"):
                 continue
-            if not any(
-                NODE_ID.satisfies(node, "ROOT")
-                for node in CHILD_OF.searchNodeIterator(candidate)
-            ):
+            if not any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
             is_satisfied = True
             for s in filter(
@@ -256,19 +238,14 @@ class L2SCA_T2(L2SCA_Structure):
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SBARQ|SINV|SQ > ROOT
-                if any(
-                    NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)
-                ):
+                if any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)):
                     is_satisfied = False
                     break
                 # Branch 2: S|SBARQ|SINV|SQ [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]
                 if any(
                     NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ"))
                     for node in RIGHT_SISTER_OF.searchNodeIterator(s)
-                ) and not any(
-                    NODE_ID.in_(node, ("SBAR", "VP"))
-                    for node in DOMINATED_BY.searchNodeIterator(s)
-                ):
+                ) and not any(NODE_ID.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(s)):
                     is_satisfied = False
                     break
             if is_satisfied:
@@ -284,9 +261,7 @@ class L2SCA_CN1(L2SCA_Structure):
         for candidate in t.preorder_iter():
             if not NODE_ID.satisfies(candidate, "NP"):
                 continue
-            if any(
-                NODE_ID.satisfies(node, "NP") for node in CHILD_OF.searchNodeIterator(candidate)
-            ):
+            if any(NODE_ID.satisfies(node, "NP") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
             # Branch 1: NP << JJ|POS|PP|S|VBG
             for _ in filter(
@@ -304,8 +279,7 @@ class L2SCA_CN1(L2SCA_Structure):
                     LEFT_SISTER_OF.searchNodeIterator(np),
                 ):
                     if not any(
-                        NODE_ID.satisfies(node, "CC")
-                        for node in IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(np)
+                        NODE_ID.satisfies(node, "CC") for node in IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(np)
                     ):
                         yield candidate
 
@@ -331,9 +305,7 @@ class L2SCA_CN2(L2SCA_Structure):
             ):
                 yield t
         # Branch 1.3: SBAR <, S
-        for _ in filter(
-            lambda node: NODE_ID.satisfies(node, "S"), HAS_LEFTMOST_CHILD.searchNodeIterator(t)
-        ):
+        for _ in filter(lambda node: NODE_ID.satisfies(node, "S"), HAS_LEFTMOST_CHILD.searchNodeIterator(t)):
             yield t
 
     @classmethod
@@ -399,9 +371,7 @@ class L2SCA_DC(L2SCA_Structure):
                 PARENT_OF.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SINV|SQ > ROOT <, (VP <# VB)
-                for _ in filter(
-                    lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(s)
-                ):
+                for _ in filter(lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(s)):
                     for vp in filter(
                         lambda node: NODE_ID.satisfies(node, "VP"),
                         HAS_LEFTMOST_CHILD.searchNodeIterator(s),
@@ -418,9 +388,7 @@ class L2SCA_DC(L2SCA_Structure):
                 ):
                     yield candidate
                 # Branch 3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
-                for vp in filter(
-                    lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)
-                ):
+                for vp in filter(lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
                     # Branch 3.1: VP <# MD|VBP|VBZ|VBD
                     for _ in filter(
                         lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
@@ -449,17 +417,13 @@ class L2SCA_CT(L2SCA_Structure):
         # Condition 1: S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]]
         # Branch 1.1: S|SBARQ|SINV|SQ > ROOT
         # Branch 1.2: S|SBARQ|SINV|SQ $-- S|SBARQ|SINV|SQ !>> SBAR|VP
-        for _ in filter(
-            lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(t)
-        ):
+        for _ in filter(lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(t)):
             yield t
         for _ in filter(
             lambda node: NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ")),
             RIGHT_SISTER_OF.searchNodeIterator(t),
         ):
-            if not any(
-                NODE_ID.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(t)
-            ):
+            if not any(NODE_ID.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(t)):
                 yield t
 
     @classmethod
@@ -521,9 +485,7 @@ class L2SCA_CT(L2SCA_Structure):
                                     PARENT_OF.searchNodeIterator(vp),
                                 ):
                                     for _ in filter(
-                                        lambda node: NODE_ID.in_(
-                                            node, ("MD", "VBP", "VBZ", "VBD")
-                                        ),
+                                        lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                                         IMMEDIATELY_HEADED_BY.searchNodeIterator(vp2),
                                     ):
                                         yield candidate
@@ -670,9 +632,7 @@ class Ns_PyTregex:
     ) -> None:
         value = counter.get_value(sname)
         if value is not None:
-            logging.debug(
-                f"[StanfordTregex] {sname} has already been set as {value}, skipping..."
-            )
+            logging.debug(f"[StanfordTregex] {sname} has already been set as {value}, skipping...")
             return
 
         if sname == "W":

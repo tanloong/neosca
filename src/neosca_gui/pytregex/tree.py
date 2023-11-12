@@ -78,9 +78,7 @@ class Tree:
             else:
                 return self[index[0]][index[1:]]
         else:
-            raise TypeError(
-                f"{type(self).__name__} indices must be integers, not {type(index).__name__}"
-            )
+            raise TypeError(f"{type(self).__name__} indices must be integers, not {type(index).__name__}")
 
     def __bool__(self) -> bool:
         if self.label is None and not self.children:
@@ -293,10 +291,7 @@ class Tree:
                 i -= j
                 return False
             else:
-                for kid in t1.children[::-1]:
-                    if right_edge_helper(t, kid):
-                        return True
-                return False
+                return any(right_edge_helper(t, kid) for kid in reversed(t1.children))
 
         if right_edge_helper(self, self.getRoot()):
             return i
@@ -349,9 +344,7 @@ class Tree:
         try:
             token_re = cls.token_re
         except AttributeError:
-            token_re = re.compile(
-                rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+"
-            )
+            token_re = re.compile(rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+")
             cls.token_re = token_re
 
         stack_parent: Deque["Tree"] = deque()
@@ -377,8 +370,7 @@ class Tree:
             elif token == close_b:
                 if len(stack_parent) == 0:
                     raise ValueError(
-                        "failed to build tree from string with extra non-matching right"
-                        " parentheses"
+                        "failed to build tree from string with extra non-matching right" " parentheses"
                     )
                 else:
                     current_tree = stack_parent.pop()
@@ -456,9 +448,7 @@ class Tree:
 
         # common
         common = tuple(
-            node_start
-            for node_start, node_end in zip(path_start, path_end)
-            if node_start is node_end
+            node_start for node_start, node_end in zip(path_start, path_end) if node_start is node_end
         )
         assert common[0] is self.getRoot()
         len_common = len(common)

@@ -43,8 +43,8 @@ from PySide6.QtWidgets import (
 
 from .neosca.lca.lca import LCA
 from .neosca.neosca import NeoSCA
-from .neosca.scaio import SCAIO
 from .neosca.structure_counter import StructureCounter
+from .ng_io import SCAIO
 
 
 class Ng_QSS_Loader:
@@ -231,7 +231,7 @@ class Ng_TableView(QTableView):
             if ".xlsx" in file_type:
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
                 import openpyxl
-                from openpyxl.styles import Alignment, Font, PatternFill
+                from openpyxl.styles import Font, PatternFill
                 from openpyxl.utils import get_column_letter
 
                 workbook = openpyxl.Workbook()
@@ -367,27 +367,73 @@ class Ng_TableView(QTableView):
             model.data_exported.emit()
 
 
+class Ng_Dialog(QDialog):
+    def __init__(self, *args, main, title: str = "", size: Tuple[int, int] = (300, 200), **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.main = main
+        self.setWindowTitle(title)
+        self.resize(*size)
+        # ┌———————————┐
+        # │           │
+        # │  content  │
+        # │           │
+        # │———————————│
+        # │  buttons  │
+        # └———————————┘
+        self.content_layout = QGridLayout()
+        self.button_layout = QGridLayout()
+
+        self.grid_layout = QGridLayout()
+        self.grid_layout.addLayout(self.content_layout, 0, 0)
+        self.grid_layout.addLayout(self.button_layout, 1, 0)
+        self.setLayout(self.grid_layout)
+
+        # self.setSizeGripEnabled(True)
+
+    def addWidget(self, *args, **kwargs) -> None:
+        self.content_layout.addWidget(*args, **kwargs)
+
+    def addButton(self, *args, **kwargs) -> None:
+        self.button_layout.addWidget(*args, **kwargs)
+
+
+class Ng_Dialog_Table(Ng_Dialog):
+    def __init__(
+        self,
+        *args,
+        text: str,
+        tableview: Ng_TableView,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.tableview: Ng_TableView = tableview
+
+        self.content_layout.addWidget(QLabel(text), 0, 0)
+        self.content_layout.addWidget(tableview, 1, 0)
+
+        self.button_ok = QPushButton("OK")
+        self.button_ok.clicked.connect(self.accept)
+        self.button_export_table = QPushButton("Export table...")
+        self.button_export_table.clicked.connect(self.tableview.export_table)
+        self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+
+
 class Ng_Worker(QObject):
     worker_done = Signal()
 
-    def __init__(self, main, dialog) -> None:
-        super().__init__()
+    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self.main = main
-        self.dialog = dialog
-
-    # TODO
-    # def cancel(self) -> None:
-    #     self.terminate()
-    #     self.wait() # TODO ?
-    #     <<>>
+        self.dialog: Ng_Dialog = dialog
 
     def run(self) -> None:
         raise NotImplementedError()
 
 
 class Ng_Worker_SCA_Generate_Table(Ng_Worker):
-    def __init__(self, main, dialog) -> None:
-        super().__init__(main, dialog)
+    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
+        super().__init__(*args, main=main, dialog=dialog, **kwargs)
 
     def run(self) -> None:
         input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
@@ -445,8 +491,8 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
 
 
 class Ng_Worker_LCA_Generate_Table(Ng_Worker):
-    def __init__(self, main, dialog) -> None:
-        super().__init__(main, dialog)
+    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
+        super().__init__(*args, main=main, dialog=dialog, **kwargs)
 
     def run(self) -> None:
         input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
@@ -497,12 +543,16 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
 
 
 class Ng_Thread(QThread):
-    def __init__(self, worker):
+    def __init__(self, worker: Ng_Worker):
         super().__init__()
         self.worker = worker
         # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         self.worker.moveToThread(self)
 
+        # self.button_cancel = QPushButton("Cancel")
+        # self.worker.dialog.addButton(self.button_cancel, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
+        #
+        # self.button_cancel.clicked.connect(self.cancel)
         self.started.connect(self.worker.dialog.open)
         self.finished.connect(self.worker.dialog.accept)
 
@@ -510,57 +560,9 @@ class Ng_Thread(QThread):
         self.start()
         self.worker.run()
 
-
-class Ng_Dialog(QDialog):
-    def __init__(self, *args, main, title: str = "", size: Tuple[int, int] = (300, 200), **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.main = main
-        self.setWindowTitle(title)
-        self.resize(*size)
-        # ┌———————————┐
-        # │           │
-        # │  content  │
-        # │           │
-        # │———————————│
-        # │  buttons  │
-        # └———————————┘
-        self.content_layout = QGridLayout()
-        self.button_layout = QGridLayout()
-
-        self.grid_layout = QGridLayout()
-        self.grid_layout.addLayout(self.content_layout, 0, 0)
-        self.grid_layout.addLayout(self.button_layout, 1, 0)
-        self.setLayout(self.grid_layout)
-
-        # self.setSizeGripEnabled(True)
-
-    def addWidget(self, *args, **kwargs) -> None:
-        self.content_layout.addWidget(*args, **kwargs)
-
-    def addButton(self, *args, **kwargs) -> None:
-        self.button_layout.addWidget(*args, **kwargs)
-
-
-class Ng_Dialog_Table(Ng_Dialog):
-    def __init__(
-        self,
-        *args,
-        text: str,
-        tableview: Ng_TableView,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.tableview: Ng_TableView = tableview
-
-        self.content_layout.addWidget(QLabel(text), 0, 0)
-        self.content_layout.addWidget(tableview, 1, 0)
-
-        self.button_ok = QPushButton("OK")
-        self.button_ok.clicked.connect(self.accept)
-        self.button_export_table = QPushButton("Export table...")
-        self.button_export_table.clicked.connect(self.tableview.export_table)
-        self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+    # def cancel(self) -> None:
+    #     self.terminate()
+    #     self.wait()
 
 
 class Ng_Main(QMainWindow):
@@ -617,7 +619,7 @@ class Ng_Main(QMainWindow):
     def menubar_help_citing(self) -> None:
         import json
 
-        with open(os_path.join(self.here, "citing.json")) as f:
+        with open(os_path.join(self.here, "citing.json"), encoding="utf-8") as f:
             style_citation_mapping = json.load(f)
         label_citing = QLabel("If you use NeoSCA-GUI in your research, please kindly cite as follows.")
         label_citing.setWordWrap(True)
@@ -818,19 +820,21 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def setup_worker(self) -> None:
-        self.dialog_processing = QDialog(self)
-        self.dialog_processing.setWindowTitle("Please Wait")
-        self.dialog_processing.resize(300, 200)
-        self.label_wait = QLabel(
-            "NeoSCA is running. It may take a few minutes to finish the job. Please wait.",
-            self.dialog_processing,
+        self.dialog_processing = Ng_Dialog(self, main=self, title="Please Wait", size=(300, 200))
+        self.label_processing = QLabel(
+            "NeoSCA-GUI is running. It may take a few minutes to finish the job. Please wait."
         )
-        self.label_wait.setWordWrap(True)
+        self.label_processing.setWordWrap(True)
+        self.dialog_processing.addWidget(self.label_processing, 0, 0, alignment=Qt.AlignmentFlag.AlignTop)
 
-        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(self, self.dialog_processing)
+        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(
+            main=self, dialog=self.dialog_processing
+        )
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
 
-        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(self, self.dialog_processing)
+        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(
+            main=self, dialog=self.dialog_processing
+        )
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
 
     def ask_clear_model(self, model: Ng_Model) -> None:

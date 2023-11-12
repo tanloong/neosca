@@ -2,7 +2,7 @@
 
 import sys
 
-from .scaplatform import IS_WINDOWS
+from ..ng_platform_info import IS_WINDOWS
 
 
 class _bcolors:
@@ -30,9 +30,7 @@ if IS_WINDOWS:  # pragma: no cover
         color_support = False
 
 
-def color_print(
-    color: str, s: str, prefix: str = "", postfix: str = ""
-) -> None:  # pragma: no cover
+def color_print(color: str, s: str, prefix: str = "", postfix: str = "") -> None:  # pragma: no cover
     if color_support:
         sys.stderr.write(prefix)
         sys.stderr.write(bcolors.__getattribute__(color) + s + bcolors.ENDC)

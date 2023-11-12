@@ -13,7 +13,7 @@ from typing import ByteString, Callable, Dict, Iterable, Optional, Set, Union
 
 from charset_normalizer import detect
 
-from .util import SCAProcedureResult
+from .ng_util import SCAProcedureResult
 
 
 class SCAIO:
@@ -28,8 +28,7 @@ class SCAIO:
 
     def __init__(self):
         self.extension_readfunc_map: Dict[str, Callable] = {
-            extension: getattr(self, f"read_{extension}")
-            for extension in self.SUPPORTED_EXTENSIONS
+            extension: getattr(self, f"read_{extension}") for extension in self.SUPPORTED_EXTENSIONS
         }
         self.previous_encoding: str = "utf-8"
 
@@ -57,9 +56,7 @@ class SCAIO:
         paragraphs = root.findall(self.ODT_PARA)
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
-    def _read_txt(
-        self, path: str, mode: str, encoding: Optional[str] = None
-    ) -> Union[str, ByteString]:
+    def _read_txt(self, path: str, mode: str, encoding: Optional[str] = None) -> Union[str, ByteString]:
         try:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()

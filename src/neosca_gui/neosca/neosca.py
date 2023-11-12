@@ -5,9 +5,9 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
+from ..ng_io import SCAIO
 from .parser import Ns_Stanza
 from .querier import Ns_PyTregex
-from .scaio import SCAIO
 from .structure_counter import StructureCounter
 
 
@@ -39,9 +39,7 @@ class NeoSCA:
         self.is_skip_parsing = is_skip_parsing
         self.is_auto_save = is_auto_save
 
-        self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(
-            config
-        )
+        self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
         logging.debug(f"[NeoSCA] user_snames: {self.user_snames}")
 
         if selected_measures is not None:
@@ -55,9 +53,7 @@ class NeoSCA:
     def update_options(self, kwargs: Dict):
         self.__init__(**kwargs)
 
-    def load_user_config(
-        self, config: Optional[str]
-    ) -> Tuple[dict, List[dict], Optional[Set[str]]]:
+    def load_user_config(self, config: Optional[str]) -> Tuple[dict, List[dict], Optional[Set[str]]]:
         user_data: dict = {}
         user_structure_defs: List[Dict[str, str]] = []
         user_snames: Optional[Set[str]] = None
@@ -124,8 +120,7 @@ class NeoSCA:
         has_been_parsed = self.already_parsed(ofile_parsed=ofile_parsed, ifile=ifile)
         if has_been_parsed:
             logging.info(
-                f"Parsing skipped: {ofile_parsed} already"
-                f" exists, and is non-empty and newer than {ifile}."
+                f"Parsing skipped: {ofile_parsed} already" f" exists, and is non-empty and newer than {ifile}."
             )
             # parse file are always (1) plain text, and (2) of utf-8 encoding
             return self.io.read_txt(ofile_parsed, is_guess_encoding=False)
@@ -230,15 +225,9 @@ class NeoSCA:
         if oformat_freq not in ("csv", "json"):
             raise ValueError(f'oformat_freq {oformat_freq} not in ("csv", "json")')
 
-        sname_value_maps: List[Dict[str, str]] = [
-            counter.get_all_values() for counter in counters
-        ]
+        sname_value_maps: List[Dict[str, str]] = [counter.get_all_values() for counter in counters]
 
-        handle = (
-            open(self.ofile_freq, "w", encoding="utf-8", newline="")
-            if not self.is_stdout
-            else sys.stdout
-        )
+        handle = open(self.ofile_freq, "w", encoding="utf-8", newline="") if not self.is_stdout else sys.stdout
 
         if oformat_freq == "csv":
             import csv

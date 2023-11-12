@@ -8,8 +8,8 @@ import sys
 from math import log, sqrt
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
-from ..scaio import SCAIO
-from ..util import SCAProcedureResult
+from ...ng_io import SCAIO
+from ...ng_util import SCAProcedureResult
 
 
 class LCA:
@@ -498,19 +498,13 @@ class LCA:
         values.insert(0, file_path)
         return values
 
-    def analyze(
-        self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
-    ) -> SCAProcedureResult:
+    def analyze(self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None) -> SCAProcedureResult:
         if not (ifiles is None) ^ (text is None):
             return False, "One and only one of (input files, text) should be given."
 
         import csv
 
-        handle = (
-            open(self.ofile, "w", encoding="utf-8", newline="")
-            if not self.is_stdout
-            else sys.stdout
-        )
+        handle = open(self.ofile, "w", encoding="utf-8", newline="") if not self.is_stdout else sys.stdout
 
         csv_writer = csv.writer(handle)
         csv_writer.writerow(self.FIELDNAMES)

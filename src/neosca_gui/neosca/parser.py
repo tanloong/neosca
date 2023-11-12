@@ -11,9 +11,7 @@ class Ns_Stanza:
     ) -> None:
         import stanza
 
-        self.model_dir = (
-            model_dir if model_dir is not None else stanza.resources.common.DEFAULT_MODEL_DIR
-        )
+        self.model_dir = model_dir if model_dir is not None else stanza.resources.common.DEFAULT_MODEL_DIR
         logging.debug(f"[NeoSCA] Initializing Stanza with model directory as {model_dir}...")
         self.nlp_stanza = stanza.Pipeline(
             lang="en",

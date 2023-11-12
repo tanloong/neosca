@@ -45,8 +45,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         """
         if self.nonTerminalInfo is None:
             raise ValueError(
-                "Classes derived from AbstractCollinsHeadFinder must create and fill HashMap"
-                " nonTerminalInfo."
+                "Classes derived from AbstractCollinsHeadFinder must create and fill HashMap" " nonTerminalInfo."
             )
 
         if not t or t.isLeaf():
@@ -97,9 +96,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                 break
         return theHead
 
-    def traverseLocate(
-        self, daughterTrees: List["Tree"], how: List[str], lastResort: bool
-    ) -> Optional["Tree"]:
+    def traverseLocate(self, daughterTrees: List["Tree"], how: List[str], lastResort: bool) -> Optional["Tree"]:
         """
         Attempt to locate head daughter tree from among daughters. Go through
         daughterTrees looking for things from or not in a set given by the

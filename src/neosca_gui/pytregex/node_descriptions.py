@@ -7,9 +7,7 @@ from .tree import Tree
 
 
 class NamedNodes:
-    def __init__(
-        self, name: Optional[str], nodes: Optional[List[Tree]], string_repr: str = ""
-    ) -> None:
+    def __init__(self, name: Optional[str], nodes: Optional[List[Tree]], string_repr: str = "") -> None:
         self.name = name
         self.nodes = nodes
         self.string_repr = string_repr
@@ -67,9 +65,7 @@ class NodeDescriptions:
 
     def satisfy(self, t: Tree) -> bool:
         for desc in self.descriptions:
-            if desc.op.satisfies(
-                t, desc.value, is_negated=self.is_negated, use_basic_cat=self.use_basic_cat
-            ):
+            if desc.op.satisfies(t, desc.value, is_negated=self.is_negated, use_basic_cat=self.use_basic_cat):
                 return True
         return False
 
@@ -100,10 +96,7 @@ class NODE_OP:
         is_negated: bool = False,
         use_basic_cat: bool = False,
     ) -> bool:
-        if any(
-            cls.satisfies(node, id, is_negated=is_negated, use_basic_cat=use_basic_cat)
-            for id in ids
-        ):
+        if any(cls.satisfies(node, id, is_negated=is_negated, use_basic_cat=use_basic_cat) for id in ids):
             return True
         else:
             return False
@@ -111,9 +104,7 @@ class NODE_OP:
 
 class NODE_ID(NODE_OP):
     @classmethod
-    def satisfies(
-        cls, node: Tree, id: str, *, is_negated: bool = False, use_basic_cat: bool = False
-    ) -> bool:
+    def satisfies(cls, node: Tree, id: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
 
@@ -125,9 +116,7 @@ class NODE_ID(NODE_OP):
 
 class NODE_REGEX(NODE_OP):
     @classmethod
-    def satisfies(
-        cls, node: Tree, regex: str, *, is_negated: bool = False, use_basic_cat: bool = False
-    ) -> bool:
+    def satisfies(cls, node: Tree, regex: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
 

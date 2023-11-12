@@ -6,10 +6,10 @@ import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
+from ..ng_io import SCAIO
+from ..ng_util import SCAProcedureResult
 from .about import __version__
-from .scaio import SCAIO
 from .scaprint import color_print
-from .util import SCAProcedureResult
 
 
 class SCAUI:
@@ -20,9 +20,7 @@ class SCAUI:
         self.options: argparse.Namespace = argparse.Namespace()
 
     def create_args_parser(self) -> argparse.ArgumentParser:
-        args_parser = argparse.ArgumentParser(
-            prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter
-        )
+        args_parser = argparse.ArgumentParser(prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter)
         args_parser.add_argument(
             "--version",
             action="store_true",
@@ -417,9 +415,7 @@ Contact:
 
         analyzer = NeoSCA(**self.init_kwargs)
 
-        analyzer.run_on_ifiles(
-            files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or []
-        )
+        analyzer.run_on_ifiles(files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or [])
 
     def run(self) -> SCAProcedureResult:
         if self.options.version:

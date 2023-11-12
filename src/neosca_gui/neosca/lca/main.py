@@ -4,9 +4,9 @@ import os.path as os_path
 import sys
 from typing import Callable, List
 
-from ..scaio import SCAIO
+from ...ng_io import SCAIO
+from ...ng_util import SCAProcedureResult
 from ..scaprint import color_print, get_yes_or_no
-from ..util import SCAProcedureResult
 from .lca import LCA
 
 
@@ -207,9 +207,7 @@ class LCAUI:
                 color_print(
                     "OKGREEN",
                     "ok",
-                    prefix=(
-                        f"en_core_web_sm{required_version_range} has already been installed. "
-                    ),
+                    prefix=(f"en_core_web_sm{required_version_range} has already been installed. "),
                 )
 
         if ask_install_spacy:
@@ -231,8 +229,7 @@ class LCAUI:
                 self.install_model()
             else:
                 logging.info(
-                    "\nYou need to manually install it using:"
-                    "\npython -m spacy download en_core_web_sm"
+                    "\nYou need to manually install it using:" "\npython -m spacy download en_core_web_sm"
                 )
 
         return True, None

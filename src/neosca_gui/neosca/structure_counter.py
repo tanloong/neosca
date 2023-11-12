@@ -31,9 +31,7 @@ class Structure:
         # no need to check "W" because it uses regex
         if name != "W":
             count_non_none = sum(
-                1
-                for attr in (tregex_pattern, dependency_pattern, value_source)
-                if attr is not None
+                1 for attr in (tregex_pattern, dependency_pattern, value_source) if attr is not None
             )
             if count_non_none != 1:
                 raise ValueError(
@@ -169,15 +167,11 @@ class StructureCounter:
             for kwargs in user_structure_defs:
                 user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
 
-        self.sname_structure_map: Dict[str, Structure] = deepcopy(
-            StructureCounter.BUILTIN_STRUCTURE_DEFS
-        )
+        self.sname_structure_map: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURE_DEFS)
         self.sname_structure_map.update(user_sname_structure_map)
 
         default_measures = StructureCounter.DEFAULT_MEASURES + [
-            sname
-            for sname in user_sname_structure_map.keys()
-            if sname not in StructureCounter.DEFAULT_MEASURES
+            sname for sname in user_sname_structure_map.keys() if sname not in StructureCounter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
@@ -267,18 +261,14 @@ class StructureCounter:
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
         logging.debug("[StructureCounter] Adding counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
-        new_selected_measures = list(
-            dict.fromkeys(self.selected_measures + other.selected_measures)
-        )
+        new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
         snames_defined_by_value_source: List[str] = []
         for sname, structure in new.sname_structure_map.items():
             # structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern
             if structure.value_source is not None:
-                logging.debug(
-                    f"[StructureCounter] Skip {sname} which is defined by value_source."
-                )
+                logging.debug(f"[StructureCounter] Skip {sname} which is defined by value_source.")
                 snames_defined_by_value_source.append(sname)
                 continue
 
@@ -286,7 +276,5 @@ class StructureCounter:
             that_value = other.get_value(sname)
             value = (this_value or 0) + (that_value or 0)
             new.set_value(sname, value)
-            logging.debug(
-                f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}"
-            )
+            logging.debug(f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}")
         return new

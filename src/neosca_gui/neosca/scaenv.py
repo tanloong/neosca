@@ -5,12 +5,13 @@ import os
 import os.path as os_path
 from typing import List, Optional
 
-from .scaplatform import IS_LINUX, IS_MAC, IS_WINDOWS
+from ..ng_platform_info import IS_LINUX, IS_MAC, IS_WINDOWS
 from .scaprint import color_print
 
 # JAVA_HOME = "JAVA_HOME"
 # STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"
 STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
+
 
 def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
     import ctypes  # Allows interface with low-level C API's
@@ -50,8 +51,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
     shell = os.environ.get("SHELL")
     if shell is None:
         logging.warning(
-            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current"
-            " shell."
+            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current" " shell."
         )
     else:
         shell_rcfile = {
@@ -67,8 +67,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
         rcfile = shell_rcfile.get(os_path.basename(shell), None)
         if rcfile is None:
             logging.warning(
-                "Failed to permanently set environment variables.\nReason: can't detect rc"
-                f" file for {shell}."
+                "Failed to permanently set environment variables.\nReason: can't detect rc" f" file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
@@ -79,9 +78,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
                 with open(rcfile, encoding="utf-8") as f:
                     configs = [line.strip() for line in f.readlines()]
             new_config = (
-                f"export {env_var}={new_paths}"
-                if is_refresh
-                else f"export {env_var}=${env_var}:{new_paths}"
+                f"export {env_var}={new_paths}" if is_refresh else f"export {env_var}=${env_var}:{new_paths}"
             )
             duplicated_config_index = []
             for i, config in enumerate(configs):
@@ -101,9 +98,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
                 f.write("\n".join(configs))
 
 
-def setenv(
-    env_var: str, paths: List[str], is_override: bool = False, is_quiet: bool = False
-) -> None:
+def setenv(env_var: str, paths: List[str], is_override: bool = False, is_quiet: bool = False) -> None:
     assert any((IS_WINDOWS, IS_MAC, IS_LINUX))
     if IS_WINDOWS:
         _setenv_windows(env_var, paths, is_override)
