@@ -9,7 +9,7 @@ import logging
 import os.path as os_path
 import sys
 import zipfile
-from typing import ByteString, Callable, Dict, Iterable, Optional, Set, Union
+from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Union
 
 from charset_normalizer import detect
 
@@ -125,17 +125,30 @@ class SCAIO:
         else:
             return True, None
 
-    def load_pickle_lzma_file(self, filepath: str) -> dict:
+    @classmethod
+    def load_pickle_lzma_file(cls, file_path: str, default:Any=None) -> dict:
         import lzma
         import pickle
 
-        with open(filepath, "rb") as f:
-            data_pickle_lzma = f.read()
+        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
+            with open(file_path, "rb") as f:
+                data_pickle_lzma = f.read()
 
-        data_pickle = lzma.decompress(data_pickle_lzma)
-        data = pickle.loads(data_pickle)
+            data_pickle = lzma.decompress(data_pickle_lzma)
+            return pickle.loads(data_pickle)
+        else:
+            return default
 
-        return data
+    @classmethod
+    def load_pickle_file(cls, file_path: str, default:Any=None) -> Any:
+        import pickle
+
+        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
+            with open(file_path, "rb") as f:
+                data_pickle = f.read()
+            return pickle.loads(data_pickle)
+        else:
+            return default
 
     def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> Set[str]:
         verified_ifile_list = []

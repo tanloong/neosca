@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+import copy
 import glob
 import os
 import os.path as os_path
 import re
 import subprocess
 import sys
-from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
+import textwrap
+from typing import Any, Dict, Generator, Iterable, List, Literal, Optional, Set, Union
 
 from PySide6.QtCore import QModelIndex, QObject, Qt, QThread, Signal
 from PySide6.QtGui import (
@@ -44,7 +46,14 @@ from PySide6.QtWidgets import (
 from .neosca.lca.lca import LCA
 from .neosca.neosca import NeoSCA
 from .neosca.structure_counter import StructureCounter
+from .ng_about import __title__, __version__
 from .ng_io import SCAIO
+from .ng_settings_default import (
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_FONT_SIZE,
+    DEFAULT_INTERFACE_SCALING,
+    settings_default,
+)
 
 
 class Ng_QSS_Loader:
@@ -52,9 +61,12 @@ class Ng_QSS_Loader:
         pass
 
     @staticmethod
-    def read_qss_file(qss_file_path):
-        with open(qss_file_path, encoding="utf-8") as file:
-            return file.read()
+    def read_qss_file(qss_file_path: str, default: Any = ""):
+        if os_path.isfile(qss_file_path) and os_path.getsize(qss_file_path) > 0:
+            with open(qss_file_path, encoding="utf-8") as file:
+                return file.read()
+        else:
+            return default
 
     @staticmethod
     def get_qss_value(qss: str, selector: str, attrname: str) -> Optional[str]:
@@ -367,12 +379,30 @@ class Ng_TableView(QTableView):
             model.data_exported.emit()
 
 
+# https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
 class Ng_Dialog(QDialog):
-    def __init__(self, *args, main, title: str = "", size: Tuple[int, int] = (300, 200), **kwargs) -> None:
+    def __init__(
+        self, *args, main, title: str = "", width: int = 0, height: int = 0, resizable=True, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.main = main
+        # > Dialog size
+        if resizable:
+            if not width:
+                width = self.size().width()
+
+            if not height:
+                height = self.size().height()
+
+            self.resize(width, height)
+        else:
+            if width:
+                self.setFixedWidth(width)
+
+            if height:
+                self.setFixedHeight(height)
         self.setWindowTitle(title)
-        self.resize(*size)
+
         # ┌———————————┐
         # │           │
         # │  content  │
@@ -570,7 +600,21 @@ class Ng_Main(QMainWindow):
         super().__init__(*args, **kwargs)
         self.setup_env()
 
-        self.setWindowTitle("NeoSCA-GUI")
+        self.setWindowTitle(f"{__title__} {__version__}")
+        file_path_settings = os_path.join(self.here, "ng_settings.pickle")
+        self.settings_custom = SCAIO.load_pickle_file(file_path_settings, None)
+        if self.settings_custom is None:
+            self.settings_custom = copy.deepcopy(settings_default)
+        qss = textwrap.dedent(
+            f"""\
+            * {{
+            font-family: "{self.settings_custom['general']['ui_settings']['font_family']}";
+            font-size: {self.settings_custom['general']['ui_settings']['font_size']}pt;
+            }}\n"""
+        )
+        file_path_style_qss = os_path.join(self.here, "ng_style.qss")
+        qss += Ng_QSS_Loader.read_qss_file(file_path_style_qss, "")
+        self.setStyleSheet(qss)
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
@@ -621,7 +665,7 @@ class Ng_Main(QMainWindow):
 
         with open(os_path.join(self.here, "citing.json"), encoding="utf-8") as f:
             style_citation_mapping = json.load(f)
-        label_citing = QLabel("If you use NeoSCA-GUI in your research, please kindly cite as follows.")
+        label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
         label_citing.setWordWrap(True)
         textedit_citing = QTextEdit()
         textedit_citing.setReadOnly(True)
@@ -820,10 +864,10 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ng_Dialog(self, main=self, title="Please Wait", size=(300, 200))
-        self.label_processing = QLabel(
-            "NeoSCA-GUI is running. It may take a few minutes to finish the job. Please wait."
+        self.dialog_processing = Ng_Dialog(
+            self, main=self, title="Please Wait", width=300, height=200, resizable=False
         )
+        self.label_processing = QLabel("It may take a few minutes to finish the job. Please wait.")
         self.label_processing.setWordWrap(True)
         self.dialog_processing.addWidget(self.label_processing, 0, 0, alignment=Qt.AlignmentFlag.AlignTop)
 
@@ -955,7 +999,9 @@ class Ng_Main(QMainWindow):
                 main=self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",
-                size=(300, 200),
+                width=300,
+                height=200,
+                resizable=True,
                 tableview=tableview_err_files,
             )
             dialog.open()
@@ -997,8 +1043,9 @@ class Ng_Main(QMainWindow):
 
 
 def main():
+    ui_scaling = DEFAULT_INTERFACE_SCALING
+    os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ng_app = QApplication(sys.argv)
     ng_window = Ng_Main()
-    ng_window.setStyleSheet(Ng_QSS_Loader.read_qss_file(os_path.join(ng_window.here, "ng_style.qss")))
     ng_window.showMaximized()
     sys.exit(ng_app.exec())
