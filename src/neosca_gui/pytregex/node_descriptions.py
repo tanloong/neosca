@@ -91,32 +91,33 @@ class NODE_OP:
     def in_(
         cls,
         node: Tree,
-        ids: Iterable[str],
+        values: Iterable[str],
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
     ) -> bool:
-        if any(cls.satisfies(node, id, is_negated=is_negated, use_basic_cat=use_basic_cat) for id in ids):
-            return True
-        else:
-            return False
+        return any(
+            cls.satisfies(node, value, is_negated=is_negated, use_basic_cat=use_basic_cat) for value in values
+        )
 
 
-class NODE_ID(NODE_OP):
+class NODE_TEXT(NODE_OP):
     @classmethod
-    def satisfies(cls, node: Tree, id: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
+    def satisfies(cls, node: Tree, text: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
 
         if value is None:
             return is_negated
         else:
-            return (value == id) != is_negated
+            return (value == text) != is_negated
 
 
 class NODE_REGEX(NODE_OP):
     @classmethod
-    def satisfies(cls, node: Tree, regex: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
+    def satisfies(
+        cls, node: Tree, regex: str, *, is_negated: bool = False, use_basic_cat: bool = False
+    ) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
 

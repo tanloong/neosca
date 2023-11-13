@@ -10,7 +10,7 @@ from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import TYPE_CHECKING, Generator, List
 
-from ..pytregex.node_descriptions import NODE_ANY, NODE_ID
+from ..pytregex.node_descriptions import NODE_ANY, NODE_TEXT
 from ..pytregex.relation import (
     CHILD_OF,
     DOMINATED_BY,
@@ -48,7 +48,7 @@ class L2SCA_S(L2SCA_Structure):
         ROOT !> __
         """
         # Don't have to iterate the tree because descendants won't match
-        if not NODE_ID.satisfies(t, "ROOT"):
+        if not NODE_TEXT.satisfies(t, "ROOT"):
             return
         if not any(NODE_ANY.satisfies(node) for node in CHILD_OF.searchNodeIterator(t)):
             yield t
@@ -61,10 +61,10 @@ class L2SCA_VP1(L2SCA_Structure):
         VP > S|SINV|SQ
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "VP"):
+            if not NODE_TEXT.satisfies(candidate, "VP"):
                 continue
             for _ in filter(
-                lambda node: NODE_ID.in_(node, ("S", "SINV", "SQ")),
+                lambda node: NODE_TEXT.in_(node, ("S", "SINV", "SQ")),
                 CHILD_OF.searchNodeIterator(candidate),
             ):
                 yield candidate
@@ -77,13 +77,13 @@ class L2SCA_VP2(L2SCA_Structure):
         MD|VBZ|VBP|VBD > (SQ !< VP)
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.in_(candidate, ("MD", "VBZ", "VBP", "VBD")):
+            if not NODE_TEXT.in_(candidate, ("MD", "VBZ", "VBP", "VBD")):
                 continue
             for sq in filter(
-                lambda node: NODE_ID.satisfies(node, "SQ"),
+                lambda node: NODE_TEXT.satisfies(node, "SQ"),
                 CHILD_OF.searchNodeIterator(candidate),
             ):
-                if not any(NODE_ID.satisfies(node, "VP") for node in PARENT_OF.searchNodeIterator(sq)):
+                if not any(NODE_TEXT.satisfies(node, "VP") for node in PARENT_OF.searchNodeIterator(sq)):
                     yield candidate
 
 
@@ -94,47 +94,47 @@ class L2SCA_C1(L2SCA_Structure):
         S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.in_(candidate, ("S", "SINV", "SQ")):
+            if not NODE_TEXT.in_(candidate, ("S", "SINV", "SQ")):
                 continue
             # Branch 1: S|SINV|SQ > ROOT <, (VP <# VB)
             for _ in filter(
-                lambda node: NODE_ID.satisfies(node, "ROOT"),
+                lambda node: NODE_TEXT.satisfies(node, "ROOT"),
                 CHILD_OF.searchNodeIterator(candidate),
             ):
                 for vp in filter(
-                    lambda node: NODE_ID.satisfies(node, "VP"),
+                    lambda node: NODE_TEXT.satisfies(node, "VP"),
                     HAS_LEFTMOST_CHILD.searchNodeIterator(candidate),
                 ):
                     for _ in filter(
-                        lambda node: NODE_ID.satisfies(node, "VB"),
+                        lambda node: NODE_TEXT.satisfies(node, "VB"),
                         IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                     ):
                         yield candidate
             # Branch 2: S|SINV|SQ <# MD|VBZ|VBP|VBD
             for _ in filter(
-                lambda node: NODE_ID.in_(node, ("MD", "VBZ", "VBP", "VBD")),
+                lambda node: NODE_TEXT.in_(node, ("MD", "VBZ", "VBP", "VBD")),
                 IMMEDIATELY_HEADED_BY.searchNodeIterator(candidate),
             ):
                 yield candidate
             # Branch 3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
             for vp in filter(
-                lambda node: NODE_ID.satisfies(node, "VP"),
+                lambda node: NODE_TEXT.satisfies(node, "VP"),
                 PARENT_OF.searchNodeIterator(candidate),
             ):
                 # Branch 3.1: S|SINV|SQ < (VP <# MD|VBP|VBZ|VBD)
                 for _ in filter(
-                    lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                    lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                     IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                 ):
                     yield candidate
                 # Branch 3.2: S|SINV|SQ < (VP < CC < (VP <# MD|VBP|VBZ|VBD))
-                for _ in filter(lambda node: NODE_ID.satisfies(node, "CC"), PARENT_OF.searchNodeIterator(vp)):
+                for _ in filter(lambda node: NODE_TEXT.satisfies(node, "CC"), PARENT_OF.searchNodeIterator(vp)):
                     for vp2 in filter(
-                        lambda node: NODE_ID.satisfies(node, "VP"),
+                        lambda node: NODE_TEXT.satisfies(node, "VP"),
                         PARENT_OF.searchNodeIterator(vp),
                     ):
                         for _ in filter(
-                            lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                            lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                             IMMEDIATELY_HEADED_BY.searchNodeIterator(vp2),
                         ):
                             yield candidate
@@ -147,21 +147,21 @@ class L2SCA_C2(L2SCA_Structure):
         FRAG > ROOT !<< (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "FRAG"):
+            if not NODE_TEXT.satisfies(candidate, "FRAG"):
                 continue
-            if not any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
+            if not any(NODE_TEXT.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
 
             is_satisfied = True
             for s in filter(
-                lambda node: NODE_ID.in_(node, ("S", "SINV", "SQ")),
+                lambda node: NODE_TEXT.in_(node, ("S", "SINV", "SQ")),
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SINV|SQ > ROOT <, (VP <# VB)
-                if any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)) and any(
-                    NODE_ID.satisfies(node, "VB")
+                if any(NODE_TEXT.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)) and any(
+                    NODE_TEXT.satisfies(node, "VB")
                     for vp in filter(
-                        lambda node: NODE_ID.satisfies(node, "VP"),
+                        lambda node: NODE_TEXT.satisfies(node, "VP"),
                         HAS_LEFTMOST_CHILD.searchNodeIterator(s),
                     )
                     for node in IMMEDIATELY_HEADED_BY.searchNodeIterator(vp)
@@ -170,23 +170,23 @@ class L2SCA_C2(L2SCA_Structure):
                     break
                 # Branch 2: S|SINV|SQ <# MD|VBZ|VBP|VBD
                 if any(
-                    NODE_ID.in_(node, ("MD", "VBZ", "VBP", "VBD"))
+                    NODE_TEXT.in_(node, ("MD", "VBZ", "VBP", "VBD"))
                     for node in IMMEDIATELY_HEADED_BY.searchNodeIterator(s)
                 ):
                     is_satisfied = False
                     break
                 # Branch 3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
-                for vp in filter(lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
+                for vp in filter(lambda node: NODE_TEXT.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
                     if any(
-                        NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD"))
+                        NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD"))
                         for node in IMMEDIATELY_HEADED_BY.searchNodeIterator(vp)
                     ):
                         is_satisfied = False
                         break
-                    if any(NODE_ID.satisfies(node, "CC") for node in PARENT_OF.searchNodeIterator(vp)) and any(
-                        NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD"))
+                    if any(NODE_TEXT.satisfies(node, "CC") for node in PARENT_OF.searchNodeIterator(vp)) and any(
+                        NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD"))
                         for vp2 in filter(
-                            lambda node: NODE_ID.satisfies(node, "VP"),
+                            lambda node: NODE_TEXT.satisfies(node, "VP"),
                             PARENT_OF.searchNodeIterator(vp),
                         )
                         for node in IMMEDIATELY_HEADED_BY.searchNodeIterator(vp2)
@@ -204,19 +204,19 @@ class L2SCA_T1(L2SCA_Structure):
         S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.in_(candidate, ("S", "SBARQ", "SINV", "SQ")):
+            if not NODE_TEXT.in_(candidate, ("S", "SBARQ", "SINV", "SQ")):
                 continue
             # Branch 1: S|SBARQ|SINV|SQ > ROOT
             for node in CHILD_OF.searchNodeIterator(candidate):
-                if NODE_ID.satisfies(node, "ROOT"):
+                if NODE_TEXT.satisfies(node, "ROOT"):
                     yield candidate
             # Branch 2: S|SBARQ|SINV|SQ [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]
             for _ in filter(
-                lambda node: NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ")),
+                lambda node: NODE_TEXT.in_(node, ("S", "SBARQ", "SINV", "SQ")),
                 RIGHT_SISTER_OF.searchNodeIterator(candidate),
             ):
                 if not any(
-                    NODE_ID.in_(node2, ("SBAR", "VP")) for node2 in DOMINATED_BY.searchNodeIterator(candidate)
+                    NODE_TEXT.in_(node2, ("SBAR", "VP")) for node2 in DOMINATED_BY.searchNodeIterator(candidate)
                 ):
                     yield candidate
 
@@ -228,24 +228,24 @@ class L2SCA_T2(L2SCA_Structure):
         FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "FRAG"):
+            if not NODE_TEXT.satisfies(candidate, "FRAG"):
                 continue
-            if not any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
+            if not any(NODE_TEXT.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
             is_satisfied = True
             for s in filter(
-                lambda node: NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ")),
+                lambda node: NODE_TEXT.in_(node, ("S", "SBARQ", "SINV", "SQ")),
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SBARQ|SINV|SQ > ROOT
-                if any(NODE_ID.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)):
+                if any(NODE_TEXT.satisfies(node, "ROOT") for node in CHILD_OF.searchNodeIterator(s)):
                     is_satisfied = False
                     break
                 # Branch 2: S|SBARQ|SINV|SQ [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]
                 if any(
-                    NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ"))
+                    NODE_TEXT.in_(node, ("S", "SBARQ", "SINV", "SQ"))
                     for node in RIGHT_SISTER_OF.searchNodeIterator(s)
-                ) and not any(NODE_ID.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(s)):
+                ) and not any(NODE_TEXT.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(s)):
                     is_satisfied = False
                     break
             if is_satisfied:
@@ -259,27 +259,28 @@ class L2SCA_CN1(L2SCA_Structure):
         NP !> NP [<< JJ|POS|PP|S|VBG | << (NP $++ NP !$+ CC)]
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "NP"):
+            if not NODE_TEXT.satisfies(candidate, "NP"):
                 continue
-            if any(NODE_ID.satisfies(node, "NP") for node in CHILD_OF.searchNodeIterator(candidate)):
+            if any(NODE_TEXT.satisfies(node, "NP") for node in CHILD_OF.searchNodeIterator(candidate)):
                 continue
             # Branch 1: NP << JJ|POS|PP|S|VBG
             for _ in filter(
-                lambda node: NODE_ID.in_(node, ("JJ", "POS", "PP", "S", "VBG")),
+                lambda node: NODE_TEXT.in_(node, ("JJ", "POS", "PP", "S", "VBG")),
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 yield candidate
             # Branch 2: NP << (NP $++ NP !$+ CC)
             for np in filter(
-                lambda node: NODE_ID.satisfies(node, "NP"),
+                lambda node: NODE_TEXT.satisfies(node, "NP"),
                 DOMINATES.searchNodeIterator(candidate),
             ):
                 for _ in filter(
-                    lambda node: NODE_ID.satisfies(node, "NP"),
+                    lambda node: NODE_TEXT.satisfies(node, "NP"),
                     LEFT_SISTER_OF.searchNodeIterator(np),
                 ):
                     if not any(
-                        NODE_ID.satisfies(node, "CC") for node in IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(np)
+                        NODE_TEXT.satisfies(node, "CC")
+                        for node in IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(np)
                     ):
                         yield candidate
 
@@ -290,22 +291,22 @@ class L2SCA_CN2(L2SCA_Structure):
         # Condition 1: SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S]
         # Branch 1.1: SBAR <# WHNP
         for _ in filter(
-            lambda node: NODE_ID.satisfies(node, "WHNP"),
+            lambda node: NODE_TEXT.satisfies(node, "WHNP"),
             IMMEDIATELY_HEADED_BY.searchNodeIterator(t),
         ):
             yield t
         # Branch 1.2: SBAR <# (IN < That|that|For|for)
         for in_ in filter(
-            lambda node: NODE_ID.satisfies(node, "IN"),
+            lambda node: NODE_TEXT.satisfies(node, "IN"),
             IMMEDIATELY_HEADED_BY.searchNodeIterator(t),
         ):
             for _ in filter(
-                lambda node: NODE_ID.in_(node, ("That", "that", "For", "for")),
+                lambda node: NODE_TEXT.in_(node, ("That", "that", "For", "for")),
                 PARENT_OF.searchNodeIterator(in_),
             ):
                 yield t
         # Branch 1.3: SBAR <, S
-        for _ in filter(lambda node: NODE_ID.satisfies(node, "S"), HAS_LEFTMOST_CHILD.searchNodeIterator(t)):
+        for _ in filter(lambda node: NODE_TEXT.satisfies(node, "S"), HAS_LEFTMOST_CHILD.searchNodeIterator(t)):
             yield t
 
     @classmethod
@@ -314,18 +315,18 @@ class L2SCA_CN2(L2SCA_Structure):
         SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "SBAR"):
+            if not NODE_TEXT.satisfies(candidate, "SBAR"):
                 continue
             # Condition 1: SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S]
             for _ in cls.conditionOneHelper(candidate):
                 # Condition 2: SBAR [$+ VP | > VP]
                 for _ in filter(
-                    lambda node: NODE_ID.satisfies(node, "VP"),
+                    lambda node: NODE_TEXT.satisfies(node, "VP"),
                     IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(candidate),
                 ):
                     yield candidate
                 for _ in filter(
-                    lambda node: NODE_ID.satisfies(node, "VP"),
+                    lambda node: NODE_TEXT.satisfies(node, "VP"),
                     CHILD_OF.searchNodeIterator(candidate),
                 ):
                     yield candidate
@@ -338,20 +339,20 @@ class L2SCA_CN3(L2SCA_Structure):
         S < (VP <# VBG|TO) $+ VP
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "S"):
+            if not NODE_TEXT.satisfies(candidate, "S"):
                 continue
             # Condition 1: S < (VP <# VBG|TO)
             for vp in filter(
-                lambda node: NODE_ID.satisfies(node, "VP"),
+                lambda node: NODE_TEXT.satisfies(node, "VP"),
                 PARENT_OF.searchNodeIterator(candidate),
             ):
                 for _ in filter(
-                    lambda node: NODE_ID.in_(node, ("VBG", "TO")),
+                    lambda node: NODE_TEXT.in_(node, ("VBG", "TO")),
                     IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                 ):
                     # Condition 2: S $+ VP
                     for _ in filter(
-                        lambda node: NODE_ID.satisfies(node, "VP"),
+                        lambda node: NODE_TEXT.satisfies(node, "VP"),
                         IMMEDIATE_LEFT_SISTER_OF.searchNodeIterator(candidate),
                     ):
                         yield candidate
@@ -364,48 +365,48 @@ class L2SCA_DC(L2SCA_Structure):
         SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.satisfies(candidate, "SBAR"):
+            if not NODE_TEXT.satisfies(candidate, "SBAR"):
                 continue
             for s in filter(
-                lambda node: NODE_ID.in_(node, ("S", "SINV", "SQ")),
+                lambda node: NODE_TEXT.in_(node, ("S", "SINV", "SQ")),
                 PARENT_OF.searchNodeIterator(candidate),
             ):
                 # Branch 1: S|SINV|SQ > ROOT <, (VP <# VB)
-                for _ in filter(lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(s)):
+                for _ in filter(lambda node: NODE_TEXT.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(s)):
                     for vp in filter(
-                        lambda node: NODE_ID.satisfies(node, "VP"),
+                        lambda node: NODE_TEXT.satisfies(node, "VP"),
                         HAS_LEFTMOST_CHILD.searchNodeIterator(s),
                     ):
                         for _ in filter(
-                            lambda node: NODE_ID.satisfies(node, "VB"),
+                            lambda node: NODE_TEXT.satisfies(node, "VB"),
                             IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                         ):
                             yield candidate
                 # Branch 2: S|SINV|SQ <# MD|VBZ|VBP|VBD
                 for _ in filter(
-                    lambda node: NODE_ID.in_(node, ("MD", "VBZ", "VBP", "VBD")),
+                    lambda node: NODE_TEXT.in_(node, ("MD", "VBZ", "VBP", "VBD")),
                     IMMEDIATELY_HEADED_BY.searchNodeIterator(s),
                 ):
                     yield candidate
                 # Branch 3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
-                for vp in filter(lambda node: NODE_ID.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
+                for vp in filter(lambda node: NODE_TEXT.satisfies(node, "VP"), PARENT_OF.searchNodeIterator(s)):
                     # Branch 3.1: VP <# MD|VBP|VBZ|VBD
                     for _ in filter(
-                        lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                        lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                         IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                     ):
                         yield candidate
                     # Branch 3.2: VP < CC < (VP <# MD|VBP|VBZ|VBD)
                     for _ in filter(
-                        lambda node: NODE_ID.satisfies(node, "CC"),
+                        lambda node: NODE_TEXT.satisfies(node, "CC"),
                         PARENT_OF.searchNodeIterator(vp),
                     ):
                         for vp2 in filter(
-                            lambda node: NODE_ID.satisfies(node, "VP"),
+                            lambda node: NODE_TEXT.satisfies(node, "VP"),
                             PARENT_OF.searchNodeIterator(vp),
                         ):
                             for _ in filter(
-                                lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                                lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                                 IMMEDIATELY_HEADED_BY.searchNodeIterator(vp2),
                             ):
                                 yield candidate
@@ -417,13 +418,13 @@ class L2SCA_CT(L2SCA_Structure):
         # Condition 1: S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]]
         # Branch 1.1: S|SBARQ|SINV|SQ > ROOT
         # Branch 1.2: S|SBARQ|SINV|SQ $-- S|SBARQ|SINV|SQ !>> SBAR|VP
-        for _ in filter(lambda node: NODE_ID.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(t)):
+        for _ in filter(lambda node: NODE_TEXT.satisfies(node, "ROOT"), CHILD_OF.searchNodeIterator(t)):
             yield t
         for _ in filter(
-            lambda node: NODE_ID.in_(node, ("S", "SBARQ", "SINV", "SQ")),
+            lambda node: NODE_TEXT.in_(node, ("S", "SBARQ", "SINV", "SQ")),
             RIGHT_SISTER_OF.searchNodeIterator(t),
         ):
-            if not any(NODE_ID.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(t)):
+            if not any(NODE_TEXT.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(t)):
                 yield t
 
     @classmethod
@@ -432,60 +433,60 @@ class L2SCA_CT(L2SCA_Structure):
         S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << (SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]))
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.in_(candidate, ("S", "SBARQ", "SINV", "SQ")):
+            if not NODE_TEXT.in_(candidate, ("S", "SBARQ", "SINV", "SQ")):
                 continue
             for _ in cls.conditionOneHelper(candidate):
                 # Condition 2: S|SBARQ|SINV|SQ << (SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]))
                 for sbar in filter(
-                    lambda node: NODE_ID.satisfies(node, "SBAR"),
+                    lambda node: NODE_TEXT.satisfies(node, "SBAR"),
                     DOMINATES.searchNodeIterator(candidate),
                 ):
                     for s in filter(
-                        lambda node: NODE_ID.in_(node, ("S", "SINV", "SQ")),
+                        lambda node: NODE_TEXT.in_(node, ("S", "SINV", "SQ")),
                         PARENT_OF.searchNodeIterator(sbar),
                     ):
                         # Branch 2.1: S|SINV|SQ > ROOT <, (VP <# VB)
                         for _ in filter(
-                            lambda node: NODE_ID.satisfies(node, "ROOT"),
+                            lambda node: NODE_TEXT.satisfies(node, "ROOT"),
                             CHILD_OF.searchNodeIterator(s),
                         ):
                             for vp in filter(
-                                lambda node: NODE_ID.satisfies(node, "VP"),
+                                lambda node: NODE_TEXT.satisfies(node, "VP"),
                                 HAS_LEFTMOST_CHILD.searchNodeIterator(s),
                             ):
                                 for _ in filter(
-                                    lambda node: NODE_ID.satisfies(node, "VB"),
+                                    lambda node: NODE_TEXT.satisfies(node, "VB"),
                                     IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                                 ):
                                     yield candidate
                         # Branch 2.2: S|SINV|SQ <# MD|VBZ|VBP|VBD
                         for _ in filter(
-                            lambda node: NODE_ID.in_(node, ("MD", "VBZ", "VBP", "VBD")),
+                            lambda node: NODE_TEXT.in_(node, ("MD", "VBZ", "VBP", "VBD")),
                             IMMEDIATELY_HEADED_BY.searchNodeIterator(s),
                         ):
                             yield candidate
                         # Branch 2.3: S|SINV|SQ < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])
                         for vp in filter(
-                            lambda node: NODE_ID.satisfies(node, "VP"),
+                            lambda node: NODE_TEXT.satisfies(node, "VP"),
                             PARENT_OF.searchNodeIterator(s),
                         ):
                             # Branch 2.3.1: VP <# MD|VBP|VBZ|VBD
                             for _ in filter(
-                                lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                                lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                                 IMMEDIATELY_HEADED_BY.searchNodeIterator(vp),
                             ):
                                 yield candidate
                             # Branch 2.3.2: VP < CC < (VP <# MD|VBP|VBZ|VBD)
                             for _ in filter(
-                                lambda node: NODE_ID.satisfies(node, "CC"),
+                                lambda node: NODE_TEXT.satisfies(node, "CC"),
                                 PARENT_OF.searchNodeIterator(vp),
                             ):
                                 for vp2 in filter(
-                                    lambda node: NODE_ID.satisfies(node, "VP"),
+                                    lambda node: NODE_TEXT.satisfies(node, "VP"),
                                     PARENT_OF.searchNodeIterator(vp),
                                 ):
                                     for _ in filter(
-                                        lambda node: NODE_ID.in_(node, ("MD", "VBP", "VBZ", "VBD")),
+                                        lambda node: NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD")),
                                         IMMEDIATELY_HEADED_BY.searchNodeIterator(vp2),
                                     ):
                                         yield candidate
@@ -498,10 +499,10 @@ class L2SCA_CP(L2SCA_Structure):
         ADJP|ADVP|NP|VP < CC
         """
         for candidate in t.preorder_iter():
-            if not NODE_ID.in_(candidate, ("ADJP", "ADVP", "NP", "VP")):
+            if not NODE_TEXT.in_(candidate, ("ADJP", "ADVP", "NP", "VP")):
                 continue
             for _ in filter(
-                lambda node: NODE_ID.satisfies(node, "CC"),
+                lambda node: NODE_TEXT.satisfies(node, "CC"),
                 PARENT_OF.searchNodeIterator(candidate),
             ):
                 yield candidate
