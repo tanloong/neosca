@@ -281,7 +281,9 @@ class Ng_TableView(QTableView):
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = Ng_QSS_Loader.get_qss_value(self.main.styleSheet(), "QHeaderView::section", "color")
+                font_color = Ng_QSS_Loader.get_qss_value(
+                    self.main.styleSheet(), "QHeaderView::section", "color"
+                )
                 font_color = font_color.lstrip("#") if font_color is not None else "000"
                 font_weight = Ng_QSS_Loader.get_qss_value(
                     self.main.styleSheet(), "QHeaderView::section", "font-weight"
@@ -368,7 +370,9 @@ class Ng_TableView(QTableView):
                         row: List[str] = [model.verticalHeaderItem(rowno).text()]
                         row.extend(model.item(rowno, colno).text() for colno in range(col_count))
                         csv_writer.writerow(row)
-            QMessageBox.information(self, "Success", f"The table has been successfully exported to {file_path}.")
+            QMessageBox.information(
+                self, "Success", f"The table has been successfully exported to {file_path}."
+            )
         except PermissionError:
             QMessageBox.critical(
                 self,
@@ -401,6 +405,9 @@ class Ng_Dialog(QDialog):
 
             if height:
                 self.setFixedHeight(height)
+            # Gives the window a thin dialog border on Windows. This style is
+            #  traditionally used for fixed-size dialogs.
+            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setWindowTitle(title)
 
         # ┌———————————┐
@@ -417,8 +424,6 @@ class Ng_Dialog(QDialog):
         self.grid_layout.addLayout(self.content_layout, 0, 0)
         self.grid_layout.addLayout(self.button_layout, 1, 0)
         self.setLayout(self.grid_layout)
-
-        # self.setSizeGripEnabled(True)
 
     def addWidget(self, *args, **kwargs) -> None:
         self.content_layout.addWidget(*args, **kwargs)
@@ -462,18 +467,17 @@ class Ng_Dialog_Table(Ng_Dialog):
 class Ng_Worker(QObject):
     worker_done = Signal()
 
-    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
+    def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.main = main
-        self.dialog: Ng_Dialog = dialog
 
     def run(self) -> None:
         raise NotImplementedError()
 
 
 class Ng_Worker_SCA_Generate_Table(Ng_Worker):
-    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
-        super().__init__(*args, main=main, dialog=dialog, **kwargs)
+    def __init__(self, *args, main, **kwargs) -> None:
+        super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
         input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
@@ -531,8 +535,8 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
 
 
 class Ng_Worker_LCA_Generate_Table(Ng_Worker):
-    def __init__(self, *args, main, dialog: Ng_Dialog, **kwargs) -> None:
-        super().__init__(*args, main=main, dialog=dialog, **kwargs)
+    def __init__(self, *args, main, **kwargs) -> None:
+        super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
         input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
@@ -588,13 +592,6 @@ class Ng_Thread(QThread):
         self.worker = worker
         # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         self.worker.moveToThread(self)
-
-        # self.button_cancel = QPushButton("Cancel")
-        # self.worker.dialog.addButton(self.button_cancel, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
-        #
-        # self.button_cancel.clicked.connect(self.cancel)
-        self.started.connect(self.worker.dialog.open)
-        self.finished.connect(self.worker.dialog.accept)
 
     def run(self):
         self.start()
@@ -882,15 +879,13 @@ class Ng_Main(QMainWindow):
         self.label_processing.setWordWrap(True)
         self.dialog_processing.addWidget(self.label_processing, 0, 0, alignment=Qt.AlignmentFlag.AlignTop)
 
-        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(
-            main=self, dialog=self.dialog_processing
-        )
+        self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
+        self.ng_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
 
-        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(
-            main=self, dialog=self.dialog_processing
-        )
+        self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(main=self)
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
+        self.ng_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
 
     def ask_clear_model(self, model: Ng_Model) -> None:
         if model.has_been_exported:
