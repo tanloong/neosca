@@ -10,7 +10,7 @@ import sys
 import textwrap
 from typing import Any, Dict, Generator, Iterable, List, Literal, Optional, Set, Union
 
-from PySide6.QtCore import QModelIndex, QObject, Qt, QThread, Signal
+from PySide6.QtCore import QElapsedTimer, QModelIndex, QObject, Qt, QThread, QTime, QTimer, Signal
 from PySide6.QtGui import (
     QAction,
     QCursor,
@@ -386,7 +386,7 @@ class Ng_TableView(QTableView):
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
 class Ng_Dialog(QDialog):
     def __init__(
-        self, *args, main, title: str = "", width: int = 0, height: int = 0, resizable=True, **kwargs
+        self, *args, main, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
         self.main = main
@@ -436,6 +436,48 @@ class Ng_Dialog(QDialog):
 
     def setRowStretch(self, row: int, strech: int) -> None:
         self.content_layout.setRowStretch(row, strech)
+
+
+class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
+    # Use this to get place holder, e.g. 0:00:00
+    time_format_re = re.compile(r"[^:]")
+
+    def __init__(
+        self,
+        *args,
+        main,
+        title: str = "",
+        width: int = 500,
+        height: int = 0,
+        time_format: str = "h:mm:ss",
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, main=main, title=title, width=width, height=height, resizable=False, **kwargs)
+        self.time_format = time_format
+
+        self.label_status = QLabel("Processing...")
+        self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
+        self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
+        self.label_please_wait = QLabel(
+            "Please wait. This may range from several seconds to a couple of minutes."
+        )
+        self.label_please_wait.setWordWrap(True)
+
+        self.addWidget(self.label_status, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+        self.addWidget(self.label_please_wait, 1, 0, 1, 2)
+
+        # Bind
+        # Either 'accepted' or 'rejected', although rejected is disabled by
+        #  overriding the 'reject' method (see below)
+        self.finished.connect(self.reset_time_elapsed)
+
+    def reset_time_elapsed(self) -> None:
+        self.label_time_elapsed.setText(self.text_time_elapsed_zero)
+
+    def set_time_elapsed(self, time_elapsed: int) -> None:
+        qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
+        self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
 
     # Override
     def reject(self) -> None:
@@ -600,6 +642,22 @@ class Ng_Thread(QThread):
     # def cancel(self) -> None:
     #     self.terminate()
     #     self.wait()
+
+
+class Ng_Thread_With_Elapsed_Time(Ng_Thread):
+    timeout = Signal(int)
+
+    def __init__(self, worker: Ng_Worker, interval: int = 1000):
+        super().__init__(worker)
+        self.interval = interval
+        self.elapsedtimer = QElapsedTimer()
+        self.timer = QTimer()
+        self.timer.timeout.connect(lambda: self.timeout.emit(self.elapsedtimer.elapsed()))
+
+        # Bind
+        self.started.connect(self.elapsedtimer.start)
+        self.started.connect(lambda: self.timer.start(self.interval))
+        self.finished.connect(self.timer.stop)
 
 
 class Ng_Main(QMainWindow):
@@ -872,20 +930,19 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ng_Dialog(
-            self, main=self, title="Please Wait", width=300, height=200, resizable=False
-        )
-        self.label_processing = QLabel("It may take a few minutes to finish the job. Please wait.")
-        self.label_processing.setWordWrap(True)
-        self.dialog_processing.addWidget(self.label_processing, 0, 0, alignment=Qt.AlignmentFlag.AlignTop)
+        self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self, title="Please Wait")
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
-        self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
+        self.ng_thread_sca_generate_table = Ng_Thread_With_Elapsed_Time(self.ng_worker_sca_generate_table)
         self.ng_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
+        self.ng_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
+        self.ng_thread_sca_generate_table.timeout.connect(self.dialog_processing.set_time_elapsed)
 
         self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(main=self)
-        self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
+        self.ng_thread_lca_generate_table = Ng_Thread_With_Elapsed_Time(self.ng_worker_lca_generate_table)
         self.ng_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
+        self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
+        self.ng_thread_lca_generate_table.timeout.connect(self.dialog_processing.set_time_elapsed)
 
     def ask_clear_model(self, model: Ng_Model) -> None:
         if model.has_been_exported:
