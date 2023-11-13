@@ -432,6 +432,10 @@ class Ng_Dialog(QDialog):
     def setRowStretch(self, row: int, strech: int) -> None:
         self.content_layout.setRowStretch(row, strech)
 
+    # Override
+    def reject(self) -> None:
+        pass
+
 
 class Ng_Dialog_Table(Ng_Dialog):
     def __init__(
