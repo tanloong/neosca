@@ -426,6 +426,12 @@ class Ng_Dialog(QDialog):
     def addButton(self, *args, **kwargs) -> None:
         self.button_layout.addWidget(*args, **kwargs)
 
+    def setColumnStretch(self, column: int, strech: int) -> None:
+        self.content_layout.setColumnStretch(column, strech)
+
+    def setRowStretch(self, row: int, strech: int) -> None:
+        self.content_layout.setRowStretch(row, strech)
+
 
 class Ng_Dialog_Table(Ng_Dialog):
     def __init__(
@@ -681,6 +687,7 @@ class Ng_Main(QMainWindow):
         dialog_citing.addWidget(label_citing, 0, 0, 1, 2)
         dialog_citing.addWidget(label_choose_citation_style, 1, 0)
         dialog_citing.addWidget(combobox_choose_citation_style, 1, 1)
+        dialog_citing.setColumnStretch(1, 1)
         dialog_citing.addWidget(textedit_citing, 2, 0, 1, 2)
 
         button_copy = QPushButton("Copy")
