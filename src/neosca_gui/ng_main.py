@@ -136,6 +136,12 @@ class Ng_Model(QStandardItemModel):
         if self.rowCount() == 1 and self.item(0, 0) is None:
             self.setRowCount(0)
 
+    # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
+    def flags(self, index):
+        if index.data() is None:
+            return Qt.ItemFlag.NoItemFlags
+        return super().flags(index)
+
 
 class Ng_TableView(QTableView):
     def __init__(
