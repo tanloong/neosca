@@ -194,8 +194,9 @@ class Ng_TableView(QTableView):
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.horizontalHeader().setHighlightSections(False)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setHighlightSections(False)
-        self.after_item_changed()
+        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
 
         if self.model_.is_empty():
             self.setEnabled(False)
@@ -429,6 +430,15 @@ class Ng_Dialog(QDialog):
     def __init__(
         self, *args, main, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
     ) -> None:
+        """
+        ┌———————————┐
+        │           │
+        │  content  │
+        │           │
+        │———————————│
+        │  buttons  │
+        └———————————┘
+        """
         super().__init__(*args, **kwargs)
         self.main = main
         # > Dialog size
@@ -447,17 +457,10 @@ class Ng_Dialog(QDialog):
             if height:
                 self.setFixedHeight(height)
             # Gives the window a thin dialog border on Windows. This style is
-            #  traditionally used for fixed-size dialogs.
+            # traditionally used for fixed-size dialogs.
             self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setWindowTitle(title)
 
-        # ┌———————————┐
-        # │           │
-        # │  content  │
-        # │           │
-        # │———————————│
-        # │  buttons  │
-        # └———————————┘
         self.content_layout = QGridLayout()
         self.button_layout = QGridLayout()
 
@@ -480,14 +483,19 @@ class Ng_Dialog(QDialog):
 
 
 class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
-    # Use this to get place holder, e.g. 0:00:00
+    """
+    This Dialog has no timer itself, remember to connect a signal emitting the
+    elapsed milliseconds (Singal(int)) to its 'set_time_elapsed' method.
+    """
+
+    # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
 
     def __init__(
         self,
         *args,
         main,
-        title: str = "",
+        title: str = "Please Wait",
         width: int = 500,
         height: int = 0,
         time_format: str = "h:mm:ss",
@@ -496,22 +504,25 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         super().__init__(*args, main=main, title=title, width=width, height=height, resizable=False, **kwargs)
         self.time_format = time_format
 
+        # TODO: this label should be exposed
         self.label_status = QLabel("Processing...")
         self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
         self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
         self.label_please_wait = QLabel(
-            "Please wait. This may range from several seconds to a couple of minutes."
+            "Please be patient. The wait time can range from a few seconds to several minutes."
         )
         self.label_please_wait.setWordWrap(True)
 
-        self.addWidget(self.label_status, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.addWidget(self.label_status, 0, 0)
         self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
         self.addWidget(self.label_please_wait, 1, 0, 1, 2)
 
         # Bind
-        # Either 'accepted' or 'rejected', although rejected is disabled by
-        #  overriding the 'reject' method (see below)
+        # Either 'accepted' or 'rejected', although 'rejected' is disabled by
+        # overriding the 'reject' method (see below)
         self.finished.connect(self.reset_time_elapsed)
+
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
 
     def reset_time_elapsed(self) -> None:
         self.label_time_elapsed.setText(self.text_time_elapsed_zero)
@@ -686,6 +697,7 @@ class Ng_Thread(QThread):
 
 
 class Ng_Thread_With_Elapsed_Time(Ng_Thread):
+    # TODO: emit a signal with the total elapsed time of this thread when finished
     timeout = Signal(int)
 
     def __init__(self, worker: Ng_Worker, interval: int = 1000):
@@ -742,6 +754,7 @@ class Ng_Main(QMainWindow):
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
         self.menu_file.addAction(action_open_folder)
+        self.menu_file.addSeparator()
         self.menu_file.addAction(action_restart)
         self.menu_file.addAction(action_quit)
         # Preferences
@@ -850,7 +863,7 @@ class Ng_Main(QMainWindow):
         scrollarea_settings_sca.setLayout(QGridLayout())
         scrollarea_settings_sca.setWidgetResizable(True)
         scrollarea_settings_sca.setFixedWidth(200)
-        scrollarea_settings_sca.setBackgroundRole(QPalette.Light)
+        scrollarea_settings_sca.setBackgroundRole(QPalette.ColorRole.Light)
         scrollarea_settings_sca.setWidget(widget_settings_sca)
 
         self.tab_sca = QWidget()
@@ -973,7 +986,7 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self, title="Please Wait")
+        self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self)
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
         self.ng_thread_sca_generate_table = Ng_Thread_With_Elapsed_Time(self.ng_worker_sca_generate_table)
@@ -1010,8 +1023,8 @@ class Ng_Main(QMainWindow):
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
         indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        # Remove rows from bottom to top, or otherwise the lower row indexes
-        #  will change as upper rows are removed
+        # Remove rows from bottom to top, or otherwise lower row indexes will
+        # change as upper rows are removed
         rownos = sorted((index.row() for index in indexes), reverse=True)
         for rowno in rownos:
             self.model_file.takeRow(rowno)
