@@ -122,15 +122,39 @@ class Ng_Model(QStandardItemModel):
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
 
-    def set_single_empty_row(self) -> None:
-        # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
+    def _clear_data(self, leave_an_empty_record=True) -> None:
         if self.orientation == "hor":
             self.setRowCount(0)
-            self.setRowCount(1)
+            if leave_an_empty_record:
+                self.setRowCount(1)
         elif self.orientation == "ver":
             self.setColumnCount(0)
-            self.setColumnCount(1)
+            if leave_an_empty_record:
+                self.setColumnCount(1)
         self.data_cleared.emit()
+
+    def clear_data(self, confirm=False, leave_an_empty_record=True) -> None:
+        """
+        Clear data, reserve headers
+        """
+        if not confirm or self.has_been_exported:
+            return self._clear_data(leave_an_empty_record=leave_an_empty_record)
+
+        messagebox = QMessageBox()
+        messagebox.setWindowTitle("Clear Table")
+        messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
+        messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+        messagebox.accepted.connect(lambda: self._clear_data(leave_an_empty_record=leave_an_empty_record))
+        messagebox.exec()
+
+    def is_empty(self):
+        for row in range(self.rowCount()):
+            for column in range(self.columnCount()):
+                item = self.item(row, column)
+                if item is not None and item.text() != "":
+                    return False
+        return True
 
     def remove_single_empty_row(self) -> None:
         if self.rowCount() == 1 and self.item(0, 0) is None:
@@ -797,13 +821,13 @@ class Ng_Main(QMainWindow):
         self.model_sca = Ng_Model()
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
-        self.model_sca.set_single_empty_row()
+        self.model_sca.clear_data()
         self.tableview_preview_sca = Ng_TableView(main=self, model=self.model_sca)
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
         self.button_export_table_sca.clicked.connect(self.tableview_preview_sca.export_table)
-        self.button_clear_table_sca.clicked.connect(lambda: self.ask_clear_model(self.model_sca))
+        self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
         self.model_sca.data_cleared.connect(lambda: self.button_generate_table_sca.setEnabled(True))
         self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
         self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
@@ -858,12 +882,12 @@ class Ng_Main(QMainWindow):
         self.model_lca = Ng_Model()
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
-        self.model_lca.set_single_empty_row()
+        self.model_lca.clear_data()
         self.tableview_preview_lca = Ng_TableView(main=self, model=self.model_lca)
 
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_export_table_lca.clicked.connect(self.tableview_preview_lca.export_table)
-        self.button_clear_table_lca.clicked.connect(lambda: self.ask_clear_model(self.model_lca))
+        self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
         self.model_lca.data_cleared.connect(lambda: self.button_generate_table_lca.setEnabled(True))
         self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
         self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
@@ -959,18 +983,6 @@ class Ng_Main(QMainWindow):
         self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
         self.ng_thread_lca_generate_table.timeout.connect(self.dialog_processing.set_time_elapsed)
 
-    def ask_clear_model(self, model: Ng_Model) -> None:
-        if model.has_been_exported:
-            model.set_single_empty_row()
-        else:
-            messagebox = QMessageBox(self)
-            messagebox.setWindowTitle("Clear Table")
-            messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
-            messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-
-            messagebox.accepted.connect(model.set_single_empty_row)
-            messagebox.exec()
-
     def setup_env(self) -> None:
         self.here = os_path.dirname(os_path.abspath(__file__))
         ng_home = os_path.dirname(self.here)
@@ -1000,7 +1012,7 @@ class Ng_Main(QMainWindow):
         for rowno in rownos:
             self.model_file.takeRow(rowno)
         if self.model_file.rowCount() == 0:
-            self.model_file.set_single_empty_row()
+            self.model_file.clear_data()
 
     def remove_model_rows(self, model: Ng_Model, *rownos: int) -> None:
         if not rownos:
