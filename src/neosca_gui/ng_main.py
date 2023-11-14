@@ -87,7 +87,8 @@ class Ng_QSS_Loader:
 
 class Ng_Model(QStandardItemModel):
     data_cleared = Signal()
-    data_changed = Signal()
+    # itemChanged ^ !data_cleared
+    data_updated = Signal()
     data_exported = Signal()
 
     def __init__(self, *args, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
@@ -96,7 +97,7 @@ class Ng_Model(QStandardItemModel):
 
         self.has_been_exported: bool = False
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
-        self.data_changed.connect(lambda: self.set_has_been_exported(False))
+        self.data_updated.connect(lambda: self.set_has_been_exported(False))
 
     def set_item_str(self, rowno: int, colno: int, value: str) -> None:
         item = QStandardItem(value)
@@ -150,8 +151,8 @@ class Ng_TableView(QTableView):
         self.main = main
         self.setModel(model)
         self.model_: Ng_Model = model
-        self.model_.data_changed.connect(self.after_data_changed)
-        self.model_.data_cleared.connect(self.after_data_changed)
+        self.model_.data_cleared.connect(self.on_data_cleared)
+        self.model_.data_updated.connect(self.on_data_updated)
         self.has_horizontal_header = has_horizontal_header
         self.has_vertical_header = has_vertical_header
 
@@ -162,14 +163,18 @@ class Ng_TableView(QTableView):
         self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.horizontalHeader().setHighlightSections(False)
         self.verticalHeader().setHighlightSections(False)
-        self.after_data_changed()
+        self.after_item_changed()
 
-    def after_data_changed(self) -> None:
-        # QHeaderView::ResizeToContents will automatically resize the section
-        # to its optimal size based on the contents of the entire column or
-        # row. The size cannot be changed by the user or programmatically.
+        if self.model_.is_empty():
+            self.setEnabled(False)
+
+    def on_data_cleared(self) -> None:
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.setEnabled(False)
+
+    def on_data_updated(self) -> None:
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.setEnabled(True)
 
     def model(self) -> Ng_Model:
         """Override QTableView().model()"""
@@ -569,7 +574,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             _, *values = sname_value_map.values()
             model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_changed.emit()
+        model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -620,7 +625,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             del values[0]
             model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_changed.emit()
+        model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -796,9 +801,9 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_cleared.connect(lambda: self.button_generate_table_sca.setEnabled(True))
         self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
         self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
-        self.model_sca.data_changed.connect(lambda: self.button_export_table_sca.setEnabled(True))
-        self.model_sca.data_changed.connect(lambda: self.button_clear_table_sca.setEnabled(True))
-        self.model_sca.data_changed.connect(lambda: self.button_generate_table_sca.setEnabled(False))
+        self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
+        self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
+        self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
         self.checkbox_reserve_parsed_trees.setChecked(True)
         self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matched subtrees")
@@ -856,9 +861,9 @@ class Ng_Main(QMainWindow):
         self.model_lca.data_cleared.connect(lambda: self.button_generate_table_lca.setEnabled(True))
         self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
         self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
-        self.model_lca.data_changed.connect(lambda: self.button_export_table_lca.setEnabled(True))
-        self.model_lca.data_changed.connect(lambda: self.button_clear_table_lca.setEnabled(True))
-        self.model_lca.data_changed.connect(lambda: self.button_generate_table_lca.setEnabled(False))
+        self.model_lca.data_updated.connect(lambda: self.button_export_table_lca.setEnabled(True))
+        self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
+        self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
 
         self.radiobutton_wordlist_BNC = QRadioButton("British National Corpus (BNC) wordlist")
         self.radiobutton_wordlist_BNC.setChecked(True)
@@ -910,8 +915,8 @@ class Ng_Main(QMainWindow):
         self.model_file = Ng_Model()
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
-        self.model_file.data_changed.connect(lambda: self.enable_button_generate_table(True))
-        self.model_file.set_single_empty_row()
+        self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
+        self.model_file.clear_data()
         self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
@@ -1043,8 +1048,7 @@ class Ng_Main(QMainWindow):
                 already_added_file_names.append(file_name)
                 rowno = self.model_file.rowCount()
                 self.model_file.set_row_str(rowno, (file_name, file_path))
-
-            self.model_file.data_changed.emit()
+            self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ng_Model()
