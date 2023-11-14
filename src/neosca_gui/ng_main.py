@@ -36,6 +36,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QRadioButton,
     QScrollArea,
+    QSizePolicy,
+    QSpacerItem,
     QSplitter,
     QTableView,
     QTabWidget,
@@ -842,6 +844,7 @@ class Ng_Main(QMainWindow):
         widget_settings_sca.setLayout(QGridLayout())
         widget_settings_sca.layout().addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
         widget_settings_sca.layout().addWidget(self.checkbox_reserve_matched_subtrees, 1, 0)
+        widget_settings_sca.layout().addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_sca = QScrollArea()
         scrollarea_settings_sca.setLayout(QGridLayout())
@@ -914,6 +917,7 @@ class Ng_Main(QMainWindow):
         widget_settings_lca.setLayout(QGridLayout())
         widget_settings_lca.layout().addWidget(groupbox_wordlist, 0, 0)
         widget_settings_lca.layout().addWidget(groupbox_tagset, 1, 0)
+        widget_settings_lca.layout().addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_lca = QScrollArea()
         scrollarea_settings_lca.setFixedWidth(200)
