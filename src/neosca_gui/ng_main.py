@@ -165,7 +165,11 @@ class Ng_TableView(QTableView):
         self.after_data_changed()
 
     def after_data_changed(self) -> None:
+        # QHeaderView::ResizeToContents will automatically resize the section
+        # to its optimal size based on the contents of the entire column or
+        # row. The size cannot be changed by the user or programmatically.
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
 
     def model(self) -> Ng_Model:
         """Override QTableView().model()"""
