@@ -617,7 +617,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             _, *values = sname_value_map.values()
             model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_updated.emit()
+            model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -668,7 +668,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             del values[0]
             model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        model.data_updated.emit()
+            model.data_updated.emit()
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -1091,7 +1091,7 @@ class Ng_Main(QMainWindow):
                 already_added_file_names.append(file_name)
                 rowno = self.model_file.rowCount()
                 self.model_file.set_row_str(rowno, (file_name, file_path))
-            self.model_file.data_updated.emit()
+                self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ng_Model()
