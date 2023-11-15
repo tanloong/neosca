@@ -843,7 +843,9 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
         self.button_export_table_sca.clicked.connect(self.tableview_preview_sca.export_table)
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
-        self.model_sca.data_cleared.connect(lambda: self.button_generate_table_sca.setEnabled(True))
+        self.model_sca.data_cleared.connect(
+            lambda: self.button_generate_table_sca.setEnabled(True) if not self.model_file.is_empty() else None
+        )
         self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
         self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
         self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
@@ -904,7 +906,9 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_export_table_lca.clicked.connect(self.tableview_preview_lca.export_table)
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
-        self.model_lca.data_cleared.connect(lambda: self.button_generate_table_lca.setEnabled(True))
+        self.model_lca.data_cleared.connect(
+            lambda: self.button_generate_table_lca.setEnabled(True) if not self.model_file.is_empty() else None
+        )
         self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
         self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
         self.model_lca.data_updated.connect(lambda: self.button_export_table_lca.setEnabled(True))
