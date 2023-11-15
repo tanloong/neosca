@@ -483,11 +483,7 @@ class Ng_Dialog(QDialog):
 
 
 class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
-    """
-    This Dialog has no timer itself, remember to connect a signal emitting the
-    elapsed milliseconds (Singal(int)) to its 'set_time_elapsed' method.
-    """
-
+    started = Signal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
 
@@ -499,10 +495,14 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         width: int = 500,
         height: int = 0,
         time_format: str = "h:mm:ss",
+        interval: int = 1000,
         **kwargs,
     ) -> None:
         super().__init__(*args, main=main, title=title, width=width, height=height, resizable=False, **kwargs)
         self.time_format = time_format
+        self.interval = interval
+        self.elapsedtimer = QElapsedTimer()
+        self.timer = QTimer()
 
         # TODO: this label should be exposed
         self.label_status = QLabel("Processing...")
@@ -517,23 +517,39 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
         self.addWidget(self.label_please_wait, 1, 0, 1, 2)
 
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
+
         # Bind
+        self.timer.timeout.connect(self.update_time_elapsed)
+        self.started.connect(self.elapsedtimer.start)
+        # If the timer is already running, it will be stopped and restarted.
+        self.started.connect(lambda: self.timer.start(self.interval))
         # Either 'accepted' or 'rejected', although 'rejected' is disabled by
         # overriding the 'reject' method (see below)
         self.finished.connect(self.reset_time_elapsed)
-
-        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
+        self.finished.connect(self.timer.stop)
 
     def reset_time_elapsed(self) -> None:
         self.label_time_elapsed.setText(self.text_time_elapsed_zero)
 
-    def set_time_elapsed(self, time_elapsed: int) -> None:
+    def update_time_elapsed(self) -> None:
+        time_elapsed: int = self.elapsedtimer.elapsed()
         qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
         self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
 
     # Override
     def reject(self) -> None:
         pass
+
+    # Override
+    def open(self) -> None:
+        self.started.emit()
+        return super().open()
+
+    # Override
+    def exec(self) -> int:
+        self.started.emit()
+        return super().exec()
 
 
 class Ng_Dialog_Table(Ng_Dialog):
@@ -694,23 +710,6 @@ class Ng_Thread(QThread):
     # def cancel(self) -> None:
     #     self.terminate()
     #     self.wait()
-
-
-class Ng_Thread_With_Elapsed_Time(Ng_Thread):
-    # TODO: emit a signal with the total elapsed time of this thread when finished
-    timeout = Signal(int)
-
-    def __init__(self, worker: Ng_Worker, interval: int = 1000):
-        super().__init__(worker)
-        self.interval = interval
-        self.elapsedtimer = QElapsedTimer()
-        self.timer = QTimer()
-        self.timer.timeout.connect(lambda: self.timeout.emit(self.elapsedtimer.elapsed()))
-
-        # Bind
-        self.started.connect(self.elapsedtimer.start)
-        self.started.connect(lambda: self.timer.start(self.interval))
-        self.finished.connect(self.timer.stop)
 
 
 class Ng_Main(QMainWindow):
@@ -997,16 +996,14 @@ class Ng_Main(QMainWindow):
         self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self)
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
-        self.ng_thread_sca_generate_table = Ng_Thread_With_Elapsed_Time(self.ng_worker_sca_generate_table)
+        self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
         self.ng_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
         self.ng_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
-        self.ng_thread_sca_generate_table.timeout.connect(self.dialog_processing.set_time_elapsed)
 
         self.ng_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(main=self)
-        self.ng_thread_lca_generate_table = Ng_Thread_With_Elapsed_Time(self.ng_worker_lca_generate_table)
+        self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
         self.ng_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
         self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
-        self.ng_thread_lca_generate_table.timeout.connect(self.dialog_processing.set_time_elapsed)
 
     def setup_env(self) -> None:
         self.here = os_path.dirname(os_path.abspath(__file__))
