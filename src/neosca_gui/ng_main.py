@@ -971,6 +971,10 @@ class Ng_Main(QMainWindow):
         self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
+        self.menu_tableview_file = QMenu(self)
+        self.action_tableview_file_remove = QAction("Remove", self.menu_tableview_file)
+        self.action_tableview_file_remove.triggered.connect(self.remove_file_paths)
+        self.menu_tableview_file.addAction(self.action_tableview_file_remove)
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_for_tableview_file)
 
     def setup_main_window(self):
@@ -1018,11 +1022,11 @@ class Ng_Main(QMainWindow):
         self.env = os.environ.copy()
 
     def show_menu_for_tableview_file(self) -> None:
-        menu = QMenu(self)
-        action_remove_file = QAction("Remove", menu)
-        action_remove_file.triggered.connect(self.remove_file_paths)
-        menu.addAction(action_remove_file)
-        menu.exec(QCursor.pos())
+        if not self.tableview_file.selectionModel().selectedRows():
+            self.action_tableview_file_remove.setEnabled(False)
+        else:
+            self.action_tableview_file_remove.setEnabled(True)
+        self.menu_tableview_file.exec(QCursor.pos())
 
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
