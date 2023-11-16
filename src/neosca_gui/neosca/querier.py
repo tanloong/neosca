@@ -28,10 +28,7 @@ from .scaexceptions import CircularDefinitionError, InvalidSourceError
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter
 
-# TODO: NODE_ID: NODE_TEXT
-
-
-class L2SCA_Structure:  # {{{
+class L2SCA_Abstract_Structure:  # {{{
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         # The same node can be yieleded multiple times in two cases:
@@ -41,7 +38,7 @@ class L2SCA_Structure:  # {{{
         raise NotImplementedError()
 
 
-class L2SCA_S(L2SCA_Structure):
+class L2SCA_S(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -54,7 +51,7 @@ class L2SCA_S(L2SCA_Structure):
             yield t
 
 
-class L2SCA_VP1(L2SCA_Structure):
+class L2SCA_VP1(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -70,7 +67,7 @@ class L2SCA_VP1(L2SCA_Structure):
                 yield candidate
 
 
-class L2SCA_VP2(L2SCA_Structure):
+class L2SCA_VP2(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -87,7 +84,7 @@ class L2SCA_VP2(L2SCA_Structure):
                     yield candidate
 
 
-class L2SCA_C1(L2SCA_Structure):
+class L2SCA_C1(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -140,7 +137,7 @@ class L2SCA_C1(L2SCA_Structure):
                             yield candidate
 
 
-class L2SCA_C2(L2SCA_Structure):
+class L2SCA_C2(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -197,7 +194,7 @@ class L2SCA_C2(L2SCA_Structure):
                 yield candidate
 
 
-class L2SCA_T1(L2SCA_Structure):
+class L2SCA_T1(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -221,7 +218,7 @@ class L2SCA_T1(L2SCA_Structure):
                     yield candidate
 
 
-class L2SCA_T2(L2SCA_Structure):
+class L2SCA_T2(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -252,7 +249,7 @@ class L2SCA_T2(L2SCA_Structure):
                 yield candidate
 
 
-class L2SCA_CN1(L2SCA_Structure):
+class L2SCA_CN1(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -285,7 +282,7 @@ class L2SCA_CN1(L2SCA_Structure):
                         yield candidate
 
 
-class L2SCA_CN2(L2SCA_Structure):
+class L2SCA_CN2(L2SCA_Abstract_Structure):
     @classmethod
     def conditionOneHelper(cls, t: Tree) -> Generator[Tree, None, None]:
         # Condition 1: SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S]
@@ -332,7 +329,7 @@ class L2SCA_CN2(L2SCA_Structure):
                     yield candidate
 
 
-class L2SCA_CN3(L2SCA_Structure):
+class L2SCA_CN3(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -358,7 +355,7 @@ class L2SCA_CN3(L2SCA_Structure):
                         yield candidate
 
 
-class L2SCA_DC(L2SCA_Structure):
+class L2SCA_DC(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
@@ -412,7 +409,7 @@ class L2SCA_DC(L2SCA_Structure):
                                 yield candidate
 
 
-class L2SCA_CT(L2SCA_Structure):
+class L2SCA_CT(L2SCA_Abstract_Structure):
     @classmethod
     def conditionOneHelper(cls, t: Tree) -> Generator[Tree, None, None]:
         # Condition 1: S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]]
@@ -492,7 +489,7 @@ class L2SCA_CT(L2SCA_Structure):
                                         yield candidate
 
 
-class L2SCA_CP(L2SCA_Structure):
+class L2SCA_CP(L2SCA_Abstract_Structure):
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         """
