@@ -622,9 +622,11 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
             except:
                 err_file_paths.append(file_path)
+                rowno -= 1
                 continue
             if counter is None:
                 err_file_paths.append(file_path)
+                rowno -= 1
                 continue
             sname_value_map: Dict[str, str] = counter.get_all_values()
             if has_trailing_rows:
@@ -674,9 +676,11 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
                 values = lca_analyzer._analyze(file_path=file_path)
             except:
                 err_file_paths.append(file_path)
+                rowno -= 1
                 continue
             if values is None:  # TODO: should pop up warning window
                 err_file_paths.append(file_path)
+                rowno -= 1
                 continue
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
