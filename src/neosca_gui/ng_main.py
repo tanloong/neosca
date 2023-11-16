@@ -101,23 +101,26 @@ class Ng_Model(QStandardItemModel):
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
         self.data_updated.connect(lambda: self.set_has_been_exported(False))
 
-    def set_item_str(self, rowno: int, colno: int, value: str) -> None:
-        item = QStandardItem(value)
+    def set_item_str(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> None:
+        item = value if isinstance(value, QStandardItem) else QStandardItem(value)
         item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
 
-    def set_row_str(self, rowno: int, values: Iterable[str]) -> None:
+    def set_row_str(self, rowno: int, values: Iterable[Union[QStandardItem, str]]) -> None:
         for colno, value in enumerate(values):
             self.set_item_str(rowno, colno, value)
 
-    def set_item_num(self, rowno: int, colno: int, value: Union[int, float, str]) -> None:
-        if not isinstance(value, str):
-            value = str(value)
-        item = QStandardItem(value)
+    def set_item_num(self, rowno: int, colno: int, value: Union[QStandardItem, int, float, str]) -> None:
+        if isinstance(value, QStandardItem):
+            item = value
+        else:
+            if not isinstance(value, str):
+                value = str(value)
+            item = QStandardItem(value)
         item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
 
-    def set_row_num(self, rowno: int, values: Iterable[Union[int, float, str]]) -> None:
+    def set_row_num(self, rowno: int, values: Iterable[Union[QStandardItem, int, float, str]]) -> None:
         for colno, value in enumerate(values):
             self.set_item_num(rowno, colno, value)
 
@@ -332,7 +335,7 @@ class Ng_TableView(QTableView):
                 # 3.1 Horizontal header background and font
                 if self.has_horizontal_header:
                     # 3.1.1 Horizontal header background
-                    #  TODO: Currently all tabs share the same style sheet and the
+                    #  TODO: Currently all tabpages share the same style sheet and the
                     #   single QSS file is loaded from MainWindow, thus here the
                     #   style sheet is accessed from self. In the future different
                     #   tabs might load their own QSS files, and the style sheet
@@ -987,17 +990,45 @@ class Ng_Main(QMainWindow):
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
 
+    def sca_show_matched_subtrees(self) -> None:
+        current_index: QModelIndex =self.tableview_preview_sca.currentIndex()
+        current_item = self.model_sca.itemFromIndex(current_index)
+        matched_subtrees: List[str] = current_item.data(Qt.ItemDataRole.UserRole)
+        dialog_matched_subtrees = Ng_Dialog(self, main=self, title="Matched Subtrees", resizable=True)
+        textedit = QTextEdit(text="\n\n".join(matched_subtrees))
+        button_close = QPushButton("Close")
+        button_close.clicked.connect(dialog_matched_subtrees.accept)
+        dialog_matched_subtrees.addWidget(textedit)
+        dialog_matched_subtrees.addButton(button_close, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
+
+        dialog_matched_subtrees.show()
+
     def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
         sname_value_map: Dict[str, str] = counter.get_all_values()
         # Remove trailing rows
         self.model_sca.removeRows(rowno, self.model_sca.rowCount() - rowno)
         # Drop file_path
         _, *values = sname_value_map.values()
-        for colno, value in enumerate(values):
-            self.model_sca.set_item_num(rowno, colno, value)
-            self.tableview_preview_sca.setIndexWidget(
-                self.model_sca.index(rowno, colno), QPushButton(str(value))
-            )
+        for colno in range(self.model_sca.columnCount()):
+            sname = self.model_sca.horizontalHeaderItem(colno).text()
+
+            value = counter.get_value(sname)
+            value_str:str = str(value) if value is not None else ""
+            item = QStandardItem(value_str)
+            self.model_sca.set_item_num(rowno, colno, item)
+
+            if not (matches:=counter.get_matches(sname)):
+                continue
+            item.setData(matches, Qt.ItemDataRole.UserRole)
+            # Add menu button to show matched subtrees
+            button_item = QPushButton(value_str)
+            menu_item = QMenu(button_item)
+            action_show_matched_subtrees = QAction("Show matched subtrees", menu_item)
+            action_show_matched_subtrees.triggered.connect(self.sca_show_matched_subtrees)
+            menu_item.addAction(action_show_matched_subtrees)
+            button_item.setMenu(menu_item)
+            self.tableview_preview_sca.setIndexWidget(self.model_sca.index(rowno, colno), button_item)
+
         self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
         self.model_sca.data_updated.emit()
 
