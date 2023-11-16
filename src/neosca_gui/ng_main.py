@@ -202,11 +202,9 @@ class Ng_TableView(QTableView):
             self.setEnabled(False)
 
     def on_data_cleared(self) -> None:
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.setEnabled(False)
 
     def on_data_updated(self) -> None:
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.setEnabled(True)
 
     def model(self) -> Ng_Model:
