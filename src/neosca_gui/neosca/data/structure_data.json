@@ -22,32 +22,32 @@
         {
             "name": "C1",
             "description": "regular clauses",
-            "tregex_pattern": "S|SINV|SQ [> ROOT <, (VP <# VB) || <# MD|VBZ|VBP|VBD || < (VP [<# MD|VBP|VBZ|VBD || < CC < (VP <# MD|VBP|VBZ|VBD)])]"
+            "tregex_pattern": "S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]"
         },
         {
             "name": "C2",
             "description": "fragment clauses",
-            "tregex_pattern": "FRAG > ROOT !<< (S|SINV|SQ [> ROOT <, (VP <# VB) || <# MD|VBZ|VBP|VBD || < (VP [<# MD|VBP|VBZ|VBD || < CC < (VP <# MD|VBP|VBZ|VBD)])])"
+            "tregex_pattern": "FRAG > ROOT !<< (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
         },
         {
             "name": "T1",
             "description": "regular T-units",
-            "tregex_pattern": "S|SBARQ|SINV|SQ > ROOT || [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]"
+            "tregex_pattern": "S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]"
         },
         {
             "name": "T2",
             "description": "fragment T-units",
-            "tregex_pattern": "FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT || [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])"
+            "tregex_pattern": "FRAG > ROOT !<< (S|SBARQ|SINV|SQ > ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP])"
         },
         {
             "name": "CN1",
             "description": "complex nominals, type 1",
-            "tregex_pattern": "NP !> NP [<< JJ|POS|PP|S|VBG || << (NP $++ NP !$+ CC)]"
+            "tregex_pattern": "NP !> NP [<< JJ|POS|PP|S|VBG | << (NP $++ NP !$+ CC)]"
         },
         {
             "name": "CN2",
             "description": "complex nominals, type 2",
-            "tregex_pattern": "SBAR [<# WHNP || <# (IN < That|that|For|for) || <, S] & [$+ VP || > VP]"
+            "tregex_pattern": "SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]"
         },
         {
             "name": "CN3",
@@ -57,12 +57,12 @@
         {
             "name": "DC",
             "description": "dependent clauses",
-            "tregex_pattern": "SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) || <# MD|VBZ|VBP|VBD || < (VP [<# MD|VBP|VBZ|VBD || < CC < (VP <# MD|VBP|VBZ|VBD)])])"
+            "tregex_pattern": "SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])])"
         },
         {
             "name": "CT",
             "description": "complex T-units",
-            "tregex_pattern": "S|SBARQ|SINV|SQ [> ROOT || [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << (SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) || <# MD|VBZ|VBP|VBD || < (VP [<# MD|VBP|VBZ|VBD || < CC < (VP <# MD|VBP|VBZ|VBD)])]))"
+            "tregex_pattern": "S|SBARQ|SINV|SQ [> ROOT | [$-- S|SBARQ|SINV|SQ !>> SBAR|VP]] << (SBAR < (S|SINV|SQ [> ROOT <, (VP <# VB) | <# MD|VBZ|VBP|VBD | < (VP [<# MD|VBP|VBZ|VBD | < CC < (VP <# MD|VBP|VBZ|VBD)])]))"
         },
         {
             "name": "CP",
