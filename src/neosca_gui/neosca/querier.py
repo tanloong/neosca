@@ -8,7 +8,7 @@ import shutil
 import sys
 from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
-from typing import TYPE_CHECKING, Generator, List
+from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Union
 
 from ..pytregex.node_descriptions import NODE_ANY, NODE_TEXT
 from ..pytregex.relation import (
@@ -556,35 +556,51 @@ class Ns_PyTregex:
                 f" {descendant_sname} not in ancestors {ancestor_snames}"
             )
 
-    def tokenize_value_source(
+    def exec_value_source(
         self,
         value_source: str,
         counter: "StructureCounter",
         sname: str,
         trees: str,
         ancestor_snames: List[str],
-    ) -> list:
+    ) -> Tuple[Union[float, int], List[str]]:
         tokens = []
         g = tokenize(BytesIO(value_source.encode("utf-8")).readline)
         next(g)  # skip the "utf-8" token
+
+        matches: List[str] = []
+        is_addition_only: bool = True
         for toknum, tokval, *_ in g:
             if toknum == NAME:
                 ancestor_snames.append(sname)
-                Ns_PyTregex.check_circular_def(tokval, ancestor_snames, counter)
+                self.check_circular_def(tokval, ancestor_snames, counter)
 
                 self.set_value(counter, tokval, trees, ancestor_snames)
                 if self.has_tregex_pattern(counter, tokval):
                     ancestor_snames.clear()
 
-                tokens.append((toknum, f"counter.get_structure('{tokval}')"))
-            elif toknum == NUMBER or tokval in ("+", "-", "*", "/", "(", ")"):
+                get_structure_code = f"counter.get_structure('{tokval}')"
+                if is_addition_only:
+                    try:  # noqa: SIM105
+                        matches.extend(counter.get_matches(tokval))  # type: ignore
+                    except TypeError:
+                        pass
+                tokens.append((toknum, get_structure_code))
+
+            elif toknum == NUMBER or tokval in ("(", ")"):
                 tokens.append((toknum, tokval))
+            elif tokval in ("+", "-", "*", "/"):
+                tokens.append((toknum, tokval))
+                if tokval != "+":
+                    matches.clear()
+                    is_addition_only = False
             # constrain value_source as only NAMEs and numberic ops to assure security for `eval`
             elif tokval != "":
                 raise InvalidSourceError(f'Unexpected token: "{tokval}"')
+
         # append "+ 0" to force tokens evaluated as num if value_source contains just name of another Structure
         tokens.extend(((PLUS, "+"), (NUMBER, "0")))
-        return tokens
+        return eval(untokenize(tokens)), matches
 
     def has_tregex_pattern(self, counter: "StructureCounter", sname: str) -> bool:
         return counter.get_structure(sname).tregex_pattern is not None
@@ -615,9 +631,9 @@ class Ns_PyTregex:
             + (f"({structure.description}) " if structure.description is not None else "")
             + f"= {value_source}..."
         )
-        tokens = self.tokenize_value_source(value_source, counter, sname, trees, ancestor_snames)
-        value = eval(untokenize(tokens))
+        value, matches = self.exec_value_source(value_source, counter, sname, trees, ancestor_snames)
         counter.set_value(sname, value)
+        counter.set_matches(sname, matches)
 
     def set_value(
         self,

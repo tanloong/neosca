@@ -44,7 +44,7 @@ class Structure:
         self.value_source = value_source
 
         self.value: Optional[Union[float, int]] = None
-        self.matches: Optional[list] = None
+        self.matches: Optional[List[str]] = None
 
     def __repr__(self) -> str:  # pragma: no cover
         return (
@@ -234,7 +234,7 @@ class StructureCounter:
         else:
             self.sname_structure_map[structure_name].matches = matches
 
-    def get_matches(self, sname: str) -> Optional[list]:
+    def get_matches(self, sname: str) -> Optional[List[str]]:
         s = self.get_structure(sname)
         return s.matches
 
