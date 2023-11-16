@@ -584,6 +584,8 @@ class Ng_Worker(QObject):
 
 
 class Ng_Worker_SCA_Generate_Table(Ng_Worker):
+    counter_ready = Signal(StructureCounter, str, int)
+
     def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, main=main, **kwargs)
 
@@ -612,8 +614,6 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             sca_analyzer.update_options(sca_kwargs)
 
         err_file_paths: List[str] = []
-        model: Ng_Model = self.main.model_sca
-        has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(file_path)
@@ -626,14 +626,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
                 err_file_paths.append(file_path)
                 rowno -= 1
                 continue
-            sname_value_map: Dict[str, str] = counter.get_all_values()
-            if has_trailing_rows:
-                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            # Drop file_path
-            _, *values = sname_value_map.values()
-            model.set_row_num(rowno, values)
-            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-            model.data_updated.emit()
+            self.counter_ready.emit(counter, file_name, rowno)
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
@@ -994,10 +987,25 @@ class Ng_Main(QMainWindow):
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
 
+    def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
+        sname_value_map: Dict[str, str] = counter.get_all_values()
+        # Remove trailing rows
+        self.model_sca.removeRows(rowno, self.model_sca.rowCount() - rowno)
+        # Drop file_path
+        _, *values = sname_value_map.values()
+        for colno, value in enumerate(values):
+            self.model_sca.set_item_num(rowno, colno, value)
+            self.tableview_preview_sca.setIndexWidget(
+                self.model_sca.index(rowno, colno), QPushButton(str(value))
+            )
+        self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+        self.model_sca.data_updated.emit()
+
     def setup_worker(self) -> None:
         self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self)
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
+        self.ng_worker_sca_generate_table.counter_ready.connect(self.sca_add_data)
         self.ng_thread_sca_generate_table = Ng_Thread(self.ng_worker_sca_generate_table)
         self.ng_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
         self.ng_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
