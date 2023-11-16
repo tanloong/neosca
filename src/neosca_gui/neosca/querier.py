@@ -577,9 +577,7 @@ class Ns_PyTregex:
                     ancestor_snames.clear()
 
                 tokens.append((toknum, f"counter.get_structure('{tokval}')"))
-            elif toknum == NUMBER:
-                tokens.append((toknum, tokval))
-            elif tokval in ("+", "-", "*", "/", "(", ")"):
+            elif toknum == NUMBER or tokval in ("+", "-", "*", "/", "(", ")"):
                 tokens.append((toknum, tokval))
             # constrain value_source as only NAMEs and numberic ops to assure security for `eval`
             elif tokval != "":
