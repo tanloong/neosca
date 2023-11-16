@@ -470,6 +470,12 @@ class Ng_Dialog(QDialog):
         self.grid_layout.addLayout(self.button_layout, 1, 0)
         self.setLayout(self.grid_layout)
 
+    def rowCount(self) -> int:
+        return self.content_layout.rowCount()
+
+    def columnCount(self) -> int:
+        return self.content_layout.columnCount()
+
     def addWidget(self, *args, **kwargs) -> None:
         self.content_layout.addWidget(*args, **kwargs)
 
@@ -543,6 +549,11 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         pass
 
     # Override
+    def show(self) -> None:
+        self.started.emit()
+        return super().show()
+
+    # Override
     def open(self) -> None:
         self.started.emit()
         return super().open()
@@ -551,6 +562,83 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
     def exec(self) -> int:
         self.started.emit()
         return super().exec()
+
+
+class Ng_Dialog_Text_Edit(Ng_Dialog):
+    def __init__(self, *args, main, title: str = "", text: str = "", **kwargs) -> None:
+        super().__init__(*args, main=main, title=title, resizable=True, **kwargs)
+        self.textedit = QTextEdit(text)
+        self.textedit.setReadOnly(True)
+
+        self.button_copy = QPushButton("Copy")
+        self.button_copy.clicked.connect(self.textedit.selectAll)
+        self.button_copy.clicked.connect(self.textedit.copy)
+
+        self.button_close = QPushButton("Close")
+        self.button_close.clicked.connect(self.reject)
+
+        self.addButton(self.button_copy, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.addButton(self.button_close, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+
+    def setText(self, text: str) -> None:
+        return self.textedit.setText(text)
+
+    # Override
+    def show(self) -> None:
+        # Add self.textedit lastly to allow users add custom widgets above
+        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
+        return super().show()
+
+    # Override
+    def open(self) -> None:
+        # Add self.textedit lastly to allow users add custom widgets above
+        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
+        return super().open()
+
+    # Override
+    def exec(self) -> int:
+        # Add self.textedit lastly to allow users add custom widgets above
+        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
+        return super().exec()
+
+
+class Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(Ng_Dialog_Text_Edit):
+    def __init__(self, *args, main, **kwargs):
+        super().__init__(*args, main=main, title="Matched Subtrees", width=300, height=300, **kwargs)
+        self.current_index: QModelIndex = self.main.tableview_preview_sca.currentIndex()
+        self.current_item = self.main.model_sca.itemFromIndex(self.current_index)
+        self.file_name = self.main.model_sca.verticalHeaderItem(self.current_index.row()).text()
+        self.sname = self.main.model_sca.horizontalHeaderItem(self.current_index.column()).text()
+        self.matched_subtrees: List[str] = self.current_item.data(Qt.ItemDataRole.UserRole)
+        self.setText("\n".join(self.matched_subtrees))
+
+        self.label_summary = QLabel(
+            f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in {self.file_name}'
+        )
+        self.label_summary.setWordWrap(True)
+        self.addWidget(self.label_summary)
+
+
+class Ng_Dialog_Text_Edit_Citing(Ng_Dialog_Text_Edit):
+    def __init__(self, *args, main, **kwargs):
+        super().__init__(*args, main=main, title="Citing", **kwargs)
+        with open(os_path.join(self.main.here, "citing.json"), encoding="utf-8") as f:
+            self.style_citation_mapping = json.load(f)
+
+        self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
+        self.label_citing.setWordWrap(True)
+        self.setText(next(iter(self.style_citation_mapping.values())))
+        self.label_choose_citation_style = QLabel("Choose citation style: ")
+        self.combobox_choose_citation_style = QComboBox()
+        self.combobox_choose_citation_style.addItems(tuple(self.style_citation_mapping.keys()))
+        self.combobox_choose_citation_style.currentTextChanged.connect(
+            lambda key: self.setText(self.style_citation_mapping[key])
+        )
+
+        self.addWidget(self.label_citing, 0, 0, 1, 2)
+        self.addWidget(self.label_choose_citation_style, 1, 0)
+        self.addWidget(self.combobox_choose_citation_style, 1, 1)
+        self.setColumnStretch(1, 1)
 
 
 class Ng_Dialog_Table(Ng_Dialog):
@@ -777,37 +865,7 @@ class Ng_Main(QMainWindow):
         print(ok, font)
 
     def menubar_help_citing(self) -> None:
-        import json
-
-        with open(os_path.join(self.here, "citing.json"), encoding="utf-8") as f:
-            style_citation_mapping = json.load(f)
-        label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
-        label_citing.setWordWrap(True)
-        textedit_citing = QTextEdit()
-        textedit_citing.setReadOnly(True)
-        textedit_citing.setText(next(iter(style_citation_mapping.values())))
-        label_choose_citation_style = QLabel("Choose citation style: ")
-        combobox_choose_citation_style = QComboBox()
-        combobox_choose_citation_style.addItems(tuple(style_citation_mapping.keys()))
-        combobox_choose_citation_style.currentTextChanged.connect(
-            lambda key: textedit_citing.setText(style_citation_mapping[key])
-        )
-
-        dialog_citing = Ng_Dialog(self, main=self, title="Citing")
-        dialog_citing.addWidget(label_citing, 0, 0, 1, 2)
-        dialog_citing.addWidget(label_choose_citation_style, 1, 0)
-        dialog_citing.addWidget(combobox_choose_citation_style, 1, 1)
-        dialog_citing.setColumnStretch(1, 1)
-        dialog_citing.addWidget(textedit_citing, 2, 0, 1, 2)
-
-        button_copy = QPushButton("Copy")
-        button_copy.clicked.connect(textedit_citing.selectAll)
-        button_copy.clicked.connect(textedit_citing.copy)
-        button_close = QPushButton("Close")
-        button_close.clicked.connect(dialog_citing.reject)
-
-        dialog_citing.addButton(button_copy, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        dialog_citing.addButton(button_close, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+        dialog_citing = Ng_Dialog_Text_Edit_Citing(self, main=self)
         dialog_citing.open()
 
     def setup_tab_sca(self):
@@ -991,16 +1049,7 @@ class Ng_Main(QMainWindow):
         self.setCentralWidget(self.splitter_central_widget)
 
     def sca_show_matched_subtrees(self) -> None:
-        current_index: QModelIndex =self.tableview_preview_sca.currentIndex()
-        current_item = self.model_sca.itemFromIndex(current_index)
-        matched_subtrees: List[str] = current_item.data(Qt.ItemDataRole.UserRole)
-        dialog_matched_subtrees = Ng_Dialog(self, main=self, title="Matched Subtrees", resizable=True)
-        textedit = QTextEdit(text="\n\n".join(matched_subtrees))
-        button_close = QPushButton("Close")
-        button_close.clicked.connect(dialog_matched_subtrees.accept)
-        dialog_matched_subtrees.addWidget(textedit)
-        dialog_matched_subtrees.addButton(button_close, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
-
+        dialog_matched_subtrees = Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(self, main=self)
         dialog_matched_subtrees.show()
 
     def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
