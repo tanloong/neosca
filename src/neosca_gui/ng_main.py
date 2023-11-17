@@ -93,8 +93,9 @@ class Ng_Model(QStandardItemModel):
     data_updated = Signal()
     data_exported = Signal()
 
-    def __init__(self, *args, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
+    def __init__(self, *args, main, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.main = main
         self.orientation = orientation
 
         self.has_been_exported: bool = False
@@ -145,7 +146,7 @@ class Ng_Model(QStandardItemModel):
         if not confirm or self.has_been_exported:
             return self._clear_data(leave_an_empty_record=leave_an_empty_record)
 
-        messagebox = QMessageBox()
+        messagebox = QMessageBox(self.main)
         messagebox.setWindowTitle("Clear Table")
         messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
         messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -888,7 +889,7 @@ class Ng_Main(QMainWindow):
             "Reserve parsed trees",
         )
 
-        self.model_sca = Ng_Model()
+        self.model_sca = Ng_Model(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
@@ -952,7 +953,7 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
 
-        self.model_lca = Ng_Model()
+        self.model_lca = Ng_Model(main=self)
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
@@ -1018,7 +1019,7 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def setup_tableview_file(self) -> None:
-        self.model_file = Ng_Model()
+        self.model_file = Ng_Model(main=self)
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
