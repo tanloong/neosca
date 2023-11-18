@@ -62,7 +62,7 @@ from PySide6.QtWidgets import (
 from .neosca.lca.lca import LCA
 from .neosca.neosca import NeoSCA
 from .neosca.structure_counter import StructureCounter
-from .ng_about import __title__, __version__
+from .ng_about import __name__, __version__
 from .ng_io import SCAIO
 from .ng_settings_default import (
     DEFAULT_FONT_FAMILY,
@@ -181,7 +181,7 @@ class Ng_Model(QStandardItemModel):
             self.setRowCount(0)
 
     # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
-    def flags(self, index):
+    def flags(self, index) -> Qt.ItemFlag:
         if index.data() is None:
             return Qt.ItemFlag.NoItemFlags
         return super().flags(index)
@@ -234,7 +234,6 @@ class Ng_TableView(QTableView):
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setHighlightSections(False)
@@ -247,7 +246,10 @@ class Ng_TableView(QTableView):
         self.setEnabled(False)
 
     def on_data_updated(self) -> None:
-        self.setEnabled(True)
+        # TODO: only need to enable at the first time
+        if not self.isEnabled():
+            self.setEnabled(True)
+        self.scrollToBottom()
 
     def model(self) -> Ng_Model:
         """Override QTableView().model()"""
@@ -280,13 +282,13 @@ class Ng_TableView(QTableView):
         alignment_item: Qt.AlignmentFlag = item.textAlignment()
 
         # Horizontal
-        if Qt.AlignmentFlag.AlignLeft in alignment_item:
+        if alignment_item & Qt.AlignmentFlag.AlignLeft:
             alignment_cell_horizontal = "left"
-        elif Qt.AlignmentFlag.AlignRight in alignment_item:
+        elif alignment_item & Qt.AlignmentFlag.AlignRight:
             alignment_cell_horizontal = "right"
-        elif Qt.AlignmentFlag.AlignHCenter in alignment_item:
+        elif alignment_item & Qt.AlignmentFlag.AlignHCenter:
             alignment_cell_horizontal = "center"
-        elif Qt.AlignmentFlag.AlignJustify in alignment_item:
+        elif alignment_item & Qt.AlignmentFlag.AlignJustify:
             alignment_cell_horizontal = "justify"
         else:
             alignment_cell_horizontal = "left"
@@ -840,7 +842,7 @@ class Ng_Main(QMainWindow):
         super().__init__(*args, **kwargs)
         self.setup_env()
 
-        self.setWindowTitle(f"{__title__} {__version__}")
+        self.setWindowTitle(f"{__name__} {__version__}")
         file_path_settings = os_path.join(self.here, "ng_settings.pickle")
         self.settings_custom = SCAIO.load_pickle_file(file_path_settings, None)
         if self.settings_custom is None:
@@ -902,8 +904,8 @@ class Ng_Main(QMainWindow):
         print(ok, font)
 
     def menubar_help_citing(self) -> None:
-        dialog_citing = Ng_Dialog_Text_Edit_Citing(self, main=self)
-        dialog_citing.open()
+        dialog_citing = Ng_Dialog_Text_Edit_Citing(self)
+        dialog_citing.exec()
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
@@ -921,9 +923,7 @@ class Ng_Main(QMainWindow):
         self.button_custom_func.clicked.connect(self.custom_func)
 
         # frame_setting_sca.setStyleSheet("background-color: pink;")
-        self.checkbox_reserve_parsed_trees = QCheckBox(
-            "Reserve parsed trees",
-        )
+        self.checkbox_reserve_parsed_trees = QCheckBox("Reserve parse trees")
 
         self.model_sca = Ng_Model(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
@@ -1037,7 +1037,7 @@ class Ng_Main(QMainWindow):
         scrollarea_settings_lca = QScrollArea()
         scrollarea_settings_lca.setFixedWidth(200)
         scrollarea_settings_lca.setWidgetResizable(True)
-        scrollarea_settings_lca.setBackgroundRole(QPalette.Light)
+        scrollarea_settings_lca.setBackgroundRole(QPalette.ColorRole.Light)
         scrollarea_settings_lca.setWidget(widget_settings_lca)
 
         self.tab_lca = QWidget()
@@ -1067,6 +1067,7 @@ class Ng_Main(QMainWindow):
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
         self.model_file.clear_data()
         self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
+        self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
         self.menu_tableview_file = QMenu(self)
@@ -1209,7 +1210,7 @@ class Ng_Main(QMainWindow):
                 self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ng_Model()
+            model_err_files = Ng_Model(main=self)
             model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
             for reason, file_paths in (
                 ("Duplicate file", file_paths_dup),
@@ -1232,7 +1233,7 @@ class Ng_Main(QMainWindow):
                 resizable=True,
                 tableview=tableview_err_files,
             )
-            dialog.open()
+            dialog.exec()
 
     def menubar_file_open_folder(self):
         # TODO: Currently only include files of supported types, should include

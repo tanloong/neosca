@@ -28,6 +28,7 @@ from .scaexceptions import CircularDefinitionError, InvalidSourceError
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter
 
+
 class L2SCA_Abstract_Structure:  # {{{
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
@@ -180,7 +181,9 @@ class L2SCA_C2(L2SCA_Abstract_Structure):
                     ):
                         is_satisfied = False
                         break
-                    if any(NODE_TEXT.satisfies(node, "CC") for node in PARENT_OF.searchNodeIterator(vp)) and any(
+                    if any(
+                        NODE_TEXT.satisfies(node, "CC") for node in PARENT_OF.searchNodeIterator(vp)
+                    ) and any(
                         NODE_TEXT.in_(node, ("MD", "VBP", "VBZ", "VBD"))
                         for vp2 in filter(
                             lambda node: NODE_TEXT.satisfies(node, "VP"),
@@ -242,7 +245,9 @@ class L2SCA_T2(L2SCA_Abstract_Structure):
                 if any(
                     NODE_TEXT.in_(node, ("S", "SBARQ", "SINV", "SQ"))
                     for node in RIGHT_SISTER_OF.searchNodeIterator(s)
-                ) and not any(NODE_TEXT.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(s)):
+                ) and not any(
+                    NODE_TEXT.in_(node, ("SBAR", "VP")) for node in DOMINATED_BY.searchNodeIterator(s)
+                ):
                     is_satisfied = False
                     break
             if is_satisfied:
@@ -640,7 +645,7 @@ class Ns_PyTregex:
         counter: "StructureCounter",
         sname: str,
         trees: str,
-        ancestor_snames: List[str] = [],
+        ancestor_snames: Optional[List[str]] = None,
     ) -> None:
         value = counter.get_value(sname)
         if value is not None:
@@ -656,6 +661,8 @@ class Ns_PyTregex:
         if self.has_tregex_pattern(counter, sname):
             self.set_value_from_pattern(counter, sname, trees)
         else:
+            if ancestor_snames is None:
+                ancestor_snames = []
             self.set_value_from_source(counter, sname, trees, ancestor_snames)
 
     def set_all_values(self, counter: "StructureCounter", trees: str) -> None:

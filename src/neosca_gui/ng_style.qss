@@ -31,4 +31,3 @@ QHeaderView::section:vertical:hover {
 QHeaderView::section:vertical:pressed {
     background-color: #606060;
 }
-    

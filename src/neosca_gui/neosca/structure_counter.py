@@ -263,6 +263,7 @@ class StructureCounter:
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
+        # TODO: looks like a bug. Why doesn't snames_defined_by_value_source used for anything afterwards?
         snames_defined_by_value_source: List[str] = []
         for sname, structure in new.sname_structure_map.items():
             # structures defined by value_source should be re-calculated after
