@@ -728,7 +728,6 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "odir_matched": "",
             "selected_measures": None,
             "is_reserve_parsed": self.main.checkbox_reserve_parsed_trees.isChecked(),
-            "is_reserve_matched": self.main.checkbox_reserve_matched_subtrees.isChecked(),
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "config": None,
@@ -922,7 +921,6 @@ class Ng_Main(QMainWindow):
         # TODO comment this out before releasing
         self.button_custom_func.clicked.connect(self.custom_func)
 
-        # frame_setting_sca.setStyleSheet("background-color: pink;")
         self.checkbox_reserve_parsed_trees = QCheckBox("Reserve parse trees")
 
         self.model_sca = Ng_Model(main=self)
@@ -946,12 +944,9 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
         self.checkbox_reserve_parsed_trees.setChecked(True)
-        self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matches")
-        self.checkbox_reserve_matched_subtrees.setChecked(True)
         widget_settings_sca = QWidget()
         widget_settings_sca.setLayout(QGridLayout())
         widget_settings_sca.layout().addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
-        widget_settings_sca.layout().addWidget(self.checkbox_reserve_matched_subtrees, 1, 0)
         widget_settings_sca.layout().addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_sca = QScrollArea()
