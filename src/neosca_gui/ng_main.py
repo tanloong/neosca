@@ -671,7 +671,7 @@ class Ng_Dialog_Text_Edit_Citing(Ng_Dialog_Text_Edit):
         super().__init__(*args, title="Citing", **kwargs)
         # citing.json is at the same dir of __file__
         # TODO: need to have a unified way to get project path.
-        with open("citing.json", encoding="utf-8") as f:
+        with open(os_path.join(os_path.dirname(__file__), "citing.json"), encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
         self.label_citing = QLabel(f"If you use {__name__} in your research, please kindly cite as follows.")
