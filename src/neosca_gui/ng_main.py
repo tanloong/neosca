@@ -29,6 +29,8 @@ from PySide6.QtGui import (
     QPalette,
     QStandardItem,
     QStandardItemModel,
+    QTextBlockFormat,
+    QTextCursor,
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -608,6 +610,11 @@ class Ng_Dialog_Text_Edit(Ng_Dialog):
         super().__init__(*args, title=title, resizable=True, **kwargs)
         self.textedit = QTextEdit(text)
         self.textedit.setReadOnly(True)
+        # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
+        indentation: int = self.fontMetrics().horizontalAdvance("abcd")
+        self.fmt_textedit = QTextBlockFormat()
+        self.fmt_textedit.setLeftMargin(indentation)
+        self.fmt_textedit.setTextIndent(-indentation)
 
         self.button_copy = QPushButton("Copy")
         self.button_copy.clicked.connect(self.textedit.selectAll)
@@ -620,7 +627,10 @@ class Ng_Dialog_Text_Edit(Ng_Dialog):
         self.addButton(self.button_close, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
 
     def setText(self, text: str) -> None:
-        return self.textedit.setText(text)
+        self.textedit.setText(text)
+        cursor = QTextCursor(self.textedit.document())
+        cursor.select(QTextCursor.SelectionType.Document)
+        cursor.mergeBlockFormat(self.fmt_textedit)
 
     # Override
     def show(self) -> None:
