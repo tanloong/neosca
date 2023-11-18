@@ -2,18 +2,30 @@
 
 import copy
 import glob
+import json
 import os
 import os.path as os_path
 import re
 import subprocess
 import sys
 import textwrap
-from typing import Any, Dict, Generator, Iterable, List, Literal, Optional, Set, Union
+from typing import Any, Generator, Iterable, List, Literal, Optional, Set, Union
 
-from PySide6.QtCore import QElapsedTimer, QModelIndex, QObject, Qt, QThread, QTime, QTimer, Signal
+from PySide6.QtCore import (
+    QElapsedTimer,
+    QModelIndex,
+    QObject,
+    QPersistentModelIndex,
+    Qt,
+    QThread,
+    QTime,
+    QTimer,
+    Signal,
+)
 from PySide6.QtGui import (
     QAction,
     QCursor,
+    QPainter,
     QPalette,
     QStandardItem,
     QStandardItemModel,
@@ -39,6 +51,8 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QSpacerItem,
     QSplitter,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
     QTableView,
     QTabWidget,
     QTextEdit,
@@ -173,6 +187,31 @@ class Ng_Model(QStandardItemModel):
         return super().flags(index)
 
 
+class Ng_Delegate_SCA(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def is_index_clickable(self, index) -> bool:
+        data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
+        return data_in_user_role is not None and data_in_user_role
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
+        if not self.is_index_clickable(index):
+            return super().paint(painter, option, index)
+
+        text = index.data(Qt.ItemDataRole.DisplayRole)
+        marked_text = text + "◢"
+        option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        QApplication.style().drawItemText(
+            painter, option.rect, option.displayAlignment, QApplication.palette(), True, marked_text
+        )
+
+    def createEditor(self, parent, option, index):
+        if not self.is_index_clickable(index):
+            return None
+        Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(parent, index=index).show()
+
+
 class Ng_TableView(QTableView):
     def __init__(
         self,
@@ -192,7 +231,6 @@ class Ng_TableView(QTableView):
         self.has_horizontal_header = has_horizontal_header
         self.has_vertical_header = has_vertical_header
 
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -430,7 +468,7 @@ class Ng_TableView(QTableView):
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
 class Ng_Dialog(QDialog):
     def __init__(
-        self, *args, main, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
+        self, *args, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
     ) -> None:
         """
         ┌———————————┐
@@ -442,7 +480,6 @@ class Ng_Dialog(QDialog):
         └———————————┘
         """
         super().__init__(*args, **kwargs)
-        self.main = main
         # > Dialog size
         if resizable:
             if not width:
@@ -498,7 +535,6 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
     def __init__(
         self,
         *args,
-        main,
         title: str = "Please Wait",
         width: int = 500,
         height: int = 0,
@@ -506,7 +542,7 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         interval: int = 1000,
         **kwargs,
     ) -> None:
-        super().__init__(*args, main=main, title=title, width=width, height=height, resizable=False, **kwargs)
+        super().__init__(*args, title=title, width=width, height=height, resizable=False, **kwargs)
         self.time_format = time_format
         self.interval = interval
         self.elapsedtimer = QElapsedTimer()
@@ -566,8 +602,8 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
 
 
 class Ng_Dialog_Text_Edit(Ng_Dialog):
-    def __init__(self, *args, main, title: str = "", text: str = "", **kwargs) -> None:
-        super().__init__(*args, main=main, title=title, resizable=True, **kwargs)
+    def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
+        super().__init__(*args, title=title, resizable=True, **kwargs)
         self.textedit = QTextEdit(text)
         self.textedit.setReadOnly(True)
 
@@ -604,29 +640,29 @@ class Ng_Dialog_Text_Edit(Ng_Dialog):
 
 
 class Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(Ng_Dialog_Text_Edit):
-    def __init__(self, *args, main, **kwargs):
-        super().__init__(*args, main=main, title="Matched Subtrees", width=300, height=300, **kwargs)
-        self.current_index: QModelIndex = self.main.tableview_preview_sca.currentIndex()
-        self.current_item = self.main.model_sca.itemFromIndex(self.current_index)
-        self.file_name = self.main.model_sca.verticalHeaderItem(self.current_index.row()).text()
-        self.sname = self.main.model_sca.horizontalHeaderItem(self.current_index.column()).text()
-        self.matched_subtrees: List[str] = self.current_item.data(Qt.ItemDataRole.UserRole)
+    def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
+        super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
+        self.file_name = index.model().verticalHeaderItem(index.row()).text()
+        self.sname = index.model().horizontalHeaderItem(index.column()).text()
+        self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
         self.setText("\n".join(self.matched_subtrees))
 
         self.label_summary = QLabel(
-            f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in {self.file_name}'
+            f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in "{self.file_name}"'
         )
         self.label_summary.setWordWrap(True)
         self.addWidget(self.label_summary)
 
 
 class Ng_Dialog_Text_Edit_Citing(Ng_Dialog_Text_Edit):
-    def __init__(self, *args, main, **kwargs):
-        super().__init__(*args, main=main, title="Citing", **kwargs)
-        with open(os_path.join(self.main.here, "citing.json"), encoding="utf-8") as f:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, title="Citing", **kwargs)
+        # citing.json is at the same dir of __file__
+        # TODO: need to have a unified way to get project path.
+        with open("citing.json", encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
-        self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
+        self.label_citing = QLabel(f"If you use {__name__} in your research, please kindly cite as follows.")
         self.label_citing.setWordWrap(True)
         self.setText(next(iter(self.style_citation_mapping.values())))
         self.label_choose_citation_style = QLabel("Choose citation style: ")
@@ -894,6 +930,7 @@ class Ng_Main(QMainWindow):
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
         self.tableview_preview_sca = Ng_TableView(main=self, model=self.model_sca)
+        self.tableview_preview_sca.setItemDelegate(Ng_Delegate_SCA())
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
@@ -909,7 +946,7 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
         self.checkbox_reserve_parsed_trees.setChecked(True)
-        self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matched subtrees")
+        self.checkbox_reserve_matched_subtrees = QCheckBox("Reserve matches")
         self.checkbox_reserve_matched_subtrees.setChecked(True)
         widget_settings_sca = QWidget()
         widget_settings_sca.setLayout(QGridLayout())
@@ -958,6 +995,11 @@ class Ng_Main(QMainWindow):
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
         self.tableview_preview_lca = Ng_TableView(main=self, model=self.model_lca)
+        # TODO: tableview_preview_sca use custom delegate to only enable
+        # clickable items, in which case a dialog will pop up to show matches.
+        # Here when tableview_preview_lca also use custom delegate, remember to
+        # remove this line.
+        self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_export_table_lca.clicked.connect(self.tableview_preview_lca.export_table)
@@ -1049,41 +1091,26 @@ class Ng_Main(QMainWindow):
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
 
-    def sca_show_matched_subtrees(self) -> None:
-        dialog_matched_subtrees = Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(self, main=self)
-        dialog_matched_subtrees.show()
-
     def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
-        sname_value_map: Dict[str, str] = counter.get_all_values()
         # Remove trailing rows
         self.model_sca.removeRows(rowno, self.model_sca.rowCount() - rowno)
         # Drop file_path
-        _, *values = sname_value_map.values()
         for colno in range(self.model_sca.columnCount()):
             sname = self.model_sca.horizontalHeaderItem(colno).text()
 
             value = counter.get_value(sname)
-            value_str:str = str(value) if value is not None else ""
+            value_str: str = str(value) if value is not None else ""
             item = QStandardItem(value_str)
             self.model_sca.set_item_num(rowno, colno, item)
 
-            if not (matches:=counter.get_matches(sname)):
-                continue
-            item.setData(matches, Qt.ItemDataRole.UserRole)
-            # Add menu button to show matched subtrees
-            button_item = QPushButton(value_str)
-            menu_item = QMenu(button_item)
-            action_show_matched_subtrees = QAction("Show matched subtrees", menu_item)
-            action_show_matched_subtrees.triggered.connect(self.sca_show_matched_subtrees)
-            menu_item.addAction(action_show_matched_subtrees)
-            button_item.setMenu(menu_item)
-            self.tableview_preview_sca.setIndexWidget(self.model_sca.index(rowno, colno), button_item)
+            if matches := counter.get_matches(sname):
+                item.setData(matches, Qt.ItemDataRole.UserRole)
 
         self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
         self.model_sca.data_updated.emit()
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self, main=self)
+        self.dialog_processing = Ng_Dialog_Processing_With_Elapsed_Time(self)
 
         self.ng_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
         self.ng_worker_sca_generate_table.counter_ready.connect(self.sca_add_data)
@@ -1198,7 +1225,6 @@ class Ng_Main(QMainWindow):
 
             dialog = Ng_Dialog_Table(
                 self,
-                main=self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",
                 width=300,
