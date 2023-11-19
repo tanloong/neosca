@@ -16,6 +16,7 @@ from PySide6.QtCore import (
     QModelIndex,
     QObject,
     QPersistentModelIndex,
+    QPoint,
     Qt,
     QThread,
     QTime,
@@ -24,6 +25,8 @@ from PySide6.QtCore import (
 )
 from PySide6.QtGui import (
     QAction,
+    QBrush,
+    QColor,
     QCursor,
     QPainter,
     QPalette,
@@ -91,7 +94,7 @@ class Ng_QSS_Loader:
         """
         >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
         >>> get_qss_value(qss, "QHeaderView::section:horizontal", "background-color")
-        5C88C5
+        #5C88C5
         """
         # Notice that only the 1st selector will be matched here
         matched_selector = re.search(selector, qss)
@@ -190,23 +193,35 @@ class Ng_Model(QStandardItemModel):
 
 
 class Ng_Delegate_SCA(QStyledItemDelegate):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, qss: str = ""):
         super().__init__(parent)
+        if (
+            triangle_rgb := Ng_QSS_Loader.get_qss_value(
+                qss, "QHeaderView::section:horizontal", "background-color"
+            )
+        ) is not None:
+            self.triangle_rgb = triangle_rgb
+        else:
+            self.triangle_rgb = "#000000"
 
     def is_index_clickable(self, index) -> bool:
         data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
         return data_in_user_role is not None and data_in_user_role
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
-        if not self.is_index_clickable(index):
-            return super().paint(painter, option, index)
-
-        text = index.data(Qt.ItemDataRole.DisplayRole)
-        marked_text = text + "◢"
-        option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-        QApplication.style().drawItemText(
-            painter, option.rect, option.displayAlignment, QApplication.palette(), True, marked_text
-        )
+        super().paint(painter, option, index)
+        if self.is_index_clickable(index):
+            painter.save()
+            # painter.setBrush(QBrush(Qt.GlobalColor.darkGray))
+            painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
+            painter.drawPolygon(
+                (
+                    QPoint(option.rect.x() + option.fontMetrics.descent() * 2, option.rect.y()),
+                    QPoint(option.rect.x(), option.rect.y()),
+                    QPoint(option.rect.x(), option.rect.y() + option.fontMetrics.descent() * 2),
+                )
+            )
+            painter.restore()
 
     def createEditor(self, parent, option, index):
         if not self.is_index_clickable(index):
@@ -611,7 +626,7 @@ class Ng_Dialog_Text_Edit(Ng_Dialog):
         self.textedit = QTextEdit(text)
         self.textedit.setReadOnly(True)
         # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
-        indentation: int = self.fontMetrics().horizontalAdvance("abcd")
+        indentation: int = self.fontMetrics().horizontalAdvance(" "*4)
         self.fmt_textedit = QTextBlockFormat()
         self.fmt_textedit.setLeftMargin(indentation)
         self.fmt_textedit.setTextIndent(-indentation)
@@ -938,7 +953,7 @@ class Ng_Main(QMainWindow):
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
         self.tableview_preview_sca = Ng_TableView(main=self, model=self.model_sca)
-        self.tableview_preview_sca.setItemDelegate(Ng_Delegate_SCA())
+        self.tableview_preview_sca.setItemDelegate(Ng_Delegate_SCA(None, self.styleSheet()))
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
