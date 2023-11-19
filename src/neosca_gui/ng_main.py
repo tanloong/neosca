@@ -784,9 +784,9 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
-                parent=None,
-                title="Error Processing Files",
-                text="These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
+                None,
+                "Error Processing Files",
+                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
         self.worker_done.emit()
 
@@ -837,9 +837,9 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
 
         if err_file_paths:  # TODO: should show a table
             QMessageBox.information(
-                parent=None,
-                title="Error Processing Files",
-                text="These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
+                None,
+                "Error Processing Files",
+                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
             )
 
         self.worker_done.emit()
@@ -1087,6 +1087,7 @@ class Ng_Main(QMainWindow):
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
         self.model_file.clear_data()
         self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
+        self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableview_file.setCornerButtonEnabled(True)
