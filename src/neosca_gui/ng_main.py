@@ -248,7 +248,7 @@ class Ng_TableView(QTableView):
         self.has_horizontal_header = has_horizontal_header
         self.has_vertical_header = has_vertical_header
 
-        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.horizontalHeader().setHighlightSections(False)
@@ -1089,6 +1089,7 @@ class Ng_Main(QMainWindow):
         self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableview_file.setCornerButtonEnabled(True)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
         self.menu_tableview_file = QMenu(self)
         self.action_tableview_file_remove = QAction("Remove", self.menu_tableview_file)
