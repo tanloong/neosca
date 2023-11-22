@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 
 
 class Relation:
-    symbol: Optional[str] = None
-
     @classmethod
     def satisfies(cls, t1: "Tree", t2: "Tree", arg=None) -> bool:
         raise NotImplementedError
@@ -32,8 +30,6 @@ class Relation:
 
 
 class DOMINATES(Relation):
-    symbol: Optional[str] = "<<"
-
     @classmethod
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
         """
