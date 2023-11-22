@@ -47,7 +47,6 @@ class NeoSCA:
 
         self.counters: List[StructureCounter] = []
         self.io = SCAIO()
-        self.is_stanford_parser_initialized = False
         self.is_stanford_tregex_initialized = False
 
     def update_options(self, kwargs: Dict):
@@ -71,11 +70,6 @@ class NeoSCA:
         if not self.is_stanford_tregex_initialized:
             self.tregex = Ns_PyTregex()
             self.is_stanford_tregex_initialized = True
-
-    def ensure_stanford_parser_initialized(self) -> None:
-        if not self.is_stanford_parser_initialized:
-            self.parser = Ns_Stanza()
-            self.is_stanford_parser_initialized = True
 
     def already_parsed(self, ofile_parsed: str, ifile: str) -> bool:
         has_been_parsed = False
@@ -102,8 +96,7 @@ class NeoSCA:
         if self.is_skip_parsing:  # assume input as parse trees
             return text
 
-        self.ensure_stanford_parser_initialized()
-        trees = self.parser.parse(
+        trees = Ns_Stanza.parse(
             text,
             is_reserve_parsed=self.is_reserve_parsed,
             ofile_parsed=ofile_parsed,

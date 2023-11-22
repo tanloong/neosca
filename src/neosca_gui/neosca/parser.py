@@ -3,33 +3,19 @@ import logging
 import sys
 from typing import Optional
 
+from ..ng_nlp import Ng_NLP_Stanza
+
 
 class Ns_Stanza:
-    def __init__(
-        self,
-        model_dir: Optional[str] = None,
-    ) -> None:
-        import stanza
-
-        self.model_dir = model_dir if model_dir is not None else stanza.resources.common.DEFAULT_MODEL_DIR
-        logging.debug(f"[NeoSCA] Initializing Stanza with model directory as {model_dir}...")
-        self.nlp_stanza = stanza.Pipeline(
-            lang="en",
-            dir=self.model_dir,
-            processors="tokenize,pos,constituency",
-            # https://github.com/stanfordnlp/stanza/issues/331
-            resources_url="stanford",
-            download_method=None,
-        )
-
+    @classmethod
     def parse(
-        self,
+        cls,
         text: str,
         is_reserve_parsed: bool = False,
         ofile_parsed: str = "cmdline_text.parsed",
         is_stdout: bool = False,
     ) -> str:
-        doc = self.nlp_stanza(text)
+        doc = Ng_NLP_Stanza.nlp(text)
         trees = "\n".join(sent.constituency.pretty_print() for sent in doc.sentences)
         if is_reserve_parsed:
             if not is_stdout:
