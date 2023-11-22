@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 import textwrap
-from typing import Any, Generator, Iterable, List, Literal, Optional, Set, Union
+from typing import Any, Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
 
 from PySide6.QtCore import (
     QElapsedTimer,
@@ -204,7 +204,10 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
         else:
             self.triangle_rgb = "#000000"
 
-    def is_index_clickable(self, index) -> bool:
+        self.pos_dialog_mappings: Dict[Tuple[int, int], Ng_Dialog_Text_Edit_SCA_Matched_Subtrees] = {}
+
+    @staticmethod
+    def is_index_clickable(index) -> bool:
         data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
         return data_in_user_role is not None and data_in_user_role
 
@@ -226,7 +229,14 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         if not self.is_index_clickable(index):
             return None
-        Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(parent, index=index).show()
+        pos = (index.row(), index.column())
+        if pos in self.pos_dialog_mappings:
+            self.pos_dialog_mappings[pos].activateWindow()
+        else:
+            dialog = Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(parent, index=index)
+            self.pos_dialog_mappings[pos] = dialog
+            dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(pos))
+            dialog.show()
 
 
 class Ng_TableView(QTableView):
