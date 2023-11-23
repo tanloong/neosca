@@ -762,7 +762,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "is_auto_save": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_reserve_parsed": self.main.checkbox_reserve_parsed_trees.isChecked(),
+            "is_reserve_parsed": self.main.checkbox_cache_parsed_trees.isChecked(),
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "config": None,
@@ -956,18 +956,20 @@ class Ng_Main(QMainWindow):
         # TODO comment this out before releasing
         self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.checkbox_reserve_parsed_trees = QCheckBox("Reserve parse trees")
+        self.checkbox_cache_parsed_trees = QCheckBox("Cache parse trees")
+        self.checkbox_cache_parsed_trees.setChecked(True)
 
         self.model_sca = Ng_Model(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
-        self.tableview_preview_sca = Ng_TableView(main=self, model=self.model_sca)
-        self.tableview_preview_sca.setItemDelegate(Ng_Delegate_SCA(None, self.styleSheet()))
+        self.tableview_sca = Ng_TableView(main=self, model=self.model_sca)
+        self.tableview_sca.setItemDelegate(Ng_Delegate_SCA(None, self.styleSheet()))
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
-        self.button_export_table_sca.clicked.connect(self.tableview_preview_sca.export_table)
+        self.button_export_table_sca.clicked.connect(self.tableview_sca.export_table)
+        self.button_export_matches_sca.clicked.connect(self.tableview_sca.export_matches)
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
         self.model_sca.data_cleared.connect(
             lambda: self.button_generate_table_sca.setEnabled(True) if not self.model_file.is_empty() else None
@@ -982,7 +984,7 @@ class Ng_Main(QMainWindow):
         widget_settings_sca = QWidget()
         layout_settings_sca = QGridLayout()
         widget_settings_sca.setLayout(layout_settings_sca)
-        layout_settings_sca.addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
+        layout_settings_sca.addWidget(self.checkbox_cache_parsed_trees, 0, 0)
         layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_sca = QScrollArea()
@@ -1004,7 +1006,7 @@ class Ng_Main(QMainWindow):
             start=1,
         ):
             self.layout_tab_sca.addWidget(btn, 1, btn_no - 1)
-        self.layout_tab_sca.addWidget(self.tableview_preview_sca, 0, 0, 1, btn_no)
+        self.layout_tab_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
         self.layout_tab_sca.addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
         self.layout_tab_sca.setContentsMargins(6, 4, 6, 4)
 
@@ -1028,15 +1030,15 @@ class Ng_Main(QMainWindow):
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
-        self.tableview_preview_lca = Ng_TableView(main=self, model=self.model_lca)
-        # TODO: tableview_preview_sca use custom delegate to only enable
+        self.tableview_lca = Ng_TableView(main=self, model=self.model_lca)
+        # TODO: tableview_sca use custom delegate to only enable
         # clickable items, in which case a dialog will pop up to show matches.
-        # Here when tableview_preview_lca also use custom delegate, remember to
+        # Here when tableview_lca also use custom delegate, remember to
         # remove this line.
-        self.tableview_preview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tableview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
-        self.button_export_table_lca.clicked.connect(self.tableview_preview_lca.export_table)
+        self.button_export_table_lca.clicked.connect(self.tableview_lca.export_table)
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
         self.model_lca.data_cleared.connect(
             lambda: self.button_generate_table_lca.setEnabled(True) if not self.model_file.is_empty() else None
@@ -1090,7 +1092,7 @@ class Ng_Main(QMainWindow):
             start=1,
         ):
             self.layout_tab_lca.addWidget(btn, 1, btn_no - 1)
-        self.layout_tab_lca.addWidget(self.tableview_preview_lca, 0, 0, 1, btn_no)
+        self.layout_tab_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
         self.layout_tab_lca.addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
         self.layout_tab_lca.setContentsMargins(6, 4, 6, 4)
 
