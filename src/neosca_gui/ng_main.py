@@ -980,22 +980,22 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
-        self.checkbox_reserve_parsed_trees.setChecked(True)
         widget_settings_sca = QWidget()
         layout_settings_sca = QGridLayout()
         widget_settings_sca.setLayout(layout_settings_sca)
         layout_settings_sca.addWidget(self.checkbox_cache_parsed_trees, 0, 0)
         layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        layout_settings_sca.setContentsMargins(1, 0, 1, 0)
 
-        scrollarea_settings_sca = QScrollArea()
-        scrollarea_settings_sca.setLayout(QGridLayout())
-        scrollarea_settings_sca.setWidgetResizable(True)
-        scrollarea_settings_sca.setBackgroundRole(QPalette.ColorRole.Light)
-        scrollarea_settings_sca.setWidget(widget_settings_sca)
+        self.scrollarea_settings_sca = QScrollArea()
+        self.scrollarea_settings_sca.setWidgetResizable(True)
+        self.scrollarea_settings_sca.setBackgroundRole(QPalette.ColorRole.Light)
+        self.scrollarea_settings_sca.setMinimumWidth(200)
+        self.scrollarea_settings_sca.setWidget(widget_settings_sca)
 
-        self.tab_sca = QWidget()
-        self.layout_tab_sca = QGridLayout()
-        self.tab_sca.setLayout(self.layout_tab_sca)
+        self.widget_previewarea_sca = QWidget()
+        self.layout_previewarea_sca = QGridLayout()
+        self.widget_previewarea_sca.setLayout(self.layout_previewarea_sca)
         for btn_no, btn in enumerate(
             (
                 self.button_generate_table_sca,
@@ -1005,13 +1005,18 @@ class Ng_Main(QMainWindow):
             ),
             start=1,
         ):
-            self.layout_tab_sca.addWidget(btn, 1, btn_no - 1)
-        self.layout_tab_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
-        self.layout_tab_sca.addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
-        self.layout_tab_sca.setContentsMargins(6, 4, 6, 4)
+            self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
+        self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
+        self.layout_previewarea_sca.addWidget(self.scrollarea_settings_sca, 0, btn_no, 2, 1)
+        self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
-        for colno in range(self.layout_tab_sca.columnCount()):
-            self.layout_tab_sca.setColumnStretch(colno, 1)
+        self.splitter_workarea_sca = QSplitter(Qt.Orientation.Horizontal)
+        self.splitter_workarea_sca.setChildrenCollapsible(False)
+        self.splitter_workarea_sca.addWidget(self.widget_previewarea_sca)
+        self.splitter_workarea_sca.addWidget(self.scrollarea_settings_sca)
+        self.splitter_workarea_sca.setStretchFactor(0, 5)
+        self.splitter_workarea_sca.setStretchFactor(1, 1)
+        self.splitter_workarea_sca.setContentsMargins(6, 4, 6, 4)
 
     def custom_func(self):
         breakpoint()
@@ -1037,6 +1042,7 @@ class Ng_Main(QMainWindow):
         # remove this line.
         self.tableview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+        # Bind
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
         self.button_export_table_lca.clicked.connect(self.tableview_lca.export_table)
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
@@ -1072,17 +1078,17 @@ class Ng_Main(QMainWindow):
         layout_settings_lca.addWidget(groupbox_wordlist, 0, 0)
         layout_settings_lca.addWidget(groupbox_tagset, 1, 0)
         layout_settings_lca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        layout_settings_lca.setContentsMargins(1, 0, 1, 0)
 
-        scrollarea_settings_lca = QScrollArea()
-        scrollarea_settings_lca.setFixedWidth(200)
-        scrollarea_settings_lca.setWidgetResizable(True)
-        scrollarea_settings_lca.setBackgroundRole(QPalette.ColorRole.Light)
-        scrollarea_settings_lca.setWidget(widget_settings_lca)
-
-        self.tab_lca = QWidget()
-        self.layout_tab_lca = QGridLayout()
-        self.tab_lca.setLayout(self.layout_tab_lca)
-
+        self.scrollarea_settings_lca = QScrollArea()
+        self.scrollarea_settings_lca.setWidgetResizable(True)
+        self.scrollarea_settings_lca.setBackgroundRole(QPalette.ColorRole.Light)
+        self.scrollarea_settings_lca.setMinimumWidth(200)
+        self.scrollarea_settings_lca.setWidget(widget_settings_lca)
+        
+        self.widget_previewarea_lca = QWidget()
+        self.layout_previewarea_lca = QGridLayout()
+        self.widget_previewarea_lca.setLayout(self.layout_previewarea_lca)
         for btn_no, btn in enumerate(
             (
                 self.button_generate_table_lca,
@@ -1091,13 +1097,17 @@ class Ng_Main(QMainWindow):
             ),
             start=1,
         ):
-            self.layout_tab_lca.addWidget(btn, 1, btn_no - 1)
-        self.layout_tab_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
-        self.layout_tab_lca.addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
-        self.layout_tab_lca.setContentsMargins(6, 4, 6, 4)
+            self.layout_previewarea_lca.addWidget(btn, 1, btn_no - 1)
+        self.layout_previewarea_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
+        self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
 
-        for colno in range(self.layout_tab_lca.columnCount()):
-            self.layout_tab_lca.setColumnStretch(colno, 1)
+        self.splitter_workarea_lca = QSplitter(Qt.Orientation.Horizontal)
+        self.splitter_workarea_lca.setChildrenCollapsible(False)
+        self.splitter_workarea_lca.addWidget(self.widget_previewarea_lca)
+        self.splitter_workarea_lca.addWidget(self.scrollarea_settings_lca)
+        self.splitter_workarea_lca.setStretchFactor(0, 5)
+        self.splitter_workarea_lca.setStretchFactor(1, 1)
+        self.splitter_workarea_lca.setContentsMargins(6, 4, 6, 4)
 
     def enable_button_generate_table(self, enabled: bool) -> None:
         self.button_generate_table_sca.setEnabled(enabled)
@@ -1127,13 +1137,13 @@ class Ng_Main(QMainWindow):
         self.setup_tableview_file()
 
         self.tabwidget = QTabWidget()
-        self.tabwidget.addTab(self.tab_sca, "Syntactic Complexity Analyzer")
-        self.tabwidget.addTab(self.tab_lca, "Lexical Complexity Analyzer")
+        self.tabwidget.addTab(self.splitter_workarea_sca, "Syntactic Complexity Analyzer")
+        self.tabwidget.addTab(self.splitter_workarea_lca, "Lexical Complexity Analyzer")
         self.splitter_central_widget = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
-        self.splitter_central_widget.setStretchFactor(0, 2)
         self.splitter_central_widget.addWidget(self.tableview_file)
+        self.splitter_central_widget.setStretchFactor(0, 2)
         self.splitter_central_widget.setStretchFactor(1, 1)
         self.setCentralWidget(self.splitter_central_widget)
 
