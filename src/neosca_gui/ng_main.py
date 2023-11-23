@@ -987,7 +987,6 @@ class Ng_Main(QMainWindow):
         scrollarea_settings_sca = QScrollArea()
         scrollarea_settings_sca.setLayout(QGridLayout())
         scrollarea_settings_sca.setWidgetResizable(True)
-        scrollarea_settings_sca.setFixedWidth(200)
         scrollarea_settings_sca.setBackgroundRole(QPalette.ColorRole.Light)
         scrollarea_settings_sca.setWidget(widget_settings_sca)
 
@@ -1006,6 +1005,9 @@ class Ng_Main(QMainWindow):
         self.tab_sca.layout().addWidget(self.tableview_preview_sca, 0, 0, 1, btn_no)
         self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
         self.tab_sca.layout().setContentsMargins(6, 4, 6, 4)
+
+        for colno in range(self.tab_sca.layout().columnCount()):
+            self.tab_sca.layout().setColumnStretch(colno, 1)
 
     def custom_func(self):
         breakpoint()
@@ -1085,6 +1087,9 @@ class Ng_Main(QMainWindow):
         self.tab_lca.layout().addWidget(self.tableview_preview_lca, 0, 0, 1, btn_no)
         self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
         self.tab_lca.layout().setContentsMargins(6, 4, 6, 4)
+
+        for colno in range(self.tab_lca.layout().columnCount()):
+            self.tab_lca.layout().setColumnStretch(colno, 1)
 
     def enable_button_generate_table(self, enabled: bool) -> None:
         self.button_generate_table_sca.setEnabled(enabled)
