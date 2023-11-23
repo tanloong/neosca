@@ -980,9 +980,10 @@ class Ng_Main(QMainWindow):
 
         self.checkbox_reserve_parsed_trees.setChecked(True)
         widget_settings_sca = QWidget()
-        widget_settings_sca.setLayout(QGridLayout())
-        widget_settings_sca.layout().addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
-        widget_settings_sca.layout().addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        layout_settings_sca = QGridLayout()
+        widget_settings_sca.setLayout(layout_settings_sca)
+        layout_settings_sca.addWidget(self.checkbox_reserve_parsed_trees, 0, 0)
+        layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_sca = QScrollArea()
         scrollarea_settings_sca.setLayout(QGridLayout())
@@ -991,7 +992,8 @@ class Ng_Main(QMainWindow):
         scrollarea_settings_sca.setWidget(widget_settings_sca)
 
         self.tab_sca = QWidget()
-        self.tab_sca.setLayout(QGridLayout())
+        self.layout_tab_sca = QGridLayout()
+        self.tab_sca.setLayout(self.layout_tab_sca)
         for btn_no, btn in enumerate(
             (
                 self.button_generate_table_sca,
@@ -1001,13 +1003,13 @@ class Ng_Main(QMainWindow):
             ),
             start=1,
         ):
-            self.tab_sca.layout().addWidget(btn, 1, btn_no - 1)
-        self.tab_sca.layout().addWidget(self.tableview_preview_sca, 0, 0, 1, btn_no)
-        self.tab_sca.layout().addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
-        self.tab_sca.layout().setContentsMargins(6, 4, 6, 4)
+            self.layout_tab_sca.addWidget(btn, 1, btn_no - 1)
+        self.layout_tab_sca.addWidget(self.tableview_preview_sca, 0, 0, 1, btn_no)
+        self.layout_tab_sca.addWidget(scrollarea_settings_sca, 0, btn_no, 2, 1)
+        self.layout_tab_sca.setContentsMargins(6, 4, 6, 4)
 
-        for colno in range(self.tab_sca.layout().columnCount()):
-            self.tab_sca.layout().setColumnStretch(colno, 1)
+        for colno in range(self.layout_tab_sca.columnCount()):
+            self.layout_tab_sca.setColumnStretch(colno, 1)
 
     def custom_func(self):
         breakpoint()
@@ -1049,22 +1051,25 @@ class Ng_Main(QMainWindow):
         self.radiobutton_wordlist_BNC.setChecked(True)
         self.radiobutton_wordlist_ANC = QRadioButton("American National Corpus (ANC) wordlist")
         groupbox_wordlist = QGroupBox("Wordlist")
-        groupbox_wordlist.setLayout(QGridLayout())
-        groupbox_wordlist.layout().addWidget(self.radiobutton_wordlist_BNC, 0, 0)
-        groupbox_wordlist.layout().addWidget(self.radiobutton_wordlist_ANC, 1, 0)
+        layout_wordlist = QGridLayout()
+        groupbox_wordlist.setLayout(layout_wordlist)
+        layout_wordlist.addWidget(self.radiobutton_wordlist_BNC, 0, 0)
+        layout_wordlist.addWidget(self.radiobutton_wordlist_ANC, 1, 0)
         self.radiobutton_tagset_ud = QRadioButton("Universal POS Tagset")
         self.radiobutton_tagset_ud.setChecked(True)
         self.radiobutton_tagset_ptb = QRadioButton("Penn Treebank POS Tagset")
         groupbox_tagset = QGroupBox("Tagset")
-        groupbox_tagset.setLayout(QGridLayout())
-        groupbox_tagset.layout().addWidget(self.radiobutton_tagset_ud, 0, 0)
-        groupbox_tagset.layout().addWidget(self.radiobutton_tagset_ptb, 1, 0)
+        layout_tagset = QGridLayout()
+        groupbox_tagset.setLayout(layout_tagset)
+        layout_tagset.addWidget(self.radiobutton_tagset_ud, 0, 0)
+        layout_tagset.addWidget(self.radiobutton_tagset_ptb, 1, 0)
 
         widget_settings_lca = QWidget()
-        widget_settings_lca.setLayout(QGridLayout())
-        widget_settings_lca.layout().addWidget(groupbox_wordlist, 0, 0)
-        widget_settings_lca.layout().addWidget(groupbox_tagset, 1, 0)
-        widget_settings_lca.layout().addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        layout_settings_lca = QGridLayout()
+        widget_settings_lca.setLayout(layout_settings_lca)
+        layout_settings_lca.addWidget(groupbox_wordlist, 0, 0)
+        layout_settings_lca.addWidget(groupbox_tagset, 1, 0)
+        layout_settings_lca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
         scrollarea_settings_lca = QScrollArea()
         scrollarea_settings_lca.setFixedWidth(200)
@@ -1073,7 +1078,8 @@ class Ng_Main(QMainWindow):
         scrollarea_settings_lca.setWidget(widget_settings_lca)
 
         self.tab_lca = QWidget()
-        self.tab_lca.setLayout(QGridLayout())
+        self.layout_tab_lca = QGridLayout()
+        self.tab_lca.setLayout(self.layout_tab_lca)
 
         for btn_no, btn in enumerate(
             (
@@ -1083,13 +1089,13 @@ class Ng_Main(QMainWindow):
             ),
             start=1,
         ):
-            self.tab_lca.layout().addWidget(btn, 1, btn_no - 1)
-        self.tab_lca.layout().addWidget(self.tableview_preview_lca, 0, 0, 1, btn_no)
-        self.tab_lca.layout().addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
-        self.tab_lca.layout().setContentsMargins(6, 4, 6, 4)
+            self.layout_tab_lca.addWidget(btn, 1, btn_no - 1)
+        self.layout_tab_lca.addWidget(self.tableview_preview_lca, 0, 0, 1, btn_no)
+        self.layout_tab_lca.addWidget(scrollarea_settings_lca, 0, btn_no, 2, 1)
+        self.layout_tab_lca.setContentsMargins(6, 4, 6, 4)
 
-        for colno in range(self.tab_lca.layout().columnCount()):
-            self.tab_lca.layout().setColumnStretch(colno, 1)
+        for colno in range(self.layout_tab_lca.columnCount()):
+            self.layout_tab_lca.setColumnStretch(colno, 1)
 
     def enable_button_generate_table(self, enabled: bool) -> None:
         self.button_generate_table_sca.setEnabled(enabled)
