@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 import textwrap
-from typing import Any, Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
+from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
 
 from PySide6.QtCore import (
     QElapsedTimer,
@@ -69,41 +69,13 @@ from .neosca.neosca import NeoSCA
 from .neosca.structure_counter import StructureCounter
 from .ng_about import __name__, __version__
 from .ng_io import SCAIO
+from .ng_qss import Ng_QSS
 from .ng_settings_default import (
     DEFAULT_FONT_FAMILY,
     DEFAULT_FONT_SIZE,
     DEFAULT_INTERFACE_SCALING,
     settings_default,
 )
-
-
-class Ng_QSS_Loader:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def read_qss_file(qss_file_path: str, default: Any = ""):
-        if os_path.isfile(qss_file_path) and os_path.getsize(qss_file_path) > 0:
-            with open(qss_file_path, encoding="utf-8") as file:
-                return file.read()
-        else:
-            return default
-
-    @staticmethod
-    def get_qss_value(qss: str, selector: str, attrname: str) -> Optional[str]:
-        """
-        >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
-        >>> get_qss_value(qss, "QHeaderView::section:horizontal", "background-color")
-        #5C88C5
-        """
-        # Notice that only the 1st selector will be matched here
-        matched_selector = re.search(selector, qss)
-        if matched_selector is None:
-            return None
-        matched_value = re.search(rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :])
-        if matched_value is None:
-            return None
-        return matched_value.group(1)
 
 
 class Ng_Model(QStandardItemModel):
@@ -196,9 +168,7 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
     def __init__(self, parent=None, qss: str = ""):
         super().__init__(parent)
         if (
-            triangle_rgb := Ng_QSS_Loader.get_qss_value(
-                qss, "QHeaderView::section:horizontal", "background-color"
-            )
+            triangle_rgb := Ng_QSS.get_value(qss, "QHeaderView::section:horizontal", "background-color")
         ) is not None:
             self.triangle_rgb = triangle_rgb
         else:
@@ -383,20 +353,18 @@ class Ng_TableView(QTableView):
 
                 # 3. Both header background and font
                 # 3.0.1 Get header background
-                horizon_bacolor: Optional[str] = Ng_QSS_Loader.get_qss_value(
+                horizon_bacolor: Optional[str] = Ng_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
                 )
-                vertical_bacolor: Optional[str] = Ng_QSS_Loader.get_qss_value(
+                vertical_bacolor: Optional[str] = Ng_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
                 )
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = Ng_QSS_Loader.get_qss_value(
-                    self.main.styleSheet(), "QHeaderView::section", "color"
-                )
+                font_color = Ng_QSS.get_qss_value(self.main.styleSheet(), "QHeaderView::section", "color")
                 font_color = font_color.lstrip("#") if font_color is not None else "000"
-                font_weight = Ng_QSS_Loader.get_qss_value(
+                font_weight = Ng_QSS.get_qss_value(
                     self.main.styleSheet(), "QHeaderView::section", "font-weight"
                 )
                 is_bold = (font_weight == "bold") if font_weight is not None else False
@@ -889,7 +857,7 @@ class Ng_Main(QMainWindow):
             }}\n"""
         )
         file_path_style_qss = os_path.join(self.here, "ng_style.qss")
-        qss += Ng_QSS_Loader.read_qss_file(file_path_style_qss, "")
+        qss += Ng_QSS.read_qss_file(file_path_style_qss, "")
         self.setStyleSheet(qss)
         self.setup_menu()
         self.setup_worker()
