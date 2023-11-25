@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
-import csv
 import logging
+import os.path as os_path
 import random
 import string
 import sys
 from itertools import islice
 from math import log, sqrt
-from typing import Callable, Dict, Generator, List, Literal, Optional, Tuple, Union
+from typing import Callable, Dict, List, Literal, Optional, Union
+
+from stanza import Document
 
 from neosca_gui import DATA_FOLDER
+from neosca_gui.neosca.parser import Ns_SCA_Parser
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_nlp import Ng_NLP_Stanza
 from neosca_gui.ng_util import SCAProcedureResult
@@ -67,6 +70,7 @@ class LCA:
         precision: int = 4,
         ofile: str = "result.csv",
         is_stdout: bool = False,
+        is_cache: bool = False,
     ) -> None:
         assert wordlist in ("bnc", "anc")
         assert tagset in ("ud", "ptb")
@@ -80,6 +84,8 @@ class LCA:
         self.precision = precision
         self.ofile = ofile
         self.is_stdout = is_stdout
+        self.is_cache = is_cache
+        self.cache_extension = ".pickle.lzma"
 
         self.scaio = SCAIO()
         self.nlp_spacy: Optional[Callable] = None
@@ -369,24 +375,29 @@ class LCA:
             modifier_variation,
         )
 
-    def _analyze(
-        self,
-        *,
-        file_path: Optional[str] = None,
-        text: Optional[str] = None,
-    ):
-        assert (not file_path) ^ (not text)
+    def _analyze(self, *, file_path: Optional[str] = None, doc: Optional[Union[str, Document]] = None):
+        assert (not file_path) ^ (not doc)
 
         if file_path is not None:
             logging.info(f"Processing {file_path}...")
-            text = self.scaio.read_file(file_path)
+            cache_path = os_path.splitext(file_path)[0] + self.cache_extension
+            has_cache = SCAIO.has_valid_cache(file_path=file_path, cache_path=cache_path)
+            if has_cache:
+                logging.info(
+                    f"Loading cache: {cache_path} already exists, and is non-empty and newer than {file_path}."
+                )
+                doc = Ng_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
+            else:
+                doc = self.scaio.read_file(file_path)
         else:
             file_path = "cmdline_text"
+            cache_path = file_path + self.cache_extension
 
-        if text is None:
+        if doc is None:
             return None
-
-        condition_map = self.condition_map
+        lemma_pos_gen = Ns_SCA_Parser.get_lemma_and_pos(
+            doc, tagset=self.tagset, is_cache=self.is_cache, cache_path=cache_path
+        )
 
         word_count_map: Dict[str, int] = {}
         sword_count_map: Dict[str, int] = {}
@@ -398,8 +409,7 @@ class LCA:
         adv_count_map: Dict[str, int] = {}
         noun_count_map: Dict[str, int] = {}
         lemma_lst = []
-
-        lemma_pos_gen = self.get_lemma_and_pos(text, self.tagset)
+        condition_map = self.condition_map
         # Universal POS tags: https://universaldependencies.org/u/pos/
         for lemma, pos in lemma_pos_gen:
             if condition_map["is_misc"](lemma, pos):
@@ -492,7 +502,7 @@ class LCA:
         csv_writer.writerow(self.FIELDNAMES)
 
         if text is not None:
-            values = self._analyze(text=text)
+            values = self._analyze(doc=text)
             if values is not None:
                 csv_writer.writerow(values)
 
@@ -519,14 +529,3 @@ class LCA:
             return func(self, *args, **kwargs)
 
         return wrapper
-
-    def get_lemma_and_pos(
-        self, text: str, tagset: Literal["ud", "ptb"]
-    ) -> Generator[Tuple[str, str], None, None]:
-        doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "lemma"))  # type:ignore
-        assert tagset in ("ud", "ptb")
-        pos_attr = "upos" if self.tagset == "ud" else "xpos"
-
-        for sent in doc.sentences:
-            for word in sent.words:
-                yield (word.lemma.lower(), getattr(word, pos_attr))

@@ -732,7 +732,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "is_auto_save": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_reserve_parsed": self.main.checkbox_cache_parsed_trees.isChecked(),
+            "is_reserve_parsed": self.main.checkbox_cache_sca.isChecked(),
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "config": None,
@@ -783,6 +783,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
             "tagset": "ud" if self.main.radiobutton_tagset_ud.isChecked() else "ptb",
             "is_stdout": False,
+            "is_cache": self.main.checkbox_cache_lca.isChecked(),
         }
         attrname = "lca_analyzer"
         try:
@@ -926,9 +927,6 @@ class Ng_Main(QMainWindow):
         # TODO comment this out before releasing
         self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.checkbox_cache_parsed_trees = QCheckBox("Cache parse trees")
-        self.checkbox_cache_parsed_trees.setChecked(True)
-
         self.model_sca = Ng_Model(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
@@ -950,12 +948,16 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
+        # Setting area
+        self.checkbox_cache_sca = QCheckBox("Cache")
+        self.checkbox_cache_sca.setChecked(True)
+
         widget_settings_sca = QWidget()
         layout_settings_sca = QGridLayout()
         widget_settings_sca.setLayout(layout_settings_sca)
-        layout_settings_sca.addWidget(self.checkbox_cache_parsed_trees, 0, 0)
+        layout_settings_sca.addWidget(self.checkbox_cache_sca, 0, 0)
         layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-        layout_settings_sca.setContentsMargins(1, 0, 1, 0)
+        layout_settings_sca.setContentsMargins(6, 0, 6, 0)
 
         self.scrollarea_settings_sca = QScrollArea()
         self.scrollarea_settings_sca.setWidgetResizable(True)

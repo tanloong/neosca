@@ -127,7 +127,7 @@ class SCAIO:
             return True, None
 
     @classmethod
-    def load_pickle_lzma_file(cls, file_path: str, default:Any=None) -> dict:
+    def load_pickle_lzma_file(cls, file_path: Union[str, PathLike], default: Any = None) -> dict:
         import lzma
         import pickle
 
@@ -141,13 +141,26 @@ class SCAIO:
             return default
 
     @classmethod
-    def load_pickle_file(cls, file_path: str, default:Any=None) -> Any:
+    def load_pickle_file(cls, file_path: Union[str, PathLike], default: Any = None) -> Any:
         import pickle
 
         if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
             with open(file_path, "rb") as f:
                 data_pickle = f.read()
             return pickle.loads(data_pickle)
+        else:
+            return default
+
+    @classmethod
+    def load_lzma_file(cls, file_path: Union[str, PathLike], default: Any = None) -> bytes:
+        import lzma
+
+        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
+            with open(file_path, "rb") as f:
+                data_lzma = f.read()
+
+            data = lzma.decompress(data_lzma)
+            return data
         else:
             return default
 
@@ -173,3 +186,14 @@ class SCAIO:
                 logging.critical(f"No such file as\n\n{path}")
                 sys.exit(1)
         return set(verified_ifile_list)
+
+    @classmethod
+    def has_valid_cache(cls, file_path: str, cache_path: str) -> bool:
+        ret = False
+        is_exist = os_path.exists(cache_path)
+        if is_exist:
+            is_not_empty = os_path.getsize(cache_path) > 0
+            is_cache_newer_than_input = os_path.getmtime(cache_path) > os_path.getmtime(file_path)
+            if is_not_empty and is_cache_newer_than_input:
+                ret = True
+        return ret
