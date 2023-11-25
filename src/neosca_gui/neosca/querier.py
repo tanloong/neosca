@@ -10,8 +10,9 @@ from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Union
 
-from ..pytregex.node_descriptions import NODE_ANY, NODE_TEXT
-from ..pytregex.relation import (
+from neosca_gui.neosca.scaexceptions import CircularDefinitionError, InvalidSourceError
+from neosca_gui.pytregex.node_descriptions import NODE_ANY, NODE_TEXT
+from neosca_gui.pytregex.relation import (
     CHILD_OF,
     DOMINATED_BY,
     DOMINATES,
@@ -22,8 +23,7 @@ from ..pytregex.relation import (
     PARENT_OF,
     RIGHT_SISTER_OF,
 )
-from ..pytregex.tree import Tree
-from .scaexceptions import CircularDefinitionError, InvalidSourceError
+from neosca_gui.pytregex.tree import Tree
 
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter

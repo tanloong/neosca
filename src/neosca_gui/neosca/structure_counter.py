@@ -5,7 +5,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from typing import Dict, List, Optional, Set, Union
 
-from .scaexceptions import StructureNotFoundError
+from neosca_gui.neosca.scaexceptions import StructureNotFoundError
 
 
 class Structure:

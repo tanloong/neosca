@@ -2,7 +2,7 @@
 
 import sys
 
-from ..ng_platform_info import IS_WINDOWS
+from neosca_gui.ng_platform_info import IS_WINDOWS
 
 
 class _bcolors:

@@ -5,7 +5,7 @@ import subprocess
 import sys
 from subprocess import CalledProcessError
 
-from .scaenv import STANFORD_TREGEX_HOME, getenv
+from neosca_gui.neosca.scaenv import STANFORD_TREGEX_HOME, getenv
 
 
 def tregex_cli():

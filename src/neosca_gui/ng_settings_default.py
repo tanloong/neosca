@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .ng_platform_info import IS_MAC, IS_WINDOWS, get_linux_distro
+from neosca_gui.ng_platform_info import IS_MAC, IS_WINDOWS, get_linux_distro
 
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_settings/wl_settings_default.py
 # > The following settings need to be loaded before initialization of the main window

@@ -3,7 +3,7 @@ import logging
 import sys
 from typing import Optional
 
-from ..ng_nlp import Ng_NLP_Stanza
+from neosca_gui.ng_nlp import Ng_NLP_Stanza
 
 
 class Ns_Stanza:

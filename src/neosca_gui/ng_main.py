@@ -64,13 +64,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .neosca.lca.lca import LCA
-from .neosca.neosca import NeoSCA
-from .neosca.structure_counter import StructureCounter
-from .ng_about import __name__, __version__
-from .ng_io import SCAIO
-from .ng_qss import Ng_QSS
-from .ng_settings_default import (
+from neosca_gui.neosca.lca.lca import LCA
+from neosca_gui.neosca.neosca import NeoSCA
+from neosca_gui.neosca.structure_counter import StructureCounter
+from neosca_gui.ng_about import __name__, __version__
+from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_qss import Ng_QSS
+from neosca_gui.ng_settings_default import (
     DEFAULT_FONT_FAMILY,
     DEFAULT_FONT_SIZE,
     DEFAULT_INTERFACE_SCALING,

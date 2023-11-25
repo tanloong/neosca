@@ -6,10 +6,10 @@ import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
-from ..ng_io import SCAIO
-from ..ng_util import SCAProcedureResult
-from .about import __version__
-from .scaprint import color_print
+from neosca_gui.neosca.about import __version__
+from neosca_gui.neosca.scaprint import color_print
+from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_util import SCAProcedureResult
 
 
 class SCAUI:

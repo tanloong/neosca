@@ -13,7 +13,7 @@ from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Uni
 
 from charset_normalizer import detect
 
-from .ng_util import SCAProcedureResult
+from neosca_gui.ng_util import SCAProcedureResult
 
 
 class SCAIO:

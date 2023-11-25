@@ -8,9 +8,9 @@ import sys
 from math import log, sqrt
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
-from ...ng_io import SCAIO
-from ...ng_nlp import Ng_NLP_Stanza
-from ...ng_util import SCAProcedureResult
+from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_nlp import Ng_NLP_Stanza
+from neosca_gui.ng_util import SCAProcedureResult
 
 
 class LCA:

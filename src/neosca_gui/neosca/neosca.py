@@ -5,10 +5,10 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
-from ..ng_io import SCAIO
-from .parser import Ns_Stanza
-from .querier import Ns_PyTregex
-from .structure_counter import StructureCounter
+from neosca_gui.neosca.parser import Ns_Stanza
+from neosca_gui.neosca.querier import Ns_PyTregex
+from neosca_gui.neosca.structure_counter import StructureCounter
+from neosca_gui.ng_io import SCAIO
 
 
 class NeoSCA:

@@ -3,7 +3,7 @@
 import re
 from typing import Generator, Iterable, Iterator, List, NamedTuple, Optional
 
-from .tree import Tree
+from neosca_gui.pytregex.tree import Tree
 
 
 class NamedNodes:
