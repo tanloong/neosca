@@ -539,13 +539,13 @@ class LCA:
         return wrapper
 
     def get_lemma_and_udpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
-        doc = Ng_NLP_Stanza.nlp(text)  # type:ignore
+        doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "lemma"))  # type:ignore
         for sent in doc.sentences:
             for word in sent.words:
                 yield (word.lemma.lower(), word.upos)
 
     def get_lemma_and_ptbpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
-        doc = Ng_NLP_Stanza.nlp(text)  # type:ignore
+        doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "lemma"))  # type:ignore
         for sent in doc.sentences:
             for word in sent.words:
                 yield (word.lemma.lower(), word.xpos)

@@ -15,14 +15,14 @@ class Ng_NLP_Stanza:
             dir=model_dir,
             # TODO: need to (1) choose processors dynamically when initializing
             # (2) see if possible to drop or load processors after initializing
-            processors="tokenize,pos,constituency",
+            processors="tokenize,pos,lemma,constituency",
             # https://github.com/stanfordnlp/stanza/issues/331
             resources_url="stanford",
             download_method=None,
         )
 
     @classmethod
-    def nlp(cls, text: str):
+    def nlp(cls, text: str, processors=None):
         if not hasattr(cls, "pipeline"):
             cls.initialize()
-        return cls.pipeline(text)
+        return cls.pipeline(text, processors=processors)

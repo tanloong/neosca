@@ -15,7 +15,7 @@ class Ns_Stanza:
         ofile_parsed: str = "cmdline_text.parsed",
         is_stdout: bool = False,
     ) -> str:
-        doc = Ng_NLP_Stanza.nlp(text)
+        doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "constituency"))
         trees = "\n".join(sent.constituency.pretty_print() for sent in doc.sentences)
         if is_reserve_parsed:
             if not is_stdout:
