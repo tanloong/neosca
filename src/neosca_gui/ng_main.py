@@ -119,30 +119,30 @@ class Ng_Model(QStandardItemModel):
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
 
-    def _clear_data(self, leave_an_empty_record=True) -> None:
+    def _clear_data(self, leave_an_empty_row=True) -> None:
         if self.orientation == "hor":
             self.setRowCount(0)
-            if leave_an_empty_record:
+            if leave_an_empty_row:
                 self.setRowCount(1)
         elif self.orientation == "ver":
             self.setColumnCount(0)
-            if leave_an_empty_record:
+            if leave_an_empty_row:
                 self.setColumnCount(1)
         self.data_cleared.emit()
 
-    def clear_data(self, confirm=False, leave_an_empty_record=True) -> None:
+    def clear_data(self, confirm=False, leave_an_empty_row=True) -> None:
         """
         Clear data, reserve headers
         """
         if not confirm or self.has_been_exported:
-            return self._clear_data(leave_an_empty_record=leave_an_empty_record)
+            return self._clear_data(leave_an_empty_row=leave_an_empty_row)
 
         messagebox = QMessageBox(self.main)
         messagebox.setWindowTitle("Clear Table")
         messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
         messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
 
-        messagebox.accepted.connect(lambda: self._clear_data(leave_an_empty_record=leave_an_empty_record))
+        messagebox.accepted.connect(lambda: self._clear_data(leave_an_empty_row=leave_an_empty_row))
         messagebox.exec()
 
     def is_empty(self):
@@ -240,6 +240,7 @@ class Ng_TableView(QTableView):
             self.setEnabled(False)
 
     def on_data_cleared(self) -> None:
+        self.horizontalHeader().resizeSections()
         self.setEnabled(False)
 
     def on_data_updated(self) -> None:
