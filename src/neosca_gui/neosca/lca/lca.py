@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
+import csv
 import logging
-import os.path as os_path
 import random
 import string
 import sys
+from itertools import islice
 from math import log, sqrt
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Callable, Dict, Generator, List, Literal, Optional, Tuple, Union
 
+from neosca_gui import DATA_FOLDER
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_nlp import Ng_NLP_Stanza
 from neosca_gui.ng_util import SCAProcedureResult
@@ -59,30 +61,40 @@ class LCA:
     def __init__(
         self,
         wordlist: str = "bnc",
-        tagset: str = "ud",
+        tagset: Literal["ud", "ptb"] = "ud",
+        easy_word_threshold: int = 2000,
+        section_size: int = 50,
+        precision: int = 4,
         ofile: str = "result.csv",
         is_stdout: bool = False,
     ) -> None:
+        assert wordlist in ("bnc", "anc")
+        assert tagset in ("ud", "ptb")
+
+        logging.debug(f"Using {wordlist.upper()} wordlist")
+        self.wordlist = wordlist
+        logging.debug(f"Using {tagset.upper()} POS tagset")
+        assert tagset in ("ud", "ptb")
+        self.tagset: Literal["ud", "ptb"] = tagset
+        self.section_size = section_size
+        self.precision = precision
         self.ofile = ofile
         self.is_stdout = is_stdout
 
         self.scaio = SCAIO()
         self.nlp_spacy: Optional[Callable] = None
 
-        assert wordlist in ("bnc", "anc")
-        logging.debug(f"Using {wordlist.upper()} wordlist")
-        self.wordlist = wordlist
+        data_path = DATA_FOLDER / self.WORDLIST_DATAFILE_MAP[wordlist]
+        logging.debug(f"Loading {data_path}...")
+        data = self.scaio.load_pickle_lzma_file(data_path)
+        self.word_dict = data["word_dict"]
+        self.adj_dict = data["adj_dict"]
+        self.verb_dict = data["verb_dict"]
+        self.noun_dict = data["noun_dict"]
+        self.word_ranks = sorted(self.word_dict.keys(), key=lambda w: self.word_dict[w], reverse=True)
+        self.easy_words = self.word_ranks[:easy_word_threshold]
 
-        assert tagset in ("ud", "ptb")
-        logging.debug(f"Using {tagset.upper()} POS tagset")
-        self.tagset = tagset
-
-        self.get_lemma_and_pos = {
-            "ud": self.get_lemma_and_udpos,
-            "ptb": self.get_lemma_and_ptbpos,
-        }[tagset]
-
-        tagset_conds_map = {
+        self.TAGSET_CONDITION_MAP = {
             "ud": {
                 "is_misc": self._is_misc_ud,
                 "is_sword": self._is_sword_ud,
@@ -100,30 +112,7 @@ class LCA:
                 "is_verb": self._is_verb_ptb,
             },
         }
-        self.condition_map = tagset_conds_map[tagset]
-
-        data_dir = os_path.join(os_path.dirname(os_path.dirname(__file__)), "data")
-        datafile = os_path.join(data_dir, self.WORDLIST_DATAFILE_MAP[wordlist])
-        logging.debug(f"Loading {datafile}...")
-        data = self.scaio.load_pickle_lzma_file(datafile)
-
-        word_dict = data["word_dict"]
-        adj_dict = data["adj_dict"]
-        verb_dict = data["verb_dict"]
-        noun_dict = data["noun_dict"]
-        word_ranks = self._sort_by_value(word_dict)
-        easy_words = word_ranks[-2000:]
-
-        self.word_dict = word_dict
-        self.adj_dict = adj_dict
-        self.verb_dict = verb_dict
-        self.noun_dict = noun_dict
-
-        self.word_ranks = word_ranks
-        self.easy_words = easy_words
-
-        # adjust minimum sample size here
-        self.standard = 50
+        self.condition_map = self.TAGSET_CONDITION_MAP[tagset]
 
     def update_options(self, kwargs: Dict):
         self.__init__(**kwargs)
@@ -197,9 +186,8 @@ class LCA:
 
     def _is_verb_ud(self, lemma: str, pos: str) -> bool:
         # Don't have to filter auxiliary verbs, because the VERB tag covers
-        #  main verbs (content verbs) but it does not cover auxiliary verbs
-        #  and verbal copulas (in the narrow sense), for which there is the
-        #  AUX tag.
+        # main verbs (content verbs) but it does not cover auxiliary verbs and
+        # verbal copulas (in the narrow sense), for which there is the AUX tag.
         #  https://universaldependencies.org/u/pos/VERB.html
         if pos == "VERB":
             return True
@@ -212,51 +200,46 @@ class LCA:
             return False
         return True
 
-    def _sort_by_value(self, d):
-        """Returns the keys of dictionary d sorted by their values"""
-        items = d.items()
-        backitems = [[v[1], v[0]] for v in items]
-        backitems.sort()
-        return [backitems[i][1] for i in range(0, len(backitems))]
+    def get_ndw_first_z(self, section_size, lemma_lst):
+        """NDW for first 'section_size' words in a sample"""
+        return len(set(lemma_lst[:section_size]))
 
-    def get_ndw_first_z(self, z, lemma_lst):
-        """NDW for first z words in a sample"""
-        ndw_first_z_types = {}
-        for lemma in lemma_lst[:z]:
-            ndw_first_z_types[lemma] = 1
-        return len(ndw_first_z_types)
-
-    def get_ndw_erz(self, z, lemma_lst):
-        """NDW expected random z words, 10 trials"""
+    def get_ndw_erz(self, section_size, lemma_lst):
+        """NDW expected random 'section_size' words, 10 trials"""
         ndw_erz = 0
         for _ in range(10):
-            erz_lemma_lst = random.sample(lemma_lst, z)
+            erz_lemma_lst = random.sample(lemma_lst, section_size)
 
             ndw_erz_types = set(erz_lemma_lst)
             ndw_erz += len(ndw_erz_types)
         return ndw_erz / 10
 
-    def get_ndw_esz(self, z, lemma_lst):
-        """NDW expected random sequences of z words, 10 trials"""
+    def get_ndw_esz(self, section_size, lemma_lst):
+        """NDW expected random sequences of 'section_size' words, 10 trials"""
         ndw_esz = 0
         for _ in range(10):
-            start_word = random.randint(0, len(lemma_lst) - z)
-            esz_lemma_lst = lemma_lst[start_word : start_word + z]
+            start_word = random.randint(0, len(lemma_lst) - section_size)
+            esz_lemma_lst = lemma_lst[start_word : start_word + section_size]
 
             ndw_esz_types = set(esz_lemma_lst)
             ndw_esz += len(ndw_esz_types)
         return ndw_esz / 10
 
-    def get_msttr(self, z, lemma_lst):
+    # https://stackoverflow.com/a/22045226/20732031
+    def _chunk(self, it, size):
+        it = iter(it)
+        return iter(lambda: tuple(islice(it, size)), ())
+
+    def get_msttr(self, section_size: int, lemma_lst: List[str]):
+        """
+        Mean Segmental TTR
+        """
         sample_nr = 0
         msttr = 0
-        while len(lemma_lst) >= z:
-            sample_nr += 1
-            msttr_types = {}
-            for lemma in lemma_lst[:z]:
-                msttr_types[lemma] = 1
-            msttr += len(msttr_types) / z if z else 0
-            lemma_lst = lemma_lst[z:]
+        for chunk in self._chunk(lemma_lst, section_size):
+            if len(chunk) == section_size:
+                sample_nr += 1
+                msttr += len(set(chunk)) / section_size if section_size else 0
         return msttr / sample_nr if sample_nr else 0
 
     def _safe_div(self, n1: Union[int, float], n2: Union[int, float]) -> float:
@@ -276,59 +259,59 @@ class LCA:
         lemma_lst,
     ):
         word_type_nr = len(word_count_map)
-        word_token_nr = sum(count for count in word_count_map.values())
+        word_token_nr = sum(word_count_map.values())
         lemma_nr = word_token_nr
 
         sword_type_nr = len(sword_count_map)
-        sword_token_nr = sum(count for count in sword_count_map.values())
+        sword_token_nr = sum(sword_count_map.values())
 
         lex_type_nr = len(lex_count_map)
-        lex_token_nr = sum(count for count in lex_count_map.values())
+        lex_token_nr = sum(lex_count_map.values())
 
         slex_type_nr = len(slex_count_map)
-        slex_token_nr = sum(count for count in slex_count_map.values())
+        slex_token_nr = sum(slex_count_map.values())
 
         verb_type_nr = len(verb_count_map)
-        verb_token_nr = sum(count for count in verb_count_map.values())
+        verb_token_nr = sum(verb_count_map.values())
 
         sverb_type_nr = len(sverb_count_map)
-        # sverb_token_nr = sum(count for count in sverb_count_map.values())
+        # sverb_token_nr = sum(sverb_count_map.values())
 
         adj_type_nr = len(adj_count_map)
-        # adj_token_nr = sum(count for count in adj_count_map.values())
+        # adj_token_nr = sum(adj_count_map.values())
 
         adv_type_nr = len(adv_count_map)
-        # adv_token_nr = sum(count for count in adv_count_map.values())
+        # adv_token_nr = sum(adv_count_map.values())
 
         noun_type_nr = len(noun_count_map)
-        noun_token_nr = sum(count for count in noun_count_map.values())
+        noun_token_nr = sum(noun_count_map.values())
 
-        # 1. lexical density
-        ld = self._safe_div(lex_token_nr, word_token_nr)
+        # 1. Lexical density
+        lexical_density = self._safe_div(lex_token_nr, word_token_nr)
 
-        # 2. lexical sophistication
-        # 2.1 lexical sophistication
-        ls1 = self._safe_div(slex_token_nr, lex_token_nr)
-        ls2 = self._safe_div(sword_type_nr, word_type_nr)
+        # 2. Lexical sophistication
+        # 2.1 Lexical sophistication
+        lexical_sophistication1 = self._safe_div(slex_token_nr, lex_token_nr)
+        lexical_sophistication2 = self._safe_div(sword_type_nr, word_type_nr)
 
-        # 2.2 verb sophistication
-        vs1 = self._safe_div(sverb_type_nr, verb_token_nr)
-        vs2 = self._safe_div((sverb_type_nr**2), verb_token_nr)
-        cvs1 = self._safe_div(sverb_type_nr, sqrt(2 * verb_token_nr))
+        # 2.2 Verb sophistication
+        verb_sophistication1 = self._safe_div(sverb_type_nr, verb_token_nr)
+        verb_sophistication2 = self._safe_div((sverb_type_nr**2), verb_token_nr)
+        corrected_verb_sophistication1 = self._safe_div(sverb_type_nr, sqrt(2 * verb_token_nr))
 
-        # 3 lexical diversity or variation
+        # 3 Lexical diversity or variation
 
-        # 3.1 NDW, may adjust the values of "self.standard"
+        # 3.1 NDW, may adjust the values of "self.section_size"
         ndw = ndwz = ndwerz = ndwesz = word_type_nr
-        if lemma_nr >= self.standard:
-            ndwz = self.get_ndw_first_z(self.standard, lemma_lst)
-            ndwerz = self.get_ndw_erz(self.standard, lemma_lst)
-            ndwesz = self.get_ndw_esz(self.standard, lemma_lst)
+        if lemma_nr >= self.section_size:
+            ndwz = self.get_ndw_first_z(self.section_size, lemma_lst)
+            ndwerz = self.get_ndw_erz(self.section_size, lemma_lst)
+            ndwesz = self.get_ndw_esz(self.section_size, lemma_lst)
 
         # 3.2 TTR
         msttr = ttr = self._safe_div(word_type_nr, word_token_nr)
-        if lemma_nr >= self.standard:
-            msttr = self.get_msttr(self.standard, lemma_lst)
+        if lemma_nr >= self.section_size:
+            msttr = self.get_msttr(self.section_size, lemma_lst)
         cttr = self._safe_div(word_type_nr, sqrt(2 * word_token_nr))
         rttr = self._safe_div(word_type_nr, sqrt(word_token_nr))
         logttr = self._safe_div(log(word_type_nr), log(word_token_nr))
@@ -337,18 +320,18 @@ class LCA:
             log(self._safe_div(word_token_nr, word_type_nr), 10),
         )
 
-        # 3.3 verb diversity
-        vv1 = self._safe_div(verb_type_nr, verb_token_nr)
-        svv1 = self._safe_div(verb_type_nr * verb_type_nr, verb_token_nr)
-        cvv1 = self._safe_div(verb_type_nr, sqrt(2 * verb_token_nr))
+        # 3.3 Verb diversity
+        verb_variation1 = self._safe_div(verb_type_nr, verb_token_nr)
+        squared_verb_variation1 = self._safe_div(verb_type_nr * verb_type_nr, verb_token_nr)
+        corrected_verb_variation1 = self._safe_div(verb_type_nr, sqrt(2 * verb_token_nr))
 
-        # 3.4 lexical diversity
-        lv = self._safe_div(lex_type_nr, lex_token_nr)
-        vv2 = self._safe_div(verb_type_nr, lex_token_nr)
-        nv = self._safe_div(noun_type_nr, noun_token_nr)
-        adjv = self._safe_div(adj_type_nr, lex_token_nr)
-        advv = self._safe_div(adv_type_nr, lex_token_nr)
-        modv = self._safe_div((adv_type_nr + adj_type_nr), lex_token_nr)
+        # 3.4 Lexical diversity
+        lexical_word_variation = self._safe_div(lex_type_nr, lex_token_nr)
+        verb_variation2 = self._safe_div(verb_type_nr, lex_token_nr)
+        noun_variation = self._safe_div(noun_type_nr, noun_token_nr)
+        adjective_variation = self._safe_div(adj_type_nr, lex_token_nr)
+        adverb_variation = self._safe_div(adv_type_nr, lex_token_nr)
+        modifier_variation = self._safe_div((adv_type_nr + adj_type_nr), lex_token_nr)
 
         return (
             word_type_nr,
@@ -359,12 +342,12 @@ class LCA:
             sword_token_nr,
             lex_token_nr,
             slex_token_nr,
-            ld,
-            ls1,
-            ls2,
-            vs1,
-            vs2,
-            cvs1,
+            lexical_density,
+            lexical_sophistication1,
+            lexical_sophistication2,
+            verb_sophistication1,
+            verb_sophistication2,
+            corrected_verb_sophistication1,
             ndw,
             ndwz,
             ndwerz,
@@ -375,15 +358,15 @@ class LCA:
             rttr,
             logttr,
             uber,
-            lv,
-            vv1,
-            svv1,
-            cvv1,
-            vv2,
-            nv,
-            adjv,
-            advv,
-            modv,
+            lexical_word_variation,
+            verb_variation1,
+            squared_verb_variation1,
+            corrected_verb_variation1,
+            verb_variation2,
+            noun_variation,
+            adjective_variation,
+            adverb_variation,
+            modifier_variation,
         )
 
     def _analyze(
@@ -416,10 +399,9 @@ class LCA:
         noun_count_map: Dict[str, int] = {}
         lemma_lst = []
 
-        g = self.get_lemma_and_pos(text)
-
+        lemma_pos_gen = self.get_lemma_and_pos(text, self.tagset)
         # Universal POS tags: https://universaldependencies.org/u/pos/
-        for lemma, pos in g:
+        for lemma, pos in lemma_pos_gen:
             if condition_map["is_misc"](lemma, pos):
                 continue
 
@@ -494,7 +476,7 @@ class LCA:
         )
         if values is None:
             return values
-        values = [str(round(v, 4)) for v in values]
+        values = [str(round(v, self.precision)) for v in values]
         values.insert(0, file_path)
         return values
 
@@ -538,14 +520,13 @@ class LCA:
 
         return wrapper
 
-    def get_lemma_and_udpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
+    def get_lemma_and_pos(
+        self, text: str, tagset: Literal["ud", "ptb"]
+    ) -> Generator[Tuple[str, str], None, None]:
         doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "lemma"))  # type:ignore
-        for sent in doc.sentences:
-            for word in sent.words:
-                yield (word.lemma.lower(), word.upos)
+        assert tagset in ("ud", "ptb")
+        pos_attr = "upos" if self.tagset == "ud" else "xpos"
 
-    def get_lemma_and_ptbpos(self, text: str) -> Generator[Tuple[str, str], Any, None]:
-        doc = Ng_NLP_Stanza.nlp(text, processors=("tokenize", "pos", "lemma"))  # type:ignore
         for sent in doc.sentences:
             for word in sent.words:
-                yield (word.lemma.lower(), word.xpos)
+                yield (word.lemma.lower(), getattr(word, pos_attr))

@@ -64,6 +64,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from neosca_gui import NEOSCA_HOME
 from neosca_gui.neosca.lca.lca import LCA
 from neosca_gui.neosca.neosca import NeoSCA
 from neosca_gui.neosca.structure_counter import StructureCounter
@@ -665,7 +666,7 @@ class Ng_Dialog_Text_Edit_Citing(Ng_Dialog_Text_Edit):
         super().__init__(*args, title="Citing", **kwargs)
         # citing.json is at the same dir of __file__
         # TODO: need to have a unified way to get project path.
-        with open(os_path.join(os_path.dirname(__file__), "citing.json"), encoding="utf-8") as f:
+        with open(NEOSCA_HOME / "citing.json", encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
         self.label_citing = QLabel(f"If you use {__name__} in your research, please kindly cite as follows.")
@@ -846,7 +847,7 @@ class Ng_Main(QMainWindow):
         self.setup_env()
 
         self.setWindowTitle(f"{__name__} {__version__}")
-        file_path_settings = os_path.join(self.here, "ng_settings.pickle")
+        file_path_settings = NEOSCA_HOME / "ng_settings.pickle"
         self.settings_custom = SCAIO.load_pickle_file(file_path_settings, None)
         if self.settings_custom is None:
             self.settings_custom = copy.deepcopy(settings_default)
@@ -857,7 +858,7 @@ class Ng_Main(QMainWindow):
             font-size: {self.settings_custom['general']['ui_settings']['font_size']}pt;
             }}\n"""
         )
-        file_path_style_qss = os_path.join(self.here, "ng_style.qss")
+        file_path_style_qss = NEOSCA_HOME / "ng_style.qss"
         qss += Ng_QSS.read_qss_file(file_path_style_qss, "")
         self.setStyleSheet(qss)
         self.setup_menu()
@@ -1149,9 +1150,7 @@ class Ng_Main(QMainWindow):
         self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
 
     def setup_env(self) -> None:
-        self.here = os_path.dirname(os_path.abspath(__file__))
-        ng_home = os_path.dirname(self.here)
-        libs_dir = os_path.join(ng_home, "libs")
+        libs_dir = os_path.join(NEOSCA_HOME, "libs")
         # TODO: remove these
         self.java_home = os_path.join(libs_dir, "jdk8u372")
         self.stanford_parser_home = os_path.join(libs_dir, "stanford-parser-full-2020-11-17")

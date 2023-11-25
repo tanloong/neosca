@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from os import PathLike
 import os.path as os_path
 import re
 from typing import Any, Dict, Optional, Union
@@ -14,7 +15,7 @@ class Ng_QSS:
         pass
 
     @staticmethod
-    def read_qss_file(qss_file_path: str, default: Any = ""):
+    def read_qss_file(qss_file_path: Union[str, PathLike], default: Any = ""):
         if os_path.isfile(qss_file_path) and os_path.getsize(qss_file_path) > 0:
             with open(qss_file_path, encoding="utf-8") as file:
                 return file.read()

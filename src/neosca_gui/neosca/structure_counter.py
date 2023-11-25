@@ -1,10 +1,10 @@
 import json
 import logging
-import os.path as os_path
 from collections import OrderedDict
 from copy import deepcopy
 from typing import Dict, List, Optional, Set, Union
 
+from neosca_gui import DATA_FOLDER
 from neosca_gui.neosca.scaexceptions import StructureNotFoundError
 
 
@@ -114,7 +114,7 @@ class Structure:
 
 
 class StructureCounter:
-    data_file = os_path.join(os_path.dirname(__file__), "data", "structure_data.json")
+    data_file = DATA_FOLDER / "structure_data.json"
     with open(data_file, encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 

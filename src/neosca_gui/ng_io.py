@@ -9,6 +9,7 @@ import logging
 import os.path as os_path
 import sys
 import zipfile
+from os import PathLike
 from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Union
 
 from charset_normalizer import detect
