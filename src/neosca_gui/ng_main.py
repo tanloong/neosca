@@ -845,7 +845,6 @@ class Ng_Thread(QThread):
 class Ng_Main(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setup_env()
 
         self.setWindowTitle(f"{__name__} {__version__}")
         file_path_settings = NEOSCA_HOME / "ng_settings.pickle"
@@ -1150,17 +1149,6 @@ class Ng_Main(QMainWindow):
         self.ng_thread_lca_generate_table = Ng_Thread(self.ng_worker_lca_generate_table)
         self.ng_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
         self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
-
-    def setup_env(self) -> None:
-        libs_dir = os_path.join(NEOSCA_HOME, "libs")
-        # TODO: remove these
-        self.java_home = os_path.join(libs_dir, "jdk8u372")
-        self.stanford_parser_home = os_path.join(libs_dir, "stanford-parser-full-2020-11-17")
-        self.stanford_tregex_home = os_path.join(libs_dir, "stanford-tregex-2020-11-17")
-        os.environ["JAVA_HOME"] = self.java_home
-        os.environ["STANFORD_PARSER_HOME"] = self.stanford_parser_home
-        os.environ["STANFORD_TREGEX_HOME"] = self.stanford_tregex_home
-        self.env = os.environ.copy()
 
     def show_menu_for_tableview_file(self) -> None:
         if not self.tableview_file.selectionModel().selectedRows():
