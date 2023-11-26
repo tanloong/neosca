@@ -186,13 +186,13 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
         super().paint(painter, option, index)
         if self.is_index_clickable(index):
             painter.save()
-            # painter.setBrush(QBrush(Qt.GlobalColor.darkGray))
             painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
+            triangle_leg = option.rect.height() * 0.23
             painter.drawPolygon(
                 (
-                    QPoint(option.rect.x() + option.fontMetrics.descent() * 2, option.rect.y()),
+                    QPoint(option.rect.x() + triangle_leg, option.rect.y()),
                     QPoint(option.rect.x(), option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y() + option.fontMetrics.descent() * 2),
+                    QPoint(option.rect.x(), option.rect.y() + triangle_leg),
                 )
             )
             painter.restore()
