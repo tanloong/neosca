@@ -9,12 +9,8 @@ from itertools import islice
 from math import log, sqrt
 from typing import Callable, Dict, List, Literal, Optional, Union
 
-from stanza import Document
-
 from neosca_gui import DATA_FOLDER
-from neosca_gui.neosca.parser import Ns_SCA_Parser
 from neosca_gui.ng_io import SCAIO
-from neosca_gui.ng_nlp import Ng_NLP_Stanza
 from neosca_gui.ng_util import SCAProcedureResult
 
 
@@ -375,7 +371,9 @@ class LCA:
             modifier_variation,
         )
 
-    def _analyze(self, *, file_path: Optional[str] = None, doc: Optional[Union[str, Document]] = None):
+    def _analyze(self, *, file_path: Optional[str] = None, doc = None):
+        from neosca_gui.ng_nlp import Ng_NLP_Stanza
+
         assert (not file_path) ^ (not doc)
 
         if file_path is not None:
@@ -395,7 +393,7 @@ class LCA:
 
         if doc is None:
             return None
-        lemma_pos_gen = Ns_SCA_Parser.get_lemma_and_pos(
+        lemma_pos_gen = Ng_NLP_Stanza.get_lemma_and_pos(
             doc, tagset=self.tagset, is_cache=self.is_cache, cache_path=cache_path
         )
 
