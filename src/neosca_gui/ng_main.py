@@ -600,7 +600,7 @@ class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
         return super().exec()
 
 
-class Ng_Dialog_Text_Edit(Ng_Dialog):
+class Ng_Dialog_TextEdit(Ng_Dialog):
     def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
         super().__init__(*args, title=title, resizable=True, **kwargs)
         self.textedit = QTextEdit(text)
@@ -646,7 +646,7 @@ class Ng_Dialog_Text_Edit(Ng_Dialog):
         return super().exec()
 
 
-class Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(Ng_Dialog_Text_Edit):
+class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
     def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
         super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
         self.file_name = index.model().verticalHeaderItem(index.row()).text()
@@ -661,7 +661,7 @@ class Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(Ng_Dialog_Text_Edit):
         self.addWidget(self.label_summary)
 
 
-class Ng_Dialog_Text_Edit_Citing(Ng_Dialog_Text_Edit):
+class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, title="Citing", **kwargs)
         # citing.json is at the same dir of __file__
