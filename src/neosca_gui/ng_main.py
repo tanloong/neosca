@@ -1284,6 +1284,211 @@ class Ng_Main(QMainWindow):
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
 
 
+class Ng_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # > Do not add file watchers to the paths. This reduces overhead when using the
+        # > model for simple tasks like line edit completion.
+        self.setOption(QFileSystemModel.Option.DontWatchForChanges)
+        self.has_set_root = False
+
+    def start_querying(self):
+        # > QFileSystemModel will not fetch any files or directories until
+        # > setRootPath() is called.
+        if not self.has_set_root:
+            self.setRootPath(QDir.homePath())
+            self.has_set_root = True
+
+
+class Ng_LineEdit(QLineEdit):
+    """
+    This class is used in Ng_LineEdit_Path to let Ng_FileSystemModel start
+    querying through emitting the "focused" signal. The querying should only
+    start at the first emit and all subsequent emits are ignored. We prefer the
+    custom "focused" signal over the built-in "textEdited" because it has much
+    less frequent emits.
+    """
+
+    focused = Signal()
+
+    def __init__(self, contents: Optional[str] = None, parent: Optional[QWidget] = None):
+        if contents is None:
+            super().__init__(parent)
+        else:
+            super().__init__(contents, parent)
+
+    # Override
+    def focusInEvent(self, e: QFocusEvent):
+        super().focusInEvent(e)
+        self.focused.emit()
+
+
+class Ng_LineEdit_Path(QWidget):
+    # https://stackoverflow.com/a/20796318/20732031
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        filesystem_model = Ng_FileSystemModel()
+        completer_lineedit_files = QCompleter()
+        completer_lineedit_files.setModel(filesystem_model)
+        completer_lineedit_files.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
+        completer_lineedit_files.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.lineedit = Ng_LineEdit()
+        self.lineedit.focused.connect(filesystem_model.start_querying)
+        self.lineedit.setCompleter(completer_lineedit_files)
+        button_browse = QPushButton("Browse")
+        button_browse.clicked.connect(self.get_default_path)
+
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.addWidget(self.lineedit)
+        hlayout.addWidget(button_browse)
+        self.setLayout(hlayout)
+
+    def get_default_path(self):
+        folder_path = QFileDialog.getExistingDirectory(caption="Choose Path")
+        if not folder_path:
+            return
+        self.lineedit.setText(folder_path)
+
+
+class Ng_Widget_Settings_General(QWidget):
+    name = "General"
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.setup_font()
+
+        self.grid_layout.addLayout(self.formlayout_font, 0, 0)
+        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+
+    def setup_font(self):
+        self.combobox_family = QFontComboBox()
+        # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
+        self.combobox_family.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.name_writing_system_mapping = {
+            QFontDatabase.writingSystemName(ws): ws for ws in QFontDatabase.writingSystems()
+        }
+        self.combobox_writing_system = QComboBox()
+        self.combobox_writing_system.addItems(tuple(self.name_writing_system_mapping.keys()))
+        self.combobox_writing_system.setEditable(True)
+        self.combobox_writing_system.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+
+        self.combobox_style = QComboBox()
+        self.combobox_style.addItems(QFontDatabase.styles(self.combobox_family.currentText()))
+        self.spinbox_point_size = QSpinBox()
+        self.spinbox_point_size.setRange(6, 20)
+
+        # Bind
+        self.combobox_writing_system.currentTextChanged.connect(
+            lambda name: self.combobox_family.setWritingSystem(self.name_writing_system_mapping[name])
+            if name in self.name_writing_system_mapping
+            else None
+        )
+        self.combobox_family.currentTextChanged.connect(self.update_available_font_styles)
+
+        self.formlayout_font = QFormLayout()
+        self.formlayout_font.addRow(QLabel("Writing system filter:"), self.combobox_writing_system)
+        # self.grid_layout.addWidget(QLabel("Writing system filter:"), 0, 0)
+        # self.grid_layout.addWidget(self.combobox_writing_system, 0, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.formlayout_font.addRow(QLabel("Font family:"), self.combobox_family)
+        # self.grid_layout.addWidget(QLabel("Font family:"), 1, 0)
+        # self.grid_layout.addWidget(self.combobox_family, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.formlayout_font.addRow(QLabel("Font style:"), self.combobox_style)
+        # self.grid_layout.addWidget(QLabel("Font style:"), 2, 0)
+        # self.grid_layout.addWidget(self.combobox_style, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.formlayout_font.addRow(QLabel("Font size:"), self.spinbox_point_size)
+        # self.grid_layout.addWidget(QLabel("Font size:"), 3, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        # self.grid_layout.addWidget(self.spinbox_point_size, 3, 1)
+
+    def update_available_font_styles(self, family: str):
+        self.combobox_style.clear()
+        self.combobox_style.addItems(QFontDatabase.styles(family))
+
+
+class Ng_Widget_Settings_Import(QWidget):
+    name = "Import"
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.setup_files()
+
+        self.grid_layout.addWidget(self.groupbox_files, 0, 0)
+        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+
+    def setup_files(self):
+        label_path = QLabel("Default path:")
+        lineedit_path = Ng_LineEdit_Path()
+
+        layout_files = QGridLayout()
+        layout_files.addWidget(label_path, 0, 0)
+        layout_files.addWidget(lineedit_path, 0, 1)
+        self.groupbox_files = QGroupBox("Files")
+        self.groupbox_files.setLayout(layout_files)
+
+
+class Ng_Widget_Settings_Export(QWidget):
+    name = "Export"
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.setup_tables()
+
+        self.grid_layout.addWidget(self.groupbox_tables, 0, 0)
+        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+
+    def setup_tables(self):
+        lineedit_path = Ng_LineEdit_Path()
+        combobox_types = QComboBox()
+        combobox_types.addItems(("Excel Workbook (*.xlsx)", "CSV File (*.csv)", "TSV File (*.tsv)"))
+
+        formlayout_tables = QFormLayout()
+        formlayout_tables.addRow(QLabel("Default path:"), lineedit_path)
+        formlayout_tables.addRow(QLabel("Default type:"), combobox_types)
+        self.groupbox_tables = QGroupBox("Tables")
+        self.groupbox_tables.setLayout(formlayout_tables)
+
+
+class Ng_Dialog_Settings(Ng_Dialog):
+    sections = (
+        Ng_Widget_Settings_General,
+        Ng_Widget_Settings_Import,
+        Ng_Widget_Settings_Export,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, title="Settings", resizable=True, **kwargs)
+
+        self.listwidget_settings = QListWidget()
+        self.listwidget_settings.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.stackedwidget_settings = QStackedWidget()
+        for cls in self.sections:
+            self.listwidget_settings.addItem(cls.name)
+            self.stackedwidget_settings.addWidget(cls())
+        self.button_save = QPushButton("Save")
+        self.button_apply = QPushButton("Apply")
+        self.button_cancel = QPushButton("Cancel")
+
+        # Bind
+        self.listwidget_settings.currentRowChanged.connect(self.stackedwidget_settings.setCurrentIndex)
+        self.button_cancel.clicked.connect(self.reject)
+
+        self.addWidget(self.listwidget_settings, 0, 0)
+        self.addWidget(self.stackedwidget_settings, 0, 1)
+        self.addButton(self.button_save, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
+        self.addButton(self.button_apply, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
+        self.addButton(self.button_cancel, 0, 2, alignment=Qt.AlignmentFlag.AlignRight)
+
+
 def main():
     ui_scaling = DEFAULT_INTERFACE_SCALING
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
