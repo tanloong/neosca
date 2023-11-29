@@ -4,7 +4,8 @@ from typing import Any, List
 
 from PySide6.QtCore import QSettings
 
-from neosca_gui.ng_about import __name__
+from neosca_gui import SETTING_PATH
+from neosca_gui.ng_settings.ng_settings_default import settings_default
 
 
 class Ng_Settings:
@@ -14,9 +15,10 @@ class Ng_Settings:
 
     # Use IniFormat to avoid Windows system registry limitations on subkey lengths
     # https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSettings.html#platform-limitations
-    QSettings.setDefaultFormat(QSettings.Format.IniFormat)
-    # Orgnization name, application name
-    settings = QSettings(__name__.lower(), __name__.lower())
+    settings = QSettings(str(SETTING_PATH), QSettings.Format.IniFormat)
+    for k, v in settings_default.items():
+        if not settings.contains(k):
+            settings.setValue(k, v)
 
     @classmethod
     def allKeys(cls) -> List[str]:
@@ -35,8 +37,17 @@ class Ng_Settings:
         return cls.settings.fileName()
 
     @classmethod
-    def value(cls, key: str, defaultValue: Any = None) -> Any:
-        return cls.settings.value(key, defaultValue)
+    def value(cls, key: str, *args, **kwargs) -> Any:
+        """
+        e.g.
+            called with defaultValue:
+                >>> value("num", 100)
+            called with type:
+                >>> value("is_windows", type=bool)
+                # Use the "type" arg to get values of types other than string
+                # https://bugreports.qt.io/browse/PYSIDE-1466
+        """
+        return cls.settings.value(key, *args, **kwargs)
 
     @classmethod
     def setValue(cls, key: str, value: Any) -> None:

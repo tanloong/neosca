@@ -1,845 +1,55 @@
 #!/usr/bin/env python3
 
-import copy
 import glob
-import json
 import os
 import os.path as os_path
 import re
 import subprocess
 import sys
-import textwrap
-from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, Union
+from typing import Generator, List, Set
 
-from PySide6.QtCore import (
-    QElapsedTimer,
-    QModelIndex,
-    QObject,
-    QPersistentModelIndex,
-    QPoint,
-    Qt,
-    QThread,
-    QTime,
-    QTimer,
-    Signal,
-)
-from PySide6.QtGui import (
-    QAction,
-    QBrush,
-    QColor,
-    QCursor,
-    QPainter,
-    QPalette,
-    QStandardItem,
-    QStandardItemModel,
-    QTextBlockFormat,
-    QTextCursor,
-)
+from PySide6.QtCore import QModelIndex, Qt
+from PySide6.QtGui import QAction, QCursor, QStandardItem
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QCheckBox,
-    QComboBox,
-    QDialog,
     QFileDialog,
     QFontDialog,
     QGridLayout,
     QGroupBox,
-    QHeaderView,
-    QLabel,
     QMainWindow,
     QMenu,
-    QMessageBox,
     QPushButton,
     QRadioButton,
-    QScrollArea,
     QSizePolicy,
     QSpacerItem,
     QSplitter,
-    QStyledItemDelegate,
-    QStyleOptionViewItem,
     QTableView,
     QTabWidget,
-    QTextEdit,
     QWidget,
 )
 
-from neosca_gui import NEOSCA_HOME
+from neosca_gui import QSS_PATH
 from neosca_gui.neosca.lca.lca import LCA
-from neosca_gui.neosca.neosca import NeoSCA
 from neosca_gui.neosca.structure_counter import StructureCounter
 from neosca_gui.ng_about import __name__, __version__
 from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_platform_info import IS_MAC
 from neosca_gui.ng_qss import Ng_QSS
-from neosca_gui.ng_settings_default import (
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_FONT_SIZE,
-    DEFAULT_INTERFACE_SCALING,
-    settings_default,
+from neosca_gui.ng_settings.ng_dialog_settings import Ng_Dialog_Settings
+from neosca_gui.ng_settings.ng_settings import Ng_Settings
+from neosca_gui.ng_settings.ng_settings_default import available_import_types
+from neosca_gui.ng_threads import Ng_Thread, Ng_Worker_LCA_Generate_Table, Ng_Worker_SCA_Generate_Table
+from neosca_gui.ng_widgets import (
+    Ng_Delegate_SCA,
+    Ng_Dialog_Processing_With_Elapsed_Time,
+    Ng_Dialog_Table,
+    Ng_Dialog_TextEdit_Citing,
+    Ng_Model,
+    Ng_ScrollArea,
+    Ng_TableView,
 )
-
-
-class Ng_Model(QStandardItemModel):
-    data_cleared = Signal()
-    # itemChanged ^ !data_cleared
-    data_updated = Signal()
-    data_exported = Signal()
-
-    def __init__(self, *args, main, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.main = main
-        self.orientation = orientation
-
-        self.has_been_exported: bool = False
-        self.data_exported.connect(lambda: self.set_has_been_exported(True))
-        self.data_updated.connect(lambda: self.set_has_been_exported(False))
-
-    def set_item_str(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> None:
-        item = value if isinstance(value, QStandardItem) else QStandardItem(value)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.setItem(rowno, colno, item)
-
-    def set_row_str(self, rowno: int, values: Iterable[Union[QStandardItem, str]]) -> None:
-        for colno, value in enumerate(values):
-            self.set_item_str(rowno, colno, value)
-
-    def set_item_num(self, rowno: int, colno: int, value: Union[QStandardItem, int, float, str]) -> None:
-        if isinstance(value, QStandardItem):
-            item = value
-        else:
-            if not isinstance(value, str):
-                value = str(value)
-            item = QStandardItem(value)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.setItem(rowno, colno, item)
-
-    def set_row_num(self, rowno: int, values: Iterable[Union[QStandardItem, int, float, str]]) -> None:
-        for colno, value in enumerate(values):
-            self.set_item_num(rowno, colno, value)
-
-    def set_has_been_exported(self, exported: bool) -> None:
-        self.has_been_exported = exported
-
-    def _clear_data(self, leave_an_empty_row=True) -> None:
-        if self.orientation == "hor":
-            self.setRowCount(0)
-            if leave_an_empty_row:
-                self.setRowCount(1)
-        elif self.orientation == "ver":
-            self.setColumnCount(0)
-            if leave_an_empty_row:
-                self.setColumnCount(1)
-        self.data_cleared.emit()
-
-    def clear_data(self, confirm=False, leave_an_empty_row=True) -> None:
-        """
-        Clear data, reserve headers
-        """
-        if not confirm or self.has_been_exported:
-            return self._clear_data(leave_an_empty_row=leave_an_empty_row)
-
-        messagebox = QMessageBox(self.main)
-        messagebox.setWindowTitle("Clear Table")
-        messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
-        messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-
-        messagebox.accepted.connect(lambda: self._clear_data(leave_an_empty_row=leave_an_empty_row))
-        messagebox.exec()
-
-    def is_empty(self):
-        for row in range(self.rowCount()):
-            for column in range(self.columnCount()):
-                item = self.item(row, column)
-                if item is not None and item.text() != "":
-                    return False
-        return True
-
-    def remove_single_empty_row(self) -> None:
-        if self.rowCount() == 1 and self.item(0, 0) is None:
-            self.setRowCount(0)
-
-    # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
-    def flags(self, index) -> Qt.ItemFlag:
-        if index.data() is None:
-            return Qt.ItemFlag.NoItemFlags
-        return super().flags(index)
-
-
-class Ng_Delegate_SCA(QStyledItemDelegate):
-    def __init__(self, parent=None, qss: str = ""):
-        super().__init__(parent)
-        if (
-            triangle_rgb := Ng_QSS.get_value(qss, "QHeaderView::section:horizontal", "background-color")
-        ) is not None:
-            self.triangle_rgb = triangle_rgb
-        else:
-            self.triangle_rgb = "#000000"
-
-        self.pos_dialog_mappings: Dict[Tuple[int, int], Ng_Dialog_Text_Edit_SCA_Matched_Subtrees] = {}
-
-    @staticmethod
-    def is_index_clickable(index) -> bool:
-        data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
-        return data_in_user_role is not None and data_in_user_role
-
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
-        super().paint(painter, option, index)
-        if self.is_index_clickable(index):
-            painter.save()
-            painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
-            triangle_leg = option.rect.height() * 0.23
-            painter.drawPolygon(
-                (
-                    QPoint(option.rect.x() + triangle_leg, option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y() + triangle_leg),
-                )
-            )
-            painter.restore()
-
-    def createEditor(self, parent, option, index):
-        if not self.is_index_clickable(index):
-            return None
-        pos = (index.row(), index.column())
-        if pos in self.pos_dialog_mappings:
-            self.pos_dialog_mappings[pos].activateWindow()
-        else:
-            dialog = Ng_Dialog_Text_Edit_SCA_Matched_Subtrees(parent, index=index)
-            self.pos_dialog_mappings[pos] = dialog
-            dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(pos))
-            dialog.show()
-
-
-class Ng_TableView(QTableView):
-    def __init__(
-        self,
-        *args,
-        main,
-        model: Ng_Model,
-        has_horizontal_header: bool = True,
-        has_vertical_header: bool = True,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.main = main
-        self.setModel(model)
-        self.model_: Ng_Model = model
-        self.model_.data_cleared.connect(self.on_data_cleared)
-        self.model_.data_updated.connect(self.on_data_updated)
-        self.has_horizontal_header = has_horizontal_header
-        self.has_vertical_header = has_vertical_header
-
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.horizontalHeader().setHighlightSections(False)
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.verticalHeader().setHighlightSections(False)
-        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
-
-        if self.model_.is_empty():
-            self.setEnabled(False)
-
-    def on_data_cleared(self) -> None:
-        self.horizontalHeader().resizeSections()
-        self.setEnabled(False)
-
-    def on_data_updated(self) -> None:
-        # TODO: only need to enable at the first time
-        if not self.isEnabled():
-            self.setEnabled(True)
-        self.scrollToBottom()
-
-    def model(self) -> Ng_Model:
-        """Override QTableView().model()"""
-        return self.model_
-
-    def set_openpyxl_horizontal_header_alignment(self, cell) -> None:
-        from openpyxl.styles import Alignment
-
-        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-
-    def set_openpyxl_vertical_header_alignment(self, cell) -> None:
-        from openpyxl.styles import Alignment
-
-        if self.has_vertical_header:
-            cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
-
-    def set_openpyxl_cell_alignment(self, cell, item: QStandardItem) -> None:
-        # https://doc.qt.io/qtforpython-6/PySide6/QtCore/Qt.html#PySide6.QtCore.PySide6.QtCore.Qt.AlignmentFlag
-        # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.alignment.html
-        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L887
-        # Qt
-        #  Horizontal: Qt.AlignLeft, Qt.AlignRight,  Qt.AlignHCenter, Qt.AlignJustify
-        #  Vertical:   Qt.AlignTop,  Qt.AlignBottom, Qt.AlignVCenter, Qt.AlignBaseline
-        # OpenPyXL
-        #  Horizontal: justify, center, distributed, left, right, fill, general, centerContinuous
-        #  Vertical:   justify, center, distributed, top,  bottom
-
-        from openpyxl.styles import Alignment
-
-        alignment_item: Qt.AlignmentFlag = item.textAlignment()
-
-        # Horizontal
-        if alignment_item & Qt.AlignmentFlag.AlignLeft:
-            alignment_cell_horizontal = "left"
-        elif alignment_item & Qt.AlignmentFlag.AlignRight:
-            alignment_cell_horizontal = "right"
-        elif alignment_item & Qt.AlignmentFlag.AlignHCenter:
-            alignment_cell_horizontal = "center"
-        elif alignment_item & Qt.AlignmentFlag.AlignJustify:
-            alignment_cell_horizontal = "justify"
-        else:
-            alignment_cell_horizontal = "left"
-
-        # Vertical
-        if Qt.AlignmentFlag.AlignTop in alignment_item:
-            alignment_cell_vertical = "top"
-        elif Qt.AlignmentFlag.AlignBottom in alignment_item:
-            alignment_cell_vertical = "bottom"
-        elif Qt.AlignmentFlag.AlignVCenter in alignment_item:
-            alignment_cell_vertical = "center"
-        # > Wordless: Not sure
-        elif Qt.AlignmentFlag.AlignBaseline in alignment_item:
-            alignment_cell_vertical = "justify"
-        else:
-            alignment_cell_vertical = "center"
-
-        cell.alignment = Alignment(
-            horizontal=alignment_cell_horizontal, vertical=alignment_cell_vertical, wrap_text=True
-        )
-
-    def export_table(self) -> None:
-        file_path, file_type = QFileDialog.getSaveFileName(
-            parent=None,
-            caption="Export Table",
-            dir=os_path.normpath(os_path.expanduser("~/Desktop")),
-            filter="Excel Workbook (*.xlsx);;CSV File (*.csv);;TSV File (*.tsv)",
-        )
-        if not file_path:
-            return
-
-        model: Ng_Model = self.model()
-        col_count = model.columnCount()
-        row_count = model.rowCount()
-        try:
-            if ".xlsx" in file_type:
-                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
-                import openpyxl
-                from openpyxl.styles import Font, PatternFill
-                from openpyxl.utils import get_column_letter
-
-                workbook = openpyxl.Workbook()
-                worksheet = workbook.active
-                worksheet_cell = worksheet.cell
-
-                rowno_cell_offset = 2 if self.has_horizontal_header else 1
-                colno_cell_offset = 2 if self.has_vertical_header else 1
-
-                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L628C3-L629C82
-                dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
-                dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
-
-                # 1. Horizontal header text and alignment
-                if self.has_horizontal_header:
-                    for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet_cell(1, colno_cell_offset + colno_cell)
-                        cell.value = model.horizontalHeaderItem(colno_item).text()
-                        self.set_openpyxl_horizontal_header_alignment(cell)
-                # 2. Vertical header text and alignment
-                if self.has_vertical_header:
-                    for rowno_cell, rowno_item in enumerate(range(row_count)):
-                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
-                        cell.value = model.verticalHeaderItem(rowno_item).text()
-                        self.set_openpyxl_vertical_header_alignment(cell)
-
-                # 3. Both header background and font
-                # 3.0.1 Get header background
-                horizon_bacolor: Optional[str] = Ng_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
-                )
-                vertical_bacolor: Optional[str] = Ng_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
-                )
-                # 3.0.2 Get header font, currently only consider color and boldness
-                #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
-                #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = Ng_QSS.get_qss_value(self.main.styleSheet(), "QHeaderView::section", "color")
-                font_color = font_color.lstrip("#") if font_color is not None else "000"
-                font_weight = Ng_QSS.get_qss_value(
-                    self.main.styleSheet(), "QHeaderView::section", "font-weight"
-                )
-                is_bold = (font_weight == "bold") if font_weight is not None else False
-                # 3.1 Horizontal header background and font
-                if self.has_horizontal_header:
-                    # 3.1.1 Horizontal header background
-                    #  TODO: Currently all tabpages share the same style sheet and the
-                    #   single QSS file is loaded from MainWindow, thus here the
-                    #   style sheet is accessed from self. In the future different
-                    #   tabs might load their own QSS files, and the style sheet
-                    #   should be accessed from the QTabWidget. This is also the
-                    #   case for all other "self.styleSheet()" expressions, when
-                    #   making this change, remember to edit all of them.
-                    if horizon_bacolor is not None:
-                        horizon_bacolor = horizon_bacolor.lstrip("#")
-                        for colno in range(col_count):
-                            cell = worksheet_cell(1, colno_cell_offset + colno)
-                            cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
-                    # 3.1.2 Horizontal header font
-                    for colno in range(col_count):
-                        cell = worksheet_cell(1, colno_cell_offset + colno)
-                        cell.font = Font(color=font_color, bold=is_bold)
-                # 3.2 Vertical header background and font
-                if self.has_vertical_header:
-                    # 3.2.1 Vertial header background
-                    if vertical_bacolor is not None:
-                        vertical_bacolor = vertical_bacolor.lstrip("#")
-                        for rowno in range(row_count):
-                            cell = worksheet_cell(rowno_cell_offset + rowno, 1)
-                            cell.fill = PatternFill(fill_type="solid", fgColor=vertical_bacolor)
-                    # 3.2.2 Vertical header font
-                    for rowno in range(row_count):
-                        cell = worksheet_cell(rowno_cell_offset + rowno, 1)
-                        cell.font = Font(color=font_color, bold=is_bold)
-
-                # 4. Cells
-                for rowno in range(row_count):
-                    for colno in range(col_count):
-                        cell = worksheet_cell(rowno_cell_offset + rowno, colno_cell_offset + colno)
-                        item = model.item(rowno, colno)
-                        item_value = item.text()
-                        try:  # noqa: SIM105
-                            item_value = float(item_value)
-                        except ValueError:
-                            pass
-                        cell.value = item_value
-                        self.set_openpyxl_cell_alignment(cell, item)
-                # 5. Column width
-                for colno in range(col_count):
-                    # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L729
-                    worksheet.column_dimensions[get_column_letter(colno_cell_offset + colno)].width = (
-                        self.horizontalHeader().sectionSize(colno) / dpi_horizontal * 13 + 3
-                    )
-
-                if self.has_vertical_header:
-                    # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L731
-                    worksheet.column_dimensions[get_column_letter(1)].width = (
-                        self.verticalHeader().width() / dpi_horizontal * 13 + 3
-                    )
-                # 6. Row height
-                worksheet.row_dimensions[1].height = self.horizontalHeader().height() / dpi_vertical * 72
-                # 7. Freeze panes
-                # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
-                # Using "2" in both cases means to always freeze the 1st column
-                if self.has_horizontal_header:
-                    worksheet.freeze_panes = "B2"
-                else:
-                    worksheet.freeze_panes = "A2"
-                workbook.save(file_path)
-            elif ".csv" in file_type or ".tsv" in file_type:
-                import csv
-
-                dialect = csv.excel if ".csv" in file_type else csv.excel_tab
-                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
-                    csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
-                    # Horizontal header
-                    hor_header: List[str] = [""]
-                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
-                    csv_writer.writerow(hor_header)
-                    # Vertical header + cells
-                    for rowno in range(row_count):
-                        row: List[str] = [model.verticalHeaderItem(rowno).text()]
-                        row.extend(model.item(rowno, colno).text() for colno in range(col_count))
-                        csv_writer.writerow(row)
-            QMessageBox.information(
-                self, "Success", f"The table has been successfully exported to {file_path}."
-            )
-        except PermissionError:
-            QMessageBox.critical(
-                self,
-                "Error Exporting Cells",
-                f"PermissionError: failed to export the table to {file_path}.",
-            )
-        else:
-            model.data_exported.emit()
-
-
-# https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
-class Ng_Dialog(QDialog):
-    def __init__(
-        self, *args, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
-    ) -> None:
-        """
-        ┌———————————┐
-        │           │
-        │  content  │
-        │           │
-        │———————————│
-        │  buttons  │
-        └———————————┘
-        """
-        super().__init__(*args, **kwargs)
-        # > Dialog size
-        if resizable:
-            if not width:
-                width = self.size().width()
-
-            if not height:
-                height = self.size().height()
-
-            self.resize(width, height)
-        else:
-            if width:
-                self.setFixedWidth(width)
-
-            if height:
-                self.setFixedHeight(height)
-            # Gives the window a thin dialog border on Windows. This style is
-            # traditionally used for fixed-size dialogs.
-            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        self.setWindowTitle(title)
-
-        self.content_layout = QGridLayout()
-        self.button_layout = QGridLayout()
-
-        self.grid_layout = QGridLayout()
-        self.grid_layout.addLayout(self.content_layout, 0, 0)
-        self.grid_layout.addLayout(self.button_layout, 1, 0)
-        self.setLayout(self.grid_layout)
-
-    def rowCount(self) -> int:
-        return self.content_layout.rowCount()
-
-    def columnCount(self) -> int:
-        return self.content_layout.columnCount()
-
-    def addWidget(self, *args, **kwargs) -> None:
-        self.content_layout.addWidget(*args, **kwargs)
-
-    def addButton(self, *args, **kwargs) -> None:
-        self.button_layout.addWidget(*args, **kwargs)
-
-    def setColumnStretch(self, column: int, strech: int) -> None:
-        self.content_layout.setColumnStretch(column, strech)
-
-    def setRowStretch(self, row: int, strech: int) -> None:
-        self.content_layout.setRowStretch(row, strech)
-
-
-class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
-    started = Signal()
-    # Use this to get the place holder, e.g. 0:00:00
-    time_format_re = re.compile(r"[^:]")
-
-    def __init__(
-        self,
-        *args,
-        title: str = "Please Wait",
-        width: int = 500,
-        height: int = 0,
-        time_format: str = "h:mm:ss",
-        interval: int = 1000,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, title=title, width=width, height=height, resizable=False, **kwargs)
-        self.time_format = time_format
-        self.interval = interval
-        self.elapsedtimer = QElapsedTimer()
-        self.timer = QTimer()
-
-        # TODO: this label should be exposed
-        self.label_status = QLabel("Processing...")
-        self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
-        self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
-        self.label_please_wait = QLabel(
-            "Please be patient. The wait time can range from a few seconds to several minutes."
-        )
-        self.label_please_wait.setWordWrap(True)
-
-        self.addWidget(self.label_status, 0, 0)
-        self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-        self.addWidget(self.label_please_wait, 1, 0, 1, 2)
-
-        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
-
-        # Bind
-        self.timer.timeout.connect(self.update_time_elapsed)
-        self.started.connect(self.elapsedtimer.start)
-        # If the timer is already running, it will be stopped and restarted.
-        self.started.connect(lambda: self.timer.start(self.interval))
-        # Either 'accepted' or 'rejected', although 'rejected' is disabled by
-        # overriding the 'reject' method (see below)
-        self.finished.connect(self.reset_time_elapsed)
-        self.finished.connect(self.timer.stop)
-
-    def reset_time_elapsed(self) -> None:
-        self.label_time_elapsed.setText(self.text_time_elapsed_zero)
-
-    def update_time_elapsed(self) -> None:
-        time_elapsed: int = self.elapsedtimer.elapsed()
-        qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
-        self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
-
-    # Override
-    def reject(self) -> None:
-        pass
-
-    # Override
-    def show(self) -> None:
-        self.started.emit()
-        return super().show()
-
-    # Override
-    def open(self) -> None:
-        self.started.emit()
-        return super().open()
-
-    # Override
-    def exec(self) -> int:
-        self.started.emit()
-        return super().exec()
-
-
-class Ng_Dialog_TextEdit(Ng_Dialog):
-    def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
-        super().__init__(*args, title=title, resizable=True, **kwargs)
-        self.textedit = QTextEdit(text)
-        self.textedit.setReadOnly(True)
-        # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
-        indentation: int = self.fontMetrics().horizontalAdvance(" "*4)
-        self.fmt_textedit = QTextBlockFormat()
-        self.fmt_textedit.setLeftMargin(indentation)
-        self.fmt_textedit.setTextIndent(-indentation)
-
-        self.button_copy = QPushButton("Copy")
-        self.button_copy.clicked.connect(self.textedit.selectAll)
-        self.button_copy.clicked.connect(self.textedit.copy)
-
-        self.button_close = QPushButton("Close")
-        self.button_close.clicked.connect(self.reject)
-
-        self.addButton(self.button_copy, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.addButton(self.button_close, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-
-    def setText(self, text: str) -> None:
-        self.textedit.setText(text)
-        cursor = QTextCursor(self.textedit.document())
-        cursor.select(QTextCursor.SelectionType.Document)
-        cursor.mergeBlockFormat(self.fmt_textedit)
-
-    # Override
-    def show(self) -> None:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().show()
-
-    # Override
-    def open(self) -> None:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().open()
-
-    # Override
-    def exec(self) -> int:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().exec()
-
-
-class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
-    def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
-        super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
-        self.file_name = index.model().verticalHeaderItem(index.row()).text()
-        self.sname = index.model().horizontalHeaderItem(index.column()).text()
-        self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
-        self.setText("\n".join(self.matched_subtrees))
-
-        self.label_summary = QLabel(
-            f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in "{self.file_name}"'
-        )
-        self.label_summary.setWordWrap(True)
-        self.addWidget(self.label_summary)
-
-
-class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, title="Citing", **kwargs)
-        # citing.json is at the same dir of __file__
-        # TODO: need to have a unified way to get project path.
-        with open(NEOSCA_HOME / "citing.json", encoding="utf-8") as f:
-            self.style_citation_mapping = json.load(f)
-
-        self.label_citing = QLabel(f"If you use {__name__} in your research, please kindly cite as follows.")
-        self.label_citing.setWordWrap(True)
-        self.setText(next(iter(self.style_citation_mapping.values())))
-        self.label_choose_citation_style = QLabel("Choose citation style: ")
-        self.combobox_choose_citation_style = QComboBox()
-        self.combobox_choose_citation_style.addItems(tuple(self.style_citation_mapping.keys()))
-        self.combobox_choose_citation_style.currentTextChanged.connect(
-            lambda key: self.setText(self.style_citation_mapping[key])
-        )
-
-        self.addWidget(self.label_citing, 0, 0, 1, 2)
-        self.addWidget(self.label_choose_citation_style, 1, 0)
-        self.addWidget(self.combobox_choose_citation_style, 1, 1)
-        self.setColumnStretch(1, 1)
-
-
-class Ng_Dialog_Table(Ng_Dialog):
-    def __init__(
-        self,
-        *args,
-        text: str,
-        tableview: Ng_TableView,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.tableview: Ng_TableView = tableview
-
-        self.content_layout.addWidget(QLabel(text), 0, 0)
-        self.content_layout.addWidget(tableview, 1, 0)
-
-        self.button_ok = QPushButton("OK")
-        self.button_ok.clicked.connect(self.accept)
-        self.button_export_table = QPushButton("Export table...")
-        self.button_export_table.clicked.connect(self.tableview.export_table)
-        self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-
-
-class Ng_Worker(QObject):
-    worker_done = Signal()
-
-    def __init__(self, *args, main, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.main = main
-
-    def run(self) -> None:
-        raise NotImplementedError()
-
-
-class Ng_Worker_SCA_Generate_Table(Ng_Worker):
-    counter_ready = Signal(StructureCounter, str, int)
-
-    def __init__(self, *args, main, **kwargs) -> None:
-        super().__init__(*args, main=main, **kwargs)
-
-    def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
-
-        sca_kwargs = {
-            "is_auto_save": False,
-            "odir_matched": "",
-            "selected_measures": None,
-            "is_reserve_parsed": self.main.checkbox_cache_sca.isChecked(),
-            "is_skip_querying": False,
-            "is_skip_parsing": False,
-            "config": None,
-        }
-
-        attrname = "sca_analyzer"
-        try:
-            sca_analyzer = getattr(self.main, attrname)
-        except AttributeError:
-            sca_analyzer = NeoSCA(**sca_kwargs)
-            setattr(self.main, attrname, sca_analyzer)
-        else:
-            sca_analyzer.update_options(sca_kwargs)
-
-        err_file_paths: List[str] = []
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
-            try:
-                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(file_path)
-                # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if counter is None:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            self.counter_ready.emit(counter, file_name, rowno)
-
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                None,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
-        self.worker_done.emit()
-
-
-class Ng_Worker_LCA_Generate_Table(Ng_Worker):
-    def __init__(self, *args, main, **kwargs) -> None:
-        super().__init__(*args, main=main, **kwargs)
-
-    def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
-
-        lca_kwargs = {
-            "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
-            "tagset": "ud" if self.main.radiobutton_tagset_ud.isChecked() else "ptb",
-            "is_stdout": False,
-            "is_cache": self.main.checkbox_cache_lca.isChecked(),
-        }
-        attrname = "lca_analyzer"
-        try:
-            lca_analyzer = getattr(self.main, attrname)
-        except AttributeError:
-            lca_analyzer = LCA(**lca_kwargs)
-            setattr(self.main, attrname, lca_analyzer)
-        else:
-            lca_analyzer.update_options(lca_kwargs)
-
-        err_file_paths: List[str] = []
-        model: Ng_Model = self.main.model_lca
-        has_trailing_rows: bool = True
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
-            try:
-                values = lca_analyzer._analyze(file_path=file_path)
-            except:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if values is None:  # TODO: should pop up warning window
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if has_trailing_rows:
-                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            # Drop file_path
-            del values[0]
-            model.set_row_num(rowno, values)
-            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-            model.data_updated.emit()
-
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                None,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
-
-        self.worker_done.emit()
-
-
-class Ng_Thread(QThread):
-    def __init__(self, worker: Ng_Worker):
-        super().__init__()
-        self.worker = worker
-        # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
-        self.worker.moveToThread(self)
-
-    def run(self):
-        self.start()
-        self.worker.run()
-
-    # def cancel(self) -> None:
-    #     self.terminate()
-    #     self.wait()
 
 
 class Ng_Main(QMainWindow):
@@ -847,23 +57,28 @@ class Ng_Main(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle(f"{__name__} {__version__}")
-        file_path_settings = NEOSCA_HOME / "ng_settings.pickle"
-        self.settings_custom = SCAIO.load_pickle_file(file_path_settings, None)
-        if self.settings_custom is None:
-            self.settings_custom = copy.deepcopy(settings_default)
-        qss = textwrap.dedent(
-            f"""\
-            * {{
-            font-family: "{self.settings_custom['general']['ui_settings']['font_family']}";
-            font-size: {self.settings_custom['general']['ui_settings']['font_size']}pt;
-            }}\n"""
-        )
-        file_path_style_qss = NEOSCA_HOME / "ng_style.qss"
-        qss += Ng_QSS.read_qss_file(file_path_style_qss, "")
+        qss = Ng_QSS.read_qss_file(QSS_PATH)
+        qss += f"""\n* {{
+         font-family: {Ng_Settings.value('Appearance/font-family')};
+         font-size: {Ng_Settings.value('Appearance/font-size')}pt;
+         }}"""
         self.setStyleSheet(qss)
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
+        self.fix_macos_layout(self)
+
+    # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_main.py#L266
+    def fix_macos_layout(self, parent):
+        if not IS_MAC:
+            return
+
+        for widget in parent.children():
+            if widget.children():
+                self.fix_macos_layout(widget)
+            else:
+                if isinstance(widget, QWidget) and not isinstance(widget, QPushButton):
+                    widget.setAttribute(Qt.WidgetAttribute.WA_LayoutUsesWidgetRect)
 
     def setup_menu(self):
         # File
@@ -889,6 +104,11 @@ class Ng_Main(QMainWindow):
         self.menu_preferences = QMenu("Preferences", self.menuBar())
         action_font = QAction("Font", self.menu_preferences)
         action_font.triggered.connect(self.menubar_preferences_font)
+        action_settings = QAction("Settings", self.menu_preferences)
+        # TODO: remove this before releasing
+        action_settings.setShortcut("CTRL+S")
+        action_settings.triggered.connect(self.menubar_preferences_settings)
+        self.menu_preferences.addAction(action_settings)
         self.menu_preferences.addAction(action_font)
         # Help
         self.menu_help = QMenu("Help", self.menuBar())
@@ -901,23 +121,35 @@ class Ng_Main(QMainWindow):
         self.menuBar().addMenu(self.menu_help)
 
     def menubar_preferences_font(self) -> None:
-        ok, font = QFontDialog.getFont()
+        ok, font = QFontDialog.getFont(self.font(), parent=self)
         if not ok:
             return
-        breakpoint()
-        print(ok, font)
+        Ng_QSS.set_value(self, "*", "font-family", font.family())
+        Ng_QSS.set_value(self, "*", "font-size", f"{font.pointSize()}pt")
+        Ng_QSS.set_value(self, "*", "font-style", font.style().name[5:])
+        Ng_QSS.set_value(self, "*", "font-weight", str(font.weight().value))
+
+        print("font-family", font.family())
+        print("font-size", f"{font.pointSize()}pt")
+        print("font-style", font.style().name[5:])
+        print("font-weight", str(font.weight().value))
+
+    def menubar_preferences_settings(self) -> None:
+        Ng_Dialog_Settings(self).exec()
 
     def menubar_help_citing(self) -> None:
-        dialog_citing = Ng_Dialog_Text_Edit_Citing(self)
+        dialog_citing = Ng_Dialog_TextEdit_Citing(self)
         dialog_citing.exec()
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
         self.button_generate_table_sca.setShortcut("CTRL+G")
-        self.button_export_table_sca = QPushButton("Export all cells...")
+        self.button_export_table_sca = QPushButton("Export table...")
         self.button_export_table_sca.setEnabled(False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
+        self.button_export_matches_sca = QPushButton("Export matches...")
+        self.button_export_matches_sca.setEnabled(False)
         self.button_clear_table_sca = QPushButton("Clear table")
         self.button_clear_table_sca.setEnabled(False)
 
@@ -935,15 +167,19 @@ class Ng_Main(QMainWindow):
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ng_thread_sca_generate_table.start)
-        self.button_export_table_sca.clicked.connect(self.tableview_sca.export_table)
+        self.button_export_table_sca.clicked.connect(
+            lambda: self.tableview_sca.export_table("neosca_sca_results.xlsx")
+        )
         self.button_export_matches_sca.clicked.connect(self.tableview_sca.export_matches)
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
         self.model_sca.data_cleared.connect(
             lambda: self.button_generate_table_sca.setEnabled(True) if not self.model_file.is_empty() else None
         )
         self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
+        self.model_sca.data_cleared.connect(lambda: self.button_export_matches_sca.setEnabled(False))
         self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
         self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
+        self.model_sca.data_updated.connect(lambda: self.button_export_matches_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
@@ -958,9 +194,7 @@ class Ng_Main(QMainWindow):
         layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
         layout_settings_sca.setContentsMargins(6, 0, 6, 0)
 
-        self.scrollarea_settings_sca = QScrollArea()
-        self.scrollarea_settings_sca.setWidgetResizable(True)
-        self.scrollarea_settings_sca.setBackgroundRole(QPalette.ColorRole.Light)
+        self.scrollarea_settings_sca = Ng_ScrollArea()
         self.scrollarea_settings_sca.setMinimumWidth(200)
         self.scrollarea_settings_sca.setWidget(widget_settings_sca)
 
@@ -971,6 +205,7 @@ class Ng_Main(QMainWindow):
             (
                 self.button_generate_table_sca,
                 self.button_export_table_sca,
+                self.button_export_matches_sca,
                 self.button_clear_table_sca,
                 self.button_custom_func,
             ),
@@ -995,7 +230,7 @@ class Ng_Main(QMainWindow):
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
         self.button_generate_table_lca.setShortcut("CTRL+G")
-        self.button_export_table_lca = QPushButton("Export all cells...")
+        self.button_export_table_lca = QPushButton("Export table...")
         self.button_export_table_lca.setEnabled(False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
@@ -1015,7 +250,9 @@ class Ng_Main(QMainWindow):
 
         # Bind
         self.button_generate_table_lca.clicked.connect(self.ng_thread_lca_generate_table.start)
-        self.button_export_table_lca.clicked.connect(self.tableview_lca.export_table)
+        self.button_export_table_lca.clicked.connect(
+            lambda: self.tableview_lca.export_table("neosca_lca_results.xlsx")
+        )
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
         self.model_lca.data_cleared.connect(
             lambda: self.button_generate_table_lca.setEnabled(True) if not self.model_file.is_empty() else None
@@ -1026,6 +263,7 @@ class Ng_Main(QMainWindow):
         self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
         self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
 
+        # Setting area
         self.radiobutton_wordlist_BNC = QRadioButton("British National Corpus (BNC) wordlist")
         self.radiobutton_wordlist_BNC.setChecked(True)
         self.radiobutton_wordlist_ANC = QRadioButton("American National Corpus (ANC) wordlist")
@@ -1042,21 +280,22 @@ class Ng_Main(QMainWindow):
         groupbox_tagset.setLayout(layout_tagset)
         layout_tagset.addWidget(self.radiobutton_tagset_ud, 0, 0)
         layout_tagset.addWidget(self.radiobutton_tagset_ptb, 1, 0)
+        self.checkbox_cache_lca = QCheckBox("Cache")
+        self.checkbox_cache_lca.setChecked(True)
 
         widget_settings_lca = QWidget()
         layout_settings_lca = QGridLayout()
         widget_settings_lca.setLayout(layout_settings_lca)
         layout_settings_lca.addWidget(groupbox_wordlist, 0, 0)
         layout_settings_lca.addWidget(groupbox_tagset, 1, 0)
+        layout_settings_lca.addWidget(self.checkbox_cache_lca, 2, 0)
         layout_settings_lca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-        layout_settings_lca.setContentsMargins(1, 0, 1, 0)
+        layout_settings_lca.setContentsMargins(6, 0, 6, 0)
 
-        self.scrollarea_settings_lca = QScrollArea()
-        self.scrollarea_settings_lca.setWidgetResizable(True)
-        self.scrollarea_settings_lca.setBackgroundRole(QPalette.ColorRole.Light)
+        self.scrollarea_settings_lca = Ng_ScrollArea()
         self.scrollarea_settings_lca.setMinimumWidth(200)
         self.scrollarea_settings_lca.setWidget(widget_settings_lca)
-        
+
         self.widget_previewarea_lca = QWidget()
         self.layout_previewarea_lca = QGridLayout()
         self.widget_previewarea_lca.setLayout(self.layout_previewarea_lca)
@@ -1121,7 +360,6 @@ class Ng_Main(QMainWindow):
     def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
         # Remove trailing rows
         self.model_sca.removeRows(rowno, self.model_sca.rowCount() - rowno)
-        # Drop file_path
         for colno in range(self.model_sca.columnCount()):
             sname = self.model_sca.horizontalHeaderItem(colno).text()
 
@@ -1245,15 +483,13 @@ class Ng_Main(QMainWindow):
                 height=200,
                 resizable=True,
                 tableview=tableview_err_files,
+                export_filename="neosca_error_files.xlsx",
             )
             dialog.exec()
 
     def menubar_file_open_folder(self):
-        # TODO: Currently only include files of supported types, should include
-        #  all files, and popup error for unsupported files
-        folder_dialog = QFileDialog(self)
         # TODO remove default directory before releasing
-        folder_path = folder_dialog.getExistingDirectory(
+        folder_path = QFileDialog.getExistingDirectory(
             caption="Open Folder",
             dir='directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/',
         )
@@ -1266,13 +502,13 @@ class Ng_Main(QMainWindow):
         self.add_file_paths(file_paths_to_add)
 
     def menubar_file_open_file(self):
-        file_dialog = QFileDialog(self)
-        file_paths_to_add, _ = file_dialog.getOpenFileNames(
+        file_paths_to_add, _ = QFileDialog.getOpenFileNames(
             parent=None,
             caption="Open Files",
+            # TODO: remove this before releasing
             dir="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/",
-            # TODO remove this before releasing
-            filter="Text files (*.txt);;Docx files (*.docx);;Odt files (*.odt);;All files (*.*)",
+            filter=";;".join(available_import_types),
+            selectedFilter=Ng_Settings.value("Import/default-type"),
         )
         if not file_paths_to_add:
             return
@@ -1284,213 +520,9 @@ class Ng_Main(QMainWindow):
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
 
 
-class Ng_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # > Do not add file watchers to the paths. This reduces overhead when using the
-        # > model for simple tasks like line edit completion.
-        self.setOption(QFileSystemModel.Option.DontWatchForChanges)
-        self.has_set_root = False
-
-    def start_querying(self):
-        # > QFileSystemModel will not fetch any files or directories until
-        # > setRootPath() is called.
-        if not self.has_set_root:
-            self.setRootPath(QDir.homePath())
-            self.has_set_root = True
-
-
-class Ng_LineEdit(QLineEdit):
-    """
-    This class is used in Ng_LineEdit_Path to let Ng_FileSystemModel start
-    querying through emitting the "focused" signal. The querying should only
-    start at the first emit and all subsequent emits are ignored. We prefer the
-    custom "focused" signal over the built-in "textEdited" because it has much
-    less frequent emits.
-    """
-
-    focused = Signal()
-
-    def __init__(self, contents: Optional[str] = None, parent: Optional[QWidget] = None):
-        if contents is None:
-            super().__init__(parent)
-        else:
-            super().__init__(contents, parent)
-
-    # Override
-    def focusInEvent(self, e: QFocusEvent):
-        super().focusInEvent(e)
-        self.focused.emit()
-
-
-class Ng_LineEdit_Path(QWidget):
-    # https://stackoverflow.com/a/20796318/20732031
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        filesystem_model = Ng_FileSystemModel()
-        completer_lineedit_files = QCompleter()
-        completer_lineedit_files.setModel(filesystem_model)
-        completer_lineedit_files.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
-        completer_lineedit_files.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.lineedit = Ng_LineEdit()
-        self.lineedit.focused.connect(filesystem_model.start_querying)
-        self.lineedit.setCompleter(completer_lineedit_files)
-        button_browse = QPushButton("Browse")
-        button_browse.clicked.connect(self.get_default_path)
-
-        hlayout = QHBoxLayout()
-        hlayout.setContentsMargins(0, 0, 0, 0)
-        hlayout.addWidget(self.lineedit)
-        hlayout.addWidget(button_browse)
-        self.setLayout(hlayout)
-
-    def get_default_path(self):
-        folder_path = QFileDialog.getExistingDirectory(caption="Choose Path")
-        if not folder_path:
-            return
-        self.lineedit.setText(folder_path)
-
-
-class Ng_Widget_Settings_General(QWidget):
-    name = "General"
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
-        self.setup_font()
-
-        self.grid_layout.addLayout(self.formlayout_font, 0, 0)
-        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-
-    def setup_font(self):
-        self.combobox_family = QFontComboBox()
-        # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
-        self.combobox_family.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.name_writing_system_mapping = {
-            QFontDatabase.writingSystemName(ws): ws for ws in QFontDatabase.writingSystems()
-        }
-        self.combobox_writing_system = QComboBox()
-        self.combobox_writing_system.addItems(tuple(self.name_writing_system_mapping.keys()))
-        self.combobox_writing_system.setEditable(True)
-        self.combobox_writing_system.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-
-        self.combobox_style = QComboBox()
-        self.combobox_style.addItems(QFontDatabase.styles(self.combobox_family.currentText()))
-        self.spinbox_point_size = QSpinBox()
-        self.spinbox_point_size.setRange(6, 20)
-
-        # Bind
-        self.combobox_writing_system.currentTextChanged.connect(
-            lambda name: self.combobox_family.setWritingSystem(self.name_writing_system_mapping[name])
-            if name in self.name_writing_system_mapping
-            else None
-        )
-        self.combobox_family.currentTextChanged.connect(self.update_available_font_styles)
-
-        self.formlayout_font = QFormLayout()
-        self.formlayout_font.addRow(QLabel("Writing system filter:"), self.combobox_writing_system)
-        # self.grid_layout.addWidget(QLabel("Writing system filter:"), 0, 0)
-        # self.grid_layout.addWidget(self.combobox_writing_system, 0, 1, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.formlayout_font.addRow(QLabel("Font family:"), self.combobox_family)
-        # self.grid_layout.addWidget(QLabel("Font family:"), 1, 0)
-        # self.grid_layout.addWidget(self.combobox_family, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.formlayout_font.addRow(QLabel("Font style:"), self.combobox_style)
-        # self.grid_layout.addWidget(QLabel("Font style:"), 2, 0)
-        # self.grid_layout.addWidget(self.combobox_style, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.formlayout_font.addRow(QLabel("Font size:"), self.spinbox_point_size)
-        # self.grid_layout.addWidget(QLabel("Font size:"), 3, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        # self.grid_layout.addWidget(self.spinbox_point_size, 3, 1)
-
-    def update_available_font_styles(self, family: str):
-        self.combobox_style.clear()
-        self.combobox_style.addItems(QFontDatabase.styles(family))
-
-
-class Ng_Widget_Settings_Import(QWidget):
-    name = "Import"
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
-        self.setup_files()
-
-        self.grid_layout.addWidget(self.groupbox_files, 0, 0)
-        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-
-    def setup_files(self):
-        label_path = QLabel("Default path:")
-        lineedit_path = Ng_LineEdit_Path()
-
-        layout_files = QGridLayout()
-        layout_files.addWidget(label_path, 0, 0)
-        layout_files.addWidget(lineedit_path, 0, 1)
-        self.groupbox_files = QGroupBox("Files")
-        self.groupbox_files.setLayout(layout_files)
-
-
-class Ng_Widget_Settings_Export(QWidget):
-    name = "Export"
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
-        self.setup_tables()
-
-        self.grid_layout.addWidget(self.groupbox_tables, 0, 0)
-        self.grid_layout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-
-    def setup_tables(self):
-        lineedit_path = Ng_LineEdit_Path()
-        combobox_types = QComboBox()
-        combobox_types.addItems(("Excel Workbook (*.xlsx)", "CSV File (*.csv)", "TSV File (*.tsv)"))
-
-        formlayout_tables = QFormLayout()
-        formlayout_tables.addRow(QLabel("Default path:"), lineedit_path)
-        formlayout_tables.addRow(QLabel("Default type:"), combobox_types)
-        self.groupbox_tables = QGroupBox("Tables")
-        self.groupbox_tables.setLayout(formlayout_tables)
-
-
-class Ng_Dialog_Settings(Ng_Dialog):
-    sections = (
-        Ng_Widget_Settings_General,
-        Ng_Widget_Settings_Import,
-        Ng_Widget_Settings_Export,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, title="Settings", resizable=True, **kwargs)
-
-        self.listwidget_settings = QListWidget()
-        self.listwidget_settings.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.stackedwidget_settings = QStackedWidget()
-        for cls in self.sections:
-            self.listwidget_settings.addItem(cls.name)
-            self.stackedwidget_settings.addWidget(cls())
-        self.button_save = QPushButton("Save")
-        self.button_apply = QPushButton("Apply")
-        self.button_cancel = QPushButton("Cancel")
-
-        # Bind
-        self.listwidget_settings.currentRowChanged.connect(self.stackedwidget_settings.setCurrentIndex)
-        self.button_cancel.clicked.connect(self.reject)
-
-        self.addWidget(self.listwidget_settings, 0, 0)
-        self.addWidget(self.stackedwidget_settings, 0, 1)
-        self.addButton(self.button_save, 0, 0, alignment=Qt.AlignmentFlag.AlignRight)
-        self.addButton(self.button_apply, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-        self.addButton(self.button_cancel, 0, 2, alignment=Qt.AlignmentFlag.AlignRight)
-
-
 def main():
-    ui_scaling = DEFAULT_INTERFACE_SCALING
+    ui_scaling = Ng_Settings.value("Appearance/interface-scaling")
+    # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_main.py#L1238
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ng_app = QApplication(sys.argv)
     ng_window = Ng_Main()
