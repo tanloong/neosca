@@ -14,6 +14,7 @@ from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Uni
 
 from charset_normalizer import detect
 
+from neosca_gui.ng_platform_info import IS_WINDOWS
 from neosca_gui.ng_util import SCAProcedureResult
 
 
@@ -185,6 +186,12 @@ class SCAIO:
             else:
                 logging.critical(f"No such file as\n\n{path}")
                 sys.exit(1)
+        if IS_WINDOWS:
+            verified_ifile_list = [
+                path
+                for path in verified_ifile_list
+                if not (path.endswith(".docx") and os_path.basename(path).startswith("~"))
+            ]
         return set(verified_ifile_list)
 
     @classmethod
