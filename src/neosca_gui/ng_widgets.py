@@ -819,8 +819,11 @@ class Ng_LineEdit_Path(QWidget):
         self.lineedit = Ng_LineEdit()
         self.lineedit.focused.connect(filesystem_model.start_querying)
         self.lineedit.setCompleter(completer_lineedit_files)
+        self.lineedit.setClearButtonEnabled(True)
         button_browse = QPushButton("Browse")
-        button_browse.clicked.connect(self.get_default_path)
+
+        # Bind
+        button_browse.clicked.connect(self.browse_path)
 
         hlayout = QHBoxLayout()
         hlayout.setContentsMargins(0, 0, 0, 0)
@@ -828,14 +831,23 @@ class Ng_LineEdit_Path(QWidget):
         hlayout.addWidget(button_browse)
         self.setLayout(hlayout)
 
+    def text(self) -> str:
+        return self.lineedit.text()
+
     def setText(self, text: str) -> None:
         self.lineedit.setText(text)
 
-    def get_default_path(self):
+    def browse_path(self):
         folder_path = QFileDialog.getExistingDirectory(caption="Choose Path")
         if not folder_path:
             return
         self.lineedit.setText(folder_path)
+
+    def setFocus(self) -> None:
+        self.lineedit.setFocus()
+
+    def selectAll(self) -> None:
+        self.lineedit.selectAll()
 
 
 class Ng_Combobox_Editable(QComboBox):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from os import PathLike
 import os.path as os_path
 import re
+from os import PathLike
 from typing import Any, Dict, Optional, Union
 
 from PySide6.QtWidgets import QWidget
@@ -116,13 +116,8 @@ class Ng_QSS:
         return selector_declaration_mapping
 
     @classmethod
-    def set_value(cls, widget: QWidget, selector: str, property: str, value: str) -> None:
+    def set_value(cls, widget: QWidget, new_qss_mapping: Dict[str, Dict[str, str]]) -> None:
         qss_str = widget.styleSheet()
         selector_declaration_mapping: QSSMapping = cls.str_to_mapping(qss_str)
-        property_value_mapping = selector_declaration_mapping.get(selector, {})
-        if isinstance(property_value_mapping, str):
-            raise ValueError(f"{selector} is not a valid selector")
-        property_value_mapping[property] = value
-        selector_declaration_mapping[selector] = property_value_mapping
-
+        selector_declaration_mapping.update(new_qss_mapping)
         widget.setStyleSheet(cls.mapping_to_str(selector_declaration_mapping))

@@ -102,14 +102,11 @@ class Ng_Main(QMainWindow):
         self.menu_file.addAction(action_quit)
         # Preferences
         self.menu_preferences = QMenu("Preferences", self.menuBar())
-        action_font = QAction("Font", self.menu_preferences)
-        action_font.triggered.connect(self.menubar_preferences_font)
         action_settings = QAction("Settings", self.menu_preferences)
         # TODO: remove this before releasing
         action_settings.setShortcut("CTRL+S")
         action_settings.triggered.connect(self.menubar_preferences_settings)
         self.menu_preferences.addAction(action_settings)
-        self.menu_preferences.addAction(action_font)
         # Help
         self.menu_help = QMenu("Help", self.menuBar())
         action_citing = QAction("Citing", self.menu_help)
@@ -120,22 +117,14 @@ class Ng_Main(QMainWindow):
         self.menuBar().addMenu(self.menu_preferences)
         self.menuBar().addMenu(self.menu_help)
 
-    def menubar_preferences_font(self) -> None:
-        ok, font = QFontDialog.getFont(self.font(), parent=self)
-        if not ok:
-            return
-        Ng_QSS.set_value(self, "*", "font-family", font.family())
-        Ng_QSS.set_value(self, "*", "font-size", f"{font.pointSize()}pt")
-        Ng_QSS.set_value(self, "*", "font-style", font.style().name[5:])
-        Ng_QSS.set_value(self, "*", "font-weight", str(font.weight().value))
-
-        print("font-family", font.family())
-        print("font-size", f"{font.pointSize()}pt")
-        print("font-style", font.style().name[5:])
-        print("font-weight", str(font.weight().value))
-
     def menubar_preferences_settings(self) -> None:
-        Ng_Dialog_Settings(self).exec()
+        attr = "dialog_settings"
+        if hasattr(self, attr):
+            getattr(self, attr).exec()
+        else:
+            dialog_settings = Ng_Dialog_Settings(self)
+            setattr(self, attr, dialog_settings)
+            dialog_settings.exec()
 
     def menubar_help_citing(self) -> None:
         dialog_citing = Ng_Dialog_TextEdit_Citing(self)
