@@ -33,7 +33,7 @@ from PySide6.QtWidgets import (
 from neosca_gui import QSS_PATH
 from neosca_gui.neosca.lca.lca import LCA
 from neosca_gui.neosca.structure_counter import StructureCounter
-from neosca_gui.ng_about import __name__, __version__
+from neosca_gui.ng_about import __title__, __version__
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_platform_info import IS_MAC
 from neosca_gui.ng_qss import Ng_QSS
@@ -56,7 +56,7 @@ class Ng_Main(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle(f"{__name__} {__version__}")
+        self.setWindowTitle(f"{__title__} {__version__}")
         qss = Ng_QSS.read_qss_file(QSS_PATH)
         qss += f"""\n* {{
          font-family: {Ng_Settings.value('Appearance/font-family')};

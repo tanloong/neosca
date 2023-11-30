@@ -54,6 +54,7 @@ from PySide6.QtWidgets import (
 )
 
 from neosca_gui import DESKTOP_PATH, NEOSCA_HOME
+from neosca_gui.ng_about import __title__
 from neosca_gui.ng_qss import Ng_QSS
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_export_types
@@ -722,7 +723,7 @@ class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
         with open(NEOSCA_HOME / "citing.json", encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
-        self.label_citing = QLabel(f"If you use {__name__} in your research, please kindly cite as follows.")
+        self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
         self.label_citing.setWordWrap(True)
         self.setText(next(iter(self.style_citation_mapping.values())))
         self.label_choose_citation_style = QLabel("Choose citation style: ")
