@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-import os
 import os.path as os_path
 import re
-import shutil
 from enum import Enum
 from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
 
@@ -169,12 +167,14 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
         if self.is_index_clickable(index):
             painter.save()
             painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
-            triangle_leg = option.rect.height() * 0.23
+            triangle_leg_length = option.rect.height() * Ng_Settings.value(
+                "Appearance/triangle-height-ratio", type=float
+            )
             painter.drawPolygon(
                 (
-                    QPoint(option.rect.x() + triangle_leg, option.rect.y()),
+                    QPoint(option.rect.x() + triangle_leg_length, option.rect.y()),
                     QPoint(option.rect.x(), option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y() + triangle_leg),
+                    QPoint(option.rect.x(), option.rect.y() + triangle_leg_length),
                 )
             )
             painter.restore()

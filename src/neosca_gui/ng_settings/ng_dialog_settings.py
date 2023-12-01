@@ -4,11 +4,10 @@
 from PySide6.QtWidgets import QListWidget, QPushButton, QStackedWidget
 
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
-from neosca_gui.ng_settings.ng_settings_appearance import Ng_Widget_Settings_Appearance
-from neosca_gui.ng_settings.ng_settings_export import Ng_Widget_Settings_Export
-from neosca_gui.ng_settings.ng_settings_import import Ng_Widget_Settings_Import
 from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca_gui.ng_singleton import QSingleton
+from neosca_gui.ng_settings.ng_widget_settings_appearance import Ng_Widget_Settings_Appearance
+from neosca_gui.ng_settings.ng_widget_settings_export import Ng_Widget_Settings_Export
+from neosca_gui.ng_settings.ng_widget_settings_import import Ng_Widget_Settings_Import
 from neosca_gui.ng_widgets import Ng_Dialog, Ng_ScrollArea
 
 

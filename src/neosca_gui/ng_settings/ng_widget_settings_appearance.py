@@ -5,6 +5,7 @@ from typing import Dict
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import (
     QCheckBox,
+    QDoubleSpinBox,
     QFontComboBox,
     QFormLayout,
     QGridLayout,
@@ -28,8 +29,10 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
     def __init__(self, main):
         super().__init__(main)
         self.setup_font()
+        self.setup_table()
 
         self.gridlayout.addWidget(self.groupbox_font, 0, 0)
+        self.gridlayout.addWidget(self.groupbox_table, 1, 0)
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
     def setup_font(self) -> None:
@@ -44,8 +47,8 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.combobox_writing_system.setCurrentText("Any")
         self.combobox_family = QFontComboBox()
         self.spinbox_point_size = QSpinBox()
-        self.spinbox_point_size.setSuffix(" pt")
         self.spinbox_point_size.setRange(6, 20)
+        self.spinbox_point_size.setSuffix(" pt")
         self.checkbox_italic = QCheckBox("Italic")
         self.checkbox_bold = QCheckBox("Bold")
         self.gridlayout_font_style = QGridLayout()
@@ -97,7 +100,23 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
             self.checkbox_bold.setChecked(False)
             self.checkbox_bold.setEnabled(False)
 
+    def setup_table(self) -> None:
+        self.doublespinbox_triangle_height_ratio = QDoubleSpinBox()
+        self.doublespinbox_triangle_height_ratio.setDecimals(2)
+        self.doublespinbox_triangle_height_ratio.setSingleStep(0.01)
+        self.doublespinbox_triangle_height_ratio.setRange(0.01, 1.0)
+
+        formlayout_table = QFormLayout()
+        formlayout_table.addRow(QLabel("Triangle height ratio:"), self.doublespinbox_triangle_height_ratio)
+
+        self.groupbox_table = QGroupBox("Table")
+        self.groupbox_table.setLayout(formlayout_table)
+
     def load_settings(self) -> None:
+        self.load_settings_font()
+        self.load_settings_table()
+
+    def load_settings_font(self) -> None:
         family = Ng_Settings.value("Appearance/font-family")
         self.combobox_family.setCurrentText(family)
         # If previously set font doesn't has italic or bold style, disable the according checkbox
@@ -106,7 +125,18 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.checkbox_bold.setChecked(Ng_Settings.value(f"{self.name}/font-bold", type=bool))
         self.spinbox_point_size.setValue(Ng_Settings.value(f"{self.name}/font-size", type=int))
 
+    def load_settings_table(self) -> None:
+        self.doublespinbox_triangle_height_ratio.setValue(
+            Ng_Settings.value(f"{self.name}/triangle-height-ratio", type=float)
+        )
+
     def verify_settings(self) -> bool:
+        return self.verify_settings_font()
+
+    def verify_settings_font(self) -> bool:
+        return self.verify_settings_font_writing_system() and self.verify_settings_font_family()
+
+    def verify_settings_font_writing_system(self) -> bool:
         writing_system_name = self.combobox_writing_system.currentText()
         if writing_system_name.isspace():
             self.combobox_writing_system.lineEdit().setFocus()
@@ -130,7 +160,9 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
                 self,
             ).exec()
             return False
+        return True
 
+    def verify_settings_font_family(self) -> bool:
         font_family = self.combobox_family.currentText()
         if font_family.isspace():
             self.combobox_family.lineEdit().setFocus()
@@ -157,7 +189,10 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         return True
 
     def apply_settings(self) -> None:
-        # Font
+        self.apply_settings_font()
+        self.apply_settings_table()
+
+    def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
         family = self.combobox_family.currentText()
         Ng_Settings.setValue(key, family)
@@ -185,3 +220,8 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
                 }
             },
         )
+
+    def apply_settings_table(self) -> None:
+        key = f"{self.name}/triangle-height-ratio"
+        ratio = self.doublespinbox_triangle_height_ratio.value()
+        Ng_Settings.setValue(key, ratio)

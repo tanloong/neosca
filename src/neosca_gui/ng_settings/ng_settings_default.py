@@ -40,6 +40,7 @@ settings_default = {
     "Appearance/font-size": DEFAULT_FONT_SIZE,
     "Appearance/font-italic": False,
     "Appearance/font-bold": False,
+    "Appearance/triangle-height-ratio": 0.23,
     "Import/default-path": str(DESKTOP_PATH),
     "Import/default-type": available_import_types[0],
     "Export/default-path": str(DESKTOP_PATH),
