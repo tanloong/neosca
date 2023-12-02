@@ -323,6 +323,8 @@ class Ng_TableView(QTableView):
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
                 dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
 
+                font_size = Ng_Settings.value("Appearance/font-size", type=int)
+
                 # 1. Horizontal header text and alignment
                 if self.has_horizontal_header:
                     for colno_cell, colno_item in enumerate(range(col_count)):
@@ -347,10 +349,12 @@ class Ng_TableView(QTableView):
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                font_color = Ng_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "color")
-                font_color = font_color.lstrip("#") if font_color is not None else "000"
-                font_weight = Ng_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "font-weight")
-                is_bold = (font_weight == "bold") if font_weight is not None else False
+                header_font_color = Ng_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "color")
+                header_font_color = header_font_color.lstrip("#") if header_font_color is not None else "000"
+                header_font_weight = Ng_QSS.get_value(
+                    self.main.styleSheet(), "QHeaderView::section", "font-weight"
+                )
+                header_is_bold = (header_font_weight == "bold") if header_font_weight is not None else False
                 # 3.1 Horizontal header background and font
                 if self.has_horizontal_header:
                     # 3.1.1 Horizontal header background
@@ -369,7 +373,11 @@ class Ng_TableView(QTableView):
                     # 3.1.2 Horizontal header font
                     for colno in range(col_count):
                         cell = worksheet_cell(1, colno_cell_offset + colno)
-                        cell.font = Font(color=font_color, bold=is_bold)
+                        cell.font = Font(
+                            color=header_font_color,
+                            bold=header_is_bold,
+                            size=font_size,
+                        )
                 # 3.2 Vertical header background and font
                 if self.has_vertical_header:
                     # 3.2.1 Vertial header background
@@ -381,7 +389,11 @@ class Ng_TableView(QTableView):
                     # 3.2.2 Vertical header font
                     for rowno in range(row_count):
                         cell = worksheet_cell(rowno_cell_offset + rowno, 1)
-                        cell.font = Font(color=font_color, bold=is_bold)
+                        cell.font = Font(
+                            color=header_font_color,
+                            bold=header_is_bold,
+                            size=font_size,
+                        )
 
                 # 4. Cells
                 for rowno in range(row_count):
@@ -395,6 +407,7 @@ class Ng_TableView(QTableView):
                             pass
                         cell.value = item_value
                         self.set_openpyxl_cell_alignment(cell, item)
+                        cell.font = Font(size=font_size)
                 # 5. Column width
                 for colno in range(col_count):
                     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L729
@@ -409,6 +422,11 @@ class Ng_TableView(QTableView):
                     )
                 # 6. Row height
                 worksheet.row_dimensions[1].height = self.horizontalHeader().height() / dpi_vertical * 72
+                for i, _ in enumerate(worksheet.rows):
+                    worksheet.row_dimensions[2 + i].height = (
+                        self.verticalHeader().sectionSize(0) / dpi_vertical * 72
+                    )
+
                 # 7. Freeze panes
                 # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
                 # Using "2" in both cases means to always freeze the 1st column
@@ -443,37 +461,138 @@ class Ng_TableView(QTableView):
             model.data_exported.emit()
 
     def export_matches(self) -> None:
-        default_export_dir = os_path.join(DESKTOP_PATH, "neosca_sca_matches")
-        if not os_path.isdir(default_export_dir):
-            os.makedirs(default_export_dir)
-            is_default_dir_just_created = True
-        else:
-            is_default_dir_just_created = False
-        export_dir = QFileDialog.getExistingDirectory(caption="Export Matches", dir=str(DESKTOP_PATH))
-        # export_dir = Ng_FileDialog.getSaveFolderName(
-        #     caption="Export Matches", dir=desktop, selectedFilter="neosca_sca_matches"
-        # )
-        if not export_dir:
+        file_path, file_type = QFileDialog.getSaveFileName(
+            parent=None,
+            caption="Export Table",
+            dir=str(DESKTOP_PATH / "neosca_sca_matches.xlsx"),
+            filter=";;".join(available_export_types),
+            selectedFilter=Ng_Settings.value("Export/default-type"),
+        )
+        if not file_path:
             return
-        if export_dir != default_export_dir and is_default_dir_just_created:
-            shutil.rmtree(default_export_dir, ignore_errors=True)
 
-        # TODO: verify folder_path is empty, else pop up dialog warning users
         model = self.model()
-        for rowno in range(model.rowCount()):
-            rowname = model.verticalHeaderItem(rowno).text()
-            for colno in range(model.columnCount()):
-                index = model.index(rowno, colno)
-                if not Ng_Delegate_SCA.is_index_clickable(index):
-                    continue
-                nested_folder_path = os_path.join(export_dir, rowname)
-                os.makedirs(nested_folder_path, exist_ok=True)
-                colname = model.horizontalHeaderItem(colno).text()
-                file_path = f"{os_path.join(nested_folder_path, colname)}.txt"
-                matches = index.data(Qt.ItemDataRole.UserRole)
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write("\n".join(matches))
-        QMessageBox.information(self, "Success", f"The table has been successfully exported to {export_dir}.")
+        col_count = model.columnCount()
+        row_count = model.rowCount()
+        try:
+            if ".xlsx" in file_type:
+                import openpyxl
+                from openpyxl.styles import Alignment, Font, PatternFill
+                from openpyxl.utils import get_column_letter
+
+                workbook = openpyxl.Workbook()
+                for sheetname in workbook.sheetnames:
+                    workbook.remove(workbook.get_sheet_by_name(sheetname))
+
+                # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L628C3-L629C82
+                dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
+                dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
+
+                font_size = Ng_Settings.value("Appearance/font-size", type=int)
+
+                # Number of matches is much more than that of files. There are
+                # 2000 matches across different structures for a 19KB test
+                # file. Excel has the max row limit 1,048,576 on a worksheet,
+                # which can hold matches of ~524 19KB test files. Here split
+                # the matches into different worksheets in case users' corpus
+                # is larger than that.
+                # https://support.microsoft.com/en-us/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3
+                horizon_header_colwith = 0
+                for colno in range(col_count):
+                    structure = model.horizontalHeaderItem(colno).text()
+                    for rowno in range(row_count):
+                        index = model.index(rowno, colno)
+                        # TODO: this func is meant to be generic, write an
+                        # abstract class of Ng_Delegate_SCA and Ng_Delegate_LCA
+                        # (coming), and use the abstract class'
+                        # is_index_clickable method
+                        if not Ng_Delegate_SCA.is_index_clickable(index):
+                            continue
+
+                        filename = model.verticalHeaderItem(rowno).text()
+                        if filename not in workbook.sheetnames:
+                            ws = workbook.create_sheet(filename)
+                            ws_max_row_offset = 0
+                        else:
+                            ws = workbook[filename]
+                            ws_max_row_offset = 1
+
+                        ws_cell = ws.cell
+                        ws_start_rowno = ws.max_row + ws_max_row_offset
+                        matches: List[str] = index.data(Qt.ItemDataRole.UserRole)
+                        for i, match in enumerate(matches):
+                            cell_structure = ws_cell(ws_start_rowno + i, 1)
+                            cell_structure.value = structure
+                            self.set_openpyxl_horizontal_header_alignment(cell_structure)
+
+                            cell_match = ws_cell(ws_start_rowno + i, 2)
+                            cell_match.value = match
+                            cell_match.alignment = Alignment(horizontal="left", vertical="center")
+                            cell_match.font = Font(size=font_size)
+
+                    horizon_header_colwith = max(
+                        horizon_header_colwith, self.horizontalHeader().sectionSize(colno)
+                    )
+
+                for ws in workbook.worksheets:
+                    # Column width
+                    ws.column_dimensions[get_column_letter(1)].width = (
+                        horizon_header_colwith / dpi_horizontal * 13 + 3
+                    )
+                    # Row height
+                    for i, _ in enumerate(ws.rows):
+                        ws.row_dimensions[1 + i].height = self.horizontalHeader().height() / dpi_vertical * 72
+
+                # Header background color
+                # horizon_bacolor: Optional[str] = Ng_QSS.get_value(
+                #     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
+                # )
+                # if horizon_bacolor is not None:
+                #     horizon_bacolor = horizon_bacolor.lstrip("#")
+                #     for ws in workbook.worksheets:
+                #         for cell in ws[get_column_letter(1)]:
+                #             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
+                vertical_bacolor: Optional[str] = Ng_QSS.get_value(
+                    self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
+                )
+                if vertical_bacolor is not None:
+                    vertical_bacolor = vertical_bacolor.lstrip("#")
+                    for ws in workbook.worksheets:
+                        # https://openpyxl.readthedocs.io/en/stable/worksheet_properties.html#available-properties-for-worksheets
+                        ws.sheet_properties.tabColor = vertical_bacolor
+                        ws.sheet_view.showGridLines = False
+                # Header font
+                # for ws in workbook.worksheets:
+                #     for cell in ws[get_column_letter(1)]:
+                #         cell.font = Font(size=Ng_Settings.value("Appearance/font-size", type=int))
+
+                # Freeze panes
+                for ws in workbook.worksheets:
+                    ws.freeze_panes = "B1"
+
+                workbook.save(file_path)
+            elif ".csv" in file_type or ".tsv" in file_type:
+                import csv
+
+                dialect = csv.excel if ".csv" in file_type else csv.excel_tab
+                with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
+                    csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
+                    header: List[str] = ["Filename", "Structure", "Match"]
+                    csv_writer.writerow(header)
+                    for rowno in range(row_count):
+                        filename = model.verticalHeaderItem(rowno).text()
+                        for colno in range(col_count):
+                            index = model.index(rowno, colno)
+                            if not Ng_Delegate_SCA.is_index_clickable(index):
+                                continue
+                            structure = model.horizontalHeaderItem(colno).text()
+                            matches: List[str] = index.data(Qt.ItemDataRole.UserRole)
+                            csv_writer.writerows((filename, structure, match) for match in matches)
+            QMessageBox.information(self, "Success", f"Matches has been successfully exported to {file_path}.")
+        except PermissionError:
+            QMessageBox.critical(
+                self, "Error Exporting Cells", f"PermissionError: failed to export matches to {file_path}."
+            )
 
 
 class Ng_FileDialog(QFileDialog):
@@ -795,11 +914,8 @@ class Ng_LineEdit(QLineEdit):
 
     focused = Signal()
 
-    def __init__(self, contents: Optional[str] = None, parent: Optional[QWidget] = None):
-        if contents is None:
-            super().__init__(parent)
-        else:
-            super().__init__(contents, parent)
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
     # Override
     def focusInEvent(self, e: QFocusEvent):
