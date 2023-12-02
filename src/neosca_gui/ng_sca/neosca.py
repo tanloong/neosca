@@ -7,8 +7,8 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
-from neosca_gui.neosca.querier import Ns_Tregex
-from neosca_gui.neosca.structure_counter import StructureCounter
+from neosca_gui.ng_sca.querier import Ns_Tregex
+from neosca_gui.ng_sca.structure_counter import StructureCounter
 from neosca_gui.ng_io import SCAIO
 
 

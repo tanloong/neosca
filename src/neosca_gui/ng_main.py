@@ -30,10 +30,10 @@ from PySide6.QtWidgets import (
 )
 
 from neosca_gui import QSS_PATH
-from neosca_gui.neosca.lca.lca import LCA
-from neosca_gui.neosca.structure_counter import StructureCounter
+from neosca_gui.ng_sca.structure_counter import StructureCounter
 from neosca_gui.ng_about import __title__, __version__
 from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_platform_info import IS_MAC
 from neosca_gui.ng_qss import Ng_QSS
 from neosca_gui.ng_settings.ng_dialog_settings import Ng_Dialog_Settings

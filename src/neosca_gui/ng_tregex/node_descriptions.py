@@ -3,7 +3,7 @@
 import re
 from typing import Generator, Iterable, Iterator, List, NamedTuple, Optional
 
-from neosca_gui.tregex.tree import Tree
+from neosca_gui.ng_tregex.tree import Tree
 
 
 class NamedNodes:

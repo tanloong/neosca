@@ -5,6 +5,7 @@ import sys
 from neosca_gui.ng_platform_info import IS_WINDOWS
 
 
+# https://github.com/gaogaotiantian/viztracer/blob/c83323b9656605c25ca31727530d633262a8eb5f/src/viztracer/util.py#L20
 class _bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -30,6 +31,7 @@ if IS_WINDOWS:  # pragma: no cover
         color_support = False
 
 
+# https://github.com/gaogaotiantian/viztracer/blob/c83323b9656605c25ca31727530d633262a8eb5f/src/viztracer/util.py#L48
 def color_print(color: str, s: str, prefix: str = "", postfix: str = "") -> None:  # pragma: no cover
     if color_support:
         sys.stderr.write(prefix)
@@ -41,6 +43,7 @@ def color_print(color: str, s: str, prefix: str = "", postfix: str = "") -> None
         sys.stderr.write(postfix + "\n")
 
 
+# https://github.com/gaogaotiantian/viztracer/blob/c83323b9656605c25ca31727530d633262a8eb5f/src/viztracer/util.py#L55
 def same_line_print(s: str, width=80) -> None:  # pragma: no cover
     sys.stderr.write(f"\r{'':<{width}}")  # clear the line
     sys.stderr.write(f"\r{s}")

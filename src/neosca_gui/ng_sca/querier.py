@@ -10,9 +10,9 @@ from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Union
 
-from neosca_gui.neosca.scaexceptions import CircularDefinitionError, InvalidSourceError
-from neosca_gui.tregex.node_descriptions import NODE_ANY, NODE_TEXT
-from neosca_gui.tregex.relation import (
+from neosca_gui.ng_exceptions import CircularDefinitionError, InvalidSourceError
+from neosca_gui.ng_tregex.node_descriptions import NODE_ANY, NODE_TEXT
+from neosca_gui.ng_tregex.relation import (
     CHILD_OF,
     DOMINATED_BY,
     DOMINATES,
@@ -23,7 +23,7 @@ from neosca_gui.tregex.relation import (
     PARENT_OF,
     RIGHT_SISTER_OF,
 )
-from neosca_gui.tregex.tree import Tree
+from neosca_gui.ng_tregex.tree import Tree
 
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter

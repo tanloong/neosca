@@ -6,8 +6,8 @@ import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
-from neosca_gui.neosca.about import __version__
-from neosca_gui.neosca.scaprint import color_print
+from neosca_gui.ng_sca.about import __version__
+from neosca_gui.ng_print import color_print
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_util import SCAProcedureResult
 

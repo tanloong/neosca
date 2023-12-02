@@ -6,7 +6,7 @@ import re
 from collections import deque
 from typing import TYPE_CHECKING, Deque, Generator, List, Optional, Tuple
 
-from neosca_gui.tregex.peekable import peekable
+from neosca_gui.ng_tregex.peekable import peekable
 
 if TYPE_CHECKING:
     from .head_finder import HeadFinder

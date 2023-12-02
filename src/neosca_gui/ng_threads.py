@@ -6,9 +6,9 @@ from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QStandardItem
 from PySide6.QtWidgets import QMessageBox
 
-from neosca_gui.neosca.lca.lca import LCA
-from neosca_gui.neosca.neosca import NeoSCA
-from neosca_gui.neosca.structure_counter import StructureCounter
+from neosca_gui.ng_sca.neosca import NeoSCA
+from neosca_gui.ng_sca.structure_counter import StructureCounter
+from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_widgets.ng_tables import Ng_StandardItemModel
 
 

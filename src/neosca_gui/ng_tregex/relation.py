@@ -3,12 +3,12 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Generator, List, Optional
 
-from neosca_gui.tregex.collins_head_finder import CollinsHeadFinder
+from neosca_gui.ng_tregex.collins_head_finder import CollinsHeadFinder
 
 if TYPE_CHECKING:
-    from neosca_gui.tregex.head_finder import HeadFinder
-    from neosca_gui.tregex.node_descriptions import NodeDescriptions
-    from neosca_gui.tregex.tree import Tree
+    from neosca_gui.ng_tregex.head_finder import HeadFinder
+    from neosca_gui.ng_tregex.node_descriptions import NodeDescriptions
+    from neosca_gui.ng_tregex.tree import Tree
 
 # reference: https://nlp.stanford.edu/nlp/javadoc/javanlp-3.5.0/edu/stanford/nlp/trees/tregex/TregexPattern.html
 # translated from https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/tregex/Relation.java

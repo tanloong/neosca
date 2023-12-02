@@ -4,9 +4,9 @@ import os.path as os_path
 import sys
 from typing import Callable, List
 
-from neosca_gui.neosca.lca.lca import LCA
-from neosca_gui.neosca.scaprint import color_print, get_yes_or_no
+from neosca_gui.ng_print import color_print, get_yes_or_no
 from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_util import SCAProcedureResult
 
 

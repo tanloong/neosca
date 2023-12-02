@@ -5,8 +5,8 @@ import os
 import os.path as os_path
 from typing import List, Optional
 
-from neosca_gui.neosca.scaprint import color_print
 from neosca_gui.ng_platform_info import IS_LINUX, IS_MAC, IS_WINDOWS
+from neosca_gui.ng_print import color_print
 
 # JAVA_HOME = "JAVA_HOME"
 # STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"

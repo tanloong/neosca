@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Dict, List, Optional, Set, Union
 
 from neosca_gui import DATA_FOLDER
-from neosca_gui.neosca.scaexceptions import StructureNotFoundError
+from neosca_gui.ng_exceptions import StructureNotFoundError
 
 
 class Structure:
