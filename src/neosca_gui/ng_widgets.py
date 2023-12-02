@@ -149,7 +149,7 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
     def __init__(self, parent=None, qss: str = ""):
         super().__init__(parent)
         if (
-            triangle_rgb := Ng_QSS.get_value(qss, "QHeaderView::section:horizontal", "background-color")
+            triangle_rgb := Ng_QSS.get_value(qss, "QHeaderView::section:vertical", "background-color")
         ) is not None:
             self.triangle_rgb = triangle_rgb
         else:

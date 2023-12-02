@@ -1,29 +1,26 @@
+QHeaderView::section:horizontal {
+    background-color: #5C88C5;
+}
+QHeaderView::section:vertical {
+    background-color: #737373;
+}
 QTableView::item:hover {
     background-color: #C7C7C7;
     color: #000000;
 }
-QTableView::item:selected {
-    background-color: #C7C7C7;
-    color: #000000;
-}
-
 QHeaderView::section {
     color: #FFFFFF;
     font-weight: bold;
 }
-
-QHeaderView::section:horizontal {
-    background-color: #5C88C5;
+QTableView::item:selected {
+    background-color: #C7C7C7;
+    color: #000000;
 }
 QHeaderView::section:horizontal:hover {
     background-color: #3265B2;
 }
 QHeaderView::section:horizontal:pressed {
     background-color: #3265B2;
-}
-
-QHeaderView::section:vertical {
-    background-color: #737373;
 }
 QHeaderView::section:vertical:hover {
     background-color: #606060;
