@@ -1,65 +1,40 @@
 #!/usr/bin/env python3
 
-import json
 import os.path as os_path
-import re
-from enum import Enum
 from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
 
 from PySide6.QtCore import (
-    QDir,
-    QElapsedTimer,
     QModelIndex,
-    QPersistentModelIndex,
     QPoint,
-    QTime,
-    QTimer,
     Signal,
 )
 from PySide6.QtGui import (
     QBrush,
     QColor,
-    QFocusEvent,
     QPainter,
-    QPalette,
     QStandardItem,
     QStandardItemModel,
     Qt,
-    QTextBlockFormat,
-    QTextCursor,
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
-    QComboBox,
-    QCompleter,
-    QDialog,
     QFileDialog,
-    QFileSystemModel,
-    QGridLayout,
-    QHBoxLayout,
     QHeaderView,
-    QLabel,
-    QLineEdit,
     QMessageBox,
-    QPushButton,
-    QScrollArea,
     QStyledItemDelegate,
     QStyleOptionViewItem,
     QTableView,
-    QTextEdit,
-    QWidget,
 )
 
-from neosca_gui import DESKTOP_PATH, NEOSCA_HOME
-from neosca_gui.ng_about import __title__
+from neosca_gui import DESKTOP_PATH
 from neosca_gui.ng_qss import Ng_QSS
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_export_types
-from neosca_gui.ng_singleton import QSingleton
+from neosca_gui.ng_widgets.ng_dialogs import Ng_Dialog_TextEdit_SCA_Matched_Subtrees
 
 
-class Ng_Model(QStandardItemModel):
+class Ng_StandardItemModel(QStandardItemModel):
     data_cleared = Signal()
     # data_updated: itemChanged && !data_cleared
     data_updated = Signal()
@@ -197,7 +172,7 @@ class Ng_TableView(QTableView):
         self,
         *args,
         main,
-        model: Ng_Model,
+        model: Ng_StandardItemModel,
         has_horizontal_header: bool = True,
         has_vertical_header: bool = True,
         **kwargs,
@@ -205,7 +180,7 @@ class Ng_TableView(QTableView):
         super().__init__(*args, **kwargs)
         self.main = main
         self.setModel(model)
-        self.model_: Ng_Model = model
+        self.model_: Ng_StandardItemModel = model
         self.model_.data_cleared.connect(self.on_data_cleared)
         self.model_.data_updated.connect(self.on_data_updated)
         self.has_horizontal_header = has_horizontal_header
@@ -233,7 +208,7 @@ class Ng_TableView(QTableView):
         self.scrollToBottom()
 
     # Override to specify the return type
-    def model(self) -> Ng_Model:
+    def model(self) -> Ng_StandardItemModel:
         return self.model_
 
     def set_openpyxl_horizontal_header_alignment(self, cell) -> None:
@@ -302,7 +277,7 @@ class Ng_TableView(QTableView):
         if not file_path:
             return
 
-        model: Ng_Model = self.model()
+        model: Ng_StandardItemModel = self.model()
         col_count = model.columnCount()
         row_count = model.rowCount()
         try:
@@ -477,7 +452,7 @@ class Ng_TableView(QTableView):
         try:
             if ".xlsx" in file_type:
                 import openpyxl
-                from openpyxl.styles import Alignment, Font, PatternFill
+                from openpyxl.styles import Alignment, Font
                 from openpyxl.utils import get_column_letter
 
                 workbook = openpyxl.Workbook()
@@ -593,383 +568,3 @@ class Ng_TableView(QTableView):
             QMessageBox.critical(
                 self, "Error Exporting Cells", f"PermissionError: failed to export matches to {file_path}."
             )
-
-
-class Ng_FileDialog(QFileDialog):
-    def __init__(self, *args, **kwargs) -> None:
-        return super().__init__(*args, **kwargs)
-
-    # https://github.com/hibtc/madgui/blob/50d59037eab6e59a4510b5a7c4f953ddee4727f7/src/madgui/widget/filedialog.py#L25
-    # https://codebrowser.dev/qt5/qtbase/src/widgets/dialogs/qfiledialog.cpp.html#_ZN11QFileDialog14getSaveFileUrlEP7QWidgetRK7QStringRK4QUrlS4_PS2_6QFlagsINS_6OptionEERK11QStringList
-    @classmethod
-    def getSaveFolderName(
-        cls,
-        parent: Optional[QWidget] = None,
-        caption: str = "",
-        dir: str = "",
-        filter: str = "",
-        selectedFilter: Optional[str] = None,
-    ):
-        dialog = cls(parent, caption, dir, filter)
-        dialog.setOptions(QFileDialog.Option.ShowDirsOnly)
-        dialog.setFileMode(QFileDialog.FileMode.Directory)
-        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
-        if selectedFilter is not None and selectedFilter:
-            dialog.selectNameFilter(selectedFilter)
-
-        if dialog.exec() != QFileDialog.DialogCode.Accepted:
-            return None
-
-        # Returns a list of strings containing the absolute paths of the
-        # selected files in the dialog. If no files are selected, or the mode
-        # is not ExistingFiles or ExistingFile, selectedFiles() contains the
-        # current path in the viewport.
-        filename = dialog.selectedFiles()[0]
-        return filename
-
-
-class Ng_Dialog(QDialog):
-    class ButtonAlignmentFlag(Enum):
-        AlignLeft = 0
-        AlignRight = 2
-
-    def __init__(
-        self, *args, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
-    ) -> None:
-        """
-        ┌———————————┐
-        │           │
-        │  content  │
-        │           │
-        │———————————│
-        │  buttons  │
-        └———————————┘
-        """
-        super().__init__(*args, **kwargs)
-        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
-        # [Copied code starts here]
-        # Dialog size
-        if resizable:
-            if not width:
-                width = self.size().width()
-
-            if not height:
-                height = self.size().height()
-
-            self.resize(width, height)
-        else:
-            if width:
-                self.setFixedWidth(width)
-
-            if height:
-                self.setFixedHeight(height)
-            # Gives the window a thin dialog border on Windows. This style is
-            # traditionally used for fixed-size dialogs.
-            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        # [Copied code ends here]
-        self.setWindowTitle(title)
-
-        self.content_layout = QGridLayout()
-        self.button_layout = QGridLayout()
-        self.button_layout.setColumnStretch(1, 1)
-
-        self.grid_layout = QGridLayout()
-        self.grid_layout.addLayout(self.content_layout, 0, 0)
-        self.grid_layout.addLayout(self.button_layout, 1, 0)
-        self.setLayout(self.grid_layout)
-
-    def rowCount(self) -> int:
-        return self.content_layout.rowCount()
-
-    def columnCount(self) -> int:
-        return self.content_layout.columnCount()
-
-    def addWidget(self, *args, **kwargs) -> None:
-        self.content_layout.addWidget(*args, **kwargs)
-
-    def addButtons(self, *buttons, alignment: ButtonAlignmentFlag) -> None:
-        layout = QGridLayout()
-        for colno, button in enumerate(buttons):
-            layout.addWidget(button, 0, colno)
-        self.button_layout.addLayout(layout, 0, alignment.value)
-
-    def setColumnStretch(self, column: int, strech: int) -> None:
-        self.content_layout.setColumnStretch(column, strech)
-
-    def setRowStretch(self, row: int, strech: int) -> None:
-        self.content_layout.setRowStretch(row, strech)
-
-
-class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
-    started = Signal()
-    # Use this to get the place holder, e.g. 0:00:00
-    time_format_re = re.compile(r"[^:]")
-
-    def __init__(
-        self,
-        *args,
-        title: str = "Please Wait",
-        width: int = 500,
-        height: int = 0,
-        time_format: str = "h:mm:ss",
-        interval: int = 1000,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, title=title, width=width, height=height, resizable=False, **kwargs)
-        self.time_format = time_format
-        self.interval = interval
-        self.elapsedtimer = QElapsedTimer()
-        self.timer = QTimer()
-
-        # TODO: this label should be exposed
-        self.label_status = QLabel("Processing...")
-        self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
-        self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
-        self.label_please_wait = QLabel(
-            "Please be patient. The wait time can range from a few seconds to several minutes."
-        )
-        self.label_please_wait.setWordWrap(True)
-
-        self.addWidget(self.label_status, 0, 0)
-        self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-        self.addWidget(self.label_please_wait, 1, 0, 1, 2)
-
-        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
-
-        # Bind
-        self.timer.timeout.connect(self.update_time_elapsed)
-        self.started.connect(self.elapsedtimer.start)
-        # If the timer is already running, it will be stopped and restarted.
-        self.started.connect(lambda: self.timer.start(self.interval))
-        # Either 'accepted' or 'rejected', although 'rejected' is disabled (see rejected below)
-        self.finished.connect(self.reset_time_elapsed)
-        self.finished.connect(self.timer.stop)
-
-    def reset_time_elapsed(self) -> None:
-        self.label_time_elapsed.setText(self.text_time_elapsed_zero)
-
-    def update_time_elapsed(self) -> None:
-        time_elapsed: int = self.elapsedtimer.elapsed()
-        qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
-        self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
-
-    # Override
-    def reject(self) -> None:
-        pass
-
-    # Override
-    def show(self) -> None:
-        self.started.emit()
-        return super().show()
-
-    # Override
-    def open(self) -> None:
-        self.started.emit()
-        return super().open()
-
-    # Override
-    def exec(self) -> int:
-        self.started.emit()
-        return super().exec()
-
-
-class Ng_Dialog_TextEdit(Ng_Dialog):
-    def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
-        super().__init__(*args, title=title, resizable=True, **kwargs)
-        self.textedit = QTextEdit(text)
-        self.textedit.setReadOnly(True)
-        # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
-        indentation: int = self.fontMetrics().horizontalAdvance("abcd")
-        self.fmt_textedit = QTextBlockFormat()
-        self.fmt_textedit.setLeftMargin(indentation)
-        self.fmt_textedit.setTextIndent(-indentation)
-
-        self.button_copy = QPushButton("Copy")
-        self.button_copy.clicked.connect(self.textedit.selectAll)
-        self.button_copy.clicked.connect(self.textedit.copy)
-
-        self.button_close = QPushButton("Close")
-        self.button_close.clicked.connect(self.reject)
-
-        self.addButtons(self.button_copy, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
-        self.addButtons(self.button_close, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignRight)
-
-    def setText(self, text: str) -> None:
-        self.textedit.setText(text)
-        cursor = QTextCursor(self.textedit.document())
-        cursor.select(QTextCursor.SelectionType.Document)
-        cursor.mergeBlockFormat(self.fmt_textedit)
-
-    # Override
-    def show(self) -> None:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().show()
-
-    # Override
-    def open(self) -> None:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().open()
-
-    # Override
-    def exec(self) -> int:
-        # Add self.textedit lastly to allow users add custom widgets above
-        self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
-        return super().exec()
-
-
-class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
-    def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
-        super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
-        self.file_name = index.model().verticalHeaderItem(index.row()).text()
-        self.sname = index.model().horizontalHeaderItem(index.column()).text()
-        self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
-        self.setText("\n".join(self.matched_subtrees))
-
-        self.label_summary = QLabel(
-            f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in "{self.file_name}"'
-        )
-        self.label_summary.setWordWrap(True)
-        self.addWidget(self.label_summary)
-
-
-class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, title="Citing", **kwargs)
-        # citing.json is at the same dir of __file__
-        # TODO: need to have a unified way to get project path.
-        with open(NEOSCA_HOME / "citing.json", encoding="utf-8") as f:
-            self.style_citation_mapping = json.load(f)
-
-        self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
-        self.label_citing.setWordWrap(True)
-        self.setText(next(iter(self.style_citation_mapping.values())))
-        self.label_choose_citation_style = QLabel("Choose citation style: ")
-        self.combobox_choose_citation_style = QComboBox()
-        self.combobox_choose_citation_style.addItems(tuple(self.style_citation_mapping.keys()))
-        self.combobox_choose_citation_style.currentTextChanged.connect(
-            lambda key: self.setText(self.style_citation_mapping[key])
-        )
-
-        self.addWidget(self.label_citing, 0, 0, 1, 2)
-        self.addWidget(self.label_choose_citation_style, 1, 0)
-        self.addWidget(self.combobox_choose_citation_style, 1, 1)
-        self.setColumnStretch(1, 1)
-
-
-class Ng_Dialog_Table(Ng_Dialog):
-    def __init__(
-        self,
-        *args,
-        text: str,
-        tableview: Ng_TableView,
-        export_filename: str = "",
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.tableview: Ng_TableView = tableview
-        self.content_layout.addWidget(QLabel(text), 0, 0)
-        self.content_layout.addWidget(tableview, 1, 0)
-        self.export_filename = export_filename
-
-        self.button_ok = QPushButton("OK")
-        self.button_ok.clicked.connect(self.accept)
-        self.button_export_table = QPushButton("Export table...")
-        self.button_export_table.clicked.connect(lambda: self.tableview.export_table(self.export_filename))
-        self.button_layout.addWidget(self.button_export_table, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.button_layout.addWidget(self.button_ok, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
-
-
-# https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_widgets/wl_layouts.py#L108
-class Ng_ScrollArea(QScrollArea):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWidgetResizable(True)
-        self.setBackgroundRole(QPalette.ColorRole.Light)
-
-
-class Ng_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # > Do not add file watchers to the paths. This reduces overhead when using the
-        # > model for simple tasks like line edit completion.
-        self.setOption(QFileSystemModel.Option.DontWatchForChanges)
-        self.has_set_root = False
-
-    def start_querying(self):
-        # > QFileSystemModel will not fetch any files or directories until
-        # > setRootPath() is called.
-        if not self.has_set_root:
-            self.setRootPath(QDir.homePath())
-            self.has_set_root = True
-
-
-class Ng_LineEdit(QLineEdit):
-    """This class emits the custom "focused" signal and is specifically used
-    in Ng_LineEdit_Path to tell Ng_FileSystemModel to start querying. The
-    querying should only start at the first emit and all subsequent emits are
-    ignored. We prefer the custom "focused" signal over the built-in
-    "textEdited" because it has much less frequent emits."""
-
-    focused = Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    # Override
-    def focusInEvent(self, e: QFocusEvent):
-        super().focusInEvent(e)
-        self.focused.emit()
-
-
-class Ng_LineEdit_Path(QWidget):
-    # https://stackoverflow.com/a/20796318/20732031
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        filesystem_model = Ng_FileSystemModel()
-        completer_lineedit_files = QCompleter()
-        completer_lineedit_files.setModel(filesystem_model)
-        completer_lineedit_files.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
-        completer_lineedit_files.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.lineedit = Ng_LineEdit()
-        self.lineedit.focused.connect(filesystem_model.start_querying)
-        self.lineedit.setCompleter(completer_lineedit_files)
-        self.lineedit.setClearButtonEnabled(True)
-        button_browse = QPushButton("Browse")
-
-        # Bind
-        button_browse.clicked.connect(self.browse_path)
-
-        hlayout = QHBoxLayout()
-        hlayout.setContentsMargins(0, 0, 0, 0)
-        hlayout.addWidget(self.lineedit)
-        hlayout.addWidget(button_browse)
-        self.setLayout(hlayout)
-
-    def text(self) -> str:
-        return self.lineedit.text()
-
-    def setText(self, text: str) -> None:
-        self.lineedit.setText(text)
-
-    def browse_path(self):
-        folder_path = QFileDialog.getExistingDirectory(caption="Choose Path")
-        if not folder_path:
-            return
-        self.lineedit.setText(folder_path)
-
-    def setFocus(self) -> None:
-        self.lineedit.setFocus()
-
-    def selectAll(self) -> None:
-        self.lineedit.selectAll()
-
-
-class Ng_Combobox_Editable(QComboBox):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
-        self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.setEditable(True)

@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QFileDialog,
-    QFontDialog,
     QGridLayout,
     QGroupBox,
     QMainWindow,
@@ -41,15 +40,13 @@ from neosca_gui.ng_settings.ng_dialog_settings import Ng_Dialog_Settings
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_import_types
 from neosca_gui.ng_threads import Ng_Thread, Ng_Worker_LCA_Generate_Table, Ng_Worker_SCA_Generate_Table
-from neosca_gui.ng_widgets import (
-    Ng_Delegate_SCA,
+from neosca_gui.ng_widgets.ng_dialogs import (
     Ng_Dialog_Processing_With_Elapsed_Time,
     Ng_Dialog_Table,
     Ng_Dialog_TextEdit_Citing,
-    Ng_Model,
-    Ng_ScrollArea,
-    Ng_TableView,
 )
+from neosca_gui.ng_widgets.ng_tables import Ng_Delegate_SCA, Ng_StandardItemModel, Ng_TableView
+from neosca_gui.ng_widgets.ng_widgets import Ng_ScrollArea
 
 
 class Ng_Main(QMainWindow):
@@ -147,7 +144,7 @@ class Ng_Main(QMainWindow):
         # TODO comment this out before releasing
         self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.model_sca = Ng_Model(main=self)
+        self.model_sca = Ng_StandardItemModel(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
@@ -226,7 +223,7 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
 
-        self.model_lca = Ng_Model(main=self)
+        self.model_lca = Ng_StandardItemModel(main=self)
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
@@ -313,7 +310,7 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def setup_tableview_file(self) -> None:
-        self.model_file = Ng_Model(main=self)
+        self.model_file = Ng_StandardItemModel(main=self)
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
@@ -395,7 +392,7 @@ class Ng_Main(QMainWindow):
         if self.model_file.rowCount() == 0:
             self.model_file.clear_data()
 
-    def remove_model_rows(self, model: Ng_Model, *rownos: int) -> None:
+    def remove_model_rows(self, model: Ng_StandardItemModel, *rownos: int) -> None:
         if not rownos:
             # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
             model.setRowCount(0)
@@ -404,7 +401,7 @@ class Ng_Main(QMainWindow):
                 model.takeRow(rowno)
 
     # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
-    def yield_model_column(self, model: Ng_Model, colno: int) -> Generator[str, None, None]:
+    def yield_model_column(self, model: Ng_StandardItemModel, colno: int) -> Generator[str, None, None]:
         items = (model.item(rowno, colno) for rowno in range(model.rowCount()))
         return (item.text() for item in items if item is not None)
 
@@ -450,7 +447,7 @@ class Ng_Main(QMainWindow):
                 self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ng_Model(main=self)
+            model_err_files = Ng_StandardItemModel(main=self)
             model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
             for reason, file_paths in (
                 ("Duplicate file", file_paths_dup),
@@ -458,10 +455,7 @@ class Ng_Main(QMainWindow):
                 ("Empty file", file_paths_empty),
             ):
                 for file_path in file_paths:
-                    model_err_files.insertRow(
-                        model_err_files.rowCount(),
-                        (QStandardItem(reason), QStandardItem(file_path)),
-                    )
+                    model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
             tableview_err_files = Ng_TableView(main=self, model=model_err_files, has_vertical_header=False)
 
             dialog = Ng_Dialog_Table(
@@ -479,8 +473,7 @@ class Ng_Main(QMainWindow):
     def menubar_file_open_folder(self):
         # TODO remove default directory before releasing
         folder_path = QFileDialog.getExistingDirectory(
-            caption="Open Folder",
-            dir='directory="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/',
+            caption="Open Folder", dir=Ng_Settings.value("Import/default-path")
         )
         if not folder_path:
             return

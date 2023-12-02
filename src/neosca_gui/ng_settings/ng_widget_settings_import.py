@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_import_types
 from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca_gui.ng_widgets import Ng_LineEdit_Path
+from neosca_gui.ng_widgets.ng_widgets import Ng_LineEdit_Path
 
 
 class Ng_Widget_Settings_Import(Ng_Widget_Settings_Abstract):

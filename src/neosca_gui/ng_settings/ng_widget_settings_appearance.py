@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 from neosca_gui.ng_qss import Ng_QSS
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca_gui.ng_widgets import Ng_Combobox_Editable
+from neosca_gui.ng_widgets.ng_widgets import Ng_Combobox_Editable
 
 
 class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):

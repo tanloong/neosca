@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QMessageBox
 from neosca_gui.neosca.lca.lca import LCA
 from neosca_gui.neosca.neosca import NeoSCA
 from neosca_gui.neosca.structure_counter import StructureCounter
-from neosca_gui.ng_widgets import Ng_Model
+from neosca_gui.ng_widgets.ng_tables import Ng_StandardItemModel
 
 
 class Ng_Worker(QObject):
@@ -100,7 +100,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             lca_analyzer.update_options(lca_kwargs)
 
         err_file_paths: List[str] = []
-        model: Ng_Model = self.main.model_lca
+        model: Ng_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
