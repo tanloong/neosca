@@ -26,8 +26,13 @@ coverage.xml
 *.parsed
 *.mp4
 *.matched
+*.ini
 doc
 note.txt
 test.py
 notes.md
 tmp
+examples/
+src/*.py
+src/*.txt
+tests/*.java
