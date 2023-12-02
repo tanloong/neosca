@@ -47,7 +47,6 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.combobox_writing_system.setCurrentText("Any")
         self.combobox_family = QFontComboBox()
         self.spinbox_point_size = QSpinBox()
-        self.spinbox_point_size.setRange(6, 20)
         self.spinbox_point_size.setSuffix(" pt")
         self.checkbox_italic = QCheckBox("Italic")
         self.checkbox_bold = QCheckBox("Bold")
@@ -123,6 +122,10 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.set_italic_bold_enabled(family)
         self.checkbox_italic.setChecked(Ng_Settings.value(f"{self.name}/font-italic", type=bool))
         self.checkbox_bold.setChecked(Ng_Settings.value(f"{self.name}/font-bold", type=bool))
+        self.spinbox_point_size.setRange(
+            Ng_Settings.value(f"{self.name}/font-size-min", type=int),
+            Ng_Settings.value(f"{self.name}/font-size-max", type=int),
+        )
         self.spinbox_point_size.setValue(Ng_Settings.value(f"{self.name}/font-size", type=int))
 
     def load_settings_table(self) -> None:

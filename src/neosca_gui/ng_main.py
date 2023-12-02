@@ -97,13 +97,21 @@ class Ng_Main(QMainWindow):
         self.menu_file.addSeparator()
         self.menu_file.addAction(action_restart)
         self.menu_file.addAction(action_quit)
-        # Preferences
-        self.menu_preferences = QMenu("Preferences", self.menuBar())
-        action_settings = QAction("Settings", self.menu_preferences)
+        # Edit
+        self.menu_edit = QMenu("Edit", self.menuBar())
+        action_preferences = QAction("Preferences", self.menu_edit)
         # TODO: remove this before releasing
-        action_settings.setShortcut("CTRL+S")
-        action_settings.triggered.connect(self.menubar_preferences_settings)
-        self.menu_preferences.addAction(action_settings)
+        action_preferences.setShortcut("CTRL+S")
+        action_preferences.triggered.connect(self.menubar_edit_preferences)
+        action_increase_font_size = QAction("Increase Font Size", self.menu_edit)
+        action_increase_font_size.setShortcut("CTRL+=")
+        action_increase_font_size.triggered.connect(self.menubar_edit_increase_font_size)
+        action_decrease_font_size = QAction("Decrease Font Size", self.menu_edit)
+        action_decrease_font_size.setShortcut("CTRL+-")
+        action_decrease_font_size.triggered.connect(self.menubar_edit_decrease_font_size)
+        self.menu_edit.addAction(action_preferences)
+        self.menu_edit.addAction(action_increase_font_size)
+        self.menu_edit.addAction(action_decrease_font_size)
         # Help
         self.menu_help = QMenu("Help", self.menuBar())
         action_citing = QAction("Citing", self.menu_help)
@@ -111,10 +119,10 @@ class Ng_Main(QMainWindow):
         self.menu_help.addAction(action_citing)
 
         self.menuBar().addMenu(self.menu_file)
-        self.menuBar().addMenu(self.menu_preferences)
+        self.menuBar().addMenu(self.menu_edit)
         self.menuBar().addMenu(self.menu_help)
 
-    def menubar_preferences_settings(self) -> None:
+    def menubar_edit_preferences(self) -> None:
         attr = "dialog_settings"
         if hasattr(self, attr):
             getattr(self, attr).exec()
@@ -122,6 +130,22 @@ class Ng_Main(QMainWindow):
             dialog_settings = Ng_Dialog_Settings(self)
             setattr(self, attr, dialog_settings)
             dialog_settings.exec()
+
+    def menubar_edit_increase_font_size(self) -> None:
+        key = "Appearance/font-size"
+        point_size = Ng_Settings.value(key, type=int) + 1
+        if point_size < Ng_Settings.value("Appearance/font-size-max", type=int):
+            Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ng_Settings.setValue(key, point_size)
+
+    def menubar_edit_decrease_font_size(self) -> None:
+        key = "Appearance/font-size"
+        point_size = Ng_Settings.value(key, type=int) - 1
+        if point_size > Ng_Settings.value("Appearance/font-size-min", type=int):
+            Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ng_Settings.setValue(key, point_size)
+
+    # TODO: def menubar_edit_reset_font_size(self) -> None:
 
     def menubar_help_citing(self) -> None:
         dialog_citing = Ng_Dialog_TextEdit_Citing(self)

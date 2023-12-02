@@ -38,6 +38,8 @@ settings_default = {
     "Appearance/interface-scaling": DEFAULT_INTERFACE_SCALING,
     "Appearance/font-family": DEFAULT_FONT_FAMILY,
     "Appearance/font-size": DEFAULT_FONT_SIZE,
+    "Appearance/font-size-min": 6,
+    "Appearance/font-size-max": 20,
     "Appearance/font-italic": False,
     "Appearance/font-bold": False,
     "Appearance/triangle-height-ratio": 0.23,
