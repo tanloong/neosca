@@ -25,7 +25,7 @@ class Ng_NLP_Stanza:
             lang=lang,
             dir=model_dir,
             # TODO: need to (1) choose processors dynamically when initializing
-            #       (2) see if possible to drop or load processors after initializing
+            # (2) see if possible to drop or load processors after initializing
             processors=cls.processors,
             # https://github.com/stanfordnlp/stanza/issues/331
             resources_url="stanford",
