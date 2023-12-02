@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QTextEdit,
 )
 
-from neosca_gui import NEOSCA_HOME
+from neosca_gui import CITING_PATH
 from neosca_gui.ng_about import __title__
 
 if TYPE_CHECKING:
@@ -243,9 +243,7 @@ class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
 class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, title="Citing", **kwargs)
-        # citing.json is at the same dir of __file__
-        # TODO: need to have a unified way to get project path.
-        with open(NEOSCA_HOME / "citing.json", encoding="utf-8") as f:
+        with open(CITING_PATH, encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
         self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")

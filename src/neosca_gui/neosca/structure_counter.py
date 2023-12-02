@@ -114,7 +114,7 @@ class Structure:
 
 
 class StructureCounter:
-    data_file = DATA_FOLDER / "structure_data.json"
+    data_file = DATA_FOLDER / "sca_structure_data.json"
     with open(data_file, encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 
