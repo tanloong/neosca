@@ -247,9 +247,10 @@ class LCAUI:
 
     def run_tmpl(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
-            sucess, err_msg = self.check_spacy_and_model()
-            if not sucess:
-                return sucess, err_msg
+            # Has moved to Stanza
+            # sucess, err_msg = self.check_spacy_and_model()
+            # if not sucess:
+            #     return sucess, err_msg
             if not self.options.is_stdout:
                 sucess, err_msg = SCAIO.is_writable(self.options.ofile)
                 if not sucess:

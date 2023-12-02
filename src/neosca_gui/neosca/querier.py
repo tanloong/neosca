@@ -11,8 +11,8 @@ from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Union
 
 from neosca_gui.neosca.scaexceptions import CircularDefinitionError, InvalidSourceError
-from neosca_gui.pytregex.node_descriptions import NODE_ANY, NODE_TEXT
-from neosca_gui.pytregex.relation import (
+from neosca_gui.tregex.node_descriptions import NODE_ANY, NODE_TEXT
+from neosca_gui.tregex.relation import (
     CHILD_OF,
     DOMINATED_BY,
     DOMINATES,
@@ -23,7 +23,7 @@ from neosca_gui.pytregex.relation import (
     PARENT_OF,
     RIGHT_SISTER_OF,
 )
-from neosca_gui.pytregex.tree import Tree
+from neosca_gui.tregex.tree import Tree
 
 if TYPE_CHECKING:
     from .structure_counter import StructureCounter
@@ -512,7 +512,7 @@ class L2SCA_CP(L2SCA_Abstract_Structure):
             # }}}
 
 
-class Ns_PyTregex:
+class Ns_Tregex:
     SNAME_CLS_MAPPING = {
         "S": L2SCA_S,
         "VP1": L2SCA_VP1,
@@ -700,7 +700,7 @@ class Ns_PyTregex:
             meta_data = (
                 f"# name: {structure.name}\n"
                 + f"# description: {structure.description}\n"
-                + f"# pytregex_pattern: {structure.tregex_pattern}\n\n"
+                + f"# tregex_pattern: {structure.tregex_pattern}\n\n"
             )
             res = "\n".join(matches)
             # only accept alphanumeric chars, underscore, and hypen

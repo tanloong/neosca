@@ -43,19 +43,19 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "config": None,
         }
 
-        attrname = "sca_analyzer"
+        attrname = "sca_instance"
         try:
-            sca_analyzer = getattr(self.main, attrname)
+            sca_instance = getattr(self.main, attrname)
         except AttributeError:
-            sca_analyzer = NeoSCA(**sca_kwargs)
-            setattr(self.main, attrname, sca_analyzer)
+            sca_instance = NeoSCA(**sca_kwargs)
+            setattr(self.main, attrname, sca_instance)
         else:
-            sca_analyzer.update_options(sca_kwargs)
+            sca_instance.update_options(sca_kwargs)
 
         err_file_paths: List[str] = []
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
-                counter: Optional[StructureCounter] = sca_analyzer.parse_and_query_ifile(file_path)
+                counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
             except:
                 err_file_paths.append(file_path)
@@ -90,21 +90,21 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             "is_stdout": False,
             "is_cache": self.main.checkbox_cache_lca.isChecked(),
         }
-        attrname = "lca_analyzer"
+        attrname = "lca_instance"
         try:
-            lca_analyzer = getattr(self.main, attrname)
+            lca_instance = getattr(self.main, attrname)
         except AttributeError:
-            lca_analyzer = LCA(**lca_kwargs)
-            setattr(self.main, attrname, lca_analyzer)
+            lca_instance = LCA(**lca_kwargs)
+            setattr(self.main, attrname, lca_instance)
         else:
-            lca_analyzer.update_options(lca_kwargs)
+            lca_instance.update_options(lca_kwargs)
 
         err_file_paths: List[str] = []
         model: Ng_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
-                values = lca_analyzer._analyze(file_path=file_path)
+                values = lca_instance._analyze(file_path=file_path)
             except:
                 err_file_paths.append(file_path)
                 rowno -= 1

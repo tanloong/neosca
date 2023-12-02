@@ -16,42 +16,21 @@ class Ng_NLP_Stanza:
     def initialize(cls, lang: Optional[str] = None, model_dir: Optional[str] = None) -> None:
         import stanza
 
-        lang = lang if lang is not None else "en"
-        model_dir = model_dir if model_dir is not None else stanza.resources.common.DEFAULT_MODEL_DIR
+        if lang is None:
+            lang = "en"
+        if model_dir is None:
+            model_dir = stanza.resources.common.DEFAULT_MODEL_DIR
+
         cls.pipeline = stanza.Pipeline(
             lang=lang,
             dir=model_dir,
             # TODO: need to (1) choose processors dynamically when initializing
             #       (2) see if possible to drop or load processors after initializing
-            # Stanza 1.6.1 does not allow set yet
             processors=cls.processors,
             # https://github.com/stanfordnlp/stanza/issues/331
             resources_url="stanford",
             download_method=None,
         )
-
-    @classmethod
-    def doc2serialized(cls, doc: Document) -> bytes:
-        doc_dict = {"meta_data": {}, "serialized": None}
-        doc_dict["serialized"] = doc.to_serialized()
-
-        attr = "processors"
-        if hasattr(doc, attr):
-            doc_dict["meta_data"][attr] = getattr(doc, attr)
-        return pickle.dumps(doc_dict)
-
-    @classmethod
-    def serialized2doc(cls, data: bytes) -> Document:
-        """
-        Specifically for loading documents that were serialized by "doc2serialized"
-        """
-        doc_dict = pickle.loads(data)
-        doc = Document.from_serialized(doc_dict["serialized"])
-
-        attr = "processors"
-        if value := doc_dict["meta_data"][attr]:
-            setattr(doc, attr, value)
-        return doc
 
     @classmethod
     def _nlp(cls, doc, processors: Optional[Sequence[str]] = None) -> Document:
@@ -132,3 +111,26 @@ class Ng_NLP_Stanza:
         for sent in doc.sentences:
             for word in sent.words:
                 yield (word.lemma.lower(), getattr(word, pos_attr))
+
+    @classmethod
+    def doc2serialized(cls, doc: Document) -> bytes:
+        doc_dict = {"meta_data": {}, "serialized": None}
+        doc_dict["serialized"] = doc.to_serialized()
+
+        attr = "processors"
+        if hasattr(doc, attr):
+            doc_dict["meta_data"][attr] = getattr(doc, attr)
+        return pickle.dumps(doc_dict)
+
+    @classmethod
+    def serialized2doc(cls, data: bytes) -> Document:
+        """
+        Specifically for loading documents that were serialized by "doc2serialized"
+        """
+        doc_dict = pickle.loads(data)
+        doc = Document.from_serialized(doc_dict["serialized"])
+
+        attr = "processors"
+        if value := doc_dict["meta_data"][attr]:
+            setattr(doc, attr, value)
+        return doc

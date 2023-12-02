@@ -29,7 +29,7 @@ class Ng_QSS:
         >>> get_value(qss, "QHeaderView::section:horizontal", "background-color")
         #5C88C5
         """
-        # Notice that only the 1st selector will be matched here
+        # Note that only value of the 1st matched selector returned
         matched_selector = re.search(selector, qss)
         if matched_selector is None:
             return None
@@ -64,8 +64,8 @@ class Ng_QSS:
             (1) Every value ends with ";"
                 e.g., "font-size: 11pt" ✗
                 e.g., "font-size: 11pt;" ✓
-            (2) The trailing ";" be attached to the value and separated
-                from the subsequent token
+            (2) The trailing ";" be attached to the value and, if any,
+                separated from the subsequent next property token
                 e.g., "font-size: 11pt ;" ✗
                 e.g., "font-size: 11pt;" ✓
                 e.g., "font-size: 11pt;max-width: 75px;" ✗
@@ -86,7 +86,8 @@ class Ng_QSS:
         Later value for the same property will override the previous one
         The returned dict will always has a trailing ";" across its values
         """
-        selector_declaration_mapping = {}
+        # selector_declaration_mapping = {}
+        sel_dec_mapping = {}
         cur_selector = None
         cur_property = None
         qss_str = qss_str.replace("{", " { ").replace("}", " } ")
@@ -100,20 +101,20 @@ class Ng_QSS:
                 cur_property = token.rstrip(":")
             elif cur_property is not None:
                 if cur_selector is None:
-                    value_prev = selector_declaration_mapping.get(cur_property, "")
+                    value_prev = sel_dec_mapping.get(cur_property, "")
                     value = f"{value_prev} {token}" if not value_prev.endswith(";") else token
-                    selector_declaration_mapping[cur_property] = value.lstrip()
+                    sel_dec_mapping[cur_property] = value.lstrip()
                 else:
-                    if cur_selector not in selector_declaration_mapping:
-                        selector_declaration_mapping[cur_selector] = {}
-                    value_prev = selector_declaration_mapping[cur_selector].get(cur_property, "")
+                    if cur_selector not in sel_dec_mapping:
+                        sel_dec_mapping[cur_selector] = {}
+                    value_prev = sel_dec_mapping[cur_selector].get(cur_property, "")
                     value = f"{value_prev} {token}" if not value_prev.endswith(";") else token
-                    selector_declaration_mapping[cur_selector][cur_property] = value.lstrip()
+                    sel_dec_mapping[cur_selector][cur_property] = value.lstrip()
                 if token.endswith(";"):
                     cur_property = None
             else:
                 cur_selector = f"{cur_selector} {token}" if cur_selector is not None else token
-        return selector_declaration_mapping
+        return sel_dec_mapping
 
     @classmethod
     def set_value(cls, widget: QWidget, new_qss_mapping: Dict[str, Dict[str, str]]) -> None:

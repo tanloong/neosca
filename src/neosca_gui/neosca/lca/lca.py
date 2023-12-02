@@ -371,7 +371,7 @@ class LCA:
             modifier_variation,
         )
 
-    def _analyze(self, *, file_path: Optional[str] = None, doc = None):
+    def _analyze(self, *, file_path: Optional[str] = None, doc=None):
         from neosca_gui.ng_nlp import Ng_NLP_Stanza
 
         assert (not file_path) ^ (not doc)

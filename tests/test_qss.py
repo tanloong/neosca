@@ -81,6 +81,7 @@ class TestQSS(BaseTmpl):
             to_string({"font-size": "11pt;", "QTableView": {"color": "red;"}}),
             to_string(to_mapping("font-size: 11pt; QTableView {color: red;}")),
         )
+
     def test_get_value(self):
         qss_str = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
         value = Ng_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color")

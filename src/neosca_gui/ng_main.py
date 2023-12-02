@@ -101,7 +101,7 @@ class Ng_Main(QMainWindow):
         self.menu_edit = QMenu("Edit", self.menuBar())
         action_preferences = QAction("Preferences", self.menu_edit)
         # TODO: remove this before releasing
-        action_preferences.setShortcut("CTRL+S")
+        action_preferences.setShortcut("CTRL+,")
         action_preferences.triggered.connect(self.menubar_edit_preferences)
         action_increase_font_size = QAction("Increase Font Size", self.menu_edit)
         action_increase_font_size.setShortcut("CTRL+=")

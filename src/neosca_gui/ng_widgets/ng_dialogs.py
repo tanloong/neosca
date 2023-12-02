@@ -191,8 +191,7 @@ class Ng_Dialog_TextEdit(Ng_Dialog):
         self.fmt_textedit.setTextIndent(-indentation)
 
         self.button_copy = QPushButton("Copy")
-        self.button_copy.clicked.connect(self.textedit.selectAll)
-        self.button_copy.clicked.connect(self.textedit.copy)
+        self.button_copy.clicked.connect(self.copy)
 
         self.button_close = QPushButton("Close")
         self.button_close.clicked.connect(self.reject)
@@ -205,6 +204,10 @@ class Ng_Dialog_TextEdit(Ng_Dialog):
         cursor = QTextCursor(self.textedit.document())
         cursor.select(QTextCursor.SelectionType.Document)
         cursor.mergeBlockFormat(self.fmt_textedit)
+
+    def copy(self) -> None:
+        self.textedit.selectAll()
+        self.textedit.copy()
 
     # Override
     def show(self) -> None:

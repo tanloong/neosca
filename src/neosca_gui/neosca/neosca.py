@@ -7,7 +7,7 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
-from neosca_gui.neosca.querier import Ns_PyTregex
+from neosca_gui.neosca.querier import Ns_Tregex
 from neosca_gui.neosca.structure_counter import StructureCounter
 from neosca_gui.ng_io import SCAIO
 
@@ -70,7 +70,7 @@ class NeoSCA:
 
     def ensure_stanford_tregex_initialized(self) -> None:
         if not self.is_stanford_tregex_initialized:
-            self.tregex = Ns_PyTregex()
+            self.tregex = Ns_Tregex()
             self.is_stanford_tregex_initialized = True
 
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:

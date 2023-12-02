@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, List
 
-from neosca_gui.pytregex.abstract_collins_head_finder import AbstractCollinsHeadFinder
+from neosca_gui.tregex.abstract_collins_head_finder import AbstractCollinsHeadFinder
 
 if TYPE_CHECKING:
     from .tree import Tree
