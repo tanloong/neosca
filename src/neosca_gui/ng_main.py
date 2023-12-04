@@ -63,6 +63,7 @@ class Ng_Main(QMainWindow):
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
+        self.resize_splitters()
         self.fix_macos_layout(self)
 
     # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_main.py#L266
@@ -109,9 +110,12 @@ class Ng_Main(QMainWindow):
         action_decrease_font_size = QAction("Decrease Font Size", self.menu_edit)
         action_decrease_font_size.setShortcut("CTRL+-")
         action_decrease_font_size.triggered.connect(self.menubar_edit_decrease_font_size)
+        action_reset_layout = QAction("Reset Layouts", self.menu_edit)
+        action_reset_layout.triggered.connect(lambda: self.resize_splitters(is_reset=True))
         self.menu_edit.addAction(action_preferences)
         self.menu_edit.addAction(action_increase_font_size)
         self.menu_edit.addAction(action_decrease_font_size)
+        self.menu_edit.addAction(action_reset_layout)
         # Help
         self.menu_help = QMenu("Help", self.menuBar())
         action_citing = QAction("Citing", self.menu_help)
@@ -121,6 +125,16 @@ class Ng_Main(QMainWindow):
         self.menuBar().addMenu(self.menu_file)
         self.menuBar().addMenu(self.menu_edit)
         self.menuBar().addMenu(self.menu_help)
+
+    def close(self) -> None:
+        Ng_Settings.setValue(self.splitter_workarea_sca.objectName(), self.splitter_workarea_sca.saveState())
+        Ng_Settings.setValue(self.splitter_workarea_lca.objectName(), self.splitter_workarea_lca.saveState())
+        Ng_Settings.setValue(
+            self.splitter_central_widget.objectName(), self.splitter_central_widget.saveState()
+        )
+        Ng_Settings.sync()
+
+        super().close()
 
     def menubar_edit_preferences(self) -> None:
         attr = "dialog_settings"
@@ -205,7 +219,6 @@ class Ng_Main(QMainWindow):
         layout_settings_sca.setContentsMargins(6, 0, 6, 0)
 
         self.scrollarea_settings_sca = Ng_ScrollArea()
-        self.scrollarea_settings_sca.setMinimumWidth(200)
         self.scrollarea_settings_sca.setWidget(widget_settings_sca)
 
         self.widget_previewarea_sca = QWidget()
@@ -227,12 +240,11 @@ class Ng_Main(QMainWindow):
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
         self.splitter_workarea_sca = QSplitter(Qt.Orientation.Horizontal)
-        self.splitter_workarea_sca.setChildrenCollapsible(False)
         self.splitter_workarea_sca.addWidget(self.widget_previewarea_sca)
         self.splitter_workarea_sca.addWidget(self.scrollarea_settings_sca)
-        self.splitter_workarea_sca.setStretchFactor(0, 5)
-        self.splitter_workarea_sca.setStretchFactor(1, 1)
+        self.splitter_workarea_sca.setStretchFactor(0, 1)
         self.splitter_workarea_sca.setContentsMargins(6, 4, 6, 4)
+        self.splitter_workarea_sca.setObjectName("splitter-sca")
 
     def custom_func(self):
         breakpoint()
@@ -303,7 +315,6 @@ class Ng_Main(QMainWindow):
         layout_settings_lca.setContentsMargins(6, 0, 6, 0)
 
         self.scrollarea_settings_lca = Ng_ScrollArea()
-        self.scrollarea_settings_lca.setMinimumWidth(200)
         self.scrollarea_settings_lca.setWidget(widget_settings_lca)
 
         self.widget_previewarea_lca = QWidget()
@@ -322,12 +333,28 @@ class Ng_Main(QMainWindow):
         self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
 
         self.splitter_workarea_lca = QSplitter(Qt.Orientation.Horizontal)
-        self.splitter_workarea_lca.setChildrenCollapsible(False)
         self.splitter_workarea_lca.addWidget(self.widget_previewarea_lca)
         self.splitter_workarea_lca.addWidget(self.scrollarea_settings_lca)
-        self.splitter_workarea_lca.setStretchFactor(0, 5)
-        self.splitter_workarea_lca.setStretchFactor(1, 1)
+        self.splitter_workarea_lca.setStretchFactor(0, 1)
         self.splitter_workarea_lca.setContentsMargins(6, 4, 6, 4)
+        self.splitter_workarea_lca.setObjectName("splitter-lca")
+
+    def resize_splitters(self, is_reset: bool = False) -> None:
+        for splitter in (
+            self.splitter_workarea_sca,
+            self.splitter_workarea_lca,
+            self.splitter_central_widget,
+        ):
+            key = splitter.objectName()
+            if not is_reset and Ng_Settings.contains(key):
+                splitter.restoreState(Ng_Settings.value(key))
+            else:
+                if splitter.orientation() == Qt.Orientation.Vertical:
+                    total_size = splitter.size().height()
+                else:
+                    total_size = splitter.size().width()
+                section_size = Ng_Settings.value(f"default-{key}", type=int)
+                splitter.setSizes((total_size - section_size, section_size))
 
     def enable_button_generate_table(self, enabled: bool) -> None:
         self.button_generate_table_sca.setEnabled(enabled)
@@ -363,8 +390,8 @@ class Ng_Main(QMainWindow):
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
         self.splitter_central_widget.addWidget(self.tableview_file)
-        self.splitter_central_widget.setStretchFactor(0, 2)
-        self.splitter_central_widget.setStretchFactor(1, 1)
+        self.splitter_central_widget.setStretchFactor(0, 1)
+        self.splitter_central_widget.setObjectName("splitter-file")
         self.setCentralWidget(self.splitter_central_widget)
 
     def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
