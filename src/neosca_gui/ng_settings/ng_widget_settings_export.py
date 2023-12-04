@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import os.path as os_path
 
 from PySide6.QtWidgets import (
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_export_types
 from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca_gui.ng_widgets.ng_widgets import Ng_LineEdit_Path
+from neosca_gui.ng_widgets.ng_widgets import Ng_LineEdit_Path, Ng_MessageBox_Confirm
 
 
 class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
@@ -44,6 +45,9 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
         self.combobox_type.setCurrentText(Ng_Settings.value(f"{self.name}/default-type"))
 
     def verify_settings(self) -> bool:
+        return self.verify_settings_tables()
+
+    def verify_settings_tables(self) -> bool:
         path = self.lineedit_path.text()
         if not path or path.isspace():
             self.lineedit_path.setFocus()
@@ -57,16 +61,19 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
             ).exec()
             return False
         if not os_path.isdir(path):
-            self.lineedit_path.setFocus()
-            self.lineedit_path.selectAll()
-            QMessageBox(
-                QMessageBox.Icon.Warning,
-                "Path Not Found",
-                f'Found no existing directory named "{path}". Please check and try again.',
-                QMessageBox.StandardButton.Ok,
+            messagebox = Ng_MessageBox_Confirm(
                 self,
-            ).exec()
-            return False
+                "Path Not Found",
+                f'Found no existing directory named "{path}". Do you want to create the directory?',
+                QMessageBox.Icon.Warning,
+            )
+            if messagebox.exec():
+                os.makedirs(path)
+                return True
+            else:
+                self.lineedit_path.setFocus()
+                self.lineedit_path.selectAll()
+                return False
         return True
 
     def apply_settings(self) -> None:

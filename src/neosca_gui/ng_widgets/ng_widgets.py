@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QFileSystemModel,
     QHBoxLayout,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QWidget,
@@ -57,8 +58,6 @@ class Ng_FileDialog(QFileDialog):
         # current path in the viewport.
         filename = dialog.selectedFiles()[0]
         return filename
-
-
 
 
 # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_widgets/wl_layouts.py#L108
@@ -156,12 +155,18 @@ class Ng_Combobox_Editable(QComboBox):
 
 
 class Ng_MessageBox_Confirm(QMessageBox):
-    def __init__(self, parent=None, title: str = "", text: str = ""):
+    def __init__(
+        self,
+        parent=None,
+        title: str = "",
+        text: str = "",
+        icon: QMessageBox.Icon = QMessageBox.Icon.Information,
+    ):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setText(text)
         self.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        self.setIcon(QMessageBox.Icon.Information)
+        self.setIcon(icon)
 
     # Override
     def exec(self) -> bool:

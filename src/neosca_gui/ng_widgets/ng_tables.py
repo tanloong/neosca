@@ -93,10 +93,14 @@ class Ng_StandardItemModel(QStandardItemModel):
         """
         if not confirm or self.has_been_exported:
             return self._clear_data(leave_an_empty_row=leave_an_empty_row)
-
-        messagebox = Ng_MessageBox_Confirm(self.main, "Clear Talbe", "The table has not been exported yet and all the data will be lost. Continue?")
-        if messagebox.exec():
-            self._clear_data(leave_an_empty_row=leave_an_empty_row)
+        else:
+            messagebox = Ng_MessageBox_Confirm(
+                self.main,
+                "Clear Talbe",
+                "The table has not been exported yet and all the data will be lost. Continue?",
+            )
+            if messagebox.exec():
+                self._clear_data(leave_an_empty_row=leave_an_empty_row)
 
     def is_empty(self):
         for row in range(self.rowCount()):

@@ -108,12 +108,12 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         formlayout_table = QFormLayout()
         formlayout_table.addRow(QLabel("Triangle height ratio:"), self.doublespinbox_triangle_height_ratio)
 
-        self.groupbox_table = QGroupBox("Table")
+        self.groupbox_table = QGroupBox("Tables")
         self.groupbox_table.setLayout(formlayout_table)
 
     def load_settings(self) -> None:
         self.load_settings_font()
-        self.load_settings_table()
+        self.load_settings_tables()
 
     def load_settings_font(self) -> None:
         family = Ng_Settings.value("Appearance/font-family")
@@ -128,7 +128,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         )
         self.spinbox_point_size.setValue(Ng_Settings.value(f"{self.name}/font-size", type=int))
 
-    def load_settings_table(self) -> None:
+    def load_settings_tables(self) -> None:
         self.doublespinbox_triangle_height_ratio.setValue(
             Ng_Settings.value(f"{self.name}/triangle-height-ratio", type=float)
         )
