@@ -23,17 +23,17 @@ class Ng_QSS:
             return default
 
     @staticmethod
-    def get_value(qss: str, selector: str, attrname: str) -> Optional[str]:
-        """
+    def get_value(qss: str, selector: str, property: str) -> Optional[str]:
+        """Requires that every value ends with ";".
         >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
         >>> get_value(qss, "QHeaderView::section:horizontal", "background-color")
         #5C88C5
         """
         # Note that only value of the 1st matched selector returned
-        matched_selector = re.search(selector, qss)
+        matched_selector = re.search(rf"{selector}[ }}]", qss)
         if matched_selector is None:
             return None
-        matched_value = re.search(rf"[^}}]+{attrname}:\s*([^;]+);", qss[matched_selector.end() :])
+        matched_value = re.search(rf"[^}}]+{property}:\s*([^;]+);", qss[matched_selector.end() :])
         if matched_value is None:
             return None
         return matched_value.group(1)

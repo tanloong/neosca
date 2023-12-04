@@ -83,6 +83,13 @@ class TestQSS(BaseTmpl):
         )
 
     def test_get_value(self):
-        qss_str = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
-        value = Ng_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color")
-        self.assertEqual(value, "#5C88C5")
+        qss_str = """QHeaderView::section:horizontal { background-color: #5C88C5; }
+                     QHeaderView::section:vertical { background-color: #737373; }
+                     QHeaderView::section { color: #FFFFFF; font-weight: bold; }"""
+        self.assertEqual(
+            Ng_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color"), "#5C88C5"
+        )
+        self.assertEqual(
+            Ng_QSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
+        )
+        self.assertEqual(Ng_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
