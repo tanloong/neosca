@@ -32,6 +32,7 @@ from neosca_gui.ng_qss import Ng_QSS
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_export_types
 from neosca_gui.ng_widgets.ng_dialogs import Ng_Dialog_TextEdit_SCA_Matched_Subtrees
+from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm
 
 
 class Ng_StandardItemModel(QStandardItemModel):
@@ -93,13 +94,9 @@ class Ng_StandardItemModel(QStandardItemModel):
         if not confirm or self.has_been_exported:
             return self._clear_data(leave_an_empty_row=leave_an_empty_row)
 
-        messagebox = QMessageBox(self.main)
-        messagebox.setWindowTitle("Clear Table")
-        messagebox.setText("The table has not been exported yet and all the data will be lost. Continue?")
-        messagebox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-
-        messagebox.accepted.connect(lambda: self._clear_data(leave_an_empty_row=leave_an_empty_row))
-        messagebox.exec()
+        messagebox = Ng_MessageBox_Confirm(self.main, "Clear Talbe", "The table has not been exported yet and all the data will be lost. Continue?")
+        if messagebox.exec():
+            self._clear_data(leave_an_empty_row=leave_an_empty_row)
 
     def is_empty(self):
         for row in range(self.rowCount()):

@@ -21,6 +21,11 @@ class Ng_Settings:
             settings.setValue(k, v)
 
     @classmethod
+    def reset(cls) -> None:
+        for k, v in settings_default.items():
+            cls.settings.setValue(k, v)
+
+    @classmethod
     def allKeys(cls) -> List[str]:
         return cls.settings.allKeys()
 

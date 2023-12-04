@@ -153,3 +153,22 @@ class Ng_Combobox_Editable(QComboBox):
         # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
         self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         self.setEditable(True)
+
+
+class Ng_MessageBox_Confirm(QMessageBox):
+    def __init__(self, parent=None, title: str = "", text: str = ""):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.setText(text)
+        self.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        self.setIcon(QMessageBox.Icon.Information)
+
+    # Override
+    def exec(self) -> bool:
+        ret = super().exec()
+        return ret == QMessageBox.StandardButton.Yes.value
+
+    # Override
+    def show(self) -> bool:
+        ret = super().show()
+        return ret == QMessageBox.StandardButton.Yes.value

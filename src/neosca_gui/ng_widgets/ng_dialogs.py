@@ -75,35 +75,35 @@ class Ng_Dialog(QDialog):
         # [Copied code ends here]
         self.setWindowTitle(title)
 
-        self.content_layout = QGridLayout()
-        self.button_layout = QGridLayout()
-        self.button_layout.setColumnStretch(1, 1)
+        self.layout_content = QGridLayout()
+        self.layout_button = QGridLayout()
+        self.layout_button.setColumnStretch(1, 1)
 
         self.grid_layout = QGridLayout()
-        self.grid_layout.addLayout(self.content_layout, 0, 0)
-        self.grid_layout.addLayout(self.button_layout, 1, 0)
+        self.grid_layout.addLayout(self.layout_content, 0, 0)
+        self.grid_layout.addLayout(self.layout_button, 1, 0)
         self.setLayout(self.grid_layout)
 
     def rowCount(self) -> int:
-        return self.content_layout.rowCount()
+        return self.layout_content.rowCount()
 
     def columnCount(self) -> int:
-        return self.content_layout.columnCount()
+        return self.layout_content.columnCount()
 
     def addWidget(self, *args, **kwargs) -> None:
-        self.content_layout.addWidget(*args, **kwargs)
+        self.layout_content.addWidget(*args, **kwargs)
 
     def addButtons(self, *buttons, alignment: ButtonAlignmentFlag) -> None:
         layout = QGridLayout()
         for colno, button in enumerate(buttons):
             layout.addWidget(button, 0, colno)
-        self.button_layout.addLayout(layout, 0, alignment.value)
+        self.layout_button.addLayout(layout, 0, alignment.value)
 
     def setColumnStretch(self, column: int, strech: int) -> None:
-        self.content_layout.setColumnStretch(column, strech)
+        self.layout_content.setColumnStretch(column, strech)
 
     def setRowStretch(self, row: int, strech: int) -> None:
-        self.content_layout.setRowStretch(row, strech)
+        self.layout_content.setRowStretch(row, strech)
 
 
 class Ng_Dialog_Processing_With_Elapsed_Time(Ng_Dialog):
@@ -276,8 +276,8 @@ class Ng_Dialog_Table(Ng_Dialog):
     ) -> None:
         super().__init__(*args, **kwargs)
         self.tableview: "Ng_TableView" = tableview
-        self.content_layout.addWidget(QLabel(text), 0, 0)
-        self.content_layout.addWidget(tableview, 1, 0)
+        self.layout_content.addWidget(QLabel(text), 0, 0)
+        self.layout_content.addWidget(tableview, 1, 0)
         self.export_filename = export_filename
 
         self.button_ok = QPushButton("OK")

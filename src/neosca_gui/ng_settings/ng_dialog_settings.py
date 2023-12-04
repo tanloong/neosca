@@ -9,12 +9,12 @@ from neosca_gui.ng_settings.ng_widget_settings_appearance import Ng_Widget_Setti
 from neosca_gui.ng_settings.ng_widget_settings_export import Ng_Widget_Settings_Export
 from neosca_gui.ng_settings.ng_widget_settings_import import Ng_Widget_Settings_Import
 from neosca_gui.ng_widgets.ng_dialogs import Ng_Dialog
-from neosca_gui.ng_widgets.ng_widgets import Ng_ScrollArea
+from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
 
 
 class Ng_Dialog_Settings(Ng_Dialog):
     def __init__(self, main):
-        super().__init__(main, title="Settings", width=768, height=576, resizable=True)
+        super().__init__(main, title="Preferences", width=768, height=576, resizable=True)
 
         self.sections = (
             Ng_Widget_Settings_Appearance(main),
@@ -25,6 +25,7 @@ class Ng_Dialog_Settings(Ng_Dialog):
         self.stackedwidget_settings = QStackedWidget()
         self.scrollarea_settings = Ng_ScrollArea()
         self.scrollarea_settings.setWidget(self.stackedwidget_settings)
+        self.button_reset = QPushButton("Reset all settings")
         self.button_save = QPushButton("Save")
         self.button_apply = QPushButton("Apply")
         self.button_cancel = QPushButton("Cancel")
@@ -38,12 +39,14 @@ class Ng_Dialog_Settings(Ng_Dialog):
 
         # Bind
         self.listwidget_settings.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        self.button_reset.clicked.connect(self.reset_settings)
         self.button_save.clicked.connect(self.apply_settings_and_close)
         self.button_apply.clicked.connect(self.apply_settings)
         self.button_cancel.clicked.connect(self.reject)
 
         self.addWidget(self.listwidget_settings, 0, 0)
         self.addWidget(self.scrollarea_settings, 0, 1)
+        self.addButtons(self.button_reset, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
         self.addButtons(
             self.button_save,
             self.button_apply,
@@ -84,6 +87,14 @@ class Ng_Dialog_Settings(Ng_Dialog):
         if self.apply_settings():
             Ng_Settings.sync()
             self.accept()
+
+    def reset_settings(self) -> None:
+        messagebox = Ng_MessageBox_Confirm(
+            self, "Reset All Settings", "Settings across <b>all pages</b> will be reset. Continue?"
+        )
+        if messagebox.exec():
+            Ng_Settings.reset()
+            self.load_settings()
 
     # Override
     def exec(self) -> None:
