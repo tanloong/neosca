@@ -3,7 +3,7 @@
 import logging
 import lzma
 import pickle
-from typing import Generator, Literal, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Generator, Literal, Optional, Sequence, Tuple, Union
 
 from stanza import Document
 
@@ -114,7 +114,7 @@ class Ng_NLP_Stanza:
 
     @classmethod
     def doc2serialized(cls, doc: Document) -> bytes:
-        doc_dict = {"meta_data": {}, "serialized": None}
+        doc_dict: Dict[str, Any] = {"meta_data": {}, "serialized": None}
         doc_dict["serialized"] = doc.to_serialized()
 
         attr = "processors"
@@ -124,13 +124,10 @@ class Ng_NLP_Stanza:
 
     @classmethod
     def serialized2doc(cls, data: bytes) -> Document:
-        """
-        Specifically for loading documents that were serialized by "doc2serialized"
-        """
         doc_dict = pickle.loads(data)
         doc = Document.from_serialized(doc_dict["serialized"])
 
         attr = "processors"
-        if value := doc_dict["meta_data"][attr]:
-            setattr(doc, attr, value)
+        if "meta_data" in doc_dict and attr in doc_dict["meta_data"]:
+            setattr(doc, attr, doc_dict["meta_data"][attr])
         return doc
