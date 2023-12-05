@@ -128,16 +128,20 @@ class Ng_Main(QMainWindow):
 
     # Override
     def close(self) -> None:
-        if any(
-            (not model.is_empty() and not model.has_been_exported)
-            for model in (
-                self.model_sca,
-                self.model_lca,
-            )
+        if not Ng_Settings.value("Miscellaneous/dont-confirm-on-exit", type=bool) and any(
+            (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
         ):
-            messagebox = Ng_MessageBox_Confirm(
-                self, "Exit NeoSCA", "<b>All unsaved data will be lost.</b> Continue?", QMessageBox.Icon.Warning
+            checkbox_exit = QCheckBox("Don't confirm on exit")
+            checkbox_exit.stateChanged.connect(
+                lambda: Ng_Settings.setValue("Miscellaneous/dont-confirm-on-exit", checkbox_exit.isChecked())
             )
+            messagebox = Ng_MessageBox_Confirm(
+                self,
+                "Exit NeoSCA",
+                "<b>All unsaved data will be lost.</b> Do you really want to exit?",
+                QMessageBox.Icon.Warning,
+            )
+            messagebox.setCheckBox(checkbox_exit)
             if not messagebox.exec():
                 return
 

@@ -8,6 +8,7 @@ from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Setting
 from neosca_gui.ng_settings.ng_widget_settings_appearance import Ng_Widget_Settings_Appearance
 from neosca_gui.ng_settings.ng_widget_settings_export import Ng_Widget_Settings_Export
 from neosca_gui.ng_settings.ng_widget_settings_import import Ng_Widget_Settings_Import
+from neosca_gui.ng_settings.ng_widget_settings_misc import Ng_Widget_Settings_Misc
 from neosca_gui.ng_widgets.ng_dialogs import Ng_Dialog
 from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
 
@@ -20,6 +21,7 @@ class Ng_Dialog_Settings(Ng_Dialog):
             Ng_Widget_Settings_Appearance(main),
             Ng_Widget_Settings_Import(main),
             Ng_Widget_Settings_Export(main),
+            Ng_Widget_Settings_Misc(main),
         )
         self.listwidget_settings = QListWidget()
         self.stackedwidget_settings = QStackedWidget()

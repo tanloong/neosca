@@ -47,6 +47,7 @@ settings_default = {
     "Import/default-type": available_import_types[0],
     "Export/default-path": str(DESKTOP_PATH),
     "Export/default-type": available_export_types[0],
+    "Miscellaneous/dont-confirm-on-exit": False,
     "default-splitter-sca": 200,
     "default-splitter-lca": 200,
     "default-splitter-file": 150,
