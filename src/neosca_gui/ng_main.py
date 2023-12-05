@@ -90,7 +90,7 @@ class Ng_Main(QMainWindow):
         action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("Quit", self.menu_file)
+        action_quit = QAction("Exit", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
@@ -126,7 +126,21 @@ class Ng_Main(QMainWindow):
         self.menuBar().addMenu(self.menu_edit)
         self.menuBar().addMenu(self.menu_help)
 
+    # Override
     def close(self) -> None:
+        if any(
+            (not model.is_empty() and not model.has_been_exported)
+            for model in (
+                self.model_sca,
+                self.model_lca,
+            )
+        ):
+            messagebox = Ng_MessageBox_Confirm(
+                self, "Exit NeoSCA", "<b>All unsaved data will be lost.</b> Continue?", QMessageBox.Icon.Warning
+            )
+            if not messagebox.exec():
+                return
+
         Ng_Settings.setValue(self.splitter_workarea_sca.objectName(), self.splitter_workarea_sca.saveState())
         Ng_Settings.setValue(self.splitter_workarea_lca.objectName(), self.splitter_workarea_lca.saveState())
         Ng_Settings.setValue(
