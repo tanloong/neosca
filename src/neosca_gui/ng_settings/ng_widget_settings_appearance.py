@@ -5,6 +5,7 @@ from typing import Dict
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDoubleSpinBox,
     QFontComboBox,
     QFormLayout,
@@ -28,12 +29,22 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
     def __init__(self, main):
         super().__init__(main)
+        self.setup_scaling()
         self.setup_font()
         self.setup_table()
 
-        self.gridlayout.addWidget(self.groupbox_font, 0, 0)
-        self.gridlayout.addWidget(self.groupbox_table, 1, 0)
+        self.gridlayout.addLayout(self.formlayout_scaling, 0, 0)
+        self.gridlayout.addWidget(self.groupbox_font, 1, 0)
+        self.gridlayout.addWidget(self.groupbox_table, 2, 0)
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+
+    def setup_scaling(self) -> None:
+        label_scaling = QLabel("Interface scaling:")
+        self.combobox_scaling = QComboBox()
+        # https://github.com/BLKSerene/Wordless/blob/1c319ce54be60aa948c89d6d3cdd327cccfc7c15/wordless/wl_settings/wl_settings_general.py#L53
+        self.combobox_scaling.addItems([f"{opt}%" for opt in range(100, 301, 25)])
+        self.formlayout_scaling = QFormLayout()
+        self.formlayout_scaling.addRow(label_scaling, self.combobox_scaling)
 
     def setup_font(self) -> None:
         self.name_writing_system_mapping: Dict[str, QFontDatabase.WritingSystem] = {
@@ -74,7 +85,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
             self.combobox_family.setWritingSystem(self.name_writing_system_mapping[name])
 
-            current_family = Ng_Settings.value("Appearance/font-family")
+            current_family = Ng_Settings.value(f"{self.name}/font-family")
             contains_current_family = any(
                 current_family == self.combobox_family.itemText(i) for i in range(self.combobox_family.count())
             )
@@ -112,11 +123,16 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.groupbox_table.setLayout(formlayout_table)
 
     def load_settings(self) -> None:
+        self.load_settings_scaling()
         self.load_settings_font()
         self.load_settings_tables()
 
+    def load_settings_scaling(self) -> None:
+        key = f"{self.name}/interface-scaling"
+        self.combobox_scaling.setCurrentText(Ng_Settings.value(key))
+
     def load_settings_font(self) -> None:
-        family = Ng_Settings.value("Appearance/font-family")
+        family = Ng_Settings.value(f"{self.name}/font-family")
         self.combobox_family.setCurrentText(family)
         # If previously set font doesn't has italic or bold style, disable the according checkbox
         self.set_italic_bold_enabled(family)
@@ -129,12 +145,14 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.spinbox_point_size.setValue(Ng_Settings.value(f"{self.name}/font-size", type=int))
 
     def load_settings_tables(self) -> None:
-        self.doublespinbox_triangle_height_ratio.setValue(
-            Ng_Settings.value(f"{self.name}/triangle-height-ratio", type=float)
-        )
+        key = f"{self.name}/triangle-height-ratio"
+        self.doublespinbox_triangle_height_ratio.setValue(Ng_Settings.value(key, type=float))
 
     def verify_settings(self) -> bool:
-        return self.verify_settings_font()
+        return self.verify_settings_scaling() and self.verify_settings_font() and self.verify_settings_tables()
+
+    def verify_settings_scaling(self) -> bool:
+        return True
 
     def verify_settings_font(self) -> bool:
         return self.verify_settings_font_writing_system() and self.verify_settings_font_family()
@@ -191,9 +209,17 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
             return False
         return True
 
+    def verify_settings_tables(self) -> bool:
+        return True
+
     def apply_settings(self) -> None:
+        self.apply_settings_scaling()
         self.apply_settings_font()
         self.apply_settings_table()
+
+    def apply_settings_scaling(self) -> None:
+        key = f"{self.name}/interface-scaling"
+        Ng_Settings.setValue(key, self.combobox_scaling.currentText())
 
     def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
