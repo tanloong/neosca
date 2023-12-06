@@ -100,23 +100,23 @@ class Ng_Main(QMainWindow):
         self.menu_file.addAction(action_restart)
         self.menu_file.addAction(action_quit)
         # Edit
-        self.menu_edit = QMenu("Edit", self.menuBar())
-        action_preferences = QAction("Preferences", self.menu_edit)
+        self.menu_prefs = QMenu("Preferences", self.menuBar())
+        action_settings = QAction("Settings", self.menu_prefs)
         # TODO: remove this before releasing
-        action_preferences.setShortcut("CTRL+,")
-        action_preferences.triggered.connect(self.menubar_edit_preferences)
-        action_increase_font_size = QAction("Increase Font Size", self.menu_edit)
+        action_settings.setShortcut("CTRL+,")
+        action_settings.triggered.connect(self.menubar_prefs_settings)
+        action_increase_font_size = QAction("Increase Font Size", self.menu_prefs)
         action_increase_font_size.setShortcut("CTRL+=")
-        action_increase_font_size.triggered.connect(self.menubar_edit_increase_font_size)
-        action_decrease_font_size = QAction("Decrease Font Size", self.menu_edit)
+        action_increase_font_size.triggered.connect(self.menubar_prefs_increase_font_size)
+        action_decrease_font_size = QAction("Decrease Font Size", self.menu_prefs)
         action_decrease_font_size.setShortcut("CTRL+-")
-        action_decrease_font_size.triggered.connect(self.menubar_edit_decrease_font_size)
-        action_reset_layout = QAction("Reset Layouts", self.menu_edit)
+        action_decrease_font_size.triggered.connect(self.menubar_prefs_decrease_font_size)
+        action_reset_layout = QAction("Reset Layouts", self.menu_prefs)
         action_reset_layout.triggered.connect(lambda: self.resize_splitters(is_reset=True))
-        self.menu_edit.addAction(action_preferences)
-        self.menu_edit.addAction(action_increase_font_size)
-        self.menu_edit.addAction(action_decrease_font_size)
-        self.menu_edit.addAction(action_reset_layout)
+        self.menu_prefs.addAction(action_settings)
+        self.menu_prefs.addAction(action_increase_font_size)
+        self.menu_prefs.addAction(action_decrease_font_size)
+        self.menu_prefs.addAction(action_reset_layout)
         # Help
         self.menu_help = QMenu("Help", self.menuBar())
         action_citing = QAction("Citing", self.menu_help)
@@ -124,7 +124,7 @@ class Ng_Main(QMainWindow):
         self.menu_help.addAction(action_citing)
 
         self.menuBar().addMenu(self.menu_file)
-        self.menuBar().addMenu(self.menu_edit)
+        self.menuBar().addMenu(self.menu_prefs)
         self.menuBar().addMenu(self.menu_help)
 
     # Override
@@ -155,7 +155,7 @@ class Ng_Main(QMainWindow):
 
         super().close()
 
-    def menubar_edit_preferences(self) -> None:
+    def menubar_prefs_settings(self) -> None:
         attr = "dialog_settings"
         if hasattr(self, attr):
             getattr(self, attr).exec()
@@ -164,21 +164,19 @@ class Ng_Main(QMainWindow):
             setattr(self, attr, dialog_settings)
             dialog_settings.exec()
 
-    def menubar_edit_increase_font_size(self) -> None:
+    def menubar_prefs_increase_font_size(self) -> None:
         key = "Appearance/font-size"
         point_size = Ng_Settings.value(key, type=int) + 1
         if point_size < Ng_Settings.value("Appearance/font-size-max", type=int):
             Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
             Ng_Settings.setValue(key, point_size)
 
-    def menubar_edit_decrease_font_size(self) -> None:
+    def menubar_prefs_decrease_font_size(self) -> None:
         key = "Appearance/font-size"
         point_size = Ng_Settings.value(key, type=int) - 1
         if point_size > Ng_Settings.value("Appearance/font-size-min", type=int):
             Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
             Ng_Settings.setValue(key, point_size)
-
-    # TODO: def menubar_edit_reset_font_size(self) -> None:
 
     def menubar_help_citing(self) -> None:
         dialog_citing = Ng_Dialog_TextEdit_Citing(self)

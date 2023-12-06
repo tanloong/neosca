@@ -15,7 +15,7 @@ from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollAre
 
 class Ng_Dialog_Settings(Ng_Dialog):
     def __init__(self, main):
-        super().__init__(main, title="Preferences", width=768, height=576, resizable=True)
+        super().__init__(main, title="Settings", width=768, height=576, resizable=True)
 
         self.sections = (
             Ng_Widget_Settings_Appearance(main),
