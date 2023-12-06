@@ -91,7 +91,7 @@ class Ng_Main(QMainWindow):
         action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("Exit", self.menu_file)
+        action_quit = QAction("Exit...", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
@@ -101,7 +101,7 @@ class Ng_Main(QMainWindow):
         self.menu_file.addAction(action_quit)
         # Edit
         self.menu_prefs = QMenu("Preferences", self.menuBar())
-        action_settings = QAction("Settings", self.menu_prefs)
+        action_settings = QAction("Settings...", self.menu_prefs)
         # TODO: remove this before releasing
         action_settings.setShortcut("CTRL+,")
         action_settings.triggered.connect(self.menubar_prefs_settings)
