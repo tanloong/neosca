@@ -531,7 +531,7 @@ class Ns_Tregex:
 
     def get_matches(self, sname: str, trees: str) -> list:
         if sname not in self.SNAME_CLS_MAPPING:
-            raise ValueError(f"{sname} is not yet supported in NeoSCA-GUI.")
+            raise ValueError(f"{sname} is not yet supported in NeoSCA.")
 
         matches = []
         last_node = None

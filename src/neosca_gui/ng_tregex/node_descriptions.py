@@ -80,7 +80,7 @@ class Node_Op:
     def satisfies(
         cls,
         node: Tree,
-        value: str,
+        expect: str,
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -91,20 +91,21 @@ class Node_Op:
     def in_(
         cls,
         node: Tree,
-        values: Iterable[str],
+        expects: Iterable[str],
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
     ) -> bool:
         return any(
-            cls.satisfies(node, value, is_negated=is_negated, use_basic_cat=use_basic_cat) for value in values
+            cls.satisfies(node, expect, is_negated=is_negated, use_basic_cat=use_basic_cat)
+            for expect in expects
         )
 
 
 class Node_Text(Node_Op):
     @classmethod
     def satisfies(
-        cls, node: Tree, value: str, *, is_negated: bool = False, use_basic_cat: bool = False
+        cls, node: Tree, expect: str, *, is_negated: bool = False, use_basic_cat: bool = False
     ) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
@@ -112,13 +113,13 @@ class Node_Text(Node_Op):
         if value is None:
             return is_negated
         else:
-            return (value == value) != is_negated
+            return (value == expect) != is_negated
 
 
 class Node_Regex(Node_Op):
     @classmethod
     def satisfies(
-        cls, node: Tree, value: str, *, is_negated: bool = False, use_basic_cat: bool = False
+        cls, node: Tree, expect: str, *, is_negated: bool = False, use_basic_cat: bool = False
     ) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
@@ -147,7 +148,7 @@ class Node_Regex(Node_Op):
             if flag:
                 value = "(?" + "".join(set(flag)) + ")" + value
 
-            return (re.search(value, value) is not None) != is_negated
+            return (re.search(value, expect) is not None) != is_negated
 
 
 class Node_Any(Node_Op):
@@ -155,7 +156,7 @@ class Node_Any(Node_Op):
     def satisfies(
         cls,
         node: Tree,
-        value: str = "",
+        expect: str = "",
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -168,7 +169,7 @@ class Node_Root(Node_Op):
     def satisfies(
         cls,
         node: Tree,
-        value: str = "",
+        expect: str = "",
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
