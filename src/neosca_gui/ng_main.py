@@ -195,9 +195,9 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_sca.setEnabled(False)
 
         # TODO comment this out before releasing
-        self.button_custom_func = QPushButton("Custom func")
+        # self.button_custom_func = QPushButton("Custom func")
         # TODO comment this out before releasing
-        self.button_custom_func.clicked.connect(self.custom_func)
+        # self.button_custom_func.clicked.connect(self.custom_func)
 
         self.model_sca = Ng_StandardItemModel(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
@@ -243,7 +243,7 @@ class Ng_Main(QMainWindow):
                 self.button_export_table_sca,
                 self.button_export_matches_sca,
                 self.button_clear_table_sca,
-                self.button_custom_func,
+                # self.button_custom_func,
             ),
             start=1,
         ):
@@ -259,8 +259,8 @@ class Ng_Main(QMainWindow):
         self.splitter_workarea_sca.setContentsMargins(6, 4, 6, 4)
         self.splitter_workarea_sca.setObjectName("splitter-sca")
 
-    def custom_func(self):
-        breakpoint()
+    # def custom_func(self):
+    #     breakpoint()
 
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
@@ -532,7 +532,6 @@ class Ng_Main(QMainWindow):
             dialog.exec()
 
     def menubar_file_open_folder(self):
-        # TODO remove default directory before releasing
         folder_path = QFileDialog.getExistingDirectory(
             caption="Open Folder", dir=Ng_Settings.value("Import/default-path")
         )
@@ -548,8 +547,7 @@ class Ng_Main(QMainWindow):
         file_paths_to_add, _ = QFileDialog.getOpenFileNames(
             parent=None,
             caption="Open Files",
-            # TODO: remove this before releasing
-            dir="/home/tan/docx/corpus/YuHua-parallel-corpus-zh-en/02aligned/standalone/",
+            dir=Ng_Settings.value("Import/default-path"),
             filter=";;".join(available_import_types),
             selectedFilter=Ng_Settings.value("Import/default-type"),
         )
@@ -561,6 +559,7 @@ class Ng_Main(QMainWindow):
         self.close()
         command = [sys.executable, "-m", "neosca_gui"]
         subprocess.call(command, env=os.environ.copy(), close_fds=False)
+        sys.exit(0)
 
 
 def main():

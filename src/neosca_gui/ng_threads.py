@@ -112,7 +112,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
                 err_file_paths.append(file_path)
                 rowno -= 1
                 continue
-            if values is None:  # TODO: should pop up warning window
+            if values is None:
                 err_file_paths.append(file_path)
                 rowno -= 1
                 continue
