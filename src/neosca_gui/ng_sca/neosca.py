@@ -7,9 +7,9 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
+from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_sca.querier import Ns_Tregex
 from neosca_gui.ng_sca.structure_counter import StructureCounter
-from neosca_gui.ng_io import SCAIO
 
 
 class NeoSCA:
@@ -195,7 +195,14 @@ class NeoSCA:
             self.tregex.set_all_values(parent_counter, "")
             self.counters.append(parent_counter)
 
-    def run_on_ifiles(self, files: List[str] = [], subfiles_list: List[List[str]] = []) -> None:
+    def run_on_ifiles(
+        self, files: Optional[List[str]] = None, subfiles_list: Optional[List[List[str]]] = None
+    ) -> None:
+        if files is None:
+            files = []
+        if subfiles_list is None:
+            subfiles_list = []
+
         if self.is_skip_querying:
             self.parse_ifiles(files)
             self.parse_subfiles_list(subfiles_list)
@@ -219,7 +226,7 @@ class NeoSCA:
 
         sname_value_maps: List[Dict[str, str]] = [counter.get_all_values() for counter in counters]
 
-        handle = open(self.ofile_freq, "w", encoding="utf-8", newline="") if not self.is_stdout else sys.stdout
+        handle = sys.stdout if self.is_stdout else open(self.ofile_freq, "w", encoding="utf-8", newline="")  # noqa: SIM115
 
         if oformat_freq == "csv":
             import csv

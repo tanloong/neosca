@@ -33,7 +33,7 @@ class Tree:
         if not self.children:  # is leaf
             s = self.label if self.label is not None else ""
         else:
-            s = "(%s %s)" % (self.label, " ".join(repr(child) for child in self.children))
+            s = f"{self.label} {' '.join(repr(child) for child in self.children)}"
         return s
 
     def __eq__(self, other) -> bool:
@@ -50,18 +50,14 @@ class Tree:
 
         label1, label2 = self.label, other.label
         # if one or both of (self, other) has non-None label
-        if label1 is not None or label2 is not None:
-            if label1 is None or label1 != label2:
-                return False
+        if (label1 is not None or label2 is not None) and (label1 is None or label1 != label2):
+            return False
 
         my_kids = self.children
         their_kids = other.children
         if len(my_kids) != len(their_kids):
             return False
-        for i in range(len(my_kids)):
-            if my_kids[i] != their_kids[i]:
-                return False
-        return True
+        return all(my_kids[i] == their_kids[i] for i in range(len(my_kids)))
 
     def __hash__(self) -> int:
         # consider t1's hash different than t2's if they have different id, although t1==t2 might be True
@@ -129,10 +125,7 @@ class Tree:
         """
         if self.numChildren() == 0:
             return False
-        for child in self.children:
-            if not child.is_pre_terminal:
-                return False
-        return True
+        return all(child.is_pre_terminal for child in self.children)
 
     @property
     def is_phrasal(self) -> bool:
@@ -266,10 +259,7 @@ class Tree:
                 i += j
                 return False
             else:
-                for kid in t1.children:
-                    if left_edge_helper(t, kid):
-                        return True
-                return False
+                return any(left_edge_helper(t, kid) for kid in t1.children)
 
         if left_edge_helper(self, self.getRoot()):
             return i
@@ -325,7 +315,7 @@ class Tree:
 
     @classmethod
     def fromstring(cls, string: str, brackets: str = "()") -> Generator["Tree", None, None]:
-        # TODO need more logging mesg to indicate whether "a b c d" or "(a b c d)" is parsed correctly
+        # TODO need more logging msg to indicate whether "a b c d" or "(a b c d)" is parsed correctly
         # translated from CoreNLP's PennTreeReader
         # https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/PennTreeReader.java#L144
 
@@ -336,16 +326,20 @@ class Tree:
         if re.search(r"\s", brackets):
             raise TypeError("whitespace brackets not allowed")
 
-        open_b, close_b = brackets
+        open_b: str = brackets[0]
+        close_b: str = brackets[1]
         open_pattern = re.escape(open_b)
         close_pattern = re.escape(close_b)
 
         # store `token_re` to avoid repeated regex compiling
+        attr = "token_re"
         try:
-            token_re = cls.token_re
+            token_re = getattr(cls, attr)
         except AttributeError:
-            token_re = re.compile(rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+")
-            cls.token_re = token_re
+            token_re = re.compile(
+                rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+"
+            )
+            setattr(cls, attr, token_re)
 
         stack_parent: Deque["Tree"] = deque()
         current_tree = None

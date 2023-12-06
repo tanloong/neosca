@@ -6,9 +6,9 @@ import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
-from neosca_gui.ng_sca.about import __version__
-from neosca_gui.ng_print import color_print
 from neosca_gui.ng_io import SCAIO
+from neosca_gui.ng_print import color_print
+from neosca_gui.ng_sca.about import __version__
 from neosca_gui.ng_util import SCAProcedureResult
 
 
@@ -415,7 +415,9 @@ Contact:
 
         analyzer = NeoSCA(**self.init_kwargs)
 
-        analyzer.run_on_ifiles(files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or [])
+        analyzer.run_on_ifiles(
+            files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or []
+        )
 
     def run(self) -> SCAProcedureResult:
         if self.options.version:

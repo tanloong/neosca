@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QMainWindow,
     QMenu,
+    QMessageBox,
     QPushButton,
     QRadioButton,
     QSizePolicy,
@@ -30,12 +31,12 @@ from PySide6.QtWidgets import (
 )
 
 from neosca_gui import QSS_PATH
-from neosca_gui.ng_sca.structure_counter import StructureCounter
 from neosca_gui.ng_about import __title__, __version__
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_platform_info import IS_MAC
 from neosca_gui.ng_qss import Ng_QSS
+from neosca_gui.ng_sca.structure_counter import StructureCounter
 from neosca_gui.ng_settings.ng_dialog_settings import Ng_Dialog_Settings
 from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_settings.ng_settings_default import available_import_types
@@ -46,7 +47,7 @@ from neosca_gui.ng_widgets.ng_dialogs import (
     Ng_Dialog_TextEdit_Citing,
 )
 from neosca_gui.ng_widgets.ng_tables import Ng_Delegate_SCA, Ng_StandardItemModel, Ng_TableView
-from neosca_gui.ng_widgets.ng_widgets import Ng_ScrollArea
+from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
 
 
 class Ng_Main(QMainWindow):

@@ -6,7 +6,7 @@ from typing import Generator, Iterable, Iterator, List, NamedTuple, Optional
 from neosca_gui.ng_tregex.tree import Tree
 
 
-class NamedNodes:
+class Named_Nodes:
     def __init__(self, name: Optional[str], nodes: Optional[List[Tree]], string_repr: str = "") -> None:
         self.name = name
         self.nodes = nodes
@@ -19,15 +19,15 @@ class NamedNodes:
         self.nodes = new_nodes
 
 
-class NodeDescription(NamedTuple):
-    op: "NODE_OP"
+class Node_Description(NamedTuple):
+    op: "Node_Op"
     value: str
 
 
-class NodeDescriptions:
+class Node_Descriptions:
     def __init__(
         self,
-        node_descriptions: List[NodeDescription],
+        node_descriptions: List[Node_Description],
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -39,7 +39,7 @@ class NodeDescriptions:
         self.name = None
         self.string_repr = "".join(desc.value for desc in self.descriptions)
 
-    def __iter__(self) -> Iterator[NodeDescription]:
+    def __iter__(self) -> Iterator[Node_Description]:
         return iter(self.descriptions)
 
     def __repr__(self) -> str:
@@ -54,7 +54,7 @@ class NodeDescriptions:
     def set_string_repr(self, s: str):
         self.string_repr = s
 
-    def add_description(self, other_description: NodeDescription) -> None:
+    def add_description(self, other_description: Node_Description) -> None:
         self.descriptions.append(other_description)
 
     def toggle_negated(self) -> None:
@@ -75,12 +75,12 @@ class NodeDescriptions:
                 yield node
 
 
-class NODE_OP:
+class Node_Op:
     @classmethod
     def satisfies(
         cls,
         node: Tree,
-        value: str = "",
+        value: str,
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -101,22 +101,24 @@ class NODE_OP:
         )
 
 
-class NODE_TEXT(NODE_OP):
+class Node_Text(Node_Op):
     @classmethod
-    def satisfies(cls, node: Tree, text: str, *, is_negated: bool = False, use_basic_cat: bool = False) -> bool:
+    def satisfies(
+        cls, node: Tree, value: str, *, is_negated: bool = False, use_basic_cat: bool = False
+    ) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
 
         if value is None:
             return is_negated
         else:
-            return (value == text) != is_negated
+            return (value == value) != is_negated
 
 
-class NODE_REGEX(NODE_OP):
+class Node_Regex(Node_Op):
     @classmethod
     def satisfies(
-        cls, node: Tree, regex: str, *, is_negated: bool = False, use_basic_cat: bool = False
+        cls, node: Tree, value: str, *, is_negated: bool = False, use_basic_cat: bool = False
     ) -> bool:
         attr = "basic_category" if use_basic_cat else "label"
         value = getattr(node, attr)
@@ -126,7 +128,7 @@ class NODE_REGEX(NODE_OP):
         else:
             # Convert regex to standard python regex
             flag = ""
-            current_flag = regex[-1]
+            current_flag = value[-1]
             while current_flag != "/":
                 # Seems that only (?m) and (?x) are useful for node describing:
                 #  re.ASCII      (?a)
@@ -138,17 +140,17 @@ class NODE_REGEX(NODE_OP):
                 if current_flag not in "xi":
                     raise ValueError(f"Error!! Unsupported regexp flag: {current_flag}")
                 flag += current_flag
-                regex = regex[:-1]
-                current_flag = regex[-1]
+                value = value[:-1]
+                current_flag = value[-1]
 
-            regex = regex[1:-1]
+            value = value[1:-1]
             if flag:
-                regex = "(?" + "".join(set(flag)) + ")" + regex
+                value = "(?" + "".join(set(flag)) + ")" + value
 
-            return (re.search(regex, value) is not None) != is_negated
+            return (re.search(value, value) is not None) != is_negated
 
 
-class NODE_ANY(NODE_OP):
+class Node_Any(Node_Op):
     @classmethod
     def satisfies(
         cls,
@@ -161,7 +163,7 @@ class NODE_ANY(NODE_OP):
         return not is_negated
 
 
-class NODE_ROOT(NODE_OP):
+class Node_Root(Node_Op):
     @classmethod
     def satisfies(
         cls,

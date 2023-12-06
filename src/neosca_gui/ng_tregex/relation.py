@@ -7,7 +7,7 @@ from neosca_gui.ng_tregex.collins_head_finder import CollinsHeadFinder
 
 if TYPE_CHECKING:
     from neosca_gui.ng_tregex.head_finder import HeadFinder
-    from neosca_gui.ng_tregex.node_descriptions import NodeDescriptions
+    from neosca_gui.ng_tregex.node_descriptions import Node_Descriptions
     from neosca_gui.ng_tregex.tree import Tree
 
 # reference: https://nlp.stanford.edu/nlp/javadoc/javanlp-3.5.0/edu/stanford/nlp/trees/tregex/TregexPattern.html
@@ -21,11 +21,11 @@ if TYPE_CHECKING:
 
 class Relation:
     @classmethod
-    def satisfies(cls, t1: "Tree", t2: "Tree", arg=None) -> bool:
+    def satisfies(cls, *args, **kwargs) -> bool:
         raise NotImplementedError
 
     @classmethod
-    def searchNodeIterator(cls, t: "Tree", arg=None) -> Generator["Tree", None, None]:
+    def searchNodeIterator(cls, *args, **kwargs) -> Generator["Tree", None, None]:
         raise NotImplementedError
 
 
@@ -258,11 +258,11 @@ class IMMEDIATE_LEFT_SISTER_OF(Relation):
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
-            for i, child in enumerate(parent_.children):
+            for i, child in enumerate(parent_.children):  # noqa: B007
                 if child is t:
                     break
-            if i + 1 < parent_.numChildren():
-                yield parent_.children[i + 1]
+            if i + 1 < parent_.numChildren():  # type:ignore
+                yield parent_.children[i + 1]  # type:ignore
 
 
 class IMMEDIATE_RIGHT_SISTER_OF(Relation):
@@ -274,11 +274,11 @@ class IMMEDIATE_RIGHT_SISTER_OF(Relation):
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
-            for i, child in enumerate(parent_.children):
+            for i, child in enumerate(parent_.children):  # noqa: B007
                 if child is t:
                     break
-            if i > 0:
-                yield parent_.children[i - 1]
+            if i > 0:  # type:ignore
+                yield parent_.children[i - 1]  # type:ignore
 
 
 class PARENT_OF(Relation):
@@ -503,22 +503,22 @@ class IMMEDIATELY_PRECEDES(Relation):
         current: Optional["Tree"] = None
         parent_: Optional["Tree"] = t
         while True:
-            current = parent_
+            current = parent_ # type: ignore
             parent_ = parent_.parent
             if parent_ is None:
                 return
             if parent_.lastChild() is not current:
                 break
-        for i, kid in enumerate(parent_.children):
+        for i, kid in enumerate(parent_.children):  # noqa: B007
             if kid is current:
                 break
         # Use i+1 won't cause IndexError because current is not the last child
-        next = parent_.children[i + 1]
+        next = parent_.children[i + 1]  # type:ignore
         while True:
-            yield next
-            if next.isLeaf():
+            yield next  # type:ignore
+            if next.isLeaf():  # type:ignore
                 break
-            next = next.firstChild()
+            next = next.firstChild()  # type:ignore
 
 
 class FOLLOWS(Relation):
@@ -555,21 +555,21 @@ class IMMEDIATELY_FOLLOWS(Relation):
         parent_: Optional["Tree"] = t
         while True:
             current = parent_
-            parent_ = parent_.parent
+            parent_ = parent_.parent # type: ignore
             if parent_ is None:
                 return
             if parent_.firstChild() is not current:
                 break
-        for i, kid in enumerate(parent_.children):
+        for i, kid in enumerate(parent_.children):  # noqa: B007
             if kid is current:
                 break
         # Use i-1 won't cause IndexError because current is not the first child
-        next = parent_.children[i - 1]
+        next = parent_.children[i - 1]  # type:ignore
         while True:
-            yield next
-            if next.isLeaf():
+            yield next  # type:ignore
+            if next.isLeaf():  # type:ignore
                 break
-            next = next.lastChild()
+            next = next.lastChild()  # type:ignore
 
 
 class ANCESTOR_OF_LEAF(Relation):
@@ -589,7 +589,7 @@ class ANCESTOR_OF_LEAF(Relation):
 
 class UNBROKEN_CATEGORY_DOMINATES(Relation):
     @classmethod
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
         # TODO passing in rel_arg is expansive, may be passing in node_descriptions is better?
         for kid in t1.children:
             if kid is t2:
@@ -600,7 +600,7 @@ class UNBROKEN_CATEGORY_DOMINATES(Relation):
         return False
 
     @classmethod
-    def searchNodeIterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
         # TODO might need to implement a TregexMatcher class like java tregex
         # https://github.com/stanfordnlp/CoreNLP/blob/f8838d2639589f684cbaa58964cb29db5f23df7f/src/edu/stanford/nlp/trees/tregex/Relation.java#L1525
         for kid in t.children:
@@ -613,11 +613,11 @@ class UNBROKEN_CATEGORY_DOMINATES(Relation):
 
 class UNBROKEN_CATEGORY_IS_DOMINATED_BY(Relation):
     @classmethod
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
         return UNBROKEN_CATEGORY_DOMINATES.satisfies(t2, t1, descs)
 
     @classmethod
-    def searchNodeIterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
         parent_ = t.parent
         while True:
             if parent_ is None:
@@ -630,7 +630,7 @@ class UNBROKEN_CATEGORY_IS_DOMINATED_BY(Relation):
 
 class UNBROKEN_CATEGORY_PRECEDES(Relation):
     @classmethod
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
         parent_ = t1.parent
         if parent_ is None:  # if t1 is root
             return False
@@ -656,7 +656,7 @@ class UNBROKEN_CATEGORY_PRECEDES(Relation):
         return False
 
     @classmethod
-    def searchNodeIterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
         for immediate_follower in IMMEDIATELY_PRECEDES.searchNodeIterator(t):
             yield immediate_follower
             if descs.satisfy(immediate_follower):
@@ -665,11 +665,11 @@ class UNBROKEN_CATEGORY_PRECEDES(Relation):
 
 class UNBROKEN_CATEGORY_FOLLOWS(Relation):
     @classmethod
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
         return UNBROKEN_CATEGORY_PRECEDES.satisfies(t2, t1, descs)
 
     @classmethod
-    def searchNodeIterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
         for immediate_precedent in IMMEDIATELY_FOLLOWS.searchNodeIterator(t):
             yield immediate_precedent
             if descs.satisfy(immediate_precedent):
@@ -750,11 +750,7 @@ class ANCESTOR_OF_ITH_LEAF(Relation):
         leaves = t1.getLeaves()
         if len(leaves) < abs(leaf_num):
             return False
-        if leaf_num > 0:
-            index = leaf_num - 1
-        else:
-            # eg, leafNum == -1 means we check leaves.size() - 1
-            index = len(leaves) + leaf_num
+        index = leaf_num - 1 if leaf_num > 0 else len(leaves) + leaf_num
         return leaves[index] is t2
 
     @classmethod
@@ -812,7 +808,7 @@ class RelationWithStrArgData(AbstractRelationData):
         string_repr: str,
         op: Relation,
         *,
-        arg: "NodeDescriptions",
+        arg: "Node_Descriptions",
     ) -> None:
         super().__init__(string_repr, op)
         self.arg = arg

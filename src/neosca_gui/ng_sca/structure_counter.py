@@ -171,7 +171,7 @@ class StructureCounter:
         self.sname_structure_map.update(user_sname_structure_map)
 
         default_measures = StructureCounter.DEFAULT_MEASURES + [
-            sname for sname in user_sname_structure_map.keys() if sname not in StructureCounter.DEFAULT_MEASURES
+            sname for sname in user_sname_structure_map if sname not in StructureCounter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
@@ -184,8 +184,10 @@ class StructureCounter:
     @classmethod
     def check_user_structure_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
         """
-        check duplicated definition, e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
-        check empty definition, e.g., [{"name": "A", "tregex_pattern":""}]
+        check duplicated definition
+            e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
+        check empty definition
+            e.g., [{"name": "A", "tregex_pattern":""}]
         """
         user_defined_snames = set()
         for definition in user_structure_defs:
@@ -222,7 +224,7 @@ class StructureCounter:
         try:
             structure = self.sname_structure_map[structure_name]
         except KeyError:
-            raise StructureNotFoundError(f"{structure_name} not found.")
+            raise StructureNotFoundError(f"{structure_name} not found.") from KeyError
         else:
             return structure
 

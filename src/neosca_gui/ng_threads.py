@@ -6,9 +6,9 @@ from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QStandardItem
 from PySide6.QtWidgets import QMessageBox
 
+from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_sca.neosca import NeoSCA
 from neosca_gui.ng_sca.structure_counter import StructureCounter
-from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_widgets.ng_tables import Ng_StandardItemModel
 
 
@@ -57,7 +57,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             try:
                 counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except:
+            except Exception:
                 err_file_paths.append(file_path)
                 rowno -= 1
                 continue
@@ -105,7 +105,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 values = lca_instance._analyze(file_path=file_path)
-            except:
+            except Exception:
                 err_file_paths.append(file_path)
                 rowno -= 1
                 continue

@@ -19,7 +19,7 @@ from neosca_gui.ng_widgets.ng_widgets import Ng_LineEdit_Path
 
 
 class Ng_Widget_Settings_Import(Ng_Widget_Settings_Abstract):
-    name = "Import"
+    name: str = "Import"
 
     def __init__(self, main=None):
         super().__init__(main)

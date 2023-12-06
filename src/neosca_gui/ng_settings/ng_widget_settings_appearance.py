@@ -24,7 +24,7 @@ from neosca_gui.ng_widgets.ng_widgets import Ng_Combobox_Editable
 
 
 class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
-    name = "Appearance"
+    name: str = "Appearance"
 
     def __init__(self, main):
         super().__init__(main)

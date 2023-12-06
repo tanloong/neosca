@@ -1,4 +1,4 @@
-.PHONY: build run clean
+.PHONY: build run clean lint
 
 build:
 	pyinstaller ./neosca-gui.spec --noconfirm
@@ -9,6 +9,11 @@ run:
 clean:
 	rm -rf __pycache__
 	rm -rf tests/__pycache__
-	rm -rf neosca-gui.egg-info
+	rm -rf *.egg-info
 	rm -rf htmlcov
 	rm -rf coverage.xml
+
+lint:
+	ruff format src/ tests/
+	ruff check src/ tests/
+	mypy --check-untyped-defs src/

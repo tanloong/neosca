@@ -45,7 +45,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         """
         if self.nonTerminalInfo is None:
             raise ValueError(
-                "Classes derived from AbstractCollinsHeadFinder must create and fill HashMap" " nonTerminalInfo."
+                "Classes derived from AbstractCollinsHeadFinder must create and fill HashMap nonTerminalInfo."
             )
 
         if not t or t.isLeaf():
@@ -107,7 +107,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         try:
             headIdx = self._how_map[how[0]](daughterTrees, how)
         except KeyError:
-            raise ValueError("Invalid direction type")
+            raise ValueError("Invalid direction type") from KeyError
         if headIdx < 0:
             if lastResort:
                 # use the default rule to try to match anything except

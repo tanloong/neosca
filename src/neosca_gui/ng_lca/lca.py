@@ -494,7 +494,7 @@ class LCA:
 
         import csv
 
-        handle = open(self.ofile, "w", encoding="utf-8", newline="") if not self.is_stdout else sys.stdout
+        handle = sys.stdout if self.is_stdout else open(self.ofile, "w", encoding="utf-8", newline="")  # noqa: SIM115
 
         csv_writer = csv.writer(handle)
         csv_writer.writerow(self.FIELDNAMES)

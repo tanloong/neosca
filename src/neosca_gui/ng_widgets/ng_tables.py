@@ -538,9 +538,9 @@ class Ng_TableView(QTableView):
                         ws.sheet_properties.tabColor = vertical_bacolor
                         ws.sheet_view.showGridLines = False
                 # Header font
-                # for ws in workbook.worksheets:
-                #     for cell in ws[get_column_letter(1)]:
-                #         cell.font = Font(size=Ng_Settings.value("Appearance/font-size", type=int))
+                for ws in workbook.worksheets:
+                    for cell in ws[get_column_letter(1)]:
+                        cell.font = Font(size=Ng_Settings.value("Appearance/font-size", type=int))
 
                 # Freeze panes
                 for ws in workbook.worksheets:
@@ -562,7 +562,7 @@ class Ng_TableView(QTableView):
                             if not Ng_Delegate_SCA.is_index_clickable(index):
                                 continue
                             structure = model.horizontalHeaderItem(colno).text()
-                            matches: List[str] = index.data(Qt.ItemDataRole.UserRole)
+                            matches = index.data(Qt.ItemDataRole.UserRole)
                             csv_writer.writerows((filename, structure, match) for match in matches)
             QMessageBox.information(self, "Success", f"Matches has been successfully exported to {file_path}.")
         except PermissionError:

@@ -67,7 +67,8 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
         rcfile = shell_rcfile.get(os_path.basename(shell), None)
         if rcfile is None:
             logging.warning(
-                "Failed to permanently set environment variables.\nReason: can't detect rc" f" file for {shell}."
+                "Failed to permanently set environment variables.\nReason: can't detect rc"
+                f" file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'

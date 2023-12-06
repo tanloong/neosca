@@ -23,7 +23,7 @@ else:
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_utils/wl_misc.py#L80
 def get_linux_distro():
     try:
-        info = platform.freedesktop_os_release() # New in Python 3.10
+        info = platform.freedesktop_os_release()  # New in Python 3.10
     except OSError:
         return "ubuntu"
     else:

@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QGridLayout, QWidget
 
 
 class Ng_Widget_Settings_Abstract(QWidget):
-    name = None
+    name: str = ""
 
     def __init__(self, main):
         super().__init__(main)

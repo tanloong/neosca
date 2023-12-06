@@ -20,7 +20,7 @@ from neosca_gui.ng_widgets.ng_widgets import Ng_LineEdit_Path, Ng_MessageBox_Con
 
 
 class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
-    name = "Export"
+    name: str = "Export"
 
     def __init__(self, main=None):
         super().__init__(main)
