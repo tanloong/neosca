@@ -4,7 +4,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from typing import Dict, List, Optional, Set, Union
 
-from neosca_gui import DATA_FOLDER
+from neosca_gui import DATA_DIR
 from neosca_gui.ng_exceptions import StructureNotFoundError
 
 
@@ -114,7 +114,7 @@ class Structure:
 
 
 class StructureCounter:
-    data_file = DATA_FOLDER / "sca_structure_data.json"
+    data_file = DATA_DIR / "sca_structure_data.json"
     with open(data_file, encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 

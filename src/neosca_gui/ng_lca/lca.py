@@ -9,7 +9,7 @@ from itertools import islice
 from math import log, sqrt
 from typing import Callable, Dict, List, Literal, Optional, Union
 
-from neosca_gui import DATA_FOLDER
+from neosca_gui import DATA_DIR
 from neosca_gui.ng_io import SCAIO
 from neosca_gui.ng_util import SCAProcedureResult
 
@@ -88,7 +88,7 @@ class LCA:
         self.scaio = SCAIO()
         self.nlp_spacy: Optional[Callable] = None
 
-        data_path = DATA_FOLDER / self.WORDLIST_DATAFILE_MAP[wordlist]
+        data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug(f"Loading {data_path}...")
         data = self.scaio.load_pickle_lzma_file(data_path)
         self.word_dict = data["word_dict"]

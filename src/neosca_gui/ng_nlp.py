@@ -7,6 +7,8 @@ from typing import Any, Dict, Generator, Literal, Optional, Sequence, Tuple, Uni
 
 from stanza import Document
 
+from neosca_gui import STANZA_MODEL_DIR
+
 
 class Ng_NLP_Stanza:
     # Stores all possibly needed processors in the whole application
@@ -19,7 +21,7 @@ class Ng_NLP_Stanza:
         if lang is None:
             lang = "en"
         if model_dir is None:
-            model_dir = stanza.resources.common.DEFAULT_MODEL_DIR
+            model_dir = str(STANZA_MODEL_DIR)
 
         cls.pipeline = stanza.Pipeline(
             lang=lang,
