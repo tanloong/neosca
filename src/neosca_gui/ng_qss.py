@@ -29,6 +29,9 @@ class Ng_QSS:
         >>> get_value(qss, "QHeaderView::section:horizontal", "background-color")
         #5C88C5
         """
+        selector = re.escape(selector)
+        property = re.escape(property)
+
         # Note that only value of the 1st matched selector returned
         matched_selector = re.search(rf"{selector}[ }}]", qss)
         if matched_selector is None:
