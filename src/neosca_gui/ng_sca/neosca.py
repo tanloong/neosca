@@ -20,7 +20,8 @@ class NeoSCA:
         odir_matched: str = "",
         max_length: Optional[int] = None,
         selected_measures: Optional[List[str]] = None,
-        is_reserve_parsed: bool = False,
+        is_reserve_parsed: bool = True,
+        is_use_past_parsed: bool = True,
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
         is_skip_querying: bool = False,
@@ -34,6 +35,7 @@ class NeoSCA:
         self.max_length = max_length
         self.selected_measures = selected_measures
         self.is_reserve_parsed = is_reserve_parsed
+        self.is_use_past_parsed = is_use_past_parsed
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
         self.is_skip_querying = is_skip_querying
@@ -93,7 +95,9 @@ class NeoSCA:
         if cache_path is None:
             cache_path = f"cmdline_text{self.cache_extension}"
         trees = Ng_NLP_Stanza.get_constituency_tree(
-            text, is_cache=self.is_reserve_parsed, cache_path=cache_path
+            text,
+            is_cache_for_future_runs=self.is_reserve_parsed,
+            cache_path=cache_path,
         )
         return trees
 
@@ -107,14 +111,13 @@ class NeoSCA:
             return self.io.read_txt(ifile, is_guess_encoding=False)
 
         cache_path = os_path.splitext(ifile)[0] + self.cache_extension
-        has_cache = SCAIO.has_valid_cache(file_path=ifile, cache_path=cache_path)
-        if has_cache:
+        if self.is_use_past_parsed and SCAIO.has_valid_cache(file_path=ifile, cache_path=cache_path):
             logging.info(
                 f"Loading cache: {cache_path} already exists, and is non-empty and newer than {ifile}."
             )
             doc: Document = Ng_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
             return Ng_NLP_Stanza.get_constituency_tree(
-                doc, is_cache=self.is_reserve_parsed, cache_path=cache_path
+                doc, is_cache_for_future_runs=self.is_reserve_parsed, cache_path=cache_path
             )
 
         text = self.io.read_file(ifile)

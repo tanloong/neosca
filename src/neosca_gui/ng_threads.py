@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QMessageBox
 from neosca_gui.ng_lca.lca import LCA
 from neosca_gui.ng_sca.neosca import NeoSCA
 from neosca_gui.ng_sca.structure_counter import StructureCounter
+from neosca_gui.ng_settings.ng_settings import Ng_Settings
 from neosca_gui.ng_widgets.ng_tables import Ng_StandardItemModel
 
 
@@ -37,7 +38,8 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "is_auto_save": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_reserve_parsed": self.main.checkbox_cache_sca.isChecked(),
+            "is_reserve_parsed": Ng_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_use_past_parsed": Ng_Settings.value("Miscellaneous/use-past-cache", type=bool),
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "config": None,
@@ -88,7 +90,8 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
             "tagset": "ud" if self.main.radiobutton_tagset_ud.isChecked() else "ptb",
             "is_stdout": False,
-            "is_cache": self.main.checkbox_cache_lca.isChecked(),
+            "is_cache_for_future_runs": Ng_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_use_past_cache": Ng_Settings.value("Miscellaneous/use-past-cache", type=bool),
         }
         attrname = "lca_instance"
         try:

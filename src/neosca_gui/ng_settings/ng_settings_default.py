@@ -48,6 +48,8 @@ settings_default = {
     "Export/default-path": str(DESKTOP_PATH),
     "Export/default-type": available_export_types[0],
     "Miscellaneous/dont-confirm-on-exit": False,
+    "Miscellaneous/cache-for-future-runs": True,
+    "Miscellaneous/use-past-cache": True,
     "default-splitter-sca": 200,
     "default-splitter-lca": 200,
     "default-splitter-file": 150,

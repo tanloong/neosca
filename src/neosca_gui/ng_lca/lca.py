@@ -66,7 +66,8 @@ class LCA:
         precision: int = 4,
         ofile: str = "result.csv",
         is_stdout: bool = False,
-        is_cache: bool = False,
+        is_cache_for_future_runs: bool = True,
+        is_use_past_cache: bool = True,
     ) -> None:
         assert wordlist in ("bnc", "anc")
         assert tagset in ("ud", "ptb")
@@ -80,7 +81,8 @@ class LCA:
         self.precision = precision
         self.ofile = ofile
         self.is_stdout = is_stdout
-        self.is_cache = is_cache
+        self.is_cache_for_future_runs = is_cache_for_future_runs
+        self.is_use_past_cache = is_use_past_cache
         self.cache_extension = ".pickle.lzma"
 
         self.scaio = SCAIO()
@@ -379,8 +381,7 @@ class LCA:
         if file_path is not None:
             logging.info(f"Processing {file_path}...")
             cache_path = os_path.splitext(file_path)[0] + self.cache_extension
-            has_cache = SCAIO.has_valid_cache(file_path=file_path, cache_path=cache_path)
-            if has_cache:
+            if self.is_use_past_cache and SCAIO.has_valid_cache(file_path=file_path, cache_path=cache_path):
                 logging.info(
                     f"Loading cache: {cache_path} already exists, and is non-empty and newer than {file_path}."
                 )
@@ -394,7 +395,10 @@ class LCA:
         if doc is None:
             return None
         lemma_pos_gen = Ng_NLP_Stanza.get_lemma_and_pos(
-            doc, tagset=self.tagset, is_cache=self.is_cache, cache_path=cache_path
+            doc,
+            tagset=self.tagset,
+            is_cache_for_future_runs=self.is_cache_for_future_runs,
+            cache_path=cache_path,
         )
 
         word_count_map: Dict[str, int] = {}

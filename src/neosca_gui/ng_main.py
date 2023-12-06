@@ -225,13 +225,9 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
         # Setting area
-        self.checkbox_cache_sca = QCheckBox("Cache")
-        self.checkbox_cache_sca.setChecked(True)
-
         widget_settings_sca = QWidget()
         layout_settings_sca = QGridLayout()
         widget_settings_sca.setLayout(layout_settings_sca)
-        layout_settings_sca.addWidget(self.checkbox_cache_sca, 0, 0)
         layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
         layout_settings_sca.setContentsMargins(6, 0, 6, 0)
 
@@ -319,15 +315,12 @@ class Ng_Main(QMainWindow):
         groupbox_tagset.setLayout(layout_tagset)
         layout_tagset.addWidget(self.radiobutton_tagset_ud, 0, 0)
         layout_tagset.addWidget(self.radiobutton_tagset_ptb, 1, 0)
-        self.checkbox_cache_lca = QCheckBox("Cache")
-        self.checkbox_cache_lca.setChecked(True)
 
         widget_settings_lca = QWidget()
         layout_settings_lca = QGridLayout()
         widget_settings_lca.setLayout(layout_settings_lca)
         layout_settings_lca.addWidget(groupbox_wordlist, 0, 0)
         layout_settings_lca.addWidget(groupbox_tagset, 1, 0)
-        layout_settings_lca.addWidget(self.checkbox_cache_lca, 2, 0)
         layout_settings_lca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
         layout_settings_lca.setContentsMargins(6, 0, 6, 0)
 

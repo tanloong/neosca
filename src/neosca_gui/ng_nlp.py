@@ -49,7 +49,7 @@ class Ng_NLP_Stanza:
         cls,
         doc: Union[str, Document],
         processors: Optional[tuple] = None,
-        is_cache: bool = False,
+        is_cache_for_future_runs: bool = True,
         cache_path: Optional[str] = None,
     ) -> Document:
         if cache_path is None:
@@ -75,7 +75,7 @@ class Ng_NLP_Stanza:
                 setattr(doc, attr, existing_processors | filtered_processors)
                 has_just_processed = True
 
-        if has_just_processed and is_cache:
+        if has_just_processed and is_cache_for_future_runs:
             logging.debug(f"Caching document to {cache_path}")
             with open(cache_path, "wb") as f:
                 f.write(lzma.compress(cls.doc2serialized(doc)))
@@ -87,12 +87,19 @@ class Ng_NLP_Stanza:
 
     @classmethod
     def get_constituency_tree(
-        cls, doc: Union[str, Document], is_cache: bool = False, cache_path: Optional[str] = None
+        cls,
+        doc: Union[str, Document],
+        is_cache_for_future_runs: bool = True,
+        is_use_past_cache: bool = True,
+        cache_path: Optional[str] = None,
     ) -> str:
         if cache_path is None:
             cache_path = "cmdline_text.pickle.lzma"
         doc = cls.nlp(
-            doc, processors=("tokenize", "pos", "constituency"), is_cache=is_cache, cache_path=cache_path
+            doc,
+            processors=("tokenize", "pos", "constituency"),
+            is_cache_for_future_runs=is_cache_for_future_runs,
+            cache_path=cache_path,
         )
         return cls.doc2tree(doc)
 
@@ -101,13 +108,18 @@ class Ng_NLP_Stanza:
         cls,
         doc: Union[str, Document],
         tagset: Literal["ud", "ptb"],
-        is_cache: bool = False,
+        is_cache_for_future_runs: bool = False,
         cache_path: str = "cmdline_text.pkl.lzma",
     ) -> Generator[Tuple[str, str], None, None]:
         assert tagset in ("ud", "ptb")
         pos_attr = "upos" if tagset == "ud" else "xpos"
 
-        doc = cls.nlp(doc, is_cache=is_cache, cache_path=cache_path, processors=("tokenize", "pos", "lemma"))
+        doc = cls.nlp(
+            doc,
+            is_cache_for_future_runs=is_cache_for_future_runs,
+            cache_path=cache_path,
+            processors=("tokenize", "pos", "lemma"),
+        )
         for sent in doc.sentences:
             for word in sent.words:
                 yield (word.lemma.lower(), getattr(word, pos_attr))
