@@ -184,7 +184,7 @@ class Ng_Main(QMainWindow):
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
-        self.button_generate_table_sca.setShortcut("CTRL+G")
+        # self.button_generate_table_sca.setShortcut("CTRL+G")
         self.button_export_table_sca = QPushButton("Export table...")
         self.button_export_table_sca.setEnabled(False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
@@ -264,7 +264,7 @@ class Ng_Main(QMainWindow):
 
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
-        self.button_generate_table_lca.setShortcut("CTRL+G")
+        # self.button_generate_table_lca.setShortcut("CTRL+G")
         self.button_export_table_lca = QPushButton("Export table...")
         self.button_export_table_lca.setEnabled(False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
@@ -388,6 +388,80 @@ class Ng_Main(QMainWindow):
         self.menu_tableview_file.addAction(self.action_tableview_file_remove)
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_for_tableview_file)
 
+    def remove_file_paths(self) -> None:
+        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
+        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
+        # Remove rows from bottom to top, or otherwise lower row indexes will
+        # change as upper rows are removed
+        rownos = sorted((index.row() for index in indexes), reverse=True)
+        for rowno in rownos:
+            self.model_file.takeRow(rowno)
+        if self.model_file.rowCount() == 0:
+            self.model_file.clear_data()
+
+    def show_menu_for_tableview_file(self) -> None:
+        if not self.tableview_file.selectionModel().selectedRows():
+            self.action_tableview_file_remove.setEnabled(False)
+        else:
+            self.action_tableview_file_remove.setEnabled(True)
+        self.menu_tableview_file.exec(QCursor.pos())
+
+    def add_file_paths(self, file_paths_to_add: List[str]) -> None:
+        unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
+        already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
+        file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
+        file_paths_unsupported: Set[str] = set(
+            filter(lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add)
+        )
+        file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
+        file_paths_ok: Set[str] = (
+            unique_file_paths_to_add
+            - already_added_file_paths
+            - file_paths_dup
+            - file_paths_unsupported
+            - file_paths_empty
+        )
+        if file_paths_ok:
+            self.model_file.remove_single_empty_row()
+            colno_name = 0
+            # Has no duplicates
+            already_added_file_names = list(self.model_file.yield_model_column(colno_name))
+            for file_path in file_paths_ok:
+                file_name = os_path.splitext(os_path.basename(file_path))[0]
+                if file_name in already_added_file_names:
+                    occurrence = 2
+                    while f"{file_name} ({occurrence})" in already_added_file_names:
+                        occurrence += 1
+                    file_name = f"{file_name} ({occurrence})"
+                already_added_file_names.append(file_name)
+                rowno = self.model_file.rowCount()
+                self.model_file.set_row_str(rowno, (file_name, file_path))
+                self.model_file.data_updated.emit()
+
+        if file_paths_dup or file_paths_unsupported or file_paths_empty:
+            model_err_files = Ng_StandardItemModel(main=self)
+            model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
+            for reason, file_paths in (
+                ("Duplicate file", file_paths_dup),
+                ("Unsupported file type", file_paths_unsupported),
+                ("Empty file", file_paths_empty),
+            ):
+                for file_path in file_paths:
+                    model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
+            tableview_err_files = Ng_TableView(main=self, model=model_err_files, has_vertical_header=False)
+
+            dialog = Ng_Dialog_Table(
+                self,
+                title="Error Adding Files",
+                text="Failed to add the following files.",
+                width=300,
+                height=200,
+                resizable=True,
+                tableview=tableview_err_files,
+                export_filename="neosca_error_files.xlsx",
+            )
+            dialog.exec()
+
     def setup_main_window(self):
         self.setup_tab_sca()
         self.setup_tab_lca()
@@ -435,101 +509,13 @@ class Ng_Main(QMainWindow):
         self.ng_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
         self.ng_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
 
-    def show_menu_for_tableview_file(self) -> None:
-        if not self.tableview_file.selectionModel().selectedRows():
-            self.action_tableview_file_remove.setEnabled(False)
-        else:
-            self.action_tableview_file_remove.setEnabled(True)
-        self.menu_tableview_file.exec(QCursor.pos())
-
-    def remove_file_paths(self) -> None:
-        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
-        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        # Remove rows from bottom to top, or otherwise lower row indexes will
-        # change as upper rows are removed
-        rownos = sorted((index.row() for index in indexes), reverse=True)
-        for rowno in rownos:
-            self.model_file.takeRow(rowno)
-        if self.model_file.rowCount() == 0:
-            self.model_file.clear_data()
-
-    def remove_model_rows(self, model: Ng_StandardItemModel, *rownos: int) -> None:
-        if not rownos:
-            # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
-            model.setRowCount(0)
-        else:
-            for rowno in rownos:
-                model.takeRow(rowno)
-
-    # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
-    def yield_model_column(self, model: Ng_StandardItemModel, colno: int) -> Generator[str, None, None]:
-        items = (model.item(rowno, colno) for rowno in range(model.rowCount()))
-        return (item.text() for item in items if item is not None)
-
     def yield_added_file_names(self) -> Generator[str, None, None]:
         colno_path = 0
-        return self.yield_model_column(self.model_file, colno_path)
+        return self.model_file.yield_model_column(colno_path)
 
     def yield_added_file_paths(self) -> Generator[str, None, None]:
         colno_path = 1
-        return self.yield_model_column(self.model_file, colno_path)
-
-    def add_file_paths(self, file_paths_to_add: List[str]) -> None:
-        unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
-        already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
-        file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
-        file_paths_unsupported: Set[str] = set(
-            filter(lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add)
-        )
-        file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
-        file_paths_ok: Set[str] = (
-            unique_file_paths_to_add
-            - already_added_file_paths
-            - file_paths_dup
-            - file_paths_unsupported
-            - file_paths_empty
-        )
-        if file_paths_ok:
-            self.model_file.remove_single_empty_row()
-            colno_name = 0
-            already_added_file_names = list(
-                self.yield_model_column(self.model_file, colno_name)
-            )  # Here the already_added_file_names will have no duplicates
-            for file_path in file_paths_ok:
-                file_name = os_path.splitext(os_path.basename(file_path))[0]
-                if file_name in already_added_file_names:
-                    occurrence = 2
-                    while f"{file_name} ({occurrence})" in already_added_file_names:
-                        occurrence += 1
-                    file_name = f"{file_name} ({occurrence})"
-                already_added_file_names.append(file_name)
-                rowno = self.model_file.rowCount()
-                self.model_file.set_row_str(rowno, (file_name, file_path))
-                self.model_file.data_updated.emit()
-
-        if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ng_StandardItemModel(main=self)
-            model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
-            for reason, file_paths in (
-                ("Duplicate file", file_paths_dup),
-                ("Unsupported file type", file_paths_unsupported),
-                ("Empty file", file_paths_empty),
-            ):
-                for file_path in file_paths:
-                    model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ng_TableView(main=self, model=model_err_files, has_vertical_header=False)
-
-            dialog = Ng_Dialog_Table(
-                self,
-                title="Error Adding Files",
-                text="Failed to add the following files.",
-                width=300,
-                height=200,
-                resizable=True,
-                tableview=tableview_err_files,
-                export_filename="neosca_error_files.xlsx",
-            )
-            dialog.exec()
+        return self.model_file.yield_model_column(colno_path)
 
     def menubar_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(

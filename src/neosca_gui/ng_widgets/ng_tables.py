@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
+from typing import Dict, Generator, Iterable, List, Literal, Optional, Tuple, Union
 
 from PySide6.QtCore import (
     QModelIndex,
@@ -113,6 +113,19 @@ class Ng_StandardItemModel(QStandardItemModel):
     def remove_single_empty_row(self) -> None:
         if self.rowCount() == 1 and self.item(0, 0) is None:
             self.setRowCount(0)
+
+    def remove_model_rows(self, *rownos: int) -> None:
+        if not rownos:
+            # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
+            self.setRowCount(0)
+        else:
+            for rowno in rownos:
+                self.takeRow(rowno)
+
+    # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
+    def yield_model_column(self, colno: int) -> Generator[str, None, None]:
+        items = (self.item(rowno, colno) for rowno in range(self.rowCount()))
+        return (item.text() for item in items if item is not None)
 
     # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
     def flags(self, index) -> Qt.ItemFlag:
