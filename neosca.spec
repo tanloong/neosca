@@ -2,7 +2,11 @@
 
 import PyInstaller
 
-from src.neosca_gui.ng_platform_info import IS_MAC
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(".").parent.absolute() / "src"))
+from neosca_gui.ng_platform_info import IS_MAC
 
 binaries = []
 datas = []
@@ -17,21 +21,30 @@ if IS_MAC:
 datas.extend(
     [
         # Stanza
-        ("src/neosca_gui/data/stanza_resources/resources.json", "neosca/data/stanza_resources/"),
-        ("src/neosca_gui/data/stanza_resources/en/backward_charlm", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/constituency", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/forward_charlm", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/lemma", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/mwt", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/pos", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/pretrain", "neosca/data/stanza_resources/en/"),
-        ("src/neosca_gui/data/stanza_resources/en/tokenize", "neosca/data/stanza_resources/en/"),
+        ("src/neosca_gui/data/stanza_resources/resources.json", "neosca_gui/data/stanza_resources/"),
+        (
+            "src/neosca_gui/data/stanza_resources/en/backward_charlm/",
+            "neosca_gui/data/stanza_resources/en/backward_charlm/",
+        ),
+        (
+            "src/neosca_gui/data/stanza_resources/en/constituency/",
+            "neosca_gui/data/stanza_resources/en/constituency/",
+        ),
+        (
+            "src/neosca_gui/data/stanza_resources/en/forward_charlm/",
+            "neosca_gui/data/stanza_resources/en/forward_charlm/",
+        ),
+        ("src/neosca_gui/data/stanza_resources/en/lemma/", "neosca_gui/data/stanza_resources/en/lemma/"),
+        ("src/neosca_gui/data/stanza_resources/en/mwt/", "neosca_gui/data/stanza_resources/en/mwt/"),
+        ("src/neosca_gui/data/stanza_resources/en/pos/", "neosca_gui/data/stanza_resources/en/pos/"),
+        ("src/neosca_gui/data/stanza_resources/en/pretrain/", "neosca_gui/data/stanza_resources/en/pretrain/"),
+        ("src/neosca_gui/data/stanza_resources/en/tokenize/", "neosca_gui/data/stanza_resources/en/tokenize/"),
         # Others
-        ("src/neosca_gui/data/sca_structure_data.json", "neosca/data/"),
-        ("src/neosca_gui/data/anc_all_count.pickle.lzma", "neosca/data/"),
-        ("src/neosca_gui/data/bnc_all_filtered.pickle.lzma", "neosca/data/"),
-        ("src/neosca_gui/data/citing.json", "neosca/data/"),
-        ("src/neosca_gui/data/ng_style.qss", "neosca/data/"),
+        ("src/neosca_gui/data/sca_structure_data.json", "neosca_gui/data/"),
+        ("src/neosca_gui/data/anc_all_count.pickle.lzma", "neosca_gui/data/"),
+        ("src/neosca_gui/data/bnc_all_filtered.pickle.lzma", "neosca_gui/data/"),
+        ("src/neosca_gui/data/citing.json", "neosca_gui/data/"),
+        ("src/neosca_gui/data/ng_style.qss", "neosca_gui/data/"),
     ]
 )
 
@@ -85,7 +98,7 @@ if IS_MAC:
 
     app = BUNDLE(
         coll,
-        name="Wordless.app",
+        name="NeoSCA.app",
         bundle_identifier=None,
         # References:
         #     https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html
