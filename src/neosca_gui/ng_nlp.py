@@ -85,7 +85,11 @@ class Ng_NLP_Stanza:
 
     @classmethod
     def doc2tree(cls, doc: Document) -> str:
-        return "\n".join(sent.constituency.pretty_print() for sent in doc.sentences)
+        return "\n".join(
+            str(sent.constituency)
+            for sent in doc.sentences
+            if not (len(sent.words) == 1 and sent.words[0].upos == "PUNCT")
+        )
 
     @classmethod
     def get_constituency_tree(
