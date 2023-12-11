@@ -20,8 +20,6 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
-    QSizePolicy,
-    QSpacerItem,
     QSplitter,
     QTableView,
     QTabWidget,
@@ -45,7 +43,7 @@ from neosca_gui.ng_widgets.ng_dialogs import (
     Ng_Dialog_TextEdit_Citing,
 )
 from neosca_gui.ng_widgets.ng_tables import Ng_Delegate_SCA, Ng_StandardItemModel, Ng_TableView
-from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
+from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm
 
 
 class Ng_Main(QMainWindow):
@@ -144,7 +142,7 @@ class Ng_Main(QMainWindow):
             if not messagebox.exec():
                 return
 
-        for splitter in (self.splitter_workarea_sca, self.splitter_workarea_lca, self.splitter_central_widget):
+        for splitter in (self.splitter_central_widget,):
             Ng_Settings.setValue(splitter.objectName(), splitter.saveState())
         Ng_Settings.sync()
 
@@ -219,16 +217,6 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
         self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
 
-        # Setting area
-        widget_settings_sca = QWidget()
-        layout_settings_sca = QGridLayout()
-        widget_settings_sca.setLayout(layout_settings_sca)
-        layout_settings_sca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-        layout_settings_sca.setContentsMargins(6, 0, 6, 0)
-
-        self.scrollarea_settings_sca = Ng_ScrollArea()
-        self.scrollarea_settings_sca.setWidget(widget_settings_sca)
-
         self.widget_previewarea_sca = QWidget()
         self.layout_previewarea_sca = QGridLayout()
         self.widget_previewarea_sca.setLayout(self.layout_previewarea_sca)
@@ -244,15 +232,7 @@ class Ng_Main(QMainWindow):
         ):
             self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
-        self.layout_previewarea_sca.addWidget(self.scrollarea_settings_sca, 0, btn_no, 2, 1)
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
-
-        self.splitter_workarea_sca = QSplitter(Qt.Orientation.Horizontal)
-        self.splitter_workarea_sca.addWidget(self.widget_previewarea_sca)
-        self.splitter_workarea_sca.addWidget(self.scrollarea_settings_sca)
-        self.splitter_workarea_sca.setStretchFactor(0, 1)
-        self.splitter_workarea_sca.setContentsMargins(6, 4, 6, 4)
-        self.splitter_workarea_sca.setObjectName("splitter-sca")
 
     # def custom_func(self):
     #     breakpoint()
@@ -293,16 +273,6 @@ class Ng_Main(QMainWindow):
         self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
         self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
 
-        # Setting area
-        layout_settings_lca = QGridLayout()
-        layout_settings_lca.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
-        layout_settings_lca.setContentsMargins(6, 0, 6, 0)
-        widget_settings_lca = QWidget()
-        widget_settings_lca.setLayout(layout_settings_lca)
-
-        self.scrollarea_settings_lca = Ng_ScrollArea()
-        self.scrollarea_settings_lca.setWidget(widget_settings_lca)
-
         self.widget_previewarea_lca = QWidget()
         self.layout_previewarea_lca = QGridLayout()
         self.widget_previewarea_lca.setLayout(self.layout_previewarea_lca)
@@ -318,19 +288,8 @@ class Ng_Main(QMainWindow):
         self.layout_previewarea_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
         self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
 
-        self.splitter_workarea_lca = QSplitter(Qt.Orientation.Horizontal)
-        self.splitter_workarea_lca.addWidget(self.widget_previewarea_lca)
-        self.splitter_workarea_lca.addWidget(self.scrollarea_settings_lca)
-        self.splitter_workarea_lca.setStretchFactor(0, 1)
-        self.splitter_workarea_lca.setContentsMargins(6, 4, 6, 4)
-        self.splitter_workarea_lca.setObjectName("splitter-lca")
-
     def resize_splitters(self, is_reset: bool = False) -> None:
-        for splitter in (
-            self.splitter_workarea_sca,
-            self.splitter_workarea_lca,
-            self.splitter_central_widget,
-        ):
+        for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
             if not is_reset and Ng_Settings.contains(key):
                 splitter.restoreState(Ng_Settings.value(key))
@@ -444,8 +403,8 @@ class Ng_Main(QMainWindow):
         self.setup_tableview_file()
 
         self.tabwidget = QTabWidget()
-        self.tabwidget.addTab(self.splitter_workarea_sca, "Syntactic Complexity Analyzer")
-        self.tabwidget.addTab(self.splitter_workarea_lca, "Lexical Complexity Analyzer")
+        self.tabwidget.addTab(self.widget_previewarea_sca, "Syntactic Complexity Analyzer")
+        self.tabwidget.addTab(self.widget_previewarea_lca, "Lexical Complexity Analyzer")
         self.splitter_central_widget = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
