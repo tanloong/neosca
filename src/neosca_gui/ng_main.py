@@ -16,12 +16,10 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QFileDialog,
     QGridLayout,
-    QGroupBox,
     QMainWindow,
     QMenu,
     QMessageBox,
     QPushButton,
-    QRadioButton,
     QSizePolicy,
     QSpacerItem,
     QSplitter,
@@ -146,11 +144,8 @@ class Ng_Main(QMainWindow):
             if not messagebox.exec():
                 return
 
-        Ng_Settings.setValue(self.splitter_workarea_sca.objectName(), self.splitter_workarea_sca.saveState())
-        Ng_Settings.setValue(self.splitter_workarea_lca.objectName(), self.splitter_workarea_lca.saveState())
-        Ng_Settings.setValue(
-            self.splitter_central_widget.objectName(), self.splitter_central_widget.saveState()
-        )
+        for splitter in (self.splitter_workarea_sca, self.splitter_workarea_lca, self.splitter_central_widget):
+            Ng_Settings.setValue(splitter.objectName(), splitter.saveState())
         Ng_Settings.sync()
 
         super().close()

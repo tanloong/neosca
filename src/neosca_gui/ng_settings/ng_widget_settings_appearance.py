@@ -219,7 +219,16 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
     def apply_settings_scaling(self) -> None:
         key = f"{self.name}/interface-scaling"
-        Ng_Settings.setValue(key, self.combobox_scaling.currentText())
+        curr_value = self.combobox_scaling.currentText()
+        orig_value = Ng_Settings.value(key)
+        if curr_value != orig_value:
+            Ng_Settings.setValue(key, curr_value)
+            messagebox = QMessageBox(self)
+            messagebox.setWindowTitle("Scaling Change")
+            messagebox.setText("Scaling change requires restart of NeoSCA.")
+            messagebox.setIcon(QMessageBox.Icon.Information)
+            messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
+            messagebox.exec()
 
     def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
