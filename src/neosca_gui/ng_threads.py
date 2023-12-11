@@ -87,8 +87,8 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
         input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
 
         lca_kwargs = {
-            "wordlist": "bnc" if self.main.radiobutton_wordlist_BNC.isChecked() else "anc",
-            "tagset": "ud" if self.main.radiobutton_tagset_ud.isChecked() else "ptb",
+            "wordlist": Ng_Settings.value("Lexical Complexity Analyzer/wordlist"),
+            "tagset": Ng_Settings.value("Lexical Complexity Analyzer/tagset"),
             "is_stdout": False,
             "is_cache_for_future_runs": Ng_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
             "is_use_past_cache": Ng_Settings.value("Miscellaneous/use-past-cache", type=bool),

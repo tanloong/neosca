@@ -17,7 +17,7 @@ select = [
     # isort
     "I",
 ]
-ignore = ["E501"]
+ignore = ["E501", "B011"]
 
 [tool.ruff.format]
 quote-style = "double"

@@ -146,14 +146,14 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
 
         self.pos_dialog_mappings: Dict[Tuple[int, int], Ng_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
 
-    @staticmethod
-    def is_index_clickable(index) -> bool:
+    @classmethod
+    def has_matches(cls, index) -> bool:
         data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
         return data_in_user_role is not None and data_in_user_role
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
         super().paint(painter, option, index)
-        if self.is_index_clickable(index):
+        if self.has_matches(index):
             painter.save()
             painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
             triangle_leg_length = option.rect.height() * Ng_Settings.value(
@@ -169,7 +169,7 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
             painter.restore()
 
     def createEditor(self, parent, option, index):
-        if not self.is_index_clickable(index):
+        if not self.has_matches(index):
             return None
         pos = (index.row(), index.column())
         if pos in self.pos_dialog_mappings:
@@ -494,8 +494,8 @@ class Ng_TableView(QTableView):
                         # TODO: this func is meant to be generic, write an
                         # abstract class of Ng_Delegate_SCA and Ng_Delegate_LCA
                         # (coming), and use the abstract class'
-                        # is_index_clickable method
-                        if not Ng_Delegate_SCA.is_index_clickable(index):
+                        # has_matches method
+                        if not Ng_Delegate_SCA.has_matches(index):
                             continue
 
                         filename = model.verticalHeaderItem(rowno).text()
@@ -572,7 +572,7 @@ class Ng_TableView(QTableView):
                         filename = model.verticalHeaderItem(rowno).text()
                         for colno in range(col_count):
                             index = model.index(rowno, colno)
-                            if not Ng_Delegate_SCA.is_index_clickable(index):
+                            if not Ng_Delegate_SCA.has_matches(index):
                                 continue
                             structure = model.horizontalHeaderItem(colno).text()
                             matches = index.data(Qt.ItemDataRole.UserRole)

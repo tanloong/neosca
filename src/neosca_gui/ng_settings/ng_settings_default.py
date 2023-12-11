@@ -47,6 +47,8 @@ settings_default = {
     "Import/default-type": available_import_types[0],
     "Export/default-path": str(DESKTOP_PATH),
     "Export/default-type": available_export_types[0],
+    "Lexical Complexity Analyzer/wordlist": "bnc",
+    "Lexical Complexity Analyzer/tagset": "ud",
     "Miscellaneous/dont-confirm-on-exit": False,
     "Miscellaneous/cache-for-future-runs": True,
     "Miscellaneous/use-past-cache": True,

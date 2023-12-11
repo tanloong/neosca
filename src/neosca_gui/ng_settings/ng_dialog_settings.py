@@ -8,6 +8,7 @@ from neosca_gui.ng_settings.ng_widget_settings_abstract import Ng_Widget_Setting
 from neosca_gui.ng_settings.ng_widget_settings_appearance import Ng_Widget_Settings_Appearance
 from neosca_gui.ng_settings.ng_widget_settings_export import Ng_Widget_Settings_Export
 from neosca_gui.ng_settings.ng_widget_settings_import import Ng_Widget_Settings_Import
+from neosca_gui.ng_settings.ng_widget_settings_lca import Ng_Widget_Settings_LCA
 from neosca_gui.ng_settings.ng_widget_settings_misc import Ng_Widget_Settings_Misc
 from neosca_gui.ng_widgets.ng_dialogs import Ng_Dialog
 from neosca_gui.ng_widgets.ng_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
@@ -21,6 +22,7 @@ class Ng_Dialog_Settings(Ng_Dialog):
             Ng_Widget_Settings_Appearance(main),
             Ng_Widget_Settings_Import(main),
             Ng_Widget_Settings_Export(main),
+            Ng_Widget_Settings_LCA(main),
             Ng_Widget_Settings_Misc(main),
         )
         self.listwidget_settings = QListWidget()
@@ -61,7 +63,7 @@ class Ng_Dialog_Settings(Ng_Dialog):
         if not self.listwidget_settings.selectionModel().selectedIndexes():
             return
 
-        current_widget: Ng_Widget_Settings_Abstract = self.stackedwidget_settings.currentWidget()
+        current_widget: Ng_Widget_Settings_Abstract = self.stackedwidget_settings.currentWidget()  # type: ignore
         if current_widget.verify_settings():
             selected_rowno = self.listwidget_settings.selectionModel().currentIndex().row()
             self.stackedwidget_settings.setCurrentIndex(selected_rowno)
