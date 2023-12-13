@@ -520,7 +520,7 @@ doi       = {10.1075/ijcl.15.4.02lu},
 APA (7th edition)
 </summary>
 
-<pre>Lu, X. (2010). Automatic analysis of syntactic complexity in second language writing. <i>International Journal of Corpus Linguistics, 15</i>(4), 474-496.</pre>
+<pre>Lu, X. (2010). Automatic analysis of syntactic complexity in second language writing. <i>International Journal of Corpus Linguistics, 15</i>(4), 474-496. https://doi.org/10.1075/ijcl.15.4.02lu</pre>
 
 </details>
 
@@ -530,7 +530,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96.</pre>
+<pre>Lu, Xiaofei. "Automatic Analysis of Syntactic Complexity in Second Language Writing." <i>International Journal of Corpus Linguistics</i>, vol. 15, no. 4, John Benjamins Publishing Company, 2010, pp. 474-96, https://doi.org/10.1075/ijcl.15.4.02lu</pre>
 
 </details>
 
