@@ -1,10 +1,15 @@
 # Byte-compiled / optimized / DLL files
 *__pycache__/
+*.ruff_cache/
 
 # packaging
 build/
 dist/
 *.egg-info
+
+# data
+libs/
+tests/data/
 
 # unit test / coverage report
 htmlcov/
@@ -20,9 +25,15 @@ coverage.xml
 *.tar.gz
 *.parsed
 *.mp4
-*.pdf
+*.matched
+*.ini
 doc
 note.txt
 test.py
 notes.md
 tmp
+examples/
+src/*.py
+src/*.txt
+tests/*.java
+src/neosca_gui/data/stanza_resources

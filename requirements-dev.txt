@@ -1,10 +1,9 @@
 # Build Packages
-setuptools
-wheel
-twine
+# setuptools
+# wheel
+# twine
 
 # Lint & Coverage
-black
-flake8
-mypy
-coverage
+# coverage
+ruff==0.1.6
+mypy==1.7.1

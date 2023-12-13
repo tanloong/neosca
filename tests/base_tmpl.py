@@ -1,15 +1,10 @@
 import gc
-import glob
 import io
 import logging
-import os
 import os.path as os_path
 import sys
 import time
 from unittest import TestCase
-
-from neosca.scaenv import unite_classpaths
-from neosca.scaplatform import IS_WINDOWS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 text = "There was no possibility of taking a walk that day."
@@ -26,18 +21,6 @@ tree = """(ROOT
               (NP (DT that) (NN day)))))))
     (. .)))
 """
-
-stanford_parser_home = (
-    glob.glob(os_path.join(os.environ["AppData"], "stanford-parser*"))[0]
-    if IS_WINDOWS
-    else glob.glob(os_path.expanduser("~/.local/share/stanford-parser*"))[0]
-)
-stanford_tregex_home = (
-    glob.glob(os_path.join(os.environ["AppData"], "stanford-tregex*"))[0]
-    if IS_WINDOWS
-    else glob.glob(os_path.expanduser("~/.local/share/stanford-tregex*"))[0]
-)
-classpaths = unite_classpaths(stanford_parser_home, stanford_tregex_home)
 
 
 class BaseTmpl(TestCase):
