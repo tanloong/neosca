@@ -28,9 +28,8 @@ coverage.xml
 *.matched
 *.ini
 doc
-note.txt
+note*
 test.py
-notes.md
 tmp
 examples/
 src/*.py
