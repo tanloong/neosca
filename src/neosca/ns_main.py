@@ -124,7 +124,7 @@ class Ng_Main(QMainWindow):
         self.menuBar().addMenu(self.menu_help)
 
     # Override
-    def close(self) -> None:
+    def close(self) -> bool:
         if not Ng_Settings.value("Miscellaneous/dont-confirm-on-exit", type=bool) and any(
             (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
         ):
@@ -140,13 +140,13 @@ class Ng_Main(QMainWindow):
             )
             messagebox.setCheckBox(checkbox_exit)
             if not messagebox.exec():
-                return
+                return False
 
         for splitter in (self.splitter_central_widget,):
             Ng_Settings.setValue(splitter.objectName(), splitter.saveState())
         Ng_Settings.sync()
 
-        super().close()
+        return super().close()
 
     def menubar_prefs_settings(self) -> None:
         attr = "dialog_settings"
