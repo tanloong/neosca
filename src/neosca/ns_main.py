@@ -9,7 +9,7 @@ import sys
 from typing import Generator, List, Set
 
 from PySide6.QtCore import QModelIndex, Qt
-from PySide6.QtGui import QAction, QCursor, QStandardItem
+from PySide6.QtGui import QAction, QCursor, QIcon, QStandardItem
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -21,12 +21,13 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSplitter,
+    QSystemTrayIcon,
     QTableView,
     QTabWidget,
     QWidget,
 )
 
-from neosca import QSS_PATH
+from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_io import SCAIO
 from neosca.ns_lca.lca import LCA
@@ -51,6 +52,7 @@ class Ng_Main(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle(f"{__title__} {__version__}")
+        self.setWindowIcon(QIcon(str(ICON_PATH)))
         qss = Ng_QSS.read_qss_file(QSS_PATH)
         qss += f"""\n* {{
          font-family: {Ng_Settings.value('Appearance/font-family')};
@@ -62,6 +64,31 @@ class Ng_Main(QMainWindow):
         self.setup_main_window()
         self.resize_splitters()
         self.fix_macos_layout(self)
+        self.setup_tray()
+
+    def setup_tray(self) -> None:
+        menu_tray = QMenu(self)
+        action_quit = QAction("Quit", menu_tray)
+        action_quit.triggered.connect(self.close)
+        action_hide = QAction("Minimize to Tray", menu_tray)
+        action_hide.triggered.connect(
+            lambda: self.hide()
+            or menu_tray.removeAction(action_hide)
+            or menu_tray.insertAction(action_quit, action_show)
+        )
+        action_show = QAction(f"Show {__title__}", menu_tray)
+        action_show.triggered.connect(
+            lambda: self.show()
+            or menu_tray.removeAction(action_show)
+            or menu_tray.insertAction(action_quit, action_hide)
+        )
+        menu_tray.addAction(action_hide)
+        menu_tray.addSeparator()
+        menu_tray.addAction(action_quit)
+
+        self.trayicon = QSystemTrayIcon(QIcon(str(ICON_PATH)), self)
+        self.trayicon.setContextMenu(menu_tray)
+        self.trayicon.show()
 
     # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_main.py#L266
     def fix_macos_layout(self, parent):
@@ -87,7 +114,7 @@ class Ng_Main(QMainWindow):
         action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
         action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("Exit...", self.menu_file)
+        action_quit = QAction("Quit", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
@@ -477,6 +504,7 @@ class Ng_Main(QMainWindow):
         self.add_file_paths(file_paths_to_add)
 
     def menubar_file_restart(self):
+        self.trayicon.hide()
         self.close()
         command = [sys.executable, "-m", "neosca"]
         subprocess.call(command, env=os.environ.copy(), close_fds=False)

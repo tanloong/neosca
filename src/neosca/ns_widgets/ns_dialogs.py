@@ -14,6 +14,7 @@ from PySide6.QtCore import (
     Signal,
 )
 from PySide6.QtGui import (
+    QIcon,
     Qt,
     QTextBlockFormat,
     QTextCursor,
@@ -27,7 +28,7 @@ from PySide6.QtWidgets import (
     QTextEdit,
 )
 
-from neosca import CITING_PATH
+from neosca import CITING_PATH, ICON_PATH
 from neosca.ns_about import __title__
 
 if TYPE_CHECKING:
@@ -74,6 +75,7 @@ class Ng_Dialog(QDialog):
             self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         # [Copied code ends here]
         self.setWindowTitle(title)
+        self.setWindowIcon(QIcon(str(ICON_PATH)))
 
         self.layout_content = QGridLayout()
         self.layout_button = QGridLayout()
