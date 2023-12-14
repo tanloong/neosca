@@ -6,7 +6,7 @@ from neosca.ns_platform_info import IS_MAC, IS_WINDOWS, get_linux_distro
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_settings/wl_settings_default.py
 
 # > The following settings need to be loaded before initialization of the main window
-DEFAULT_INTERFACE_SCALING = "100%"
+DEFAULT_SCALING = "100%"
 
 # > Font family
 if IS_WINDOWS:
@@ -35,7 +35,7 @@ else:
 available_import_types = ("Text files (*.txt)", "Docx files (*.docx)", "Odt files (*.odt)", "All files (*)")
 available_export_types = ("Excel Workbook (*.xlsx)", "CSV File (*.csv)", "TSV File (*.tsv)")
 settings_default = {
-    "Appearance/interface-scaling": DEFAULT_INTERFACE_SCALING,
+    "Appearance/scaling": DEFAULT_SCALING,
     "Appearance/font-family": DEFAULT_FONT_FAMILY,
     "Appearance/font-size": DEFAULT_FONT_SIZE,
     "Appearance/font-size-min": 6,

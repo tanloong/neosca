@@ -484,7 +484,7 @@ class Ng_Main(QMainWindow):
 
 
 def main():
-    ui_scaling = Ng_Settings.value("Appearance/interface-scaling")
+    ui_scaling = Ng_Settings.value("Appearance/scaling")
     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_main.py#L1238
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ns_app = QApplication(sys.argv)

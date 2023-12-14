@@ -39,7 +39,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
     def setup_scaling(self) -> None:
-        label_scaling = QLabel("Interface scaling:")
+        label_scaling = QLabel("Scaling (requires restart):")
         self.combobox_scaling = QComboBox()
         # https://github.com/BLKSerene/Wordless/blob/1c319ce54be60aa948c89d6d3cdd327cccfc7c15/wordless/wl_settings/wl_settings_general.py#L53
         self.combobox_scaling.addItems([f"{opt}%" for opt in range(100, 301, 25)])
@@ -128,7 +128,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.load_settings_tables()
 
     def load_settings_scaling(self) -> None:
-        key = f"{self.name}/interface-scaling"
+        key = f"{self.name}/scaling"
         self.combobox_scaling.setCurrentText(Ng_Settings.value(key))
 
     def load_settings_font(self) -> None:
@@ -218,17 +218,8 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.apply_settings_table()
 
     def apply_settings_scaling(self) -> None:
-        key = f"{self.name}/interface-scaling"
-        curr_value = self.combobox_scaling.currentText()
-        orig_value = Ng_Settings.value(key)
-        if curr_value != orig_value:
-            Ng_Settings.setValue(key, curr_value)
-            messagebox = QMessageBox(self)
-            messagebox.setWindowTitle("Scaling Change")
-            messagebox.setText("Scaling change requires restart of NeoSCA.")
-            messagebox.setIcon(QMessageBox.Icon.Information)
-            messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
-            messagebox.exec()
+        key = f"{self.name}/scaling"
+        Ng_Settings.setValue(key, self.combobox_scaling.currentText())
 
     def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
