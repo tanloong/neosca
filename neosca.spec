@@ -1,12 +1,14 @@
 # vim:ft=python
 
-import PyInstaller
-
 import sys
 from pathlib import Path
 
+import PyInstaller
+
 sys.path.insert(0, str(Path(".").parent.absolute() / "src"))
-from neosca_gui.ng_platform_info import IS_MAC
+from neosca.ns_platform_info import IS_MAC, IS_LINUX, IS_WINDOWS  # noqa: I001, E402
+from neosca.ns_about import __title__  # noqa: I001, E402
+from neosca import ICON_PATH, ICON_MAC_PATH  # noqa: I001, E402
 
 binaries = []
 datas = []
@@ -21,35 +23,44 @@ if IS_MAC:
 datas.extend(
     [
         # Stanza
-        ("src/neosca_gui/data/stanza_resources/resources.json", "neosca_gui/data/stanza_resources/"),
+        ("./data/stanza_resources/resources.json", "data/stanza_resources/"),
         (
-            "src/neosca_gui/data/stanza_resources/en/backward_charlm/",
-            "neosca_gui/data/stanza_resources/en/backward_charlm/",
+            "./data/stanza_resources/en/backward_charlm/",
+            "./data/stanza_resources/en/backward_charlm/",
         ),
         (
-            "src/neosca_gui/data/stanza_resources/en/constituency/",
-            "neosca_gui/data/stanza_resources/en/constituency/",
+            "./data/stanza_resources/en/constituency/",
+            "./data/stanza_resources/en/constituency/",
         ),
         (
-            "src/neosca_gui/data/stanza_resources/en/forward_charlm/",
-            "neosca_gui/data/stanza_resources/en/forward_charlm/",
+            "./data/stanza_resources/en/forward_charlm/",
+            "./data/stanza_resources/en/forward_charlm/",
         ),
-        ("src/neosca_gui/data/stanza_resources/en/lemma/", "neosca_gui/data/stanza_resources/en/lemma/"),
-        ("src/neosca_gui/data/stanza_resources/en/mwt/", "neosca_gui/data/stanza_resources/en/mwt/"),
-        ("src/neosca_gui/data/stanza_resources/en/pos/", "neosca_gui/data/stanza_resources/en/pos/"),
-        ("src/neosca_gui/data/stanza_resources/en/pretrain/", "neosca_gui/data/stanza_resources/en/pretrain/"),
-        ("src/neosca_gui/data/stanza_resources/en/tokenize/", "neosca_gui/data/stanza_resources/en/tokenize/"),
+        ("./data/stanza_resources/en/lemma/", "data/stanza_resources/en/lemma/"),
+        ("./data/stanza_resources/en/mwt/", "data/stanza_resources/en/mwt/"),
+        ("./data/stanza_resources/en/pos/", "data/stanza_resources/en/pos/"),
+        ("./data/stanza_resources/en/pretrain/", "data/stanza_resources/en/pretrain/"),
+        ("./data/stanza_resources/en/tokenize/", "data/stanza_resources/en/tokenize/"),
         # Others
-        ("src/neosca_gui/data/sca_structure_data.json", "neosca_gui/data/"),
-        ("src/neosca_gui/data/anc_all_count.pickle.lzma", "neosca_gui/data/"),
-        ("src/neosca_gui/data/bnc_all_filtered.pickle.lzma", "neosca_gui/data/"),
-        ("src/neosca_gui/data/citing.json", "neosca_gui/data/"),
-        ("src/neosca_gui/data/ng_style.qss", "neosca_gui/data/"),
+        ("./data/ns_syntactic_structures.json", "data/"),
+        ("./data/anc_all_count.pickle.lzma", "data/"),
+        ("./data/bnc_all_filtered.pickle.lzma", "data/"),
+        ("./data/citing.json", "data/"),
+        ("./data/ns_style.qss", "data/"),
+        ("./imgs/", "imgs/"),
     ]
 )
 
+# Icons
+if IS_WINDOWS or IS_LINUX:
+    icon = str(ICON_PATH)
+elif IS_MAC:
+    icon = str(ICON_MAC_PATH)
+else:
+    assert False, "Unsupported platform"
+
 a = Analysis(
-    ["src/neosca_gui/__main__.py"],
+    ["src/neosca/__main__.py"],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -67,7 +78,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="NeoSCA",
+    name=__title__,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -79,6 +90,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     # Additional options
+    icon=icon,
     contents_directory="libs",
 )
 coll = COLLECT(
@@ -88,25 +100,26 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="NeoSCA",
+    name=__title__,
 )
 # https://github.com/BLKSerene/Wordless/blob/1c319ce54be60aa948c89d6d3cdd327cccfc7c15/utils/wl_packaging.spec#L163
 # > Bundle application on macOS
 # > Reference: https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
 if IS_MAC:
-    from src.neosca_gui.ng_about import __version__
+    from neosca.ns_about import __version__
 
     app = BUNDLE(
         coll,
-        name="NeoSCA.app",
+        name=f"{__title__}.app",
+        icon=icon,
         bundle_identifier=None,
         # References:
         #     https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html
         #     https://developer.apple.com/documentation/bundleresources/information_property_list
         info_plist={
-            "CFBundleName": "NeoSCA",
-            "CFBundleDisplayName": "NeoSCA",
-            "CFBundleExecutable": "NeoSCA",
+            "CFBundleName": __title__,
+            "CFBundleDisplayName": __title__,
+            "CFBundleExecutable": __title__,
             "CFBundlePackageType": "APPL",
             "CFBundleVersion": __version__,
             "CFBundleShortVersionString": __version__,
