@@ -30,9 +30,9 @@ class Ng_Dialog_Settings(Ng_Dialog):
         self.scrollarea_settings = Ng_ScrollArea()
         self.scrollarea_settings.setWidget(self.stackedwidget_settings)
         self.button_reset = QPushButton("Reset all settings")
-        self.button_save = QPushButton("Save")
-        self.button_apply = QPushButton("Apply")
+        self.button_ok = QPushButton("OK")
         self.button_cancel = QPushButton("Cancel")
+        self.button_apply = QPushButton("Apply")
 
         for section in self.sections:
             self.listwidget_settings.addItem(section.name)
@@ -44,17 +44,17 @@ class Ng_Dialog_Settings(Ng_Dialog):
         # Bind
         self.listwidget_settings.selectionModel().selectionChanged.connect(self.on_selection_changed)
         self.button_reset.clicked.connect(self.reset_settings)
-        self.button_save.clicked.connect(self.apply_settings_and_close)
-        self.button_apply.clicked.connect(self.apply_settings)
+        self.button_ok.clicked.connect(self.apply_settings_and_close)
         self.button_cancel.clicked.connect(self.reject)
+        self.button_apply.clicked.connect(self.apply_settings)
 
         self.addWidget(self.listwidget_settings, 0, 0)
         self.addWidget(self.scrollarea_settings, 0, 1)
         self.addButtons(self.button_reset, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
         self.addButtons(
-            self.button_save,
-            self.button_apply,
+            self.button_ok,
             self.button_cancel,
+            self.button_apply,
             alignment=Ng_Dialog.ButtonAlignmentFlag.AlignRight,
         )
 
@@ -101,11 +101,11 @@ class Ng_Dialog_Settings(Ng_Dialog):
             self.load_settings()
 
     # Override
-    def exec(self) -> None:
+    def exec(self) -> int:
         self.load_settings()
         # Avoid triggering "on_current_section_changed" at startup, which
         # should happen after being edited by users
         self.listwidget_settings.blockSignals(True)
         self.listwidget_settings.setCurrentRow(self.current_section_rowno)
         self.listwidget_settings.blockSignals(False)
-        super().exec()
+        return super().exec()
