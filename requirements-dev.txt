@@ -5,5 +5,5 @@
 
 # Lint & Coverage
 # coverage
-ruff==0.1.6
+ruff==0.1.8
 mypy==1.7.1

@@ -19,6 +19,11 @@ select = [
 ]
 ignore = ["E501", "B011"]
 
+[tool.ruff.lint.flake8-type-checking]
+# Add quotes around type annotations, if doing so would allow
+# an import to be moved into a type-checking block.
+quote-annotations = true
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
