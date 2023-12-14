@@ -6,9 +6,9 @@ import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
+from neosca.ns_about import __title__, __version__
 from neosca.ns_io import SCAIO
 from neosca.ns_print import color_print
-from neosca.ns_sca.about import __version__
 from neosca.ns_util import SCAProcedureResult
 
 
@@ -151,7 +151,7 @@ class SCAUI:
             dest="is_quiet",
             action="store_true",
             default=False,
-            help="Stop NeoSCA from printing anything except for final results.",
+            help=f"Stop {__title__} from printing anything except for final results.",
         )
         args_parser.add_argument(
             "--verbose",
@@ -344,7 +344,7 @@ Contact:
                 False,
                 (
                     f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                    " NeoSCA only supports Python 3.7 or higher."
+                    f" {__title__} only supports Python 3.7 or higher."
                 ),
             )
 

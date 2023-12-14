@@ -161,7 +161,7 @@ class Ng_Main(QMainWindow):
             )
             messagebox = Ng_MessageBox_Confirm(
                 self,
-                "Exit NeoSCA",
+                f"Quit {__title__}",
                 "<b>All unsaved data will be lost.</b> Do you really want to exit?",
                 QMessageBox.Icon.Warning,
             )

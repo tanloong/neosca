@@ -4,6 +4,7 @@ import os.path as os_path
 import sys
 from typing import Callable, List
 
+from neosca.ns_about import __title__
 from neosca.ns_io import SCAIO
 from neosca.ns_lca.lca import LCA
 from neosca.ns_print import color_print, get_yes_or_no
@@ -180,7 +181,7 @@ class LCAUI:
             if not spacy_version.startswith(required_version_prefix):
                 logging.info(
                     f"The installed version {spacy_version} of spaCy does not match the version"
-                    f" required by NeoSCA: {required_version_range}"
+                    f" required by {__title__}: {required_version_range}"
                 )
                 ask_install_spacy = True
             else:
@@ -200,7 +201,7 @@ class LCAUI:
             if not model_version.startswith(required_version_prefix):
                 logging.info(
                     f"The installed version {model_version} of en_core_web_sm does not match the"
-                    f" version required by NeoSCA: {required_version_range}"
+                    f" version required by {__title__}: {required_version_range}"
                 )
                 ask_install_model = True
             else:

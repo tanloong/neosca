@@ -10,6 +10,7 @@ from io import BytesIO
 from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Union
 
+from neosca.ns_about import __title__
 from neosca.ns_exceptions import CircularDefinitionError, InvalidSourceError
 from neosca.ns_tregex.node_descriptions import Node_Any, Node_Text
 from neosca.ns_tregex.relation import (
@@ -531,7 +532,7 @@ class Ns_Tregex:
 
     def get_matches(self, sname: str, trees: str) -> list:
         if sname not in self.SNAME_CLS_MAPPING:
-            raise ValueError(f"{sname} is not yet supported in NeoSCA.")
+            raise ValueError(f"{sname} is not yet supported in {__title__}.")
 
         matches = []
         last_node = None

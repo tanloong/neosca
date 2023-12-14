@@ -7,6 +7,7 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
+from neosca.ns_about import __title__
 from neosca.ns_io import SCAIO
 from neosca.ns_sca.querier import Ns_Tregex
 from neosca.ns_sca.structure_counter import StructureCounter
@@ -44,7 +45,7 @@ class NeoSCA:
         self.cache_extension = ".pickle.lzma"
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
-        logging.debug(f"[NeoSCA] user_snames: {self.user_snames}")
+        logging.debug(f"[{__title__}] user_snames: {self.user_snames}")
 
         if selected_measures is not None:
             StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
@@ -164,7 +165,7 @@ class NeoSCA:
     def parse_ifiles(self, ifiles: List[str]):
         total = len(ifiles)
         for i, ifile in enumerate(ifiles, 1):
-            logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
+            logging.info(f'[{__title__}] Processing "{ifile}" ({i}/{total})...')
             self.parse_ifile(ifile)
 
     def parse_subfiles_list(self, subfiles_list: List[List[str]]):
@@ -174,7 +175,7 @@ class NeoSCA:
     def parse_and_query_ifiles(self, ifiles):
         total = len(ifiles)
         for i, ifile in enumerate(ifiles, 1):
-            logging.info(f'[NeoSCA] Processing "{ifile}" ({i}/{total})...')
+            logging.info(f'[{__title__}] Processing "{ifile}" ({i}/{total})...')
             counter = self.parse_and_query_ifile(ifile)
             if counter is None:
                 continue
@@ -189,7 +190,7 @@ class NeoSCA:
             )
 
             for i, subfile in enumerate(subfiles, 1):
-                logging.info(f'[NeoSCA] Processing "{subfile}" ({i}/{total})...')
+                logging.info(f'[{__title__}] Processing "{subfile}" ({i}/{total})...')
                 child_counter = self.parse_and_query_ifile(subfile)
                 if child_counter is None:
                     continue
@@ -217,7 +218,7 @@ class NeoSCA:
             self.write_value_output()
 
     def write_value_output(self) -> None:
-        logging.debug("[NeoSCA] Writting counts and/or frequencies...")
+        logging.debug(f"[{__title__}] Writting counts and/or frequencies...")
 
         counters = self.counters
         if len(counters) == 0:
