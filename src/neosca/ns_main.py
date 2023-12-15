@@ -122,16 +122,16 @@ class Ns_Main(QMainWindow):
         action_open_folder = QAction("Open Folder...", self.menu_file)
         action_open_folder.setShortcut("CTRL+F")
         action_open_folder.triggered.connect(self.menubar_file_open_folder)
-        action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
-        action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
-        action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
+        # action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
+        # action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
+        # action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
         action_quit = QAction("Quit", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
         self.menu_file.addAction(action_open_folder)
         self.menu_file.addSeparator()
-        self.menu_file.addAction(action_restart)
+        # self.menu_file.addAction(action_restart)
         self.menu_file.addAction(action_quit)
         # Edit
         self.menu_prefs = QMenu("Preferences", self.menuBar())
