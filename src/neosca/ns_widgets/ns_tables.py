@@ -173,7 +173,7 @@ class Ns_Delegate_SCA(QStyledItemDelegate):
             return None
         pos = (index.row(), index.column())
         if pos in self.pos_dialog_mappings:
-            self.pos_dialog_mappings[pos].activateWindow()
+            self.pos_dialog_mappings[pos].bring_to_front()
         else:
             dialog = Ns_Dialog_TextEdit_SCA_Matched_Subtrees(parent, index=index)
             self.pos_dialog_mappings[pos] = dialog

@@ -109,6 +109,14 @@ class Ns_Dialog(QDialog):
     def setRowStretch(self, row: int, strech: int) -> None:
         self.layout_content.setRowStretch(row, strech)
 
+    def bring_to_front(self) -> None:
+        self.show()
+        self.setWindowState(
+            (self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+        )
+        self.raise_()
+        self.activateWindow()
+
 
 class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
