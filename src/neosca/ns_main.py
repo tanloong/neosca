@@ -67,29 +67,39 @@ class Ns_Main(QMainWindow):
         self.fix_macos_layout(self)
         self.setup_tray()
 
+    # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L421C3-L433C24
     def setup_tray(self) -> None:
         menu_tray = QMenu(self)
-        action_quit = QAction("Quit", menu_tray)
-        action_quit.triggered.connect(self.close)
-        action_hide = QAction("Minimize to Tray", menu_tray)
-        action_hide.triggered.connect(
-            lambda: self.hide()
-            or menu_tray.removeAction(action_hide)
-            or menu_tray.insertAction(action_quit, action_show)
+
+        action_toggle = menu_tray.addAction("Minimize to Tray")
+        action_toggle.triggered.connect(self.toggle_window)
+        menu_tray.aboutToShow.connect(
+            lambda: action_toggle.setText("Minimize to Tray" if self.isVisible() else f"Show {__title__}")
         )
-        action_show = QAction(f"Show {__title__}", menu_tray)
-        action_show.triggered.connect(
-            lambda: self.show()
-            or menu_tray.removeAction(action_show)
-            or menu_tray.insertAction(action_quit, action_hide)
-        )
-        menu_tray.addAction(action_hide)
+
         menu_tray.addSeparator()
-        menu_tray.addAction(action_quit)
+        action_quit = menu_tray.addAction("Quit")
+        action_quit.triggered.connect(self.close)
 
         self.trayicon = QSystemTrayIcon(QIcon(str(ICON_PATH)), self)
         self.trayicon.setContextMenu(menu_tray)
         self.trayicon.show()
+
+    # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L447
+    def bring_to_front(self) -> None:
+        self.show()
+        self.setWindowState(
+            (self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+        )
+        self.raise_()
+        self.activateWindow()
+
+    # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L529
+    def toggle_window(self) -> None:
+        if self.isVisible():
+            self.hide()
+        else:
+            self.bring_to_front()
 
     # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_main.py#L266
     def fix_macos_layout(self, parent):
