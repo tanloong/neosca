@@ -2,6 +2,8 @@
 
 import json
 import re
+import sys
+import traceback
 from enum import Enum
 from typing import TYPE_CHECKING, List, Union
 
@@ -29,7 +31,7 @@ from PySide6.QtWidgets import (
 )
 
 from neosca import CITING_PATH, ICON_PATH
-from neosca.ns_about import __title__
+from neosca.ns_about import __email__, __title__, __version__
 
 if TYPE_CHECKING:
     from neosca.ns_widgets.ns_tables import Ns_TableView
@@ -213,7 +215,7 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
 
     # Override
     def show(self) -> None:
-        # Add self.textedit lastly to allow users add custom widgets above
+        # Add self.textedit lastly to allow adding custom widgets above
         self.addWidget(self.textedit, self.rowCount(), 0, 1, self.columnCount())
         return super().show()
 
@@ -251,7 +253,7 @@ class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
         with open(CITING_PATH, encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
-        self.label_citing = QLabel(f"If you use {__title__} in your research, please kindly cite as follows.")
+        self.label_citing = QLabel(f"If you use {__title__} in your research, please cite as follows.")
         self.label_citing.setWordWrap(True)
         self.setText(next(iter(self.style_citation_mapping.values())))
         self.label_choose_citation_style = QLabel("Choose citation style: ")
@@ -265,6 +267,23 @@ class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
         self.addWidget(self.label_choose_citation_style, 1, 0)
         self.addWidget(self.combobox_choose_citation_style, 1, 1)
         self.setColumnStretch(1, 1)
+
+
+class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
+    def __init__(self, *args, ex: Exception, **kwargs) -> None:
+        super().__init__(*args, title="Error", width=500, height=300, **kwargs)
+        # https://stackoverflow.com/a/35712784/20732031
+        trace_back = "".join(traceback.TracebackException.from_exception(ex).format())
+        meta_data = "\n".join(
+            ("", "Metadata:", f"  {__title__} version: {__version__}", f"  Platform: {sys.platform}")
+        )
+        self.setText(trace_back + meta_data)
+
+        self.label_desc = QLabel(
+            f"An error occurred. Please send the following error messages to <a href='{__email__}'>{__email__}</a> to contact the author for support."
+        )
+        self.label_desc.setWordWrap(True)
+        self.addWidget(self.label_desc)
 
 
 class Ns_Dialog_Table(Ns_Dialog):

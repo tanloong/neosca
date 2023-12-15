@@ -42,6 +42,7 @@ from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_Processins_With_Elapsed_Time,
     Ns_Dialog_Table,
     Ns_Dialog_TextEdit_Citing,
+    Ns_Dialog_TextEdit_Err,
 )
 from neosca.ns_widgets.ns_tables import Ns_Delegate_SCA, Ns_StandardItemModel, Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
@@ -465,11 +466,17 @@ class Ns_Main(QMainWindow):
         self.ns_thread_sca_generate_table = Ns_Thread(self.ns_worker_sca_generate_table)
         self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
         self.ns_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
+        self.ns_thread_sca_generate_table.err_occurs.connect(
+            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).exec()
+        )
 
         self.ns_worker_lca_generate_table = Ns_Worker_LCA_Generate_Table(main=self)
         self.ns_thread_lca_generate_table = Ns_Thread(self.ns_worker_lca_generate_table)
         self.ns_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
         self.ns_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
+        self.ns_thread_lca_generate_table.err_occurs.connect(
+            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).exec()
+        )
 
     def yield_added_file_names(self) -> Generator[str, None, None]:
         colno_path = 0

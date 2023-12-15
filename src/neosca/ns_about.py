@@ -2,3 +2,4 @@
 
 __title__ = "NeoSCA"
 __version__ = "0.1.0"
+__email__ = "tanloong@foxmail.com"

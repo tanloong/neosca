@@ -54,27 +54,16 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         else:
             sca_instance.update_options(sca_kwargs)
 
-        err_file_paths: List[str] = []
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except Exception:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if counter is None:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            self.counter_ready.emit(counter, file_name, rowno)
+            except Exception as ex:
+                raise ex
+            else:
+                assert counter is not None, "SCA StructureCounter is None"
 
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                None,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
+            self.counter_ready.emit(counter, file_name, rowno)
         self.worker_done.emit()
 
 
@@ -102,39 +91,30 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         else:
             lca_instance.update_options(lca_kwargs)
 
-        err_file_paths: List[str] = []
         model: Ns_StandardItemModel = self.main.model_lca
-        has_trailins_rows: bool = True
+        has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 values = lca_instance._analyze(file_path=file_path)
-            except Exception:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if values is None:
-                err_file_paths.append(file_path)
-                rowno -= 1
-                continue
-            if has_trailins_rows:
-                has_trailins_rows = model.removeRows(rowno, model.rowCount() - rowno)
+            except Exception as ex:
+                raise ex
+            else:
+                assert values is not None, "LCA result is None"
+
+            if has_trailing_rows:
+                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
             # Drop file_path
             del values[0]
             model.set_row_num(rowno, values)
             model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
             model.data_updated.emit()
 
-        if err_file_paths:  # TODO: should show a table
-            QMessageBox.information(
-                None,
-                "Error Processing Files",
-                "These files are skipped:\n- {}".format("\n- ".join(err_file_paths)),
-            )
-
         self.worker_done.emit()
 
 
 class Ns_Thread(QThread):
+    err_occurs = Signal(Exception)
+
     def __init__(self, worker: Ns_Worker):
         super().__init__()
         self.worker = worker
@@ -143,7 +123,10 @@ class Ns_Thread(QThread):
 
     def run(self):
         self.start()
-        self.worker.run()
+        try:
+            self.worker.run()
+        except Exception as ex:
+            self.err_occurs.emit(ex)
 
     # def cancel(self) -> None:
     #     self.terminate()
