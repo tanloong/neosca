@@ -32,10 +32,10 @@ from neosca import CITING_PATH, ICON_PATH
 from neosca.ns_about import __title__
 
 if TYPE_CHECKING:
-    from neosca.ns_widgets.ns_tables import Ng_TableView
+    from neosca.ns_widgets.ns_tables import Ns_TableView
 
 
-class Ng_Dialog(QDialog):
+class Ns_Dialog(QDialog):
     class ButtonAlignmentFlag(Enum):
         AlignLeft = 0
         AlignRight = 2
@@ -108,7 +108,7 @@ class Ng_Dialog(QDialog):
         self.layout_content.setRowStretch(row, strech)
 
 
-class Ng_Dialog_Processins_With_Elapsed_Time(Ng_Dialog):
+class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
@@ -181,7 +181,7 @@ class Ng_Dialog_Processins_With_Elapsed_Time(Ng_Dialog):
         return super().exec()
 
 
-class Ng_Dialog_TextEdit(Ng_Dialog):
+class Ns_Dialog_TextEdit(Ns_Dialog):
     def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
         super().__init__(*args, title=title, resizable=True, **kwargs)
         self.textedit = QTextEdit(text)
@@ -198,8 +198,8 @@ class Ng_Dialog_TextEdit(Ng_Dialog):
         self.button_close = QPushButton("Close")
         self.button_close.clicked.connect(self.reject)
 
-        self.addButtons(self.button_copy, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
-        self.addButtons(self.button_close, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignRight)
+        self.addButtons(self.button_copy, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+        self.addButtons(self.button_close, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
 
     def setText(self, text: str) -> None:
         self.textedit.setText(text)
@@ -230,7 +230,7 @@ class Ng_Dialog_TextEdit(Ng_Dialog):
         return super().exec()
 
 
-class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
+class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
     def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
         super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
         self.file_name = index.model().verticalHeaderItem(index.row()).text()
@@ -245,7 +245,7 @@ class Ng_Dialog_TextEdit_SCA_Matched_Subtrees(Ng_Dialog_TextEdit):
         self.addWidget(self.label_summary)
 
 
-class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
+class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, title="Citing", **kwargs)
         with open(CITING_PATH, encoding="utf-8") as f:
@@ -267,17 +267,17 @@ class Ng_Dialog_TextEdit_Citing(Ng_Dialog_TextEdit):
         self.setColumnStretch(1, 1)
 
 
-class Ng_Dialog_Table(Ng_Dialog):
+class Ns_Dialog_Table(Ns_Dialog):
     def __init__(
         self,
         *args,
         text: str,
-        tableview: "Ng_TableView",
+        tableview: "Ns_TableView",
         export_filename: str = "",
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self.tableview: "Ng_TableView" = tableview
+        self.tableview: "Ns_TableView" = tableview
         self.layout_content.addWidget(QLabel(text), 0, 0)
         self.layout_content.addWidget(tableview, 1, 0)
         self.export_filename = export_filename
@@ -286,5 +286,5 @@ class Ng_Dialog_Table(Ng_Dialog):
         self.button_ok.clicked.connect(self.accept)
         self.button_export_table = QPushButton("Export table...")
         self.button_export_table.clicked.connect(lambda: self.tableview.export_table(self.export_filename))
-        self.addButtons(self.button_export_table, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
-        self.addButtons(self.button_ok, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignRight)
+        self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+        self.addButtons(self.button_ok, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)

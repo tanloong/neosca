@@ -88,14 +88,14 @@ class NeoSCA:
         return counter
 
     def parse_text(self, text: str, cache_path: Optional[str] = None) -> str:
-        from neosca.ns_nlp import Ng_NLP_Stanza
+        from neosca.ns_nlp import Ns_NLP_Stanza
 
         if self.is_skip_parsing:  # assume input as parse trees
             return text
 
         if cache_path is None:
             cache_path = f"cmdline_text{self.cache_extension}"
-        trees = Ng_NLP_Stanza.get_constituency_tree(
+        trees = Ns_NLP_Stanza.get_constituency_tree(
             text,
             is_cache_for_future_runs=self.is_reserve_parsed,
             cache_path=cache_path,
@@ -105,7 +105,7 @@ class NeoSCA:
     def parse_ifile(self, ifile: str) -> Optional[str]:
         from stanza import Document
 
-        from neosca.ns_nlp import Ng_NLP_Stanza
+        from neosca.ns_nlp import Ns_NLP_Stanza
 
         if self.is_skip_parsing:
             # assume input as parse trees
@@ -116,8 +116,8 @@ class NeoSCA:
             logging.info(
                 f"Loading cache: {cache_path} already exists, and is non-empty and newer than {ifile}."
             )
-            doc: Document = Ng_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
-            return Ng_NLP_Stanza.get_constituency_tree(
+            doc: Document = Ns_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
+            return Ns_NLP_Stanza.get_constituency_tree(
                 doc, is_cache_for_future_runs=self.is_reserve_parsed, cache_path=cache_path
             )
 

@@ -28,14 +28,14 @@ from PySide6.QtWidgets import (
 )
 
 from neosca import DESKTOP_PATH
-from neosca.ns_qss import Ng_QSS
-from neosca.ns_settings.ns_settings import Ng_Settings
+from neosca.ns_qss import Ns_QSS
+from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_widgets.ns_dialogs import Ng_Dialog_TextEdit_SCA_Matched_Subtrees
-from neosca.ns_widgets.ns_widgets import Ng_MessageBox_Confirm
+from neosca.ns_widgets.ns_dialogs import Ns_Dialog_TextEdit_SCA_Matched_Subtrees
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
-class Ng_StandardItemModel(QStandardItemModel):
+class Ns_StandardItemModel(QStandardItemModel):
     data_cleared = Signal()
     # data_updated: itemChanged && !data_cleared
     data_updated = Signal()
@@ -94,7 +94,7 @@ class Ng_StandardItemModel(QStandardItemModel):
         if not confirm or self.has_been_exported:
             return self._clear_data(leave_an_empty_row=leave_an_empty_row)
         else:
-            messagebox = Ng_MessageBox_Confirm(
+            messagebox = Ns_MessageBox_Confirm(
                 self.main,
                 "Clear Talbe",
                 "The table has not been exported yet and all the data will be lost. Continue?",
@@ -134,17 +134,17 @@ class Ng_StandardItemModel(QStandardItemModel):
         return super().flags(index)
 
 
-class Ng_Delegate_SCA(QStyledItemDelegate):
+class Ns_Delegate_SCA(QStyledItemDelegate):
     def __init__(self, parent=None, qss: str = ""):
         super().__init__(parent)
         if (
-            triangle_rgb := Ng_QSS.get_value(qss, "QHeaderView::section:vertical", "background-color")
+            triangle_rgb := Ns_QSS.get_value(qss, "QHeaderView::section:vertical", "background-color")
         ) is not None:
             self.triangle_rgb = triangle_rgb
         else:
             self.triangle_rgb = "#000000"
 
-        self.pos_dialog_mappings: Dict[Tuple[int, int], Ng_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
+        self.pos_dialog_mappings: Dict[Tuple[int, int], Ns_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
 
     @classmethod
     def has_matches(cls, index) -> bool:
@@ -156,7 +156,7 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
         if self.has_matches(index):
             painter.save()
             painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
-            triangle_leg_length = option.rect.height() * Ng_Settings.value(
+            triangle_leg_length = option.rect.height() * Ns_Settings.value(
                 "Appearance/triangle-height-ratio", type=float
             )
             painter.drawPolygon(
@@ -175,18 +175,18 @@ class Ng_Delegate_SCA(QStyledItemDelegate):
         if pos in self.pos_dialog_mappings:
             self.pos_dialog_mappings[pos].activateWindow()
         else:
-            dialog = Ng_Dialog_TextEdit_SCA_Matched_Subtrees(parent, index=index)
+            dialog = Ns_Dialog_TextEdit_SCA_Matched_Subtrees(parent, index=index)
             self.pos_dialog_mappings[pos] = dialog
             dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(pos))
             dialog.show()
 
 
-class Ng_TableView(QTableView):
+class Ns_TableView(QTableView):
     def __init__(
         self,
         *args,
         main,
-        model: Ng_StandardItemModel,
+        model: Ns_StandardItemModel,
         has_horizontal_header: bool = True,
         has_vertical_header: bool = True,
         **kwargs,
@@ -194,7 +194,7 @@ class Ng_TableView(QTableView):
         super().__init__(*args, **kwargs)
         self.main = main
         self.setModel(model)
-        self.model_: Ng_StandardItemModel = model
+        self.model_: Ns_StandardItemModel = model
         self.model_.data_cleared.connect(self.on_data_cleared)
         self.model_.data_updated.connect(self.on_data_updated)
         self.has_horizontal_header = has_horizontal_header
@@ -222,7 +222,7 @@ class Ng_TableView(QTableView):
         self.scrollToBottom()
 
     # Override to specify the return type
-    def model(self) -> Ng_StandardItemModel:
+    def model(self) -> Ns_StandardItemModel:
         return self.model_
 
     def set_openpyxl_horizontal_header_alignment(self, cell) -> None:
@@ -286,12 +286,12 @@ class Ng_TableView(QTableView):
             caption="Export Table",
             dir=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
-            selectedFilter=Ng_Settings.value("Export/default-type"),
+            selectedFilter=Ns_Settings.value("Export/default-type"),
         )
         if not file_path:
             return
 
-        model: Ng_StandardItemModel = self.model()
+        model: Ns_StandardItemModel = self.model()
         col_count = model.columnCount()
         row_count = model.rowCount()
         try:
@@ -312,7 +312,7 @@ class Ng_TableView(QTableView):
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
                 dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
 
-                font_size = Ng_Settings.value("Appearance/font-size", type=int)
+                font_size = Ns_Settings.value("Appearance/font-size", type=int)
 
                 # 1. Horizontal header text and alignment
                 if self.has_horizontal_header:
@@ -329,18 +329,18 @@ class Ng_TableView(QTableView):
 
                 # 3. Both header background and font
                 # 3.0.1 Get header background
-                horizon_bacolor: Optional[str] = Ng_QSS.get_value(
+                horizon_bacolor: Optional[str] = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
                 )
-                vertical_bacolor: Optional[str] = Ng_QSS.get_value(
+                vertical_bacolor: Optional[str] = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
                 )
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                header_font_color = Ng_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "color")
+                header_font_color = Ns_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "color")
                 header_font_color = header_font_color.lstrip("#") if header_font_color is not None else "000"
-                header_font_weight = Ng_QSS.get_value(
+                header_font_weight = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section", "font-weight"
                 )
                 header_is_bold = (header_font_weight == "bold") if header_font_weight is not None else False
@@ -455,7 +455,7 @@ class Ng_TableView(QTableView):
             caption="Export Table",
             dir=str(DESKTOP_PATH / "neosca_sca_matches.xlsx"),
             filter=";;".join(available_export_types),
-            selectedFilter=Ng_Settings.value("Export/default-type"),
+            selectedFilter=Ns_Settings.value("Export/default-type"),
         )
         if not file_path:
             return
@@ -477,7 +477,7 @@ class Ng_TableView(QTableView):
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
                 dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
 
-                font_size = Ng_Settings.value("Appearance/font-size", type=int)
+                font_size = Ns_Settings.value("Appearance/font-size", type=int)
 
                 # Number of matches is much more than that of files. There are
                 # 2000 matches across different structures for a 19KB test
@@ -492,10 +492,10 @@ class Ng_TableView(QTableView):
                     for rowno in range(row_count):
                         index = model.index(rowno, colno)
                         # TODO: this func is meant to be generic, write an
-                        # abstract class of Ng_Delegate_SCA and Ng_Delegate_LCA
+                        # abstract class of Ns_Delegate_SCA and Ns_Delegate_LCA
                         # (coming), and use the abstract class'
                         # has_matches method
-                        if not Ng_Delegate_SCA.has_matches(index):
+                        if not Ns_Delegate_SCA.has_matches(index):
                             continue
 
                         filename = model.verticalHeaderItem(rowno).text()
@@ -533,7 +533,7 @@ class Ng_TableView(QTableView):
                         ws.row_dimensions[1 + i].height = self.horizontalHeader().height() / dpi_vertical * 72
 
                 # Header background color
-                # horizon_bacolor: Optional[str] = Ng_QSS.get_value(
+                # horizon_bacolor: Optional[str] = Ns_QSS.get_value(
                 #     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
                 # )
                 # if horizon_bacolor is not None:
@@ -541,7 +541,7 @@ class Ng_TableView(QTableView):
                 #     for ws in workbook.worksheets:
                 #         for cell in ws[get_column_letter(1)]:
                 #             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
-                vertical_bacolor: Optional[str] = Ng_QSS.get_value(
+                vertical_bacolor: Optional[str] = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
                 )
                 if vertical_bacolor is not None:
@@ -553,7 +553,7 @@ class Ng_TableView(QTableView):
                 # Header font
                 for ws in workbook.worksheets:
                     for cell in ws[get_column_letter(1)]:
-                        cell.font = Font(size=Ng_Settings.value("Appearance/font-size", type=int))
+                        cell.font = Font(size=Ns_Settings.value("Appearance/font-size", type=int))
 
                 # Freeze panes
                 for ws in workbook.worksheets:
@@ -572,7 +572,7 @@ class Ng_TableView(QTableView):
                         filename = model.verticalHeaderItem(rowno).text()
                         for colno in range(col_count):
                             index = model.index(rowno, colno)
-                            if not Ng_Delegate_SCA.has_matches(index):
+                            if not Ns_Delegate_SCA.has_matches(index):
                                 continue
                             structure = model.horizontalHeaderItem(colno).text()
                             matches = index.data(Qt.ItemDataRole.UserRole)

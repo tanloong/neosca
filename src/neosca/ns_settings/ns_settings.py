@@ -8,7 +8,7 @@ from neosca import SETTING_PATH
 from neosca.ns_settings.ns_settings_default import settings_default
 
 
-class Ng_Settings:
+class Ns_Settings:
     # Although QSettings can auto synchronize changes across all instances,
     #  we use this class to keep a single instance in the whole application.
     # Don't have to instanciate this class, just use its classmethods.

@@ -10,7 +10,7 @@ from stanza import Document
 from neosca import STANZA_MODEL_DIR
 
 
-class Ng_NLP_Stanza:
+class Ns_NLP_Stanza:
     # Stores all possibly needed processors in the whole application
     processors: tuple = ("tokenize", "pos", "lemma", "constituency")
 

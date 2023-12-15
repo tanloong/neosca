@@ -374,7 +374,7 @@ class LCA:
         )
 
     def _analyze(self, *, file_path: Optional[str] = None, doc=None):
-        from neosca.ns_nlp import Ng_NLP_Stanza
+        from neosca.ns_nlp import Ns_NLP_Stanza
 
         assert (not file_path) ^ (not doc)
 
@@ -385,7 +385,7 @@ class LCA:
                 logging.info(
                     f"Loading cache: {cache_path} already exists, and is non-empty and newer than {file_path}."
                 )
-                doc = Ng_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
+                doc = Ns_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
             else:
                 doc = self.scaio.read_file(file_path)
         else:
@@ -394,7 +394,7 @@ class LCA:
 
         if doc is None:
             return None
-        lemma_pos_gen = Ng_NLP_Stanza.get_lemma_and_pos(
+        lemma_pos_gen = Ns_NLP_Stanza.get_lemma_and_pos(
             doc,
             tagset=self.tagset,
             is_cache_for_future_runs=self.is_cache_for_future_runs,

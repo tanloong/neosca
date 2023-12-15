@@ -3,31 +3,31 @@
 
 from PySide6.QtWidgets import QListWidget, QPushButton, QStackedWidget
 
-from neosca.ns_settings.ns_settings import Ng_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca.ns_settings.ns_widget_settings_appearance import Ng_Widget_Settings_Appearance
-from neosca.ns_settings.ns_widget_settings_export import Ng_Widget_Settings_Export
-from neosca.ns_settings.ns_widget_settings_import import Ng_Widget_Settings_Import
-from neosca.ns_settings.ns_widget_settings_lca import Ng_Widget_Settings_LCA
-from neosca.ns_settings.ns_widget_settings_misc import Ng_Widget_Settings_Misc
-from neosca.ns_widgets.ns_dialogs import Ng_Dialog
-from neosca.ns_widgets.ns_widgets import Ng_MessageBox_Confirm, Ng_ScrollArea
+from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from neosca.ns_settings.ns_widget_settings_appearance import Ns_Widget_Settings_Appearance
+from neosca.ns_settings.ns_widget_settings_export import Ns_Widget_Settings_Export
+from neosca.ns_settings.ns_widget_settings_import import Ns_Widget_Settings_Import
+from neosca.ns_settings.ns_widget_settings_lca import Ns_Widget_Settings_LCA
+from neosca.ns_settings.ns_widget_settings_misc import Ns_Widget_Settings_Misc
+from neosca.ns_widgets.ns_dialogs import Ns_Dialog
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm, Ns_ScrollArea
 
 
-class Ng_Dialog_Settings(Ng_Dialog):
+class Ns_Dialog_Settings(Ns_Dialog):
     def __init__(self, main):
         super().__init__(main, title="Settings", width=768, height=576, resizable=True)
 
         self.sections = (
-            Ng_Widget_Settings_Appearance(main),
-            Ng_Widget_Settings_Import(main),
-            Ng_Widget_Settings_Export(main),
-            Ng_Widget_Settings_LCA(main),
-            Ng_Widget_Settings_Misc(main),
+            Ns_Widget_Settings_Appearance(main),
+            Ns_Widget_Settings_Import(main),
+            Ns_Widget_Settings_Export(main),
+            Ns_Widget_Settings_LCA(main),
+            Ns_Widget_Settings_Misc(main),
         )
         self.listwidget_settings = QListWidget()
         self.stackedwidget_settings = QStackedWidget()
-        self.scrollarea_settings = Ng_ScrollArea()
+        self.scrollarea_settings = Ns_ScrollArea()
         self.scrollarea_settings.setWidget(self.stackedwidget_settings)
         self.button_reset = QPushButton("Reset all settings")
         self.button_ok = QPushButton("OK")
@@ -50,12 +50,12 @@ class Ng_Dialog_Settings(Ng_Dialog):
 
         self.addWidget(self.listwidget_settings, 0, 0)
         self.addWidget(self.scrollarea_settings, 0, 1)
-        self.addButtons(self.button_reset, alignment=Ng_Dialog.ButtonAlignmentFlag.AlignLeft)
+        self.addButtons(self.button_reset, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
         self.addButtons(
             self.button_ok,
             self.button_cancel,
             self.button_apply,
-            alignment=Ng_Dialog.ButtonAlignmentFlag.AlignRight,
+            alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight,
         )
 
     # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_settings/wl_settings.py#L234
@@ -63,7 +63,7 @@ class Ng_Dialog_Settings(Ng_Dialog):
         if not self.listwidget_settings.selectionModel().selectedIndexes():
             return
 
-        current_widget: Ng_Widget_Settings_Abstract = self.stackedwidget_settings.currentWidget()  # type: ignore
+        current_widget: Ns_Widget_Settings_Abstract = self.stackedwidget_settings.currentWidget()  # type: ignore
         if current_widget.verify_settings():
             selected_rowno = self.listwidget_settings.selectionModel().currentIndex().row()
             self.stackedwidget_settings.setCurrentIndex(selected_rowno)
@@ -89,15 +89,15 @@ class Ng_Dialog_Settings(Ng_Dialog):
 
     def apply_settings_and_close(self) -> None:
         if self.apply_settings():
-            Ng_Settings.sync()
+            Ns_Settings.sync()
             self.accept()
 
     def reset_settings(self) -> None:
-        messagebox = Ng_MessageBox_Confirm(
+        messagebox = Ns_MessageBox_Confirm(
             self, "Reset All Settings", "Settings across <b>all pages</b> will be reset. Continue?"
         )
         if messagebox.exec():
-            Ng_Settings.reset()
+            Ns_Settings.reset()
             self.load_settings()
 
     # Override

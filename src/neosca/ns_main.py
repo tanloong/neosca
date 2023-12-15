@@ -32,31 +32,31 @@ from neosca.ns_about import __title__, __version__
 from neosca.ns_io import SCAIO
 from neosca.ns_lca.lca import LCA
 from neosca.ns_platform_info import IS_MAC
-from neosca.ns_qss import Ng_QSS
+from neosca.ns_qss import Ns_QSS
 from neosca.ns_sca.structure_counter import StructureCounter
-from neosca.ns_settings.ns_dialog_settings import Ng_Dialog_Settings
-from neosca.ns_settings.ns_settings import Ng_Settings
+from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
+from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_import_types
-from neosca.ns_threads import Ng_Thread, Ng_Worker_LCA_Generate_Table, Ng_Worker_SCA_Generate_Table
+from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
 from neosca.ns_widgets.ns_dialogs import (
-    Ng_Dialog_Processins_With_Elapsed_Time,
-    Ng_Dialog_Table,
-    Ng_Dialog_TextEdit_Citing,
+    Ns_Dialog_Processins_With_Elapsed_Time,
+    Ns_Dialog_Table,
+    Ns_Dialog_TextEdit_Citing,
 )
-from neosca.ns_widgets.ns_tables import Ng_Delegate_SCA, Ng_StandardItemModel, Ng_TableView
-from neosca.ns_widgets.ns_widgets import Ng_MessageBox_Confirm
+from neosca.ns_widgets.ns_tables import Ns_Delegate_SCA, Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
-class Ng_Main(QMainWindow):
+class Ns_Main(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle(f"{__title__} {__version__}")
         self.setWindowIcon(QIcon(str(ICON_PATH)))
-        qss = Ng_QSS.read_qss_file(QSS_PATH)
+        qss = Ns_QSS.read_qss_file(QSS_PATH)
         qss += f"""\n* {{
-         font-family: {Ng_Settings.value('Appearance/font-family')};
-         font-size: {Ng_Settings.value('Appearance/font-size')}pt;
+         font-family: {Ns_Settings.value('Appearance/font-family')};
+         font-size: {Ns_Settings.value('Appearance/font-size')}pt;
          }}"""
         self.setStyleSheet(qss)
         self.setup_menu()
@@ -152,14 +152,14 @@ class Ng_Main(QMainWindow):
 
     # Override
     def close(self) -> bool:
-        if not Ng_Settings.value("Miscellaneous/dont-confirm-on-exit", type=bool) and any(
+        if not Ns_Settings.value("Miscellaneous/dont-confirm-on-exit", type=bool) and any(
             (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
         ):
             checkbox_exit = QCheckBox("Don't confirm on exit")
             checkbox_exit.stateChanged.connect(
-                lambda: Ng_Settings.setValue("Miscellaneous/dont-confirm-on-exit", checkbox_exit.isChecked())
+                lambda: Ns_Settings.setValue("Miscellaneous/dont-confirm-on-exit", checkbox_exit.isChecked())
             )
-            messagebox = Ng_MessageBox_Confirm(
+            messagebox = Ns_MessageBox_Confirm(
                 self,
                 f"Quit {__title__}",
                 "<b>All unsaved data will be lost.</b> Do you really want to exit?",
@@ -170,8 +170,8 @@ class Ng_Main(QMainWindow):
                 return False
 
         for splitter in (self.splitter_central_widget,):
-            Ng_Settings.setValue(splitter.objectName(), splitter.saveState())
-        Ng_Settings.sync()
+            Ns_Settings.setValue(splitter.objectName(), splitter.saveState())
+        Ns_Settings.sync()
 
         return super().close()
 
@@ -180,26 +180,26 @@ class Ng_Main(QMainWindow):
         if hasattr(self, attr):
             getattr(self, attr).exec()
         else:
-            dialog_settings = Ng_Dialog_Settings(self)
+            dialog_settings = Ns_Dialog_Settings(self)
             setattr(self, attr, dialog_settings)
             dialog_settings.exec()
 
     def menubar_prefs_increase_font_size(self) -> None:
         key = "Appearance/font-size"
-        point_size = Ng_Settings.value(key, type=int) + 1
-        if point_size < Ng_Settings.value("Appearance/font-size-max", type=int):
-            Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
-            Ng_Settings.setValue(key, point_size)
+        point_size = Ns_Settings.value(key, type=int) + 1
+        if point_size < Ns_Settings.value("Appearance/font-size-max", type=int):
+            Ns_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ns_Settings.setValue(key, point_size)
 
     def menubar_prefs_decrease_font_size(self) -> None:
         key = "Appearance/font-size"
-        point_size = Ng_Settings.value(key, type=int) - 1
-        if point_size > Ng_Settings.value("Appearance/font-size-min", type=int):
-            Ng_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
-            Ng_Settings.setValue(key, point_size)
+        point_size = Ns_Settings.value(key, type=int) - 1
+        if point_size > Ns_Settings.value("Appearance/font-size-min", type=int):
+            Ns_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ns_Settings.setValue(key, point_size)
 
     def menubar_help_citing(self) -> None:
-        dialog_citing = Ng_Dialog_TextEdit_Citing(self)
+        dialog_citing = Ns_Dialog_TextEdit_Citing(self)
         dialog_citing.exec()
 
     def setup_tab_sca(self):
@@ -219,12 +219,12 @@ class Ng_Main(QMainWindow):
         # TODO comment this out before releasing
         # self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.model_sca = Ng_StandardItemModel(main=self)
+        self.model_sca = Ns_StandardItemModel(main=self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
-        self.tableview_sca = Ng_TableView(main=self, model=self.model_sca)
-        self.tableview_sca.setItemDelegate(Ng_Delegate_SCA(None, self.styleSheet()))
+        self.tableview_sca = Ns_TableView(main=self, model=self.model_sca)
+        self.tableview_sca.setItemDelegate(Ns_Delegate_SCA(None, self.styleSheet()))
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ns_thread_sca_generate_table.start)
@@ -274,11 +274,11 @@ class Ng_Main(QMainWindow):
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
 
-        self.model_lca = Ng_StandardItemModel(main=self)
+        self.model_lca = Ns_StandardItemModel(main=self)
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
-        self.tableview_lca = Ng_TableView(main=self, model=self.model_lca)
+        self.tableview_lca = Ns_TableView(main=self, model=self.model_lca)
         # TODO: tableview_sca use custom delegate to only enable
         # clickable items, in which case a dialog will pop up to show matches.
         # Here when tableview_lca also use custom delegate, remember to
@@ -318,14 +318,14 @@ class Ng_Main(QMainWindow):
     def resize_splitters(self, is_reset: bool = False) -> None:
         for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
-            if not is_reset and Ng_Settings.contains(key):
-                splitter.restoreState(Ng_Settings.value(key))
+            if not is_reset and Ns_Settings.contains(key):
+                splitter.restoreState(Ns_Settings.value(key))
             else:
                 if splitter.orientation() == Qt.Orientation.Vertical:
                     total_size = splitter.size().height()
                 else:
                     total_size = splitter.size().width()
-                section_size = Ng_Settings.value(f"default-{key}", type=int)
+                section_size = Ns_Settings.value(f"default-{key}", type=int)
                 splitter.setSizes((total_size - section_size, section_size))
 
     def enable_button_generate_table(self, enabled: bool) -> None:
@@ -333,12 +333,12 @@ class Ng_Main(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def setup_tableview_file(self) -> None:
-        self.model_file = Ng_StandardItemModel(main=self)
+        self.model_file = Ns_StandardItemModel(main=self)
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
         self.model_file.clear_data()
-        self.tableview_file = Ng_TableView(main=self, model=self.model_file, has_vertical_header=False)
+        self.tableview_file = Ns_TableView(main=self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -401,7 +401,7 @@ class Ng_Main(QMainWindow):
                 self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ng_StandardItemModel(main=self)
+            model_err_files = Ns_StandardItemModel(main=self)
             model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
             for reason, file_paths in (
                 ("Duplicate file", file_paths_dup),
@@ -410,9 +410,9 @@ class Ng_Main(QMainWindow):
             ):
                 for file_path in file_paths:
                     model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ng_TableView(main=self, model=model_err_files, has_vertical_header=False)
+            tableview_err_files = Ns_TableView(main=self, model=model_err_files, has_vertical_header=False)
 
-            dialog = Ng_Dialog_Table(
+            dialog = Ns_Dialog_Table(
                 self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",
@@ -458,16 +458,16 @@ class Ng_Main(QMainWindow):
         self.model_sca.data_updated.emit()
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ng_Dialog_Processins_With_Elapsed_Time(self)
+        self.dialog_processing = Ns_Dialog_Processins_With_Elapsed_Time(self)
 
-        self.ns_worker_sca_generate_table = Ng_Worker_SCA_Generate_Table(main=self)
+        self.ns_worker_sca_generate_table = Ns_Worker_SCA_Generate_Table(main=self)
         self.ns_worker_sca_generate_table.counter_ready.connect(self.sca_add_data)
-        self.ns_thread_sca_generate_table = Ng_Thread(self.ns_worker_sca_generate_table)
+        self.ns_thread_sca_generate_table = Ns_Thread(self.ns_worker_sca_generate_table)
         self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
         self.ns_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
 
-        self.ns_worker_lca_generate_table = Ng_Worker_LCA_Generate_Table(main=self)
-        self.ns_thread_lca_generate_table = Ng_Thread(self.ns_worker_lca_generate_table)
+        self.ns_worker_lca_generate_table = Ns_Worker_LCA_Generate_Table(main=self)
+        self.ns_thread_lca_generate_table = Ns_Thread(self.ns_worker_lca_generate_table)
         self.ns_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
         self.ns_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
 
@@ -481,7 +481,7 @@ class Ng_Main(QMainWindow):
 
     def menubar_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
-            caption="Open Folder", dir=Ng_Settings.value("Import/default-path")
+            caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
         )
         if not folder_path:
             return
@@ -495,9 +495,9 @@ class Ng_Main(QMainWindow):
         file_paths_to_add, _ = QFileDialog.getOpenFileNames(
             parent=None,
             caption="Open Files",
-            dir=Ng_Settings.value("Import/default-path"),
+            dir=Ns_Settings.value("Import/default-path"),
             filter=";;".join(available_import_types),
-            selectedFilter=Ng_Settings.value("Import/default-type"),
+            selectedFilter=Ns_Settings.value("Import/default-type"),
         )
         if not file_paths_to_add:
             return
@@ -512,10 +512,10 @@ class Ng_Main(QMainWindow):
 
 
 def main():
-    ui_scaling = Ng_Settings.value("Appearance/scaling")
+    ui_scaling = Ns_Settings.value("Appearance/scaling")
     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_main.py#L1238
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ns_app = QApplication(sys.argv)
-    ns_window = Ng_Main()
+    ns_window = Ns_Main()
     ns_window.showMaximized()
     sys.exit(ns_app.exec())

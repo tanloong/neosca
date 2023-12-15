@@ -8,11 +8,11 @@ from PySide6.QtWidgets import (
     QSpacerItem,
 )
 
-from neosca.ns_settings.ns_settings import Ng_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ng_Widget_Settings_Abstract
+from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
 
 
-class Ng_Widget_Settings_LCA(Ng_Widget_Settings_Abstract):
+class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
     name: str = "Lexical Complexity Analyzer"
 
     def __init__(self, main):
@@ -52,7 +52,7 @@ class Ng_Widget_Settings_LCA(Ng_Widget_Settings_Abstract):
 
     def load_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"
-        value = Ng_Settings.value(key)
+        value = Ns_Settings.value(key)
         if value == "bnc":
             self.radiobutton_wordlist_bnc.setChecked(True)
             self.radiobutton_wordlist_anc.setChecked(False)
@@ -64,7 +64,7 @@ class Ng_Widget_Settings_LCA(Ng_Widget_Settings_Abstract):
 
     def load_settings_tagset(self) -> None:
         key = f"{self.name}/tagset"
-        value = Ng_Settings.value(key)
+        value = Ns_Settings.value(key)
         if value == "ud":
             self.radiobutton_tagset_ud.setChecked(True)
             self.radiobutton_tagset_ptb.setChecked(False)
@@ -90,17 +90,17 @@ class Ng_Widget_Settings_LCA(Ng_Widget_Settings_Abstract):
     def apply_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"
         if self.radiobutton_wordlist_bnc.isChecked():
-            Ng_Settings.setValue(key, "bnc")
+            Ns_Settings.setValue(key, "bnc")
         elif self.radiobutton_wordlist_anc.isChecked():
-            Ng_Settings.setValue(key, "anc")
+            Ns_Settings.setValue(key, "anc")
         else:
             assert False, "Invalid wordlist setting"
 
     def apply_settings_tagset(self) -> None:
         key = f"{self.name}/tagset"
         if self.radiobutton_tagset_ud.isChecked():
-            Ng_Settings.setValue(key, "ud")
+            Ns_Settings.setValue(key, "ud")
         elif self.radiobutton_tagset_ptb.isChecked():
-            Ng_Settings.setValue(key, "ptb")
+            Ns_Settings.setValue(key, "ptb")
         else:
             assert False, "Invalid tagset setting"

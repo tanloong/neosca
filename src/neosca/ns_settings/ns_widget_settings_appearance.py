@@ -18,13 +18,13 @@ from PySide6.QtWidgets import (
     QSpinBox,
 )
 
-from neosca.ns_qss import Ng_QSS
-from neosca.ns_settings.ns_settings import Ng_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca.ns_widgets.ns_widgets import Ng_Combobox_Editable
+from neosca.ns_qss import Ns_QSS
+from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from neosca.ns_widgets.ns_widgets import Ns_Combobox_Editable
 
 
-class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
+class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
     name: str = "Appearance"
 
     def __init__(self, main):
@@ -53,7 +53,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
         self.name_writins_system_mapping.update(
             {QFontDatabase.writingSystemName(ws): ws for ws in QFontDatabase.writingSystems()}
         )
-        self.combobox_writins_system = Ng_Combobox_Editable()
+        self.combobox_writins_system = Ns_Combobox_Editable()
         self.combobox_writins_system.addItems(tuple(self.name_writins_system_mapping.keys()))
         self.combobox_writins_system.setCurrentText("Any")
         self.combobox_family = QFontComboBox()
@@ -85,7 +85,7 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
             self.combobox_family.setWritingSystem(self.name_writins_system_mapping[name])
 
-            current_family = Ng_Settings.value(f"{self.name}/font-family")
+            current_family = Ns_Settings.value(f"{self.name}/font-family")
             contains_current_family = any(
                 current_family == self.combobox_family.itemText(i) for i in range(self.combobox_family.count())
             )
@@ -129,24 +129,24 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
     def load_settings_scaling(self) -> None:
         key = f"{self.name}/scaling"
-        self.combobox_scaling.setCurrentText(Ng_Settings.value(key))
+        self.combobox_scaling.setCurrentText(Ns_Settings.value(key))
 
     def load_settings_font(self) -> None:
-        family = Ng_Settings.value(f"{self.name}/font-family")
+        family = Ns_Settings.value(f"{self.name}/font-family")
         self.combobox_family.setCurrentText(family)
         # If previously set font doesn't has italic or bold style, disable the according checkbox
         self.set_italic_bold_enabled(family)
-        self.checkbox_italic.setChecked(Ng_Settings.value(f"{self.name}/font-italic", type=bool))
-        self.checkbox_bold.setChecked(Ng_Settings.value(f"{self.name}/font-bold", type=bool))
+        self.checkbox_italic.setChecked(Ns_Settings.value(f"{self.name}/font-italic", type=bool))
+        self.checkbox_bold.setChecked(Ns_Settings.value(f"{self.name}/font-bold", type=bool))
         self.spinbox_point_size.setRange(
-            Ng_Settings.value(f"{self.name}/font-size-min", type=int),
-            Ng_Settings.value(f"{self.name}/font-size-max", type=int),
+            Ns_Settings.value(f"{self.name}/font-size-min", type=int),
+            Ns_Settings.value(f"{self.name}/font-size-max", type=int),
         )
-        self.spinbox_point_size.setValue(Ng_Settings.value(f"{self.name}/font-size", type=int))
+        self.spinbox_point_size.setValue(Ns_Settings.value(f"{self.name}/font-size", type=int))
 
     def load_settings_tables(self) -> None:
         key = f"{self.name}/triangle-height-ratio"
-        self.doublespinbox_triangle_height_ratio.setValue(Ng_Settings.value(key, type=float))
+        self.doublespinbox_triangle_height_ratio.setValue(Ns_Settings.value(key, type=float))
 
     def verify_settings(self) -> bool:
         return self.verify_settings_scaling() and self.verify_settings_font() and self.verify_settings_tables()
@@ -219,26 +219,26 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
 
     def apply_settings_scaling(self) -> None:
         key = f"{self.name}/scaling"
-        Ng_Settings.setValue(key, self.combobox_scaling.currentText())
+        Ns_Settings.setValue(key, self.combobox_scaling.currentText())
 
     def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
         family = self.combobox_family.currentText()
-        Ng_Settings.setValue(key, family)
+        Ns_Settings.setValue(key, family)
 
         key = f"{self.name}/font-size"
         size = self.spinbox_point_size.value()
-        Ng_Settings.setValue(key, size)
+        Ns_Settings.setValue(key, size)
 
         key = f"{self.name}/font-italic"
         is_italic = self.checkbox_italic.isChecked()
-        Ng_Settings.setValue(key, is_italic)
+        Ns_Settings.setValue(key, is_italic)
 
         key = f"{self.name}/font-bold"
         is_bold = self.checkbox_bold.isChecked()
-        Ng_Settings.setValue(key, is_bold)
+        Ns_Settings.setValue(key, is_bold)
 
-        Ng_QSS.set_value(
+        Ns_QSS.set_value(
             self.main,
             {
                 "*": {
@@ -253,4 +253,4 @@ class Ng_Widget_Settings_Appearance(Ng_Widget_Settings_Abstract):
     def apply_settings_table(self) -> None:
         key = f"{self.name}/triangle-height-ratio"
         ratio = self.doublespinbox_triangle_height_ratio.value()
-        Ng_Settings.setValue(key, ratio)
+        Ns_Settings.setValue(key, ratio)

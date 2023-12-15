@@ -9,11 +9,11 @@ from PySide6.QtWidgets import QMessageBox
 from neosca.ns_lca.lca import LCA
 from neosca.ns_sca.neosca import NeoSCA
 from neosca.ns_sca.structure_counter import StructureCounter
-from neosca.ns_settings.ns_settings import Ng_Settings
-from neosca.ns_widgets.ns_tables import Ng_StandardItemModel
+from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
 
 
-class Ng_Worker(QObject):
+class Ns_Worker(QObject):
     worker_done = Signal()
 
     def __init__(self, *args, main, **kwargs) -> None:
@@ -24,7 +24,7 @@ class Ng_Worker(QObject):
         raise NotImplementedError()
 
 
-class Ng_Worker_SCA_Generate_Table(Ng_Worker):
+class Ns_Worker_SCA_Generate_Table(Ns_Worker):
     counter_ready = Signal(StructureCounter, str, int)
 
     def __init__(self, *args, main, **kwargs) -> None:
@@ -38,8 +38,8 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
             "is_auto_save": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_reserve_parsed": Ng_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
-            "is_use_past_parsed": Ng_Settings.value("Miscellaneous/use-past-cache", type=bool),
+            "is_reserve_parsed": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_use_past_parsed": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
             "is_skip_querying": False,
             "is_skip_parsing": False,
             "config": None,
@@ -78,7 +78,7 @@ class Ng_Worker_SCA_Generate_Table(Ng_Worker):
         self.worker_done.emit()
 
 
-class Ng_Worker_LCA_Generate_Table(Ng_Worker):
+class Ns_Worker_LCA_Generate_Table(Ns_Worker):
     def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, main=main, **kwargs)
 
@@ -87,11 +87,11 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
         input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
 
         lca_kwargs = {
-            "wordlist": Ng_Settings.value("Lexical Complexity Analyzer/wordlist"),
-            "tagset": Ng_Settings.value("Lexical Complexity Analyzer/tagset"),
+            "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
+            "tagset": Ns_Settings.value("Lexical Complexity Analyzer/tagset"),
             "is_stdout": False,
-            "is_cache_for_future_runs": Ng_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
-            "is_use_past_cache": Ng_Settings.value("Miscellaneous/use-past-cache", type=bool),
+            "is_cache_for_future_runs": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_use_past_cache": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
         }
         attrname = "lca_instance"
         try:
@@ -103,7 +103,7 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
             lca_instance.update_options(lca_kwargs)
 
         err_file_paths: List[str] = []
-        model: Ng_StandardItemModel = self.main.model_lca
+        model: Ns_StandardItemModel = self.main.model_lca
         has_trailins_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
@@ -134,8 +134,8 @@ class Ng_Worker_LCA_Generate_Table(Ng_Worker):
         self.worker_done.emit()
 
 
-class Ng_Thread(QThread):
-    def __init__(self, worker: Ng_Worker):
+class Ns_Thread(QThread):
+    def __init__(self, worker: Ns_Worker):
         super().__init__()
         self.worker = worker
         # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/

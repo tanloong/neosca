@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget
 QSSMapping = Dict[str, Union[str, Dict[str, str]]]
 
 
-class Ng_QSS:
+class Ns_QSS:
     def __init__(self):
         pass
 

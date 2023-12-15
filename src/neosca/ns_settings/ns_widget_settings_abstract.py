@@ -3,7 +3,7 @@
 from PySide6.QtWidgets import QGridLayout, QWidget
 
 
-class Ng_Widget_Settings_Abstract(QWidget):
+class Ns_Widget_Settings_Abstract(QWidget):
     name: str = ""
 
     def __init__(self, main):

@@ -13,13 +13,13 @@ from PySide6.QtWidgets import (
     QSpacerItem,
 )
 
-from neosca.ns_settings.ns_settings import Ng_Settings
+from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_settings.ns_widget_settings_abstract import Ng_Widget_Settings_Abstract
-from neosca.ns_widgets.ns_widgets import Ng_LineEdit_Path, Ng_MessageBox_Confirm
+from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from neosca.ns_widgets.ns_widgets import Ns_LineEdit_Path, Ns_MessageBox_Confirm
 
 
-class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
+class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
     name: str = "Export"
 
     def __init__(self, main=None):
@@ -30,7 +30,7 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
     def setup_tables(self) -> None:
-        self.lineedit_path = Ng_LineEdit_Path()
+        self.lineedit_path = Ns_LineEdit_Path()
         self.combobox_type = QComboBox()
         self.combobox_type.addItems(available_export_types)
 
@@ -41,8 +41,8 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
         self.groupbox_tables.setLayout(formlayout_tables)
 
     def load_settings(self) -> None:
-        self.lineedit_path.setText(Ng_Settings.value(f"{self.name}/default-path"))
-        self.combobox_type.setCurrentText(Ng_Settings.value(f"{self.name}/default-type"))
+        self.lineedit_path.setText(Ns_Settings.value(f"{self.name}/default-path"))
+        self.combobox_type.setCurrentText(Ns_Settings.value(f"{self.name}/default-type"))
 
     def verify_settings(self) -> bool:
         return self.verify_settings_tables()
@@ -61,7 +61,7 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
             ).exec()
             return False
         if not os_path.isdir(path):
-            messagebox = Ng_MessageBox_Confirm(
+            messagebox = Ns_MessageBox_Confirm(
                 self,
                 "Path Not Found",
                 f'Found no existing directory named "{path}". Do you want to create the directory?',
@@ -77,5 +77,5 @@ class Ng_Widget_Settings_Export(Ng_Widget_Settings_Abstract):
         return True
 
     def apply_settings(self) -> None:
-        Ng_Settings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
-        Ng_Settings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())
+        Ns_Settings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
+        Ns_Settings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())

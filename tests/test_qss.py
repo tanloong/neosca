@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-from neosca_gui.ng_qss import Ng_QSS
+from neosca_gui.ng_qss import Ns_QSS
 
 from tests.base_tmpl import BaseTmpl
 
 
 class TestQSS(BaseTmpl):
     def test_str_to_mapping(self):
-        func = Ng_QSS.str_to_mapping
+        func = Ns_QSS.str_to_mapping
 
         # Every value be followed by a ";"
         mapping = {"font-size": "11pt;", "QTableView": {"color": "black;"}}
@@ -67,8 +67,8 @@ class TestQSS(BaseTmpl):
         )
 
     def test_mapping_to_str(self):
-        to_string = Ng_QSS.mapping_to_str
-        to_mapping = Ng_QSS.str_to_mapping
+        to_string = Ns_QSS.mapping_to_str
+        to_mapping = Ns_QSS.str_to_mapping
 
         self.assertEqual(to_string({"font-size": "11pt;"}), to_string(to_mapping("font-size: 11pt;")))
         self.assertEqual(to_string({"font-size": "11pt"}), to_string(to_mapping("font-size: 11pt;")))
@@ -87,9 +87,9 @@ class TestQSS(BaseTmpl):
                      QHeaderView::section:vertical { background-color: #737373; }
                      QHeaderView::section { color: #FFFFFF; font-weight: bold; }"""
         self.assertEqual(
-            Ng_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color"), "#5C88C5"
+            Ns_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color"), "#5C88C5"
         )
         self.assertEqual(
-            Ng_QSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
+            Ns_QSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
         )
-        self.assertEqual(Ng_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
+        self.assertEqual(Ns_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")

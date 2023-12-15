@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 from neosca.ns_singleton import QSingleton
 
 
-class Ng_FileDialog(QFileDialog):
+class Ns_FileDialog(QFileDialog):
     def __init__(self, *args, **kwargs) -> None:
         return super().__init__(*args, **kwargs)
 
@@ -61,14 +61,14 @@ class Ng_FileDialog(QFileDialog):
 
 
 # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_widgets/wl_layouts.py#L108
-class Ng_ScrollArea(QScrollArea):
+class Ns_ScrollArea(QScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWidgetResizable(True)
         self.setBackgroundRole(QPalette.ColorRole.Light)
 
 
-class Ng_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
+class Ns_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
     def __init__(self, parent=None):
         super().__init__(parent)
         # > Do not add file watchers to the paths. This reduces overhead when using the
@@ -84,9 +84,9 @@ class Ng_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
             self.has_set_root = True
 
 
-class Ng_LineEdit(QLineEdit):
+class Ns_LineEdit(QLineEdit):
     """This class emits the custom "focused" signal and is specifically used
-    in Ng_LineEdit_Path to tell Ng_FileSystemModel to start querying. The
+    in Ns_LineEdit_Path to tell Ns_FileSystemModel to start querying. The
     querying should only start at the first emit and all subsequent emits are
     ignored. We prefer the custom "focused" signal over the built-in
     "textEdited" because it has much less frequent emits."""
@@ -102,17 +102,17 @@ class Ng_LineEdit(QLineEdit):
         self.focused.emit()
 
 
-class Ng_LineEdit_Path(QWidget):
+class Ns_LineEdit_Path(QWidget):
     # https://stackoverflow.com/a/20796318/20732031
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        filesystem_model = Ng_FileSystemModel()
+        filesystem_model = Ns_FileSystemModel()
         completer_lineedit_files = QCompleter()
         completer_lineedit_files.setModel(filesystem_model)
         completer_lineedit_files.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
         completer_lineedit_files.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.lineedit = Ng_LineEdit()
+        self.lineedit = Ns_LineEdit()
         self.lineedit.focused.connect(filesystem_model.start_querying)
         self.lineedit.setCompleter(completer_lineedit_files)
         self.lineedit.setClearButtonEnabled(True)
@@ -146,7 +146,7 @@ class Ng_LineEdit_Path(QWidget):
         self.lineedit.selectAll()
 
 
-class Ng_Combobox_Editable(QComboBox):
+class Ns_Combobox_Editable(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
@@ -154,7 +154,7 @@ class Ng_Combobox_Editable(QComboBox):
         self.setEditable(True)
 
 
-class Ng_MessageBox_Confirm(QMessageBox):
+class Ns_MessageBox_Confirm(QMessageBox):
     def __init__(
         self,
         parent=None,

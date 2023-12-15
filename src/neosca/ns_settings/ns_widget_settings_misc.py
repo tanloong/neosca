@@ -3,11 +3,11 @@
 
 from PySide6.QtWidgets import QCheckBox, QGridLayout, QGroupBox, QSizePolicy, QSpacerItem
 
-from neosca.ns_settings.ns_settings import Ng_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ng_Widget_Settings_Abstract
+from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
 
 
-class Ng_Widget_Settings_Misc(Ng_Widget_Settings_Abstract):
+class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
     name: str = "Miscellaneous"
 
     def __init__(self, main=None):
@@ -31,24 +31,24 @@ class Ng_Widget_Settings_Misc(Ng_Widget_Settings_Abstract):
 
     def load_settings(self) -> None:
         self.checkbox_dont_confirm_on_exit.setChecked(
-            Ng_Settings.value(f"{self.name}/dont-confirm-on-exit", type=bool)
+            Ns_Settings.value(f"{self.name}/dont-confirm-on-exit", type=bool)
         )
         self.load_settings_cache()
 
     def load_settings_cache(self) -> None:
         self.checkbox_cache_for_future_runs.setChecked(
-            Ng_Settings.value(f"{self.name}/cache-for-future-runs", type=bool)
+            Ns_Settings.value(f"{self.name}/cache-for-future-runs", type=bool)
         )
-        self.checkbox_use_past_cache.setChecked(Ng_Settings.value(f"{self.name}/use-past-cache", type=bool))
+        self.checkbox_use_past_cache.setChecked(Ns_Settings.value(f"{self.name}/use-past-cache", type=bool))
 
     def verify_settings(self) -> bool:
         return True
 
     def apply_settings(self) -> None:
-        Ng_Settings.setValue(
+        Ns_Settings.setValue(
             f"{self.name}/dont-confirm-on-exit", self.checkbox_dont_confirm_on_exit.isChecked()
         )
-        Ng_Settings.setValue(
+        Ns_Settings.setValue(
             f"{self.name}/cache-for-future-runs", self.checkbox_cache_for_future_runs.isChecked()
         )
-        Ng_Settings.setValue(f"{self.name}/use-past-cache", self.checkbox_use_past_cache.isChecked())
+        Ns_Settings.setValue(f"{self.name}/use-past-cache", self.checkbox_use_past_cache.isChecked())
