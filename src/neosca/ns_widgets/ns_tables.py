@@ -102,25 +102,20 @@ class Ns_StandardItemModel(QStandardItemModel):
             if messagebox.exec():
                 self._clear_data(leave_an_empty_row=leave_an_empty_row)
 
-    def is_empty(self):
-        for row in range(self.rowCount()):
-            for column in range(self.columnCount()):
-                item = self.item(row, column)
-                if item is not None and item.text() != "":
-                    return False
+    def is_row_empty(self, rowno: int) -> bool:
+        for colno in range(self.columnCount()):
+            item = self.item(rowno, colno)
+            if item is not None and item.text() != "":
+                return False
         return True
 
-    def remove_single_empty_row(self) -> None:
-        if self.rowCount() == 1 and self.item(0, 0) is None:
-            self.setRowCount(0)
+    def is_empty(self) -> bool:
+        return all(self.is_row_empty(rowno) for rowno in range(self.rowCount()))
 
-    def remove_model_rows(self, *rownos: int) -> None:
-        if not rownos:
-            # https://doc.qt.io/qtforpython-6/PySide6/QtGui/QStandardItemModel.html#PySide6.QtGui.PySide6.QtGui.QStandardItemModel.setRowCount
-            self.setRowCount(0)
-        else:
-            for rowno in rownos:
-                self.takeRow(rowno)
+    def remove_empty_rows(self) -> None:
+        for rowno in reversed(range(self.rowCount())):
+            if self.is_row_empty(rowno):
+                self.removeRow(rowno)
 
     # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
     def yield_model_column(self, colno: int) -> Generator[str, None, None]:

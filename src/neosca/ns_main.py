@@ -395,7 +395,7 @@ class Ns_Main(QMainWindow):
             - file_paths_empty
         )
         if file_paths_ok:
-            self.model_file.remove_single_empty_row()
+            self.model_file.remove_empty_rows()
             colno_name = 0
             # Has no duplicates
             already_added_file_names = list(self.model_file.yield_model_column(colno_name))
