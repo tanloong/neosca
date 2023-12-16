@@ -130,7 +130,7 @@ class LCA:
         return False
 
     def _is_misc_ptb(self, lemma: str, pos: str) -> bool:
-        if not lemma.strip():
+        if lemma.isspace():
             return True
         if pos[0] in string.punctuation:
             return True
@@ -413,19 +413,17 @@ class LCA:
         adj_count_map: Dict[str, int] = {}
         adv_count_map: Dict[str, int] = {}
         noun_count_map: Dict[str, int] = {}
-        lemma_lst = []
         condition_map = self.condition_map
         # Universal POS tags: https://universaldependencies.org/u/pos/
         for lemma, pos in lemma_pos_gen:
             if condition_map["is_misc"](lemma, pos):
                 continue
 
+            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
+
             is_sophisticated = False
             is_lexical = False
             is_verb = False
-
-            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
-            lemma_lst.append(lemma)
 
             if condition_map["is_noun"](lemma, pos):
                 noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
@@ -477,6 +475,7 @@ class LCA:
                     sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
                     logging.debug(f'Counted "{lemma}" as a sophisticated verb')
 
+        lemma_lst = list(word_count_map.keys())
         values = self.compute(
             word_count_map,
             sword_count_map,

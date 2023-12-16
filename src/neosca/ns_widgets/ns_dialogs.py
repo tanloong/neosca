@@ -143,9 +143,7 @@ class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
         self.label_status = QLabel("Processing...")
         self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
         self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
-        self.label_please_wait = QLabel(
-            "Please be patient. The wait time can range from a few seconds to several minutes."
-        )
+        self.label_please_wait = QLabel("The process can take some time, please be patient.")
         self.label_please_wait.setWordWrap(True)
 
         self.addWidget(self.label_status, 0, 0)

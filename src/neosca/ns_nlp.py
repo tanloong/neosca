@@ -96,7 +96,6 @@ class Ns_NLP_Stanza:
         cls,
         doc: Union[str, Document],
         is_cache_for_future_runs: bool = True,
-        is_use_past_cache: bool = True,
         cache_path: Optional[str] = None,
     ) -> str:
         if cache_path is None:
@@ -117,8 +116,12 @@ class Ns_NLP_Stanza:
         is_cache_for_future_runs: bool = False,
         cache_path: str = "cmdline_text.pkl.lzma",
     ) -> Generator[Tuple[str, str], None, None]:
-        assert tagset in ("ud", "ptb")
-        pos_attr = "upos" if tagset == "ud" else "xpos"
+        if tagset == "ud":
+            pos_attr = "upos"
+        elif tagset == "ptb":
+            pos_attr = "xpos"
+        else:
+            assert False, "Invalid tagset"
 
         doc = cls.nlp(
             doc,
