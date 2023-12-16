@@ -122,7 +122,10 @@ class LCA:
         self.__init__(**kwargs)
 
     def _is_misc_ud(self, lemma: str, pos: str) -> bool:
-        if pos in ("PUNCT", "SYM", "X", "SPACE"):
+        if pos in ("PUNCT", "SYM", "SPACE"):
+            return True
+        # https://universaldependencies.org/u/pos/X.html
+        if pos == "X" and not lemma.isalpha():
             return True
         return False
 
