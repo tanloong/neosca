@@ -128,7 +128,10 @@ class Ns_NLP_Stanza:
         )
         for sent in doc.sentences:
             for word in sent.words:
-                yield (word.lemma.lower(), getattr(word, pos_attr))
+                # Foreign words
+                if (lemma := word.lemma) is None:
+                    lemma = word.text
+                yield (lemma.lower(), getattr(word, pos_attr))
 
     @classmethod
     def doc2serialized(cls, doc: Document) -> bytes:
