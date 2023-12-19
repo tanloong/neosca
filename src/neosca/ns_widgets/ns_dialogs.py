@@ -5,7 +5,7 @@ import re
 import sys
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, List, Union
+from typing import List, Optional, Union
 
 from PySide6.QtCore import (
     QElapsedTimer,
@@ -30,11 +30,10 @@ from PySide6.QtWidgets import (
     QTextEdit,
 )
 
-from neosca import CITING_PATH, ICON_PATH
+from neosca import ACKS_PATH, CITING_PATH, ICON_PATH
 from neosca.ns_about import __email__, __title__, __version__
-
-if TYPE_CHECKING:
-    from neosca.ns_widgets.ns_tables import Ns_TableView
+from neosca.ns_widgets.ns_labels import Ns_Label_Html, Ns_Label_Html_Centered, Ns_Label_WordWrapped
+from neosca.ns_widgets.ns_tables import Ns_StandardItemModel, Ns_TableView
 
 
 class Ns_Dialog(QDialog):
@@ -43,7 +42,7 @@ class Ns_Dialog(QDialog):
         AlignRight = 2
 
     def __init__(
-        self, *args, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
+        self, main, title: str = "", width: int = 0, height: int = 0, resizable=False, **kwargs
     ) -> None:
         """
         ┌———————————┐
@@ -54,7 +53,8 @@ class Ns_Dialog(QDialog):
         │  buttons  │
         └———————————┘
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(main, **kwargs)
+        self.main = main
         # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
         # [Copied code starts here]
         # Dialog size
@@ -118,14 +118,14 @@ class Ns_Dialog(QDialog):
         self.activateWindow()
 
 
-class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
+class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
 
     def __init__(
         self,
-        *args,
+        main,
         title: str = "Please Wait",
         width: int = 500,
         height: int = 0,
@@ -133,7 +133,7 @@ class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
         interval: int = 1000,
         **kwargs,
     ) -> None:
-        super().__init__(*args, title=title, width=width, height=height, resizable=False, **kwargs)
+        super().__init__(main, title=title, width=width, height=height, resizable=False, **kwargs)
         self.time_format = time_format
         self.interval = interval
         self.elapsedtimer = QElapsedTimer()
@@ -143,8 +143,7 @@ class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
         self.label_status = QLabel("Processing...")
         self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
         self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
-        self.label_please_wait = QLabel("The process can take some time, please be patient.")
-        self.label_please_wait.setWordWrap(True)
+        self.label_please_wait = Ns_Label_WordWrapped("The process can take some time, please be patient.")
 
         self.addWidget(self.label_status, 0, 0)
         self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
@@ -190,8 +189,8 @@ class Ns_Dialog_Processins_With_Elapsed_Time(Ns_Dialog):
 
 
 class Ns_Dialog_TextEdit(Ns_Dialog):
-    def __init__(self, *args, title: str = "", text: str = "", **kwargs) -> None:
-        super().__init__(*args, title=title, resizable=True, **kwargs)
+    def __init__(self, main, title: str = "", text: str = "", **kwargs) -> None:
+        super().__init__(main, title=title, resizable=True, **kwargs)
         self.textedit = QTextEdit(text)
         self.textedit.setReadOnly(True)
         # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
@@ -239,28 +238,28 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
 
 
 class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
-    def __init__(self, *args, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
-        super().__init__(*args, title="Matches", width=500, height=300, **kwargs)
+    def __init__(self, main, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
+        super().__init__(main, title="Matches", width=500, height=300, **kwargs)
         self.file_name = index.model().verticalHeaderItem(index.row()).text()
         self.sname = index.model().horizontalHeaderItem(index.column()).text()
         self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
         self.setText("\n".join(self.matched_subtrees))
 
-        self.label_summary = QLabel(
+        self.label_summary = Ns_Label_WordWrapped(
             f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in "{self.file_name}"'
         )
-        self.label_summary.setWordWrap(True)
         self.addWidget(self.label_summary)
 
 
 class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, title="Citing", **kwargs)
+    def __init__(self, main, **kwargs):
+        super().__init__(main, title="Citing", **kwargs)
         with open(CITING_PATH, encoding="utf-8") as f:
             self.style_citation_mapping = json.load(f)
 
-        self.label_citing = QLabel(f"If you use {__title__} in your research, please cite as follows.")
-        self.label_citing.setWordWrap(True)
+        self.label_citing = Ns_Label_WordWrapped(
+            f"If you use {__title__} in your research, please cite as follows."
+        )
         self.setText(next(iter(self.style_citation_mapping.values())))
         self.label_choose_citation_style = QLabel("Choose citation style: ")
         self.combobox_choose_citation_style = QComboBox()
@@ -276,8 +275,8 @@ class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
 
 
 class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
-    def __init__(self, *args, ex: Exception, **kwargs) -> None:
-        super().__init__(*args, title="Error", width=500, height=300, **kwargs)
+    def __init__(self, main, ex: Exception, **kwargs) -> None:
+        super().__init__(main, title="Error", width=500, height=300, **kwargs)
         # https://stackoverflow.com/a/35712784/20732031
         trace_back = "".join(traceback.TracebackException.from_exception(ex).format())
         meta_data = "\n".join(
@@ -285,31 +284,59 @@ class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
         )
         self.setText(trace_back + meta_data)
 
-        self.label_desc = QLabel(
+        self.label_desc = Ns_Label_WordWrapped(
             f"An error occurred. Please send the following error messages to <a href='{__email__}'>{__email__}</a> to contact the author for support."
         )
-        self.label_desc.setWordWrap(True)
         self.addWidget(self.label_desc)
 
 
 class Ns_Dialog_Table(Ns_Dialog):
     def __init__(
         self,
-        *args,
+        main,
+        title: str,
         text: str,
-        tableview: "Ns_TableView",
-        export_filename: str = "",
-        **kwargs,
+        tableview: Ns_TableView,
+        export_filename: Optional[str] = None,
+        width: int = 500,
+        height: int = 300,
+        resizable=True,
     ) -> None:
-        super().__init__(*args, **kwargs)
-        self.tableview: "Ns_TableView" = tableview
-        self.layout_content.addWidget(QLabel(text), 0, 0)
+        super().__init__(main, title=title, width=width, height=height, resizable=resizable)
+        self.tableview: Ns_TableView = tableview
+        self.layout_content.addWidget(Ns_Label_WordWrapped(text), 0, 0)
         self.layout_content.addWidget(tableview, 1, 0)
-        self.export_filename = export_filename
 
         self.button_ok = QPushButton("OK")
         self.button_ok.clicked.connect(self.accept)
-        self.button_export_table = QPushButton("Export table...")
-        self.button_export_table.clicked.connect(lambda: self.tableview.export_table(self.export_filename))
-        self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
         self.addButtons(self.button_ok, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
+
+        if export_filename is not None:
+            self.button_export_table = QPushButton("Export table...")
+            self.button_export_table.clicked.connect(lambda: self.tableview.export_table(export_filename))
+            self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+
+
+class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
+    def __init__(self, main, **kwargs) -> None:
+        with open(ACKS_PATH, encoding="utf-8") as f:
+            acks = json.load(f)
+        model_ack = Ns_StandardItemModel(main)
+        model_ack.setHorizontalHeaderLabels(("Name", "Version", "Authors", "License"))
+        model_ack.setRowCount(len(acks))
+        tableview_ack = Ns_TableView(main, model=model_ack, has_vertical_header=False)
+        for rowno, ack in enumerate(acks):
+            cols = (
+                Ns_Label_Html(f"<a href='{ack['homepage']}'>{ack['name']}</a>"),
+                Ns_Label_Html_Centered(ack["version"]),
+                Ns_Label_Html(ack["authors"]),
+                Ns_Label_Html_Centered(
+                    f"<a href='{ack['license_file']}'>{ack['license']}</a>"
+                    if ack["license_file"]
+                    else f"{ack['license']}"
+                ),
+            )
+            for colno, label in enumerate(cols):
+                tableview_ack.setIndexWidget(model_ack.index(rowno, colno), label)
+        thanks = """NeoSCA is greatly indebted to the open source projects below without which it could never have been possible. As the project is a fork of L2SCA and LCA, I want to express my sincere gratitude to the original author Xiaofei Lu (陆小飞) for his expertise and efforts, and I am grateful for the opportunity to build upon his work."""
+        super().__init__(main, title="Acknowledgments", text=thanks, tableview=tableview_ack)

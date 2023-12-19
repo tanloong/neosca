@@ -45,7 +45,8 @@ datas.extend(
         ("./data/ns_syntactic_structures.json", "data/"),
         ("./data/anc_all_count.pickle.lzma", "data/"),
         ("./data/bnc_all_filtered.pickle.lzma", "data/"),
-        ("./data/citing.json", "data/"),
+        ("./data/citings.json", "data/"),
+        ("./data/acks.json", "data/"),
         ("./data/ns_style.qss", "data/"),
         ("./imgs/", "imgs/"),
     ]

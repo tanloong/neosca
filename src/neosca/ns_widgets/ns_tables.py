@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from typing import Dict, Generator, Iterable, List, Literal, Optional, Tuple, Union
+from typing import Generator, Iterable, List, Literal, Optional, Union
 
-from PySide6.QtCore import (
-    QModelIndex,
-    QPoint,
-    Signal,
-)
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, Signal
 from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QPainter,
     QStandardItem,
     QStandardItemModel,
     Qt,
@@ -22,16 +15,14 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QHeaderView,
     QMessageBox,
-    QStyledItemDelegate,
-    QStyleOptionViewItem,
     QTableView,
+    QWidget,
 )
 
 from neosca import DESKTOP_PATH
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_widgets.ns_dialogs import Ns_Dialog_TextEdit_SCA_Matched_Subtrees
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
@@ -41,8 +32,8 @@ class Ns_StandardItemModel(QStandardItemModel):
     data_updated = Signal()
     data_exported = Signal()
 
-    def __init__(self, *args, main, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, main, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
+        super().__init__(main, **kwargs)
         self.main = main
         self.orientation = orientation
 
@@ -78,7 +69,7 @@ class Ns_StandardItemModel(QStandardItemModel):
 
     def _clear_data(self, leave_an_empty_row=True) -> None:
         if self.orientation == "hor":
-            self.setRowCount(0)
+            self.removeRows(0, self.rowCount())
             if leave_an_empty_row:
                 self.setRowCount(1)
         elif self.orientation == "ver":
@@ -96,7 +87,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         else:
             messagebox = Ns_MessageBox_Confirm(
                 self.main,
-                "Clear Talbe",
+                "Clear Table",
                 "The table has not been exported yet and all the data will be lost. Continue?",
             )
             if messagebox.exec():
@@ -123,70 +114,22 @@ class Ns_StandardItemModel(QStandardItemModel):
         return (item.text() for item in items if item is not None)
 
     # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
-    def flags(self, index) -> Qt.ItemFlag:
-        if index.data() is None:
-            return Qt.ItemFlag.NoItemFlags
-        return super().flags(index)
-
-
-class Ns_Delegate_SCA(QStyledItemDelegate):
-    def __init__(self, parent=None, qss: str = ""):
-        super().__init__(parent)
-        if (
-            triangle_rgb := Ns_QSS.get_value(qss, "QHeaderView::section:vertical", "background-color")
-        ) is not None:
-            self.triangle_rgb = triangle_rgb
-        else:
-            self.triangle_rgb = "#000000"
-
-        self.pos_dialog_mappings: Dict[Tuple[int, int], Ns_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
-
-    @classmethod
-    def has_matches(cls, index) -> bool:
-        data_in_user_role = index.data(Qt.ItemDataRole.UserRole)
-        return data_in_user_role is not None and data_in_user_role
-
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
-        super().paint(painter, option, index)
-        if self.has_matches(index):
-            painter.save()
-            painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
-            triangle_leg_length = option.rect.height() * Ns_Settings.value(
-                "Appearance/triangle-height-ratio", type=float
-            )
-            painter.drawPolygon(
-                (
-                    QPoint(option.rect.x() + triangle_leg_length, option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y() + triangle_leg_length),
-                )
-            )
-            painter.restore()
-
-    def createEditor(self, parent, option, index):
-        if not self.has_matches(index):
-            return None
-        pos = (index.row(), index.column())
-        if pos in self.pos_dialog_mappings:
-            self.pos_dialog_mappings[pos].bring_to_front()
-        else:
-            dialog = Ns_Dialog_TextEdit_SCA_Matched_Subtrees(parent, index=index)
-            self.pos_dialog_mappings[pos] = dialog
-            dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(pos))
-            dialog.show()
+    # def flags(self, index) -> Qt.ItemFlag:
+    #     if index.data() is None:
+    #         return Qt.ItemFlag.NoItemFlags
+    #     return super().flags(index)
 
 
 class Ns_TableView(QTableView):
     def __init__(
         self,
-        *args,
         main,
         model: Ns_StandardItemModel,
         has_horizontal_header: bool = True,
         has_vertical_header: bool = True,
         **kwargs,
     ) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__(main, **kwargs)
         self.main = main
         self.setModel(model)
         self.model_: Ns_StandardItemModel = model
@@ -201,7 +144,7 @@ class Ns_TableView(QTableView):
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setHighlightSections(False)
-        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         if self.model_.is_empty():
             self.setEnabled(False)
@@ -211,14 +154,20 @@ class Ns_TableView(QTableView):
         self.setEnabled(False)
 
     def on_data_updated(self) -> None:
-        # TODO: only need to enable at the first time
         if not self.isEnabled():
             self.setEnabled(True)
-        self.scrollToBottom()
+        self.resizeRowsToContents()
+        self.resizeColumnsToContents()
 
     # Override to specify the return type
     def model(self) -> Ns_StandardItemModel:
         return self.model_
+
+    # Override
+    def setIndexWidget(self, index: QModelIndex | QPersistentModelIndex, widget: QWidget) -> None:
+        super().setIndexWidget(index, widget)
+        if not self.isEnabled():
+            self.setEnabled(True)
 
     def set_openpyxl_horizontal_header_alignment(self, cell) -> None:
         from openpyxl.styles import Alignment
@@ -486,11 +435,7 @@ class Ns_TableView(QTableView):
                     structure = model.horizontalHeaderItem(colno).text()
                     for rowno in range(row_count):
                         index = model.index(rowno, colno)
-                        # TODO: this func is meant to be generic, write an
-                        # abstract class of Ns_Delegate_SCA and Ns_Delegate_LCA
-                        # (coming), and use the abstract class'
-                        # has_matches method
-                        if not Ns_Delegate_SCA.has_matches(index):
+                        if not index.data(Qt.ItemDataRole.UserRole):
                             continue
 
                         filename = model.verticalHeaderItem(rowno).text()
@@ -567,7 +512,7 @@ class Ns_TableView(QTableView):
                         filename = model.verticalHeaderItem(rowno).text()
                         for colno in range(col_count):
                             index = model.index(rowno, colno)
-                            if not Ns_Delegate_SCA.has_matches(index):
+                            if not index.data(Qt.ItemDataRole.UserRole):
                                 continue
                             structure = model.horizontalHeaderItem(colno).text()
                             matches = index.data(Qt.ItemDataRole.UserRole)

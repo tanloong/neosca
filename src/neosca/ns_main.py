@@ -38,13 +38,15 @@ from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
+from neosca.ns_widgets.ns_delegates import Ns_Delegate_SCA
 from neosca.ns_widgets.ns_dialogs import (
-    Ns_Dialog_Processins_With_Elapsed_Time,
+    Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table,
+    Ns_Dialog_Table_Acknowledgments,
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
-from neosca.ns_widgets.ns_tables import Ns_Delegate_SCA, Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_tables import Ns_StandardItemModel, Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
@@ -155,7 +157,10 @@ class Ns_Main(QMainWindow):
         self.menu_help = QMenu("Help", self.menuBar())
         action_citing = QAction("Citing", self.menu_help)
         action_citing.triggered.connect(self.menubar_help_citing)
+        action_acks = QAction("Acknowledgments", self.menu_help)
+        action_acks.triggered.connect(self.menubar_help_acks)
         self.menu_help.addAction(action_citing)
+        self.menu_help.addAction(action_acks)
 
         self.menuBar().addMenu(self.menu_file)
         self.menuBar().addMenu(self.menu_prefs)
@@ -213,6 +218,10 @@ class Ns_Main(QMainWindow):
         dialog_citing = Ns_Dialog_TextEdit_Citing(self)
         dialog_citing.exec()
 
+    def menubar_help_acks(self) -> None:
+        dialog_acks = Ns_Dialog_Table_Acknowledgments(self)
+        dialog_acks.exec()
+
     def setup_tab_sca(self):
         self.button_generate_table_sca = QPushButton("Generate table")
         # self.button_generate_table_sca.setShortcut("CTRL+G")
@@ -230,11 +239,11 @@ class Ns_Main(QMainWindow):
         # TODO comment this out before releasing
         # self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.model_sca = Ns_StandardItemModel(main=self)
+        self.model_sca = Ns_StandardItemModel(self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
         self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
         self.model_sca.clear_data()
-        self.tableview_sca = Ns_TableView(main=self, model=self.model_sca)
+        self.tableview_sca = Ns_TableView(self, model=self.model_sca)
         self.tableview_sca.setItemDelegate(Ns_Delegate_SCA(None, self.styleSheet()))
 
         # Bind
@@ -285,11 +294,11 @@ class Ns_Main(QMainWindow):
         self.button_clear_table_lca = QPushButton("Clear table")
         self.button_clear_table_lca.setEnabled(False)
 
-        self.model_lca = Ns_StandardItemModel(main=self)
+        self.model_lca = Ns_StandardItemModel(self)
         self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
         self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
-        self.tableview_lca = Ns_TableView(main=self, model=self.model_lca)
+        self.tableview_lca = Ns_TableView(self, model=self.model_lca)
         # TODO: tableview_sca use custom delegate to only enable
         # clickable items, in which case a dialog will pop up to show matches.
         # Here when tableview_lca also use custom delegate, remember to
@@ -344,12 +353,12 @@ class Ns_Main(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def setup_tableview_file(self) -> None:
-        self.model_file = Ns_StandardItemModel(main=self)
+        self.model_file = Ns_StandardItemModel(self)
         self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
         self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
         self.model_file.clear_data()
-        self.tableview_file = Ns_TableView(main=self, model=self.model_file, has_vertical_header=False)
+        self.tableview_file = Ns_TableView(self, model=self.model_file, has_vertical_header=False)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -412,7 +421,7 @@ class Ns_Main(QMainWindow):
                 self.model_file.data_updated.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ns_StandardItemModel(main=self)
+            model_err_files = Ns_StandardItemModel(self)
             model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
             for reason, file_paths in (
                 ("Duplicate file", file_paths_dup),
@@ -421,15 +430,12 @@ class Ns_Main(QMainWindow):
             ):
                 for file_path in file_paths:
                     model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ns_TableView(main=self, model=model_err_files, has_vertical_header=False)
+            tableview_err_files = Ns_TableView(self, model=model_err_files, has_vertical_header=False)
 
             dialog = Ns_Dialog_Table(
                 self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",
-                width=300,
-                height=200,
-                resizable=True,
                 tableview=tableview_err_files,
                 export_filename="neosca_error_files.xlsx",
             )
@@ -469,7 +475,7 @@ class Ns_Main(QMainWindow):
         self.model_sca.data_updated.emit()
 
     def setup_worker(self) -> None:
-        self.dialog_processing = Ns_Dialog_Processins_With_Elapsed_Time(self)
+        self.dialog_processing = Ns_Dialog_Processing_With_Elapsed_Time(self)
 
         self.ns_worker_sca_generate_table = Ns_Worker_SCA_Generate_Table(main=self)
         self.ns_worker_sca_generate_table.counter_ready.connect(self.sca_add_data)

@@ -19,8 +19,9 @@ ICON_MAC_PATH: Path = IMG_DIR / "ns_icon.icns"
 
 DATA_DIR: Path = NEOSCA_DIR / "data"
 QSS_PATH: Path = DATA_DIR / "ns_style.qss"
-CITING_PATH: Path = DATA_DIR / "citing.json"
 STANZA_MODEL_DIR: Path = DATA_DIR / "stanza_resources"
+CITING_PATH: Path = DATA_DIR / "citings.json"
+ACKS_PATH: Path = DATA_DIR / "acks.json"
 
 DESKTOP_PATH: Path = Path.home().absolute() / "Desktop"
 
