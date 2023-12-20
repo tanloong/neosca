@@ -9,10 +9,10 @@ from typing import Callable, List, Optional
 from neosca.ns_about import __title__, __version__
 from neosca.ns_io import SCAIO
 from neosca.ns_print import color_print
-from neosca.ns_util import SCAProcedureResult
+from neosca.ns_util import Ns_Procedure_Result
 
 
-class SCAUI:
+class Ns_Main_Cli:
     def __init__(self) -> None:
         self.supported_extensions = SCAIO.SUPPORTED_EXTENSIONS
         self.cwd = os.getcwd()
@@ -26,6 +26,12 @@ class SCAUI:
             action="store_true",
             default=False,
             help="Show version and exit.",
+        )
+        args_parser.add_argument(
+            "--gui",
+            action="store_true",
+            default=False,
+            help="Start the program with a graphical user interface.",
         )
         args_parser.add_argument(
             "--list",
@@ -167,15 +173,15 @@ class SCAUI:
             default=False,
             help="Assume the answer to all prompts is yes, used when installing dependencies.",
         )
-        args_parser.add_argument(
-            "--config",
-            dest="config",
-            default=None,
-            help=(
-                "Use custom json file where you can define your own syntactic structures to"
-                " search or calculate."
-            ),
-        )
+        # args_parser.add_argument(
+        #     "--config",
+        #     dest="config",
+        #     default=None,
+        #     help=(
+        #         "Use custom json file where you can define your own syntactic structures to"
+        #         " search or calculate."
+        #     ),
+        # )
         args_parser.epilog = """Examples:
 1. nsca sample1.txt
 2. nsca "sample 1.txt"
@@ -216,8 +222,6 @@ class SCAUI:
     Parse the input files, save the parsed trees and exit.
 18. nsca sample1.parsed --no-parse
     Assume input as parse trees. Skip the parsing step and proceed directly to querying.
-19. nsca --config nsca.json sample1.txt
-    Use nsca.json where you can defined your own syntactic structures to search or calculate.
 
 Contact:
 1. https://github.com/tanloong/neosca/issues
@@ -225,7 +229,7 @@ Contact:
 """
         return args_parser
 
-    def parse_args(self, argv: List[str]) -> SCAProcedureResult:
+    def parse_args(self, argv: List[str]) -> Ns_Procedure_Result:
         idx: Optional[int] = None
         if "--" in argv[1:]:
             idx = argv.index("--")
@@ -305,7 +309,8 @@ Contact:
             # built-in dictionary is guaranteed to maintain the insertion order
             options.selected_measures = list(dict.fromkeys(options.selected_measures))
 
-        user_config = options.config
+        # user_config = options.config
+        user_config = None
         if user_config is not None:
             if not os_path.isfile(user_config):
                 return False, f"no such file as\n\n{user_config}"
@@ -335,7 +340,7 @@ Contact:
         self.options = options
         return True, None
 
-    def check_python(self) -> SCAProcedureResult:
+    def check_python(self) -> Ns_Procedure_Result:
         v_info = sys.version_info
         if v_info.minor >= 7 and v_info.major == 3:
             return True, None
@@ -404,23 +409,31 @@ Contact:
 
     @run_tmpl
     def run_on_text(self) -> None:
-        from .neosca import NeoSCA
+        from neosca.ns_sca.ns_sca import Ns_SCA
 
-        analyzer = NeoSCA(**self.init_kwargs)
+        analyzer = Ns_SCA(**self.init_kwargs)
         analyzer.run_on_text(self.options.text)
 
     @run_tmpl
     def run_on_ifiles(self) -> None:
-        from .neosca import NeoSCA
+        from neosca.ns_sca.ns_sca import Ns_SCA
 
-        analyzer = NeoSCA(**self.init_kwargs)
+        analyzer = Ns_SCA(**self.init_kwargs)
 
         analyzer.run_on_ifiles(
             files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or []
         )
 
-    def run(self) -> SCAProcedureResult:
-        if self.options.version:
+    def run_gui(self) -> Ns_Procedure_Result:
+        from neosca.ns_main_gui import main_gui
+
+        main_gui()
+        return True, None
+
+    def run(self) -> Ns_Procedure_Result:
+        if self.options.gui:
+            return self.run_gui()
+        elif self.options.version:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
@@ -434,15 +447,15 @@ Contact:
             self.args_parser.print_help()
             return True, None
 
-    def list_fields(self) -> SCAProcedureResult:
-        from .structure_counter import StructureCounter
+    def list_fields(self) -> Ns_Procedure_Result:
+        from neosca.ns_sca.structure_counter import StructureCounter
 
         counter = StructureCounter()
         for s_name in counter.selected_measures:
             print(f"{s_name}: {counter.get_structure(s_name).description}")
         return True, None
 
-    def expand_wildcards(self) -> SCAProcedureResult:
+    def expand_wildcards(self) -> Ns_Procedure_Result:
         is_not_found = True
         if self.verified_ifiles:
             is_not_found = False
@@ -459,13 +472,13 @@ Contact:
             print("0 files and subfiles are found.")
         return True, None
 
-    def show_version(self) -> SCAProcedureResult:
+    def show_version(self) -> Ns_Procedure_Result:
         print(__version__)
         return True, None
 
 
-def main() -> None:
-    ui = SCAUI()
+def main_cli() -> None:
+    ui = Ns_Main_Cli()
     success, err_msg = ui.parse_args(sys.argv)
     if not success:
         logging.critical(err_msg)

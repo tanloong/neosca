@@ -1,3 +1,54 @@
+# https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neosca"
+dynamic = ["authors", "version"]
+description = "Fork of L2SCA and LCA"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+keywords = ["L2SCA", "LCA", "Syntactic Complexity", "Lexical Complexity", "Constituency Parsing", "Tregex", "Corpus Linguistics"]
+classifiers=[
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.7",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+    ]
+dependencies = [
+    "charset_normalizer>=3.3.2",
+    "openpyxl>=3.1.2",
+    "pyinstaller>=6.1.0",
+    "pyside6>=6.6.1",
+    "stanza>=1.7.0",
+]
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.8",
+    "mypy>=1.7.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/tanloong/neosca"
+# Documentation = "https://readthedocs.org"
+Repository = "https://github.com/tanloong/neosca"
+Issues = "https://github.com/tanloong/neosca/issues"
+Changelog = "https://github.com/tanloong/neosca/blob/master/CHANGELOG.md"
+
+[tool.setuptools.dynamic]
+authors = [{name = "neosca.ns_about.__author__", email = "neosca.ns_about.__email__"}]
+version = {attr = "neosca.ns_about.__version__"}
+
 # Ruff complete options: https://docs.astral.sh/ruff/settings/#extend
 [tool.ruff]
 line-length = 112

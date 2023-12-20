@@ -13,7 +13,7 @@ from neosca.ns_sca.querier import Ns_Tregex
 from neosca.ns_sca.structure_counter import StructureCounter
 
 
-class NeoSCA:
+class Ns_SCA:
     def __init__(
         self,
         ofile_freq: str = "result.csv",

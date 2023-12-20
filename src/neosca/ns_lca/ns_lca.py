@@ -11,10 +11,10 @@ from typing import Callable, Dict, List, Literal, Optional, Union
 
 from neosca import DATA_DIR
 from neosca.ns_io import SCAIO
-from neosca.ns_util import SCAProcedureResult
+from neosca.ns_util import Ns_Procedure_Result
 
 
-class LCA:
+class Ns_LCA:
     FIELDNAMES = (
         "Filepath",
         "wordtypes",
@@ -494,7 +494,7 @@ class LCA:
         values.insert(0, file_path)
         return values
 
-    def analyze(self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None) -> SCAProcedureResult:
+    def analyze(self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None) -> Ns_Procedure_Result:
         if not (ifiles is None) ^ (text is None):
             return False, "One and only one of (input files, text) should be given."
 

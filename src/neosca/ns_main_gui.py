@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gc
 import glob
 import os
 import os.path as os_path
@@ -30,7 +31,7 @@ from PySide6.QtWidgets import (
 from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_io import SCAIO
-from neosca.ns_lca.lca import LCA
+from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_sca.structure_counter import StructureCounter
@@ -50,7 +51,7 @@ from neosca.ns_widgets.ns_tables import Ns_StandardItemModel, Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
-class Ns_Main(QMainWindow):
+class Ns_Main_Gui(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -235,9 +236,9 @@ class Ns_Main(QMainWindow):
         self.button_clear_table_sca.setEnabled(False)
 
         # TODO comment this out before releasing
-        # self.button_custom_func = QPushButton("Custom func")
+        self.button_custom_func = QPushButton("Custom func")
         # TODO comment this out before releasing
-        # self.button_custom_func.clicked.connect(self.custom_func)
+        self.button_custom_func.clicked.connect(self.custom_func)
 
         self.model_sca = Ns_StandardItemModel(self)
         self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
@@ -273,7 +274,7 @@ class Ns_Main(QMainWindow):
                 self.button_export_table_sca,
                 self.button_export_matches_sca,
                 self.button_clear_table_sca,
-                # self.button_custom_func,
+                self.button_custom_func,
             ),
             start=1,
         ):
@@ -281,8 +282,23 @@ class Ns_Main(QMainWindow):
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
-    # def custom_func(self):
-    #     breakpoint()
+    def custom_func(self):
+        # import gc
+        # import time
+        #
+        # from neosca.ns_sca.structure_counter import Structure, StructureCounter
+        # counters =[]
+        # ss = []
+        # for o in gc.get_objects():
+        #     if isinstance(o, StructureCounter):
+        #         counters.append(o)
+        #     elif isinstance(o, Structure):
+        #         ss.append(o)
+        # gc.collect()
+        # filename = "{}.txt".format(time.strftime("%H-%M-%S"))
+        # with open(filename, "w") as f:
+        #     f.write("\n".join(str(o) for o in gc.get_objects()))
+        breakpoint()
 
     def setup_tab_lca(self):
         self.button_generate_table_lca = QPushButton("Generate table")
@@ -295,8 +311,8 @@ class Ns_Main(QMainWindow):
         self.button_clear_table_lca.setEnabled(False)
 
         self.model_lca = Ns_StandardItemModel(self)
-        self.model_lca.setColumnCount(len(LCA.FIELDNAMES) - 1)
-        self.model_lca.setHorizontalHeaderLabels(LCA.FIELDNAMES[1:])
+        self.model_lca.setColumnCount(len(Ns_LCA.FIELDNAMES) - 1)
+        self.model_lca.setHorizontalHeaderLabels(Ns_LCA.FIELDNAMES[1:])
         self.model_lca.clear_data()
         self.tableview_lca = Ns_TableView(self, model=self.model_lca)
         # TODO: tableview_sca use custom delegate to only enable
@@ -471,6 +487,29 @@ class Ns_Main(QMainWindow):
             if matches := counter.get_matches(sname):
                 item.setData(matches, Qt.ItemDataRole.UserRole)
 
+        # from neosca.ns_sca.structure_counter import StructureCounter
+        # print('='*80)
+        # print("deleting counter")
+        # for i in gc.get_objects():
+        #     if isinstance(i, StructureCounter):
+        #         print(i.ifile)
+        #         print(id(i))
+        #         print(sys.getrefcount(i))
+        #         print(id(counter))
+        #         print(sys.getrefcount(i))
+        # else:
+        #     print("Not found1")
+        # del counter
+        # gc.collect()
+        # print('='*80)
+        # for i in gc.get_objects():
+        #     if isinstance(i, StructureCounter):
+        #         print(i.ifile)
+        #         print(sys.getrefcount(i))
+        #         print(id(i))
+        # else:
+        #     print("Not found2")
+        # print("deleted")
         self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
         self.model_sca.data_updated.emit()
 
@@ -534,11 +573,11 @@ class Ns_Main(QMainWindow):
         sys.exit(0)
 
 
-def main():
+def main_gui():
     ui_scaling = Ns_Settings.value("Appearance/scaling")
     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_main.py#L1238
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ns_app = QApplication(sys.argv)
-    ns_window = Ns_Main()
+    ns_window = Ns_Main_Gui()
     ns_window.showMaximized()
     sys.exit(ns_app.exec())

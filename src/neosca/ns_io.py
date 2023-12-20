@@ -15,7 +15,7 @@ from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Uni
 from charset_normalizer import detect
 
 from neosca.ns_platform_info import IS_WINDOWS
-from neosca.ns_util import SCAProcedureResult
+from neosca.ns_util import Ns_Procedure_Result
 
 
 class SCAIO:
@@ -107,7 +107,7 @@ class SCAIO:
         return self.extension_readfunc_map[extension](path)
 
     @classmethod
-    def is_writable(cls, filename: str) -> SCAProcedureResult:
+    def is_writable(cls, filename: str) -> Ns_Procedure_Result:
         """check whether files are opened by such other processes as WPS"""
         if not os_path.exists(filename):
             return True, None

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Generator, List, Optional
+from typing import Generator, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QStandardItem
-from PySide6.QtWidgets import QMessageBox
 
-from neosca.ns_lca.lca import LCA
-from neosca.ns_sca.neosca import NeoSCA
+from neosca.ns_lca.ns_lca import Ns_LCA
+from neosca.ns_sca.ns_sca import Ns_SCA
 from neosca.ns_sca.structure_counter import StructureCounter
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
@@ -49,7 +48,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         try:
             sca_instance = getattr(self.main, attrname)
         except AttributeError:
-            sca_instance = NeoSCA(**sca_kwargs)
+            sca_instance = Ns_SCA(**sca_kwargs)
             setattr(self.main, attrname, sca_instance)
         else:
             sca_instance.update_options(sca_kwargs)
@@ -86,7 +85,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         try:
             lca_instance = getattr(self.main, attrname)
         except AttributeError:
-            lca_instance = LCA(**lca_kwargs)
+            lca_instance = Ns_LCA(**lca_kwargs)
             setattr(self.main, attrname, lca_instance)
         else:
             lca_instance.update_options(lca_kwargs)

@@ -6,9 +6,9 @@ from typing import Callable, List
 
 from neosca.ns_about import __title__
 from neosca.ns_io import SCAIO
-from neosca.ns_lca.lca import LCA
+from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_print import color_print, get_yes_or_no
-from neosca.ns_util import SCAProcedureResult
+from neosca.ns_util import Ns_Procedure_Result
 
 
 class LCAUI:
@@ -78,7 +78,7 @@ class LCAUI:
         )
         return args_parser
 
-    def parse_args(self, argv: List[str]) -> SCAProcedureResult:
+    def parse_args(self, argv: List[str]) -> Ns_Procedure_Result:
         options, ifile_list = self.args_parser.parse_known_args(argv[1:])
 
         assert not (
@@ -119,7 +119,7 @@ class LCAUI:
         self.options = options
         return True, None
 
-    def install_spacy(self) -> SCAProcedureResult:
+    def install_spacy(self) -> Ns_Procedure_Result:
         import subprocess
         from subprocess import CalledProcessError
 
@@ -138,7 +138,7 @@ class LCAUI:
 
         return True, None
 
-    def install_model(self) -> SCAProcedureResult:
+    def install_model(self) -> Ns_Procedure_Result:
         import subprocess
         from subprocess import CalledProcessError
 
@@ -164,7 +164,7 @@ class LCAUI:
 
         return True, None
 
-    def check_spacy_and_model(self) -> SCAProcedureResult:
+    def check_spacy_and_model(self) -> Ns_Procedure_Result:
         required_version_prefix = "3.7."
         required_version_range = ">=3.7.0,<3.8.0"
         ask_install_spacy = False
@@ -263,18 +263,18 @@ class LCAUI:
         return wrapper
 
     @run_tmpl
-    def run_on_text(self) -> SCAProcedureResult:
-        analyzer = LCA(**self.init_kwargs)
+    def run_on_text(self) -> Ns_Procedure_Result:
+        analyzer = Ns_LCA(**self.init_kwargs)
         analyzer.analyze(text=self.options.text)
         return True, None
 
     @run_tmpl
-    def run_on_ifiles(self) -> SCAProcedureResult:
-        analyzer = LCA(**self.init_kwargs)
+    def run_on_ifiles(self) -> Ns_Procedure_Result:
+        analyzer = Ns_LCA(**self.init_kwargs)
         analyzer.analyze(ifiles=self.verified_ifiles)
         return True, None
 
-    def run(self) -> SCAProcedureResult:
+    def run(self) -> Ns_Procedure_Result:
         if self.options.text is not None:
             return self.run_on_text()
         elif self.verified_ifiles:

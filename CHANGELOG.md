@@ -2,6 +2,10 @@
 
 ## [0.1.0](https://github.com/tanloong/neosca/releases/tag/0.1.0) (XXX)
 
+### License
+
+Change license from GPLv2-or-later to GPLv3. According to the [license compatibility matrix](https://www.gnu.org/licenses/gpl-faq.html#AllCompatibility), the combination of code under GPLv2-or-later, which is the current license, and code under LGPLv3, which is the license of the recently added dependency PySide6, should be licensed under GPLv3.
+
 ## [0.0.55](https://github.com/tanloong/neosca/releases/tag/0.0.55) (2 October 2023)
 
 ### Bug fixes
