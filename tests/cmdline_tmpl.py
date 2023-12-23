@@ -6,8 +6,8 @@ import shutil
 import subprocess
 from typing import Optional, Union
 
+from . import SRC_DIR
 from .base_tmpl import BaseTmpl
-
 
 text = """
 This is a test.
@@ -15,6 +15,9 @@ This is a test.
 
 
 class CmdlineTmpl(BaseTmpl):
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(SRC_DIR) + os.pathsep + env["PYTHONPATH"]
+
     def build_ifile(self, text, name="sample.txt"):
         with open(name, "w") as f:
             f.write(text)
@@ -59,7 +62,7 @@ class CmdlineTmpl(BaseTmpl):
             self.build_ifile(text, ifile_name)
         timeout = 60000
         try:
-            result = subprocess.run(cmd, capture_output=True, timeout=timeout)
+            result = subprocess.run(cmd, capture_output=True, timeout=timeout, env=self.env)
         except subprocess.TimeoutExpired as e:
             logging.error(f"stdout: {e.stdout}")
             logging.error(f"stderr: {e.stderr}")
@@ -83,10 +86,7 @@ class CmdlineTmpl(BaseTmpl):
                 self.assertRegex(result.stderr.decode("utf-8"), expected_stderr)
 
             if check_func:
-                assert (
-                    isinstance(expected_output_file, str)
-                    and expected_output_file.split(".")[-1] == "csv"
-                )
+                assert isinstance(expected_output_file, str) and expected_output_file.split(".")[-1] == "csv"
                 with open(expected_output_file) as f:
                     data = json.load(f)
                     check_func(data)

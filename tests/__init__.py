@@ -1,4 +1,5 @@
 import sys
 from pathlib import PurePath
 
-sys.path.insert(0, str(PurePath(__file__).parent.parent.joinpath("src")))
+SRC_DIR = PurePath(__file__).parent.parent.joinpath("src")
+sys.path.insert(0, str(SRC_DIR))

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
 import os
 
-from neosca.scaenv import getenv
+from neosca.ns_envar import getenv
 
 from .cmdline_tmpl import BaseTmpl
 

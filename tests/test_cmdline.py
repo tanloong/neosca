@@ -31,7 +31,7 @@ class TestCommandLineBasic(CmdlineTmpl):
         self.template(
             ["python", "-m", "neosca", "--text", f"'{cmdline_text}'", "--no-query"],
             expected_output_file=[
-                "cmdline_text.parsed",
+                "cmdline_text.pickle.lzma",
             ],
         )
 
@@ -48,24 +48,24 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "result.csv",
-                "cmdline_text.parsed",
-                "result_matches/cmdline_text/cmdline_text-C1.matched",
-                "result_matches/cmdline_text/cmdline_text-S.matched",
-                "result_matches/cmdline_text/cmdline_text-T1.matched",
-                "result_matches/cmdline_text/cmdline_text-VP1.matched",
+                "cmdline_text.pickle.lzma",
+                "result_matches/cmdline_text/cmdline_text-C1.txt",
+                "result_matches/cmdline_text/cmdline_text-S.txt",
+                "result_matches/cmdline_text/cmdline_text-T1.txt",
+                "result_matches/cmdline_text/cmdline_text-VP1.txt",
             ],
         )
 
     def test_parse_ifiles(self):
         self.template(
             ["python", "-m", "neosca", "sample.txt", "--no-query"],
-            expected_output_file=["sample.parsed"],
+            expected_output_file=["sample.pickle.lzma"],
         )
         self.template(
             ["python", "-m", "neosca", self.samples_dir, "--no-query"],
             expected_output_file=[
-                os_path.join(self.samples_dir, "sample1.parsed"),
-                os_path.join(self.samples_dir, "sample2.parsed"),
+                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
+                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
             ],
         )
 
@@ -74,11 +74,11 @@ class TestCommandLineBasic(CmdlineTmpl):
             ["python", "-m", "neosca", "sample.txt", "--reserve-parsed", "--reserve-matched"],
             expected_output_file=[
                 "result.csv",
-                "sample.parsed",
-                "result_matches/sample/sample-C1.matched",
-                "result_matches/sample/sample-S.matched",
-                "result_matches/sample/sample-T1.matched",
-                "result_matches/sample/sample-VP1.matched",
+                "sample.pickle.lzma",
+                "result_matches/sample/sample-C1.txt",
+                "result_matches/sample/sample-S.txt",
+                "result_matches/sample/sample-T1.txt",
+                "result_matches/sample/sample-VP1.txt",
             ],
         )
         self.template(
@@ -92,25 +92,25 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "result.csv",
-                os_path.join(self.samples_dir, "sample1.parsed"),
-                os_path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches/sample1/sample1-C1.matched",
-                "result_matches/sample1/sample1-CN1.matched",
-                "result_matches/sample1/sample1-CP.matched",
-                "result_matches/sample1/sample1-CT.matched",
-                "result_matches/sample1/sample1-DC.matched",
-                "result_matches/sample1/sample1-S.matched",
-                "result_matches/sample1/sample1-T1.matched",
-                "result_matches/sample1/sample1-VP1.matched",
-                "result_matches/sample2/sample2-C1.matched",
-                "result_matches/sample2/sample2-CN1.matched",
-                "result_matches/sample2/sample2-CN2.matched",
-                "result_matches/sample2/sample2-CP.matched",
-                "result_matches/sample2/sample2-CT.matched",
-                "result_matches/sample2/sample2-DC.matched",
-                "result_matches/sample2/sample2-S.matched",
-                "result_matches/sample2/sample2-T1.matched",
-                "result_matches/sample2/sample2-VP1.matched",
+                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
+                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
+                "result_matches/sample1/sample1-C1.txt",
+                "result_matches/sample1/sample1-CN1.txt",
+                "result_matches/sample1/sample1-CP.txt",
+                "result_matches/sample1/sample1-CT.txt",
+                "result_matches/sample1/sample1-DC.txt",
+                "result_matches/sample1/sample1-S.txt",
+                "result_matches/sample1/sample1-T1.txt",
+                "result_matches/sample1/sample1-VP1.txt",
+                "result_matches/sample2/sample2-C1.txt",
+                "result_matches/sample2/sample2-CN1.txt",
+                "result_matches/sample2/sample2-CN2.txt",
+                "result_matches/sample2/sample2-CP.txt",
+                "result_matches/sample2/sample2-CT.txt",
+                "result_matches/sample2/sample2-DC.txt",
+                "result_matches/sample2/sample2-S.txt",
+                "result_matches/sample2/sample2-T1.txt",
+                "result_matches/sample2/sample2-VP1.txt",
             ],
         )
 
@@ -123,36 +123,36 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "neosca",
                 self.samples_dir,
                 # gif file
-                os_path.join(self.project_dir, "img"),
+                os_path.join(self.project_dir, "imgs"),
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
             expected_output_file=[
                 "result.csv",
-                os_path.join(self.samples_dir, "sample1.parsed"),
-                os_path.join(self.samples_dir, "sample2.parsed"),
-                "result_matches/sample1/sample1-C1.matched",
-                "result_matches/sample1/sample1-CN1.matched",
-                "result_matches/sample1/sample1-CP.matched",
-                "result_matches/sample1/sample1-CT.matched",
-                "result_matches/sample1/sample1-DC.matched",
-                "result_matches/sample1/sample1-S.matched",
-                "result_matches/sample1/sample1-T1.matched",
-                "result_matches/sample1/sample1-VP1.matched",
-                "result_matches/sample2/sample2-C1.matched",
-                "result_matches/sample2/sample2-CN1.matched",
-                "result_matches/sample2/sample2-CN2.matched",
-                "result_matches/sample2/sample2-CP.matched",
-                "result_matches/sample2/sample2-CT.matched",
-                "result_matches/sample2/sample2-DC.matched",
-                "result_matches/sample2/sample2-S.matched",
-                "result_matches/sample2/sample2-T1.matched",
-                "result_matches/sample2/sample2-VP1.matched",
+                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
+                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
+                "result_matches/sample1/sample1-C1.txt",
+                "result_matches/sample1/sample1-CN1.txt",
+                "result_matches/sample1/sample1-CP.txt",
+                "result_matches/sample1/sample1-CT.txt",
+                "result_matches/sample1/sample1-DC.txt",
+                "result_matches/sample1/sample1-S.txt",
+                "result_matches/sample1/sample1-T1.txt",
+                "result_matches/sample1/sample1-VP1.txt",
+                "result_matches/sample2/sample2-C1.txt",
+                "result_matches/sample2/sample2-CN1.txt",
+                "result_matches/sample2/sample2-CN2.txt",
+                "result_matches/sample2/sample2-CP.txt",
+                "result_matches/sample2/sample2-CT.txt",
+                "result_matches/sample2/sample2-DC.txt",
+                "result_matches/sample2/sample2-S.txt",
+                "result_matches/sample2/sample2-T1.txt",
+                "result_matches/sample2/sample2-VP1.txt",
             ],
         )
 
-        # skip .parsed files
-        parsed_file = os_path.join(self.samples_dir, "1.parsed")
+        # skip .pickle.lzma files
+        parsed_file = os_path.join(self.samples_dir, "1.pickle.lzma")
         open(parsed_file, "a").close()
         self.template(
             ["python", "-m", "neosca", self.samples_dir], expected_output_file=["result.csv"]
@@ -171,7 +171,7 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
-            expected_output_file=["result.csv", "sample.parsed", "result_matches"],
+            expected_output_file=["result.csv", "sample.pickle.lzma", "result_matches"],
         )
         self.template(
             [
@@ -186,11 +186,11 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "result.json",
-                "sample.parsed",
-                "result_matches/sample/sample-C1.matched",
-                "result_matches/sample/sample-S.matched",
-                "result_matches/sample/sample-T1.matched",
-                "result_matches/sample/sample-VP1.matched",
+                "sample.pickle.lzma",
+                "result_matches/sample/sample-C1.txt",
+                "result_matches/sample/sample-S.txt",
+                "result_matches/sample/sample-T1.txt",
+                "result_matches/sample/sample-VP1.txt",
             ],
         )
         self.template(
@@ -206,11 +206,11 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "sample.csv",
-                "sample.parsed",
-                "sample_matches/sample/sample-C1.matched",
-                "sample_matches/sample/sample-S.matched",
-                "sample_matches/sample/sample-T1.matched",
-                "sample_matches/sample/sample-VP1.matched",
+                "sample.pickle.lzma",
+                "sample_matches/sample/sample-C1.txt",
+                "sample_matches/sample/sample-S.txt",
+                "sample_matches/sample/sample-T1.txt",
+                "sample_matches/sample/sample-VP1.txt",
             ],
         )
         self.template(
@@ -226,11 +226,11 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
             expected_output_file=[
                 "sample.json",
-                "sample.parsed",
-                "sample_matches/sample/sample-C1.matched",
-                "sample_matches/sample/sample-S.matched",
-                "sample_matches/sample/sample-T1.matched",
-                "sample_matches/sample/sample-VP1.matched",
+                "sample.pickle.lzma",
+                "sample_matches/sample/sample-C1.txt",
+                "sample_matches/sample/sample-S.txt",
+                "sample_matches/sample/sample-T1.txt",
+                "sample_matches/sample/sample-VP1.txt",
             ],
         )
 
