@@ -1,4 +1,4 @@
-# Acknowledgements
+# Acknowledgments
 
 NeoSCA is greatly indebted to the open source projects below without which it could never have been possible. As the project is a fork of L2SCA and LCA, I want to express my sincere gratitude to the original author Xiaofei Lu (陆小飞) for his expertise and efforts, and I am grateful for the opportunity to build upon his work.
 

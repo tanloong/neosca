@@ -318,25 +318,26 @@ class Ns_Dialog_Table(Ns_Dialog):
 
 
 class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
-    def __init__(self, main, **kwargs) -> None:
+    def __init__(self, main) -> None:
         with open(ACKS_PATH, encoding="utf-8") as f:
-            acks = json.load(f)
+            ack_data = json.load(f)
+        acknowledgment = ack_data["acknowledgment"]
+        projects = ack_data["projects"]
         model_ack = Ns_StandardItemModel(main)
         model_ack.setHorizontalHeaderLabels(("Name", "Version", "Authors", "License"))
-        model_ack.setRowCount(len(acks))
+        model_ack.setRowCount(len(projects))
         tableview_ack = Ns_TableView(main, model=model_ack, has_vertical_header=False)
-        for rowno, ack in enumerate(acks):
+        for rowno, project in enumerate(projects):
             cols = (
-                Ns_Label_Html(f"<a href='{ack['homepage']}'>{ack['name']}</a>"),
-                Ns_Label_Html_Centered(ack["version"]),
-                Ns_Label_Html(ack["authors"]),
+                Ns_Label_Html(f"<a href='{project['homepage']}'>{project['name']}</a>"),
+                Ns_Label_Html_Centered(project["version"]),
+                Ns_Label_Html(project["authors"]),
                 Ns_Label_Html_Centered(
-                    f"<a href='{ack['license_file']}'>{ack['license']}</a>"
-                    if ack["license_file"]
-                    else f"{ack['license']}"
+                    f"<a href='{project['license_file']}'>{project['license']}</a>"
+                    if project["license_file"]
+                    else f"{project['license']}"
                 ),
             )
             for colno, label in enumerate(cols):
                 tableview_ack.setIndexWidget(model_ack.index(rowno, colno), label)
-        thanks = """NeoSCA is greatly indebted to the open source projects below without which it could never have been possible. As the project is a fork of L2SCA and LCA, I want to express my sincere gratitude to the original author Xiaofei Lu (陆小飞) for his expertise and efforts, and I am grateful for the opportunity to build upon his work."""
-        super().__init__(main, title="Acknowledgments", text=thanks, tableview=tableview_ack)
+        super().__init__(main, title="Acknowledgments", text=acknowledgment, tableview=tableview_ack)
