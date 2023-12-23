@@ -342,7 +342,7 @@ Contact:
 
     def check_python(self) -> Ns_Procedure_Result:
         v_info = sys.version_info
-        if v_info.minor >= 7 and v_info.major == 3:
+        if v_info.minor >= 8 and v_info.major == 3:
             return True, None
         else:
             return (

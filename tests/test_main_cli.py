@@ -1,16 +1,17 @@
-from .base_tmpl import BaseTmpl
 from unittest import mock
-from neosca.main import SCAUI
 
-cmdline_text = "This is a test."
+from neosca.ns_main_cli import Ns_Main_Cli
+
+from .base_tmpl import BaseTmpl
+from .cmdline_tmpl import text as cmdline_text
 
 
 class TestMain(BaseTmpl):
-    ui = SCAUI()
+    ui = Ns_Main_Cli()
 
     @mock.patch("sys.version_info")
     def test_check_python(self, mock_version_info):
-        mock_version_info.major, mock_version_info.minor = (3, 6)
+        mock_version_info.major, mock_version_info.minor = (3, 7)
         sucess, _ = self.ui.check_python()
         self.assertFalse(sucess)
 
