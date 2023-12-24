@@ -41,9 +41,11 @@ class Ns_NLP_Stanza:
         if not hasattr(cls, "pipeline"):
             cls.initialize()
 
+        if processors is None:
+            processors = cls.processors
+
         doc = cls.pipeline(doc, processors=processors)
-        if processors is not None:
-            doc.processors = set(processors)
+        doc.processors = set(processors)
         return doc
 
     @classmethod
@@ -54,10 +56,11 @@ class Ns_NLP_Stanza:
         is_cache_for_future_runs: bool = True,
         cache_path: Optional[str] = None,
     ) -> Document:
+        has_just_processed: bool = False
+
         if cache_path is None:
             cache_path = "cmdline_text.pickle.lzma"
 
-        has_just_processed: bool = False
         if processors is None:
             processors = cls.processors
 
@@ -67,14 +70,14 @@ class Ns_NLP_Stanza:
             has_just_processed = True
         else:
             attr = "processors"
-            existins_processors = set(getattr(doc, attr)) if hasattr(doc, attr) else set()
-            filtered_processors = set(processors) - existins_processors
+            existing_processors = set(getattr(doc, attr)) if hasattr(doc, attr) else set()
+            filtered_processors = set(processors) - existing_processors
             if filtered_processors:
                 logging.debug(
                     f"Processing partially parsed document with additional processors {filtered_processors}"
                 )
                 doc = cls._nlp(doc, processors=tuple(filtered_processors))
-                setattr(doc, attr, existins_processors | filtered_processors)
+                setattr(doc, attr, existing_processors | filtered_processors)
                 has_just_processed = True
 
         if has_just_processed and is_cache_for_future_runs:

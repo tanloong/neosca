@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-from neosca_gui.ng_qss import Ns_QSS
+from neosca import QSS_PATH
+from neosca.ns_qss import Ns_QSS
+from PySide6.QtWidgets import QApplication, QWidget
 
-from tests.base_tmpl import BaseTmpl
+from .base_tmpl import BaseTmpl
 
 
 class TestQSS(BaseTmpl):
@@ -93,3 +95,13 @@ class TestQSS(BaseTmpl):
             Ns_QSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
         )
         self.assertEqual(Ns_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
+
+    def test_set_value(self):
+        _ = QApplication()
+        w = QWidget()
+        qss = Ns_QSS.read_qss_file(QSS_PATH)
+        w.setStyleSheet(qss)
+
+        font_size = 20
+        Ns_QSS.set_value(w, {"*": {"font-size": f"{font_size}pt;"}})
+        self.assertEqual(Ns_QSS.get_value(w.styleSheet(), "*", "font-size"), f"{font_size}pt")

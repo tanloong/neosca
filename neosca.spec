@@ -42,7 +42,7 @@ datas.extend(
         ("./data/stanza_resources/en/pretrain/", "data/stanza_resources/en/pretrain/"),
         ("./data/stanza_resources/en/tokenize/", "data/stanza_resources/en/tokenize/"),
         # Others
-        ("./data/ns_syntactic_structures.json", "data/"),
+        ("./data/l2sca_structures.json", "data/"),
         ("./data/anc_all_count.pickle.lzma", "data/"),
         ("./data/bnc_all_filtered.pickle.lzma", "data/"),
         ("./data/citings.json", "data/"),

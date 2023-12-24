@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding=utf-8 -*-
 
-from neosca.scaexceptions import (
-    CircularDefinitionError,
-    StructureNotFoundError,
-)
-from neosca.querier import StanfordTregex
-from neosca.structure_counter import StructureCounter
+from neosca.ns_exceptions import CircularDefinitionError, StructureNotFoundError
+from neosca.ns_sca.querier import StanfordTregex
+from neosca.ns_sca.structure_counter import StructureCounter
 
 from .base_tmpl import BaseTmpl
-from .base_tmpl import classpaths
-from .base_tmpl import tree
 
 
 class TestStanfordTregex(BaseTmpl):

@@ -1,11 +1,10 @@
 import glob
 import os.path as os_path
 
-from neosca.lca.main import LCAUI
+from neosca.ns_lca.main import LCAUI
 
 from .base_tmpl import BaseTmpl
-
-cmdline_text = "This is a test."
+from .cmdline_tmpl import text as cmdline_text
 
 
 class TestLCAMain(BaseTmpl):
@@ -81,31 +80,26 @@ class TestLCAMain(BaseTmpl):
         expected_ifiles = glob.glob(os_path.join(self.samples_dir, "*.txt"))
         expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.docx")))
         expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.odt")))
-        map(os_path.abspath, expected_ifiles)
 
         args = ["nsca-lca", os_path.join(self.samples_dir, "*.txt")]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
-        map(os_path.abspath, ui.verified_ifiles)
         self.assertCountEqual(ui.verified_ifiles, expected_ifiles)
 
         args = ["nsca-lca", self.samples_dir]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
-        map(os_path.abspath, ui.verified_ifiles)
         self.assertCountEqual(ui.verified_ifiles, expected_ifiles)
 
         args = ["nsca-lca", self.samples_dir, os_path.join(self.project_dir, "img")]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
-        map(os_path.abspath, ui.verified_ifiles)
         self.assertEqual(ui.verified_ifiles, expected_ifiles)
         self.assertCountEqual(ui.verified_ifiles, expected_ifiles)
 
         args = ["nsca-lca", os_path.join(self.project_dir, "img")]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
-        map(os_path.abspath, ui.verified_ifiles)
         self.assertEqual(ui.verified_ifiles, [])
 
         # wordlist

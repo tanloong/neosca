@@ -114,7 +114,7 @@ class Structure:
 
 
 class StructureCounter:
-    data_file = DATA_DIR / "ns_syntactic_structures.json"
+    data_file = DATA_DIR / "l2sca_structures.json"
     with open(data_file, encoding="utf-8") as f:
         BUILTIN_DATA = json.load(f)
 

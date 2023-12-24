@@ -42,7 +42,7 @@ class Ns_QSS:
         return matched_value.group(1)
 
     @classmethod
-    def mappins_to_str(cls, mapping: QSSMapping) -> str:
+    def mapping_to_str(cls, mapping: QSSMapping) -> str:
         qss_str = ""
         for selector, declaration in mapping.items():
             if isinstance(declaration, str):
@@ -124,4 +124,4 @@ class Ns_QSS:
         qss_str = widget.styleSheet()
         selector_declaration_mapping: QSSMapping = cls.str_to_mapping(qss_str)
         selector_declaration_mapping.update(new_qss_mapping)
-        widget.setStyleSheet(cls.mappins_to_str(selector_declaration_mapping))
+        widget.setStyleSheet(cls.mapping_to_str(selector_declaration_mapping))
