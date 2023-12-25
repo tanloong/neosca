@@ -8,7 +8,7 @@ import sys
 from typing import Dict, List, Optional, Set, Tuple
 
 from neosca.ns_about import __title__
-from neosca.ns_io import SCAIO
+from neosca.ns_io import Ns_IO
 from neosca.ns_sca.querier import Ns_Tregex
 from neosca.ns_sca.structure_counter import StructureCounter
 
@@ -51,7 +51,7 @@ class Ns_SCA:
             StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
 
         self.counters: List[StructureCounter] = []
-        self.io = SCAIO()
+        self.io = Ns_IO()
         self.is_stanford_tregex_initialized = False
 
     def update_options(self, kwargs: Dict):
@@ -112,11 +112,11 @@ class Ns_SCA:
             return self.io.read_txt(ifile, is_guess_encoding=False)
 
         cache_path = os_path.splitext(ifile)[0] + self.cache_extension
-        if self.is_use_past_parsed and SCAIO.has_valid_cache(file_path=ifile, cache_path=cache_path):
+        if self.is_use_past_parsed and Ns_IO.has_valid_cache(file_path=ifile, cache_path=cache_path):
             logging.info(
                 f"Loading cache: {cache_path} already exists, and is non-empty and newer than {ifile}."
             )
-            doc: Document = Ns_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
+            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma_file(cache_path))
             return Ns_NLP_Stanza.get_constituency_tree(
                 doc, is_cache_for_future_runs=self.is_reserve_parsed, cache_path=cache_path
             )

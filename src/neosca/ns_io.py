@@ -18,7 +18,7 @@ from neosca.ns_platform_info import IS_WINDOWS
 from neosca.ns_util import Ns_Procedure_Result
 
 
-class SCAIO:
+class Ns_IO:
     SUPPORTED_EXTENSIONS = ("txt", "docx", "odt")
 
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -101,7 +101,7 @@ class SCAIO:
     def read_file(self, path: str) -> Optional[str]:
         extension = self.suffix(path)
         if extension not in self.SUPPORTED_EXTENSIONS:
-            logging.warning(f"[SCAIO] {path} is of unsupported filetype. Skipping.")
+            logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
             return None
 
         return self.extension_readfunc_map[extension](path)
@@ -171,9 +171,9 @@ class SCAIO:
             if os_path.isfile(path):
                 extension = self.suffix(path)
                 if extension not in self.SUPPORTED_EXTENSIONS:
-                    logging.warning(f"[SCAIO] {path} is of unsupported filetype. Skipping.")
+                    logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
                     continue
-                logging.debug(f"[SCAIO] Adding {path} to input file list")
+                logging.debug(f"[Ns_IO] Adding {path} to input file list")
                 verified_ifile_list.append(path)
             elif os_path.isdir(path):
                 verified_ifile_list.extend(

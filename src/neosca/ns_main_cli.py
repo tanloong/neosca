@@ -7,14 +7,14 @@ import sys
 from typing import Callable, List, Optional
 
 from neosca.ns_about import __title__, __version__
-from neosca.ns_io import SCAIO
+from neosca.ns_io import Ns_IO
 from neosca.ns_print import color_print
 from neosca.ns_util import Ns_Procedure_Result
 
 
 class Ns_Main_Cli:
     def __init__(self) -> None:
-        self.supported_extensions = SCAIO.SUPPORTED_EXTENSIONS
+        self.supported_extensions = Ns_IO.SUPPORTED_EXTENSIONS
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -260,7 +260,7 @@ Contact:
             logging.info(f"Command-line text: {options.text}")
             self.verified_ifiles = None
         else:
-            self.verified_ifiles = SCAIO().get_verified_ifile_list(ifile_list)
+            self.verified_ifiles = Ns_IO().get_verified_ifile_list(ifile_list)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list: List[list] = []
@@ -398,7 +398,7 @@ Contact:
             if not sucess:
                 return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = SCAIO.is_writable(self.options.ofile_freq)
+                sucess, err_msg = Ns_IO.is_writable(self.options.ofile_freq)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)

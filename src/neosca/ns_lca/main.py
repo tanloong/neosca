@@ -5,7 +5,7 @@ import sys
 from typing import Callable, List
 
 from neosca.ns_about import __title__
-from neosca.ns_io import SCAIO
+from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_print import color_print, get_yes_or_no
 from neosca.ns_util import Ns_Procedure_Result
@@ -15,7 +15,7 @@ class LCAUI:
     def __init__(self) -> None:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
-        self.scaio = SCAIO()
+        self.scaio = Ns_IO()
 
         self.is_spacy_initialized: bool = False
 
@@ -253,7 +253,7 @@ class LCAUI:
             # if not sucess:
             #     return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = SCAIO.is_writable(self.options.ofile)
+                sucess, err_msg = Ns_IO.is_writable(self.options.ofile)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)

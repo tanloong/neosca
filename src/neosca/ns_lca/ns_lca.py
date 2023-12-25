@@ -10,7 +10,7 @@ from math import log, sqrt
 from typing import Callable, Dict, List, Literal, Optional, Union
 
 from neosca import DATA_DIR
-from neosca.ns_io import SCAIO
+from neosca.ns_io import Ns_IO
 from neosca.ns_util import Ns_Procedure_Result
 
 
@@ -85,7 +85,7 @@ class Ns_LCA:
         self.is_use_past_cache = is_use_past_cache
         self.cache_extension = ".pickle.lzma"
 
-        self.scaio = SCAIO()
+        self.scaio = Ns_IO()
         self.nlp_spacy: Optional[Callable] = None
 
         data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
@@ -384,11 +384,11 @@ class Ns_LCA:
         if file_path is not None:
             logging.info(f"Processing {file_path}...")
             cache_path = os_path.splitext(file_path)[0] + self.cache_extension
-            if self.is_use_past_cache and SCAIO.has_valid_cache(file_path=file_path, cache_path=cache_path):
+            if self.is_use_past_cache and Ns_IO.has_valid_cache(file_path=file_path, cache_path=cache_path):
                 logging.info(
                     f"Loading cache: {cache_path} already exists, and is non-empty and newer than {file_path}."
                 )
-                doc = Ns_NLP_Stanza.serialized2doc(SCAIO.load_lzma_file(cache_path))
+                doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma_file(cache_path))
             else:
                 doc = self.scaio.read_file(file_path)
         else:

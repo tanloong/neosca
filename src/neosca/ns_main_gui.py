@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
 
 from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
-from neosca.ns_io import SCAIO
+from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
@@ -409,7 +409,7 @@ class Ns_Main_Gui(QMainWindow):
         already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
         file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
         file_paths_unsupported: Set[str] = set(
-            filter(lambda p: SCAIO.suffix(p) not in SCAIO.SUPPORTED_EXTENSIONS, file_paths_to_add)
+            filter(lambda p: Ns_IO.suffix(p) not in Ns_IO.SUPPORTED_EXTENSIONS, file_paths_to_add)
         )
         file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
         file_paths_ok: Set[str] = (
@@ -549,7 +549,7 @@ class Ns_Main_Gui(QMainWindow):
             return
 
         file_paths_to_add = []
-        for extension in SCAIO.SUPPORTED_EXTENSIONS:
+        for extension in Ns_IO.SUPPORTED_EXTENSIONS:
             file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
         self.add_file_paths(file_paths_to_add)
 
