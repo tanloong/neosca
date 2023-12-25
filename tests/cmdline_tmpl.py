@@ -16,7 +16,7 @@ This is a test.
 
 class CmdlineTmpl(BaseTmpl):
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(SRC_DIR) + os.pathsep + env["PYTHONPATH"]
+    env["PYTHONPATH"] = str(SRC_DIR) + os.pathsep + env.get("PYTHONPATH", "")
 
     def build_ifile(self, text, name="sample.txt"):
         with open(name, "w") as f:

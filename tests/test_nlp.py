@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+
 from neosca.ns_nlp import Ns_NLP_Stanza
 
 from .base_tmpl import BaseTmpl
@@ -17,8 +18,8 @@ class TestNLPStanza(BaseTmpl):
         doc = Ns_NLP_Stanza._nlp(cmdline_text, processors=processors)
         self.assertSetEqual(doc.processors, set(processors))
 
-        doc2 = Ns_NLP_Stanza._nlp(doc2)
-        self.assertEqual(doc2.processors, self.processors)
+        doc2 = Ns_NLP_Stanza._nlp(doc)
+        self.assertSetEqual(doc2.processors, set(self.processors))
 
     def test_nlp(self):
         default_cache_path = "cmdline_text.pickle.lzma"
@@ -37,5 +38,5 @@ class TestNLPStanza(BaseTmpl):
         doc = Ns_NLP_Stanza._nlp(cmdline_text)
         serialized = Ns_NLP_Stanza.doc2serialized(doc)
         doc2 = Ns_NLP_Stanza.serialized2doc(serialized)
-        self.assertEqual(doc.processors, doc2.processors)
+        self.assertSetEqual(doc.processors, doc2.processors)
 

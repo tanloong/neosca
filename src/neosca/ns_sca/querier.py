@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class Ns_Tregex:
-    SNAME_CLS_MAPPING = {
+    SNAME_SEARCHER_MAPPING = {
         "S": l2sca.S,
         "VP1": l2sca.VP1,
         "VP2": l2sca.VP2,
@@ -37,13 +37,13 @@ class Ns_Tregex:
     }
 
     def get_matches(self, sname: str, trees: str) -> list:
-        if sname not in self.SNAME_CLS_MAPPING:
+        if sname not in self.SNAME_SEARCHER_MAPPING:
             raise ValueError(f"{sname} is not yet supported in {__title__}.")
 
         matches = []
         last_node = None
         for tree in Tree.fromstring(trees):
-            for node in self.SNAME_CLS_MAPPING[sname].searchNodeIterator(tree):
+            for node in self.SNAME_SEARCHER_MAPPING[sname].searchNodeIterator(tree):
                 if node is last_node:
                     # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
                     continue
@@ -64,7 +64,7 @@ class Ns_Tregex:
             raise CircularDefinitionError(f"Circular definition: {circular_definition}")
         else:
             logging.debug(
-                "[StanfordTregex] Circular definition check passed: descendant"
+                "[Tregex] Circular definition check passed: descendant"
                 f" {descendant_sname} not in ancestors {ancestor_snames}"
             )
 
@@ -156,7 +156,7 @@ class Ns_Tregex:
     ) -> None:
         value = counter.get_value(sname)
         if value is not None:
-            logging.debug(f"[StanfordTregex] {sname} has already been set as {value}, skipping...")
+            logging.debug(f"[Tregex] {sname} has already been set as {value}, skipping...")
             return
 
         if sname == "W":
