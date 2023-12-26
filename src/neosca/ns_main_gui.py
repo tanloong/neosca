@@ -473,51 +473,10 @@ class Ns_Main_Gui(QMainWindow):
         self.splitter_central_widget.setObjectName("splitter-file")
         self.setCentralWidget(self.splitter_central_widget)
 
-    def sca_add_data(self, counter: StructureCounter, file_name: str, rowno: int) -> None:
-        # Remove trailing rows
-        self.model_sca.removeRows(rowno, self.model_sca.rowCount() - rowno)
-        for colno in range(self.model_sca.columnCount()):
-            sname = self.model_sca.horizontalHeaderItem(colno).text()
-
-            value = counter.get_value(sname)
-            value_str: str = str(value) if value is not None else ""
-            item = QStandardItem(value_str)
-            self.model_sca.set_item_num(rowno, colno, item)
-
-            if matches := counter.get_matches(sname):
-                item.setData(matches, Qt.ItemDataRole.UserRole)
-
-        # from neosca.ns_sca.structure_counter import StructureCounter
-        # print('='*80)
-        # print("deleting counter")
-        # for i in gc.get_objects():
-        #     if isinstance(i, StructureCounter):
-        #         print(i.ifile)
-        #         print(id(i))
-        #         print(sys.getrefcount(i))
-        #         print(id(counter))
-        #         print(sys.getrefcount(i))
-        # else:
-        #     print("Not found1")
-        # del counter
-        # gc.collect()
-        # print('='*80)
-        # for i in gc.get_objects():
-        #     if isinstance(i, StructureCounter):
-        #         print(i.ifile)
-        #         print(sys.getrefcount(i))
-        #         print(id(i))
-        # else:
-        #     print("Not found2")
-        # print("deleted")
-        self.model_sca.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-        self.model_sca.data_updated.emit()
-
     def setup_worker(self) -> None:
         self.dialog_processing = Ns_Dialog_Processing_With_Elapsed_Time(self)
 
         self.ns_worker_sca_generate_table = Ns_Worker_SCA_Generate_Table(main=self)
-        self.ns_worker_sca_generate_table.counter_ready.connect(self.sca_add_data)
         self.ns_thread_sca_generate_table = Ns_Thread(self.ns_worker_sca_generate_table)
         self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
         self.ns_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
@@ -581,3 +540,7 @@ def main_gui():
     ns_window = Ns_Main_Gui()
     ns_window.showMaximized()
     sys.exit(ns_app.exec())
+
+
+if __name__ == "__main__":
+    main_gui()

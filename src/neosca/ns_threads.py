@@ -3,7 +3,7 @@
 from typing import Generator, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtGui import QStandardItem
+from PySide6.QtGui import QStandardItem, Qt
 
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_sca.ns_sca import Ns_SCA
@@ -53,6 +53,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         else:
             sca_instance.update_options(sca_kwargs)
 
+        model: Ns_StandardItemModel = self.main.model_sca
+        has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
@@ -62,7 +64,19 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             else:
                 assert counter is not None, "SCA StructureCounter is None"
 
-            self.counter_ready.emit(counter, file_name, rowno)
+            if has_trailing_rows:
+                has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
+            for colno in range(model.columnCount()):
+                sname = model.horizontalHeaderItem(colno).text()
+                value = counter.get_value(sname)
+                value_str: str = str(value) if value is not None else ""
+                item = QStandardItem(value_str)
+                model.set_item_num(rowno, colno, item)
+                if matches := counter.get_matches(sname):
+                    item.setData(matches, Qt.ItemDataRole.UserRole)
+            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
+            model.data_updated.emit()
+
         self.worker_done.emit()
 
 
