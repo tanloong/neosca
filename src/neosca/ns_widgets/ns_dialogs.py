@@ -5,12 +5,11 @@ import re
 import sys
 import traceback
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from PySide6.QtCore import (
     QElapsedTimer,
-    QModelIndex,
-    QPersistentModelIndex,
+    QSortFilterProxyModel,
     QTime,
     QTimer,
     Signal,
@@ -33,7 +32,7 @@ from PySide6.QtWidgets import (
 from neosca import ACKS_PATH, CITING_PATH, ICON_PATH
 from neosca.ns_about import __email__, __title__, __version__
 from neosca.ns_widgets.ns_labels import Ns_Label_Html, Ns_Label_Html_Centered, Ns_Label_WordWrapped
-from neosca.ns_widgets.ns_tables import Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
 
 
 class Ns_Dialog(QDialog):
@@ -238,10 +237,15 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
 
 
 class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
-    def __init__(self, main, index: Union[QModelIndex, QPersistentModelIndex], **kwargs):
+    def __init__(self, main, index, **kwargs):
         super().__init__(main, title="Matches", width=500, height=300, **kwargs)
-        self.file_name = index.model().verticalHeaderItem(index.row()).text()
-        self.sname = index.model().horizontalHeaderItem(index.column()).text()
+
+        model = index.model()
+        if isinstance(model, (Ns_SortFilterProxyModel, QSortFilterProxyModel)):
+            index = model.mapToSource(index)
+
+        self.file_name = index.model().index(index.row(), 0).data()
+        self.sname = index.model().headerData(index.column(), Qt.Orientation.Horizontal)
         self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
         self.setText("\n".join(self.matched_subtrees))
 
@@ -326,7 +330,7 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
         model_ack = Ns_StandardItemModel(main)
         model_ack.setHorizontalHeaderLabels(("Name", "Version", "Authors", "License"))
         model_ack.setRowCount(len(projects))
-        tableview_ack = Ns_TableView(main, model=model_ack, has_vertical_header=False)
+        tableview_ack = Ns_TableView(main, model=model_ack)
         for rowno, project in enumerate(projects):
             cols = (
                 Ns_Label_Html(f"<a href='{project['homepage']}'>{project['name']}</a>"),

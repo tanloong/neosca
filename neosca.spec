@@ -61,7 +61,7 @@ else:
     assert False, "Unsupported platform"
 
 a = Analysis(
-    ["src/neosca/__main__.py"],
+    ["src/neosca/ns_main_gui.py"],
     pathex=[],
     binaries=binaries,
     datas=datas,

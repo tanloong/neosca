@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from typing import Generator, Iterable, List, Literal, Optional, Union
+from typing import Generator, Iterable, List, Literal, Optional, Sequence, Union
 
-from PySide6.QtCore import QModelIndex, QPersistentModelIndex, Signal
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Signal
 from PySide6.QtGui import (
     QStandardItem,
     QStandardItemModel,
@@ -28,62 +28,95 @@ from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 class Ns_StandardItemModel(QStandardItemModel):
     data_cleared = Signal()
-    # data_updated: itemChanged && !data_cleared
-    data_updated = Signal()
+    row_added = Signal()
     data_exported = Signal()
 
-    def __init__(self, main, orientation: Literal["hor", "ver"] = "hor", **kwargs) -> None:
+    def __init__(
+        self,
+        main,
+        hor_labels: Optional[Sequence[str]] = None,
+        ver_labels: Optional[Sequence[str]] = None,
+        orientation: Literal["hor", "ver"] = "hor",
+        show_empty_row: bool = True,
+        **kwargs,
+    ) -> None:
         super().__init__(main, **kwargs)
         self.main = main
+        if hor_labels is not None:
+            self.setColumnCount(len(hor_labels))
+            self.setHorizontalHeaderLabels(hor_labels)
+        if ver_labels is not None:
+            self.setRowCount(len(ver_labels))
+            self.setVerticalHeaderLabels(ver_labels)
+
         self.orientation = orientation
+        if show_empty_row:
+            if orientation == "hor":
+                self.setRowCount(1)
+            elif orientation == "ver":
+                self.setColumnCount(1)
+            else:
+                assert False, f"Invalid orientation: {orientation}"
+        self.show_empty_row = show_empty_row
 
         self.has_been_exported: bool = False
+        self.row_added.connect(lambda: self.set_has_been_exported(False))
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
-        self.data_updated.connect(lambda: self.set_has_been_exported(False))
 
-    def set_item_str(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> None:
-        item = value if isinstance(value, QStandardItem) else QStandardItem(value)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.setItem(rowno, colno, item)
-
-    def set_row_str(self, rowno: int, values: Iterable[Union[QStandardItem, str]]) -> None:
-        for colno, value in enumerate(values):
-            self.set_item_str(rowno, colno, value)
-
-    def set_item_num(self, rowno: int, colno: int, value: Union[QStandardItem, int, float, str]) -> None:
+    def set_item_str(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> QStandardItem:
         if isinstance(value, QStandardItem):
             item = value
-        else:
-            if not isinstance(value, str):
-                value = str(value)
+        elif isinstance(value, str):
             item = QStandardItem(value)
+        else:
+            assert False, f"Invalid value type: {type(value)}"
+        item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.setItem(rowno, colno, item)
+        return item
+
+    def set_row_str(self, rowno: int, values: Iterable[Union[QStandardItem, str]], start: int = 0) -> None:
+        for colno, value in enumerate(values, start=start):
+            self.set_item_str(rowno, colno, value)
+
+    def set_item_num(self, rowno: int, colno: int, value: Union[QStandardItem, int, float]) -> QStandardItem:
+        if isinstance(value, QStandardItem):
+            item = value
+        elif isinstance(value, (int, float)):
+            item = QStandardItem()
+            # https://stackoverflow.com/a/20469423/20732031
+            item.setData(value, Qt.ItemDataRole.DisplayRole)
+        else:
+            assert False, f"Invalid value type: {type(value)}"
         item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
+        return item
 
-    def set_row_num(self, rowno: int, values: Iterable[Union[QStandardItem, int, float, str]]) -> None:
-        for colno, value in enumerate(values):
+    def set_row_num(
+        self, rowno: int, values: Iterable[Union[QStandardItem, int, float]], start: int = 0
+    ) -> None:
+        for colno, value in enumerate(values, start=start):
             self.set_item_num(rowno, colno, value)
 
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
 
-    def _clear_data(self, leave_an_empty_row=True) -> None:
+    def _clear_data(self) -> None:
         if self.orientation == "hor":
             self.removeRows(0, self.rowCount())
-            if leave_an_empty_row:
+            if self.show_empty_row:
                 self.setRowCount(1)
         elif self.orientation == "ver":
             self.setColumnCount(0)
-            if leave_an_empty_row:
+            if self.show_empty_row:
                 self.setColumnCount(1)
         self.data_cleared.emit()
 
-    def clear_data(self, confirm=False, leave_an_empty_row=True) -> None:
+    def clear_data(self, confirm=False) -> None:
         """
         Clear data, reserve headers
         """
         if not confirm or self.has_been_exported:
-            return self._clear_data(leave_an_empty_row=leave_an_empty_row)
+            return self._clear_data()
         else:
             messagebox = Ns_MessageBox_Confirm(
                 self.main,
@@ -91,7 +124,7 @@ class Ns_StandardItemModel(QStandardItemModel):
                 "The table has not been exported yet and all the data will be lost. Continue?",
             )
             if messagebox.exec():
-                self._clear_data(leave_an_empty_row=leave_an_empty_row)
+                self._clear_data()
 
     def is_row_empty(self, rowno: int) -> bool:
         for colno in range(self.columnCount()):
@@ -109,7 +142,7 @@ class Ns_StandardItemModel(QStandardItemModel):
                 self.removeRow(rowno)
 
     # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
-    def yield_model_column(self, colno: int) -> Generator[str, None, None]:
+    def yield_column(self, colno: int) -> Generator[str, None, None]:
         items = (self.item(rowno, colno) for rowno in range(self.rowCount()))
         return (item.text() for item in items if item is not None)
 
@@ -120,23 +153,51 @@ class Ns_StandardItemModel(QStandardItemModel):
     #     return super().flags(index)
 
 
+class Ns_SortFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, main, source_model: Ns_StandardItemModel):
+        super().__init__(main)
+        self.main = main
+        self.source_model = source_model
+        self.setSourceModel(source_model)
+
+        self.setDynamicSortFilter(False)
+
+    # Override to sepcify the return type
+    def sourceModel(self) -> Ns_StandardItemModel:
+        return self.source_model
+
+    # Override
+    # https://www.qtcentre.org/threads/22120-No-Sort-Vertical-Header?p=107720#post107720
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole):
+        if orientation != Qt.Orientation.Vertical or role != Qt.ItemDataRole.DisplayRole:
+            return super().headerData(section, orientation, role)
+        else:
+            return section + 1
+
+
 class Ns_TableView(QTableView):
     def __init__(
         self,
         main,
-        model: Ns_StandardItemModel,
-        has_horizontal_header: bool = True,
-        has_vertical_header: bool = True,
+        model: Union[Ns_StandardItemModel, Ns_SortFilterProxyModel],
+        has_hor_header: bool = True,
+        has_ver_header: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(main, **kwargs)
         self.main = main
         self.setModel(model)
-        self.model_: Ns_StandardItemModel = model
-        self.model_.data_cleared.connect(self.on_data_cleared)
-        self.model_.data_updated.connect(self.on_data_updated)
-        self.has_horizontal_header = has_horizontal_header
-        self.has_vertical_header = has_vertical_header
+        if isinstance(model, Ns_StandardItemModel):
+            self.source_model = model
+        elif isinstance(model, Ns_SortFilterProxyModel):
+            self.source_model = model.sourceModel()
+            self.setSortingEnabled(True)
+        else:
+            assert False, f"Invalid model type: {model.__class__.__name__}"
+        self.source_model.data_cleared.connect(self.on_data_cleared)
+        self.source_model.row_added.connect(self.on_row_added)
+        self.has_hor_header = has_hor_header
+        self.has_ver_header = has_ver_header
 
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -146,22 +207,18 @@ class Ns_TableView(QTableView):
         self.verticalHeader().setHighlightSections(False)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
-        if self.model_.is_empty():
+        if self.source_model.is_empty():
             self.setEnabled(False)
 
     def on_data_cleared(self) -> None:
         self.horizontalHeader().resizeSections()
         self.setEnabled(False)
 
-    def on_data_updated(self) -> None:
+    def on_row_added(self) -> None:
         if not self.isEnabled():
             self.setEnabled(True)
         self.resizeRowsToContents()
         self.resizeColumnsToContents()
-
-    # Override to specify the return type
-    def model(self) -> Ns_StandardItemModel:
-        return self.model_
 
     # Override
     def setIndexWidget(self, index: QModelIndex | QPersistentModelIndex, widget: QWidget) -> None:
@@ -177,7 +234,7 @@ class Ns_TableView(QTableView):
     def set_openpyxl_vertical_header_alignment(self, cell) -> None:
         from openpyxl.styles import Alignment
 
-        if self.has_vertical_header:
+        if self.has_ver_header:
             cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
 
     def set_openpyxl_cell_alignment(self, cell, item: QStandardItem) -> None:
@@ -235,7 +292,7 @@ class Ns_TableView(QTableView):
         if not file_path:
             return
 
-        model: Ns_StandardItemModel = self.model()
+        model = self.model()
         col_count = model.columnCount()
         row_count = model.rowCount()
         try:
@@ -249,8 +306,8 @@ class Ns_TableView(QTableView):
                 worksheet = workbook.active
                 worksheet_cell = worksheet.cell
 
-                rowno_cell_offset = 2 if self.has_horizontal_header else 1
-                colno_cell_offset = 2 if self.has_vertical_header else 1
+                rowno_cell_offset = 2 if self.has_hor_header else 1
+                colno_cell_offset = 2 if self.has_ver_header else 1
 
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L628C3-L629C82
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
@@ -259,16 +316,16 @@ class Ns_TableView(QTableView):
                 font_size = Ns_Settings.value("Appearance/font-size", type=int)
 
                 # 1. Horizontal header text and alignment
-                if self.has_horizontal_header:
-                    for colno_cell, colno_item in enumerate(range(col_count)):
-                        cell = worksheet_cell(1, colno_cell_offset + colno_cell)
-                        cell.value = model.horizontalHeaderItem(colno_item).text()
+                if self.has_hor_header:
+                    for colno in range(col_count):
+                        cell = worksheet_cell(1, colno_cell_offset + colno)
+                        cell.value = model.headerData(colno, Qt.Orientation.Horizontal)
                         self.set_openpyxl_horizontal_header_alignment(cell)
                 # 2. Vertical header text and alignment
-                if self.has_vertical_header:
-                    for rowno_cell, rowno_item in enumerate(range(row_count)):
-                        cell = worksheet_cell(rowno_cell_offset + rowno_cell, 1)
-                        cell.value = model.verticalHeaderItem(rowno_item).text()
+                if self.has_ver_header:
+                    for rowno in range(row_count):
+                        cell = worksheet_cell(rowno_cell_offset + rowno, 1)
+                        cell.value = model.headerData(rowno, Qt.Orientation.Vertical)
                         self.set_openpyxl_vertical_header_alignment(cell)
 
                 # 3. Both header background and font
@@ -289,7 +346,7 @@ class Ns_TableView(QTableView):
                 )
                 header_is_bold = (header_font_weight == "bold") if header_font_weight is not None else False
                 # 3.1 Horizontal header background and font
-                if self.has_horizontal_header:
+                if self.has_hor_header:
                     # 3.1.1 Horizontal header background
                     #  TODO: Currently all tabpages share the same style sheet and the
                     #   single QSS file is loaded from MainWindow, thus here the
@@ -312,7 +369,7 @@ class Ns_TableView(QTableView):
                             size=font_size,
                         )
                 # 3.2 Vertical header background and font
-                if self.has_vertical_header:
+                if self.has_ver_header:
                     # 3.2.1 Vertial header background
                     if vertical_bacolor is not None:
                         vertical_bacolor = vertical_bacolor.lstrip("#")
@@ -331,14 +388,21 @@ class Ns_TableView(QTableView):
                 # 4. Cells
                 for rowno in range(row_count):
                     for colno in range(col_count):
-                        cell = worksheet_cell(rowno_cell_offset + rowno, colno_cell_offset + colno)
-                        item = model.item(rowno, colno)
-                        item_value = item.text()
+                        if isinstance(model, (Ns_SortFilterProxyModel, QSortFilterProxyModel)):
+                            mapped_index = model.mapToSource(model.index(rowno, colno))
+                            item = mapped_index.model().item(mapped_index.row(), mapped_index.column())
+                            item_data = mapped_index.data()
+                        else:
+                            item = model.item(rowno, colno)
+                            item_data = item.data()
+
                         try:  # noqa: SIM105
-                            item_value = float(item_value)
+                            item_data = float(item_data)
                         except ValueError:
                             pass
-                        cell.value = item_value
+
+                        cell = worksheet_cell(rowno_cell_offset + rowno, colno_cell_offset + colno)
+                        cell.value = item_data
                         self.set_openpyxl_cell_alignment(cell, item)
                         cell.font = Font(size=font_size)
                 # 5. Column width
@@ -347,23 +411,23 @@ class Ns_TableView(QTableView):
                     worksheet.column_dimensions[get_column_letter(colno_cell_offset + colno)].width = (
                         self.horizontalHeader().sectionSize(colno) / dpi_horizontal * 13 + 3
                     )
-
-                if self.has_vertical_header:
+                if self.has_ver_header:
                     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L731
                     worksheet.column_dimensions[get_column_letter(1)].width = (
                         self.verticalHeader().width() / dpi_horizontal * 13 + 3
                     )
                 # 6. Row height
-                worksheet.row_dimensions[1].height = self.horizontalHeader().height() / dpi_vertical * 72
                 for i, _ in enumerate(worksheet.rows):
                     worksheet.row_dimensions[2 + i].height = (
                         self.verticalHeader().sectionSize(0) / dpi_vertical * 72
                     )
+                if self.has_hor_header:
+                    worksheet.row_dimensions[1].height = self.horizontalHeader().height() / dpi_vertical * 72
 
                 # 7. Freeze panes
                 # https://stackoverflow.com/questions/73837417/freeze-panes-first-two-rows-and-column-with-openpyxl
                 # Using "2" in both cases means to always freeze the 1st column
-                if self.has_horizontal_header:
+                if self.has_hor_header:
                     worksheet.freeze_panes = "B2"
                 else:
                     worksheet.freeze_panes = "A2"
@@ -376,13 +440,19 @@ class Ns_TableView(QTableView):
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
                     # Horizontal header
                     hor_header: List[str] = [""]
-                    hor_header.extend(model.horizontalHeaderItem(colno).text() for colno in range(col_count))
+                    hor_header.extend(
+                        model.headerData(colno, Qt.Orientation.Horizontal) for colno in range(col_count)
+                    )
                     csv_writer.writerow(hor_header)
                     # Vertical header + cells
-                    for rowno in range(row_count):
-                        row: List[str] = [model.verticalHeaderItem(rowno).text()]
-                        row.extend(model.item(rowno, colno).text() for colno in range(col_count))
-                        csv_writer.writerow(row)
+                    if self.has_ver_header:
+                        for rowno in range(row_count):
+                            row: List[str] = [model.headerData(rowno, Qt.Orientation.Vertical)]
+                            row.extend(model.index(rowno, colno).data() for colno in range(col_count))
+                            csv_writer.writerow(row)
+                    else:
+                        for rowno in range(row_count):
+                            csv_writer.writerow(model.index(rowno, colno).data() for colno in range(col_count))
             QMessageBox.information(
                 self, "Success", f"The table has been successfully exported to {file_path}."
             )
@@ -391,7 +461,7 @@ class Ns_TableView(QTableView):
                 self, "Error Exporting Cells", f"PermissionError: failed to export the table to {file_path}."
             )
         else:
-            model.data_exported.emit()
+            self.source_model.data_exported.emit()
 
     def export_matches(self) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
@@ -431,14 +501,17 @@ class Ns_TableView(QTableView):
                 # is larger than that.
                 # https://support.microsoft.com/en-us/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3
                 horizon_header_colwith = 0
-                for colno in range(col_count):
-                    structure = model.horizontalHeaderItem(colno).text()
-                    for rowno in range(row_count):
+                for rowno in range(row_count):
+                    if self.has_ver_header:
+                        filename = model.headerData(rowno, Qt.Orientation.Vertical)
+                    else:
+                        filename = model.index(rowno, 0).data()
+                    for colno in range(col_count):
                         index = model.index(rowno, colno)
                         if not index.data(Qt.ItemDataRole.UserRole):
                             continue
 
-                        filename = model.verticalHeaderItem(rowno).text()
+                        sname = model.headerData(colno, Qt.Orientation.Horizontal)
                         if filename not in workbook.sheetnames:
                             ws = workbook.create_sheet(filename)
                             ws_max_row_offset = 0
@@ -451,7 +524,7 @@ class Ns_TableView(QTableView):
                         matches: List[str] = index.data(Qt.ItemDataRole.UserRole)
                         for i, match in enumerate(matches):
                             cell_structure = ws_cell(ws_start_rowno + i, 1)
-                            cell_structure.value = structure
+                            cell_structure.value = sname
                             self.set_openpyxl_horizontal_header_alignment(cell_structure)
 
                             cell_match = ws_cell(ws_start_rowno + i, 2)
@@ -507,16 +580,21 @@ class Ns_TableView(QTableView):
                 with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
                     header: List[str] = ["Filename", "Structure", "Match"]
+                    # instance of "Structure" is stored in "sname"
                     csv_writer.writerow(header)
                     for rowno in range(row_count):
-                        filename = model.verticalHeaderItem(rowno).text()
+                        if self.has_ver_header:
+                            filename = model.headerData(rowno, Qt.Orientation.Vertical)
+                        else:
+                            filename = model.index(rowno, 0).data()
+
                         for colno in range(col_count):
                             index = model.index(rowno, colno)
                             if not index.data(Qt.ItemDataRole.UserRole):
                                 continue
-                            structure = model.horizontalHeaderItem(colno).text()
+                            sname = model.headerData(colno, Qt.Orientation.Horizontal)
                             matches = index.data(Qt.ItemDataRole.UserRole)
-                            csv_writer.writerows((filename, structure, match) for match in matches)
+                            csv_writer.writerows((filename, sname, match) for match in matches)
             QMessageBox.information(self, "Success", f"Matches has been successfully exported to {file_path}.")
         except PermissionError:
             QMessageBox.critical(

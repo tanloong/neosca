@@ -255,7 +255,7 @@ class StructureCounter:
     def get_all_values(self, precision: int = 4) -> dict:
         # TODO should store Filename in an extra metadata layer
         # https://articles.zsxq.com/id_wnw0w98lzgsq.html
-        freq_dict = OrderedDict({"Filename": self.ifile})
+        freq_dict = OrderedDict({"Filepath": self.ifile})
         for sname in self.selected_measures:
             freq_dict[sname] = str(self.get_value(sname, precision))
         return freq_dict

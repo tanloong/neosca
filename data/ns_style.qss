@@ -13,7 +13,7 @@ QHeaderView::section {
     font-weight: bold;
 }
 QTableView::item:selected {
-    background-color: #EEEEEE;
+    background-color: #C7C7C7;
     color: #000000;
 }
 QHeaderView::section:horizontal:hover {

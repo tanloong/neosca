@@ -234,7 +234,7 @@ class TestStructureCounter(BaseTmpl):
             self.assertIn(m, counter3.selected_measures)
 
         value_dict = counter3.get_all_values()
-        self.assertEqual({"Filename"}, value_dict.keys() - set(expected_selected_measures3))
+        self.assertEqual({"Filepath"}, value_dict.keys() - set(expected_selected_measures3))
 
         for s_name, value in (
             ("VP1", 9),

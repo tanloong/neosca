@@ -3,7 +3,7 @@
 from typing import Generator, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtGui import QStandardItem, Qt
+from PySide6.QtGui import Qt
 
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_sca.ns_sca import Ns_SCA
@@ -66,16 +66,17 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            for colno in range(model.columnCount()):
+
+            model.set_item_str(rowno, 0, file_name)
+            for colno in range(1, model.columnCount()):
                 sname = model.horizontalHeaderItem(colno).text()
                 value = counter.get_value(sname)
-                value_str: str = str(value) if value is not None else ""
-                item = QStandardItem(value_str)
-                model.set_item_num(rowno, colno, item)
+                if value is None:
+                    raise ValueError(f"SCA got None on {file_name}")
+                item = model.set_item_num(rowno, colno, value)
                 if matches := counter.get_matches(sname):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
-            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-            model.data_updated.emit()
+            model.row_added.emit()
 
         self.worker_done.emit()
 
@@ -112,15 +113,15 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
             except Exception as ex:
                 raise ex
             else:
-                assert values is not None, "LCA result is None"
+                assert values is not None, f"LCA got None on {file_name}"
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
             # Drop file_path
             del values[0]
-            model.set_row_num(rowno, values)
-            model.setVerticalHeaderItem(rowno, QStandardItem(file_name))
-            model.data_updated.emit()
+            model.set_item_str(rowno, 0, file_name)
+            model.set_row_num(rowno, values, start=1)
+            model.row_added.emit()
 
         self.worker_done.emit()
 

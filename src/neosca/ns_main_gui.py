@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
 
 from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
+from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_platform_info import IS_MAC
@@ -47,7 +48,7 @@ from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
-from neosca.ns_widgets.ns_tables import Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
@@ -224,27 +225,22 @@ class Ns_Main_Gui(QMainWindow):
         dialog_acks.exec()
 
     def setup_tab_sca(self):
-        self.button_generate_table_sca = QPushButton("Generate table")
+        self.button_generate_table_sca = Ns_PushButton("Generate table", False)
         # self.button_generate_table_sca.setShortcut("CTRL+G")
-        self.button_export_table_sca = QPushButton("Export table...")
-        self.button_export_table_sca.setEnabled(False)
+        self.button_export_table_sca = Ns_PushButton("Export table...", False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
-        self.button_export_matches_sca = QPushButton("Export matches...")
-        self.button_export_matches_sca.setEnabled(False)
-        self.button_clear_table_sca = QPushButton("Clear table")
-        self.button_clear_table_sca.setEnabled(False)
+        self.button_export_matches_sca = Ns_PushButton("Export matches...", False)
+        self.button_clear_table_sca = Ns_PushButton("Clear table", False)
 
         # TODO comment this out before releasing
         self.button_custom_func = QPushButton("Custom func")
         # TODO comment this out before releasing
         self.button_custom_func.clicked.connect(self.custom_func)
 
-        self.model_sca = Ns_StandardItemModel(self)
-        self.model_sca.setColumnCount(len(StructureCounter.DEFAULT_MEASURES))
-        self.model_sca.setHorizontalHeaderLabels(StructureCounter.DEFAULT_MEASURES)
-        self.model_sca.clear_data()
-        self.tableview_sca = Ns_TableView(self, model=self.model_sca)
+        self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *StructureCounter.DEFAULT_MEASURES))
+        proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
+        self.tableview_sca = Ns_TableView(self, model=proxy_model_sca)
         self.tableview_sca.setItemDelegate(Ns_Delegate_SCA(None, self.styleSheet()))
 
         # Bind
@@ -254,16 +250,8 @@ class Ns_Main_Gui(QMainWindow):
         )
         self.button_export_matches_sca.clicked.connect(self.tableview_sca.export_matches)
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
-        self.model_sca.data_cleared.connect(
-            lambda: self.button_generate_table_sca.setEnabled(True) if not self.model_file.is_empty() else None
-        )
-        self.model_sca.data_cleared.connect(lambda: self.button_export_table_sca.setEnabled(False))
-        self.model_sca.data_cleared.connect(lambda: self.button_export_matches_sca.setEnabled(False))
-        self.model_sca.data_cleared.connect(lambda: self.button_clear_table_sca.setEnabled(False))
-        self.model_sca.data_updated.connect(lambda: self.button_export_table_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(lambda: self.button_export_matches_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(lambda: self.button_clear_table_sca.setEnabled(True))
-        self.model_sca.data_updated.connect(lambda: self.button_generate_table_sca.setEnabled(False))
+        self.model_sca.data_cleared.connect(self.on_model_sca_data_cleared)
+        self.model_sca.row_added.connect(self.on_model_sca_row_added)
 
         self.widget_previewarea_sca = QWidget()
         self.layout_previewarea_sca = QGridLayout()
@@ -281,6 +269,19 @@ class Ns_Main_Gui(QMainWindow):
             self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
+
+    def on_model_sca_data_cleared(self) -> None:
+        if not self.model_file.is_empty():
+            self.button_generate_table_sca.setEnabled(True)
+        self.button_export_table_sca.setEnabled(False)
+        self.button_export_matches_sca.setEnabled(False)
+        self.button_clear_table_sca.setEnabled(False)
+
+    def on_model_sca_row_added(self) -> None:
+        self.button_export_table_sca.setEnabled(True)
+        self.button_export_matches_sca.setEnabled(True)
+        self.button_clear_table_sca.setEnabled(True)
+        self.button_generate_table_sca.setEnabled(False)
 
     def custom_func(self):
         # import gc
@@ -301,20 +302,16 @@ class Ns_Main_Gui(QMainWindow):
         breakpoint()
 
     def setup_tab_lca(self):
-        self.button_generate_table_lca = QPushButton("Generate table")
+        self.button_generate_table_lca = Ns_PushButton("Generate table", False)
         # self.button_generate_table_lca.setShortcut("CTRL+G")
-        self.button_export_table_lca = QPushButton("Export table...")
-        self.button_export_table_lca.setEnabled(False)
+        self.button_export_table_lca = Ns_PushButton("Export table...", False)
         # self.button_export_selected_cells = QPushButton("Export selected cells...")
         # self.button_export_selected_cells.setEnabled(False)
-        self.button_clear_table_lca = QPushButton("Clear table")
-        self.button_clear_table_lca.setEnabled(False)
+        self.button_clear_table_lca = Ns_PushButton("Clear table", False)
 
-        self.model_lca = Ns_StandardItemModel(self)
-        self.model_lca.setColumnCount(len(Ns_LCA.FIELDNAMES) - 1)
-        self.model_lca.setHorizontalHeaderLabels(Ns_LCA.FIELDNAMES[1:])
-        self.model_lca.clear_data()
-        self.tableview_lca = Ns_TableView(self, model=self.model_lca)
+        self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA.FIELDNAMES[1:]))
+        proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
+        self.tableview_lca = Ns_TableView(self, model=proxy_model_lca)
         # TODO: tableview_sca use custom delegate to only enable
         # clickable items, in which case a dialog will pop up to show matches.
         # Here when tableview_lca also use custom delegate, remember to
@@ -327,14 +324,8 @@ class Ns_Main_Gui(QMainWindow):
             lambda: self.tableview_lca.export_table("neosca_lca_results.xlsx")
         )
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
-        self.model_lca.data_cleared.connect(
-            lambda: self.button_generate_table_lca.setEnabled(True) if not self.model_file.is_empty() else None
-        )
-        self.model_lca.data_cleared.connect(lambda: self.button_export_table_lca.setEnabled(False))
-        self.model_lca.data_cleared.connect(lambda: self.button_clear_table_lca.setEnabled(False))
-        self.model_lca.data_updated.connect(lambda: self.button_export_table_lca.setEnabled(True))
-        self.model_lca.data_updated.connect(lambda: self.button_clear_table_lca.setEnabled(True))
-        self.model_lca.data_updated.connect(lambda: self.button_generate_table_lca.setEnabled(False))
+        self.model_lca.data_cleared.connect(self.on_model_lca_data_cleared)
+        self.model_lca.row_added.connect(self.on_model_lca_row_added)
 
         self.widget_previewarea_lca = QWidget()
         self.layout_previewarea_lca = QGridLayout()
@@ -350,6 +341,17 @@ class Ns_Main_Gui(QMainWindow):
             self.layout_previewarea_lca.addWidget(btn, 1, btn_no - 1)
         self.layout_previewarea_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
         self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
+
+    def on_model_lca_data_cleared(self) -> None:
+        if not self.model_file.is_empty():
+            self.button_generate_table_lca.setEnabled(True)
+        self.button_export_table_lca.setEnabled(False)
+        self.button_clear_table_lca.setEnabled(False)
+
+    def on_model_lca_row_added(self) -> None:
+        self.button_export_table_lca.setEnabled(True)
+        self.button_clear_table_lca.setEnabled(True)
+        self.button_generate_table_lca.setEnabled(False)
 
     def resize_splitters(self, is_reset: bool = False) -> None:
         for splitter in (self.splitter_central_widget,):
@@ -369,12 +371,10 @@ class Ns_Main_Gui(QMainWindow):
         self.button_generate_table_lca.setEnabled(enabled)
 
     def setup_tableview_file(self) -> None:
-        self.model_file = Ns_StandardItemModel(self)
-        self.model_file.setHorizontalHeaderLabels(("Name", "Path"))
+        self.model_file = Ns_StandardItemModel(self, hor_labels=(("Name", "Path")))
         self.model_file.data_cleared.connect(lambda: self.enable_button_generate_table(False))
-        self.model_file.data_updated.connect(lambda: self.enable_button_generate_table(True))
-        self.model_file.clear_data()
-        self.tableview_file = Ns_TableView(self, model=self.model_file, has_vertical_header=False)
+        self.model_file.row_added.connect(lambda: self.enable_button_generate_table(True))
+        self.tableview_file = Ns_TableView(self, model=self.model_file)
         self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -423,7 +423,7 @@ class Ns_Main_Gui(QMainWindow):
             self.model_file.remove_empty_rows()
             colno_name = 0
             # Has no duplicates
-            already_added_file_names = list(self.model_file.yield_model_column(colno_name))
+            already_added_file_names = list(self.model_file.yield_column(colno_name))
             for file_path in file_paths_ok:
                 file_name = os_path.splitext(os_path.basename(file_path))[0]
                 if file_name in already_added_file_names:
@@ -434,7 +434,7 @@ class Ns_Main_Gui(QMainWindow):
                 already_added_file_names.append(file_name)
                 rowno = self.model_file.rowCount()
                 self.model_file.set_row_str(rowno, (file_name, file_path))
-                self.model_file.data_updated.emit()
+                self.model_file.row_added.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ns_StandardItemModel(self)
@@ -446,7 +446,7 @@ class Ns_Main_Gui(QMainWindow):
             ):
                 for file_path in file_paths:
                     model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ns_TableView(self, model=model_err_files, has_vertical_header=False)
+            tableview_err_files = Ns_TableView(self, model=model_err_files)
 
             dialog = Ns_Dialog_Table(
                 self,
@@ -494,11 +494,11 @@ class Ns_Main_Gui(QMainWindow):
 
     def yield_added_file_names(self) -> Generator[str, None, None]:
         colno_path = 0
-        return self.model_file.yield_model_column(colno_path)
+        return self.model_file.yield_column(colno_path)
 
     def yield_added_file_paths(self) -> Generator[str, None, None]:
         colno_path = 1
-        return self.model_file.yield_model_column(colno_path)
+        return self.model_file.yield_column(colno_path)
 
     def menubar_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(

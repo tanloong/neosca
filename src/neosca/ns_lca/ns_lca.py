@@ -376,7 +376,7 @@ class Ns_LCA:
             modifier_variation,
         )
 
-    def _analyze(self, *, file_path: Optional[str] = None, doc=None):
+    def _analyze(self, *, file_path: Optional[str] = None, doc=None) -> Optional[List[Union[int, float]]]:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         assert (not file_path) ^ (not doc)
@@ -490,9 +490,7 @@ class Ns_LCA:
         )
         if values is None:
             return values
-        values = [str(round(v, self.precision)) for v in values]
-        values.insert(0, file_path)
-        return values
+        return [round(v, self.precision) for v in values]
 
     def analyze(self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None) -> Ns_Procedure_Result:
         if not (ifiles is None) ^ (text is None):
@@ -508,13 +506,13 @@ class Ns_LCA:
         if text is not None:
             values = self._analyze(doc=text)
             if values is not None:
-                csv_writer.writerow(values)
+                csv_writer.writerow(("cmdline_text", *values))
 
         else:
             for ifile in ifiles:  # type: ignore
                 values = self._analyze(file_path=ifile)
                 if values is not None:
-                    csv_writer.writerow(values)
+                    csv_writer.writerow((ifile, *values))
 
         handle.close()
 
