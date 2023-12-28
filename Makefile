@@ -12,6 +12,8 @@ clean:
 	rm -rf *.egg-info
 	rm -rf htmlcov
 	rm -rf coverage.xml
+	rm -rf build/
+	rm -rf dist/
 
 lint:
 	ruff format src/ tests/

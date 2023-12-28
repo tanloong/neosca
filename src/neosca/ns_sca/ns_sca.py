@@ -19,8 +19,8 @@ class Ns_SCA:
         ofile_freq: str = "result.csv",
         oformat_freq: str = "csv",
         odir_matched: str = "",
-        max_length: Optional[int] = None,
         selected_measures: Optional[List[str]] = None,
+        precision: int = 4,
         is_reserve_parsed: bool = True,
         is_use_past_parsed: bool = True,
         is_reserve_matched: bool = False,
@@ -33,8 +33,8 @@ class Ns_SCA:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
         self.odir_matched = odir_matched
-        self.max_length = max_length
         self.selected_measures = selected_measures
+        self.precision = precision
         self.is_reserve_parsed = is_reserve_parsed
         self.is_use_past_parsed = is_use_past_parsed
         self.is_reserve_matched = is_reserve_matched
@@ -159,6 +159,7 @@ class Ns_SCA:
             ifile,
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
+            precision=self.precision,
         )
         return self.query_against_trees(trees, counter)
 
@@ -187,6 +188,7 @@ class Ns_SCA:
             parent_counter = StructureCounter(
                 selected_measures=self.selected_measures,
                 user_structure_defs=self.user_structure_defs,
+                precision=self.precision,
             )
 
             for i, subfile in enumerate(subfiles, 1):

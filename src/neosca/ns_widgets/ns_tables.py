@@ -136,6 +136,13 @@ class Ns_StandardItemModel(QStandardItemModel):
     def is_empty(self) -> bool:
         return all(self.is_row_empty(rowno) for rowno in range(self.rowCount()))
 
+    def has_user_data(self) -> bool:
+        for rowno in range(self.rowCount()):
+            for colno in range(self.columnCount()):
+                if self.item(rowno, colno).data(Qt.ItemDataRole.UserRole):
+                    return True
+        return False
+
     def remove_empty_rows(self) -> None:
         for rowno in reversed(range(self.rowCount())):
             if self.is_row_empty(rowno):

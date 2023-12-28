@@ -278,8 +278,10 @@ class Ns_Main_Gui(QMainWindow):
         self.button_clear_table_sca.setEnabled(False)
 
     def on_model_sca_row_added(self) -> None:
-        self.button_export_table_sca.setEnabled(True)
-        self.button_export_matches_sca.setEnabled(True)
+        if not self.model_sca.is_empty():
+            self.button_export_table_sca.setEnabled(True)
+        if self.model_sca.has_user_data():
+            self.button_export_matches_sca.setEnabled(True)
         self.button_clear_table_sca.setEnabled(True)
         self.button_generate_table_sca.setEnabled(False)
 

@@ -154,8 +154,10 @@ class StructureCounter:
         *,
         selected_measures: Optional[List[str]] = None,
         user_structure_defs: Optional[List[Dict[str, str]]] = None,
+        precision: int = 4,
     ) -> None:
         self.ifile = ifile
+        self.precision = precision
 
         user_sname_structure_map: Dict[str, Structure] = {}
         user_snames: Optional[Set[str]] = None
@@ -248,11 +250,15 @@ class StructureCounter:
         else:
             self.sname_structure_map[sname].value = value
 
-    def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
+    def get_value(self, sname: str, precision: Optional[int] = None) -> Optional[Union[float, int]]:
+        if precision is None:
+            precision = self.precision
         value = self.get_structure(sname).value
         return round(value, precision) if value is not None else value
 
-    def get_all_values(self, precision: int = 4) -> dict:
+    def get_all_values(self, precision: Optional[int] = None) -> dict:
+        if precision is None:
+            precision = self.precision
         # TODO should store Filename in an extra metadata layer
         # https://articles.zsxq.com/id_wnw0w98lzgsq.html
         freq_dict = OrderedDict({"Filepath": self.ifile})
