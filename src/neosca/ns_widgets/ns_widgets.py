@@ -172,8 +172,3 @@ class Ns_MessageBox_Confirm(QMessageBox):
     def exec(self) -> bool:
         ret = super().exec()
         return ret == QMessageBox.StandardButton.Yes.value
-
-    # Override
-    def show(self) -> bool:
-        ret = super().show()
-        return ret == QMessageBox.StandardButton.Yes.value

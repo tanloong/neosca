@@ -1,5 +1,5 @@
 {
-    "acknowledgment": "NeoSCA is greatly indebted to the open source projects below without which it could never have been possible. As the project is a fork of L2SCA and LCA, I want to express my sincere gratitude to the original author Xiaofei Lu (陆小飞) for his expertise and efforts, and I am grateful for the opportunity to build upon his work.",
+    "acknowledgment": "NeoSCA is greatly indebted to the open source projects below without which it could never have been possible. As the project is a fork of L2SCA and LCA, I want to express my sincere gratitude to the original author <a href='https://sites.psu.edu/xxl13/'>Xiaofei Lu (陆小飞)</a> for his expertise and efforts, and I am grateful for the opportunity to build upon his work.",
     "projects": [
         {
             "name": "L2SCA",

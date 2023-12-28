@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import gc
 import glob
 import os
 import os.path as os_path
@@ -119,17 +118,16 @@ class Ns_Main_Gui(QMainWindow):
 
     def setup_menu(self):
         # File
-        self.menu_file = QMenu("File", self.menuBar())
-        action_open_file = QAction("Open File...", self.menu_file)
+        self.menu_file = QMenu("&File", self.menuBar())
+        action_open_file = QAction("&Open File...", self.menu_file)
         action_open_file.setShortcut("CTRL+O")
         action_open_file.triggered.connect(self.menubar_file_open_file)
-        action_open_folder = QAction("Open Folder...", self.menu_file)
-        action_open_folder.setShortcut("CTRL+F")
+        action_open_folder = QAction("Open &Folder...", self.menu_file)
         action_open_folder.triggered.connect(self.menubar_file_open_folder)
         # action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
         # action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         # action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("Quit", self.menu_file)
+        action_quit = QAction("&Quit", self.menu_file)
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
         self.menu_file.addAction(action_open_file)
@@ -137,9 +135,9 @@ class Ns_Main_Gui(QMainWindow):
         self.menu_file.addSeparator()
         # self.menu_file.addAction(action_restart)
         self.menu_file.addAction(action_quit)
-        # Edit
-        self.menu_prefs = QMenu("Preferences", self.menuBar())
-        action_settings = QAction("Settings...", self.menu_prefs)
+        # Preferences
+        self.menu_prefs = QMenu("&Preferences", self.menuBar())
+        action_settings = QAction("&Settings...", self.menu_prefs)
         # TODO: remove this before releasing
         action_settings.setShortcut("CTRL+,")
         action_settings.triggered.connect(self.menubar_prefs_settings)
@@ -149,17 +147,17 @@ class Ns_Main_Gui(QMainWindow):
         action_decrease_font_size = QAction("Decrease Font Size", self.menu_prefs)
         action_decrease_font_size.setShortcut("CTRL+-")
         action_decrease_font_size.triggered.connect(self.menubar_prefs_decrease_font_size)
-        action_reset_layout = QAction("Reset Layouts", self.menu_prefs)
+        action_reset_layout = QAction("&Reset Layouts", self.menu_prefs)
         action_reset_layout.triggered.connect(lambda: self.resize_splitters(is_reset=True))
         self.menu_prefs.addAction(action_settings)
         self.menu_prefs.addAction(action_increase_font_size)
         self.menu_prefs.addAction(action_decrease_font_size)
         self.menu_prefs.addAction(action_reset_layout)
         # Help
-        self.menu_help = QMenu("Help", self.menuBar())
-        action_citing = QAction("Citing", self.menu_help)
+        self.menu_help = QMenu("&Help", self.menuBar())
+        action_citing = QAction("&Citing", self.menu_help)
         action_citing.triggered.connect(self.menubar_help_citing)
-        action_acks = QAction("Acknowledgments", self.menu_help)
+        action_acks = QAction("&Acknowledgments", self.menu_help)
         action_acks.triggered.connect(self.menubar_help_acks)
         self.menu_help.addAction(action_citing)
         self.menu_help.addAction(action_acks)

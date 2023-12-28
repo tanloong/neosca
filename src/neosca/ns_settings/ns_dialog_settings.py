@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from PySide6.QtWidgets import QListWidget, QPushButton, QStackedWidget
 
 from neosca.ns_settings.ns_settings import Ns_Settings
