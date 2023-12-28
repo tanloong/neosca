@@ -20,6 +20,7 @@ coverage.xml
 .mypy_cache/
 
 # miscellaneous
+.idea
 .vscode
 *.zip
 *.tar.gz
@@ -39,3 +40,4 @@ src/neosca_gui/data/stanza_resources
 data/stanza_resources
 *.DS_Store
 *._.
+corpus
