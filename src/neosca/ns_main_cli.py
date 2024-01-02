@@ -431,9 +431,7 @@ Contact:
         return True, None
 
     def run(self) -> Ns_Procedure_Result:
-        if self.options.gui:
-            return self.run_gui()
-        elif self.options.version:
+        if self.options.version:
             return self.show_version()
         elif self.options.list_fields:
             return self.list_fields()
@@ -444,8 +442,7 @@ Contact:
         elif self.verified_ifiles or self.verified_subfiles_list:
             return self.run_on_ifiles()  # type: ignore
         else:
-            self.args_parser.print_help()
-            return True, None
+            return self.run_gui()
 
     def list_fields(self) -> Ns_Procedure_Result:
         from neosca.ns_sca.structure_counter import StructureCounter
@@ -487,3 +484,6 @@ def main_cli() -> None:
     if not success:
         logging.critical(err_msg)
         sys.exit(1)
+
+if __name__ == "__main__":
+    main_cli()

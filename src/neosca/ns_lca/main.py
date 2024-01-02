@@ -4,10 +4,9 @@ import os.path as os_path
 import sys
 from typing import Callable, List
 
-from neosca.ns_about import __title__
 from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
-from neosca.ns_print import color_print, get_yes_or_no
+from neosca.ns_print import color_print
 from neosca.ns_util import Ns_Procedure_Result
 
 
@@ -16,8 +15,6 @@ class LCAUI:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
         self.scaio = Ns_IO()
-
-        self.is_spacy_initialized: bool = False
 
     def create_args_parser(self) -> argparse.ArgumentParser:
         args_parser = argparse.ArgumentParser(
@@ -119,122 +116,6 @@ class LCAUI:
         self.options = options
         return True, None
 
-    def install_spacy(self) -> Ns_Procedure_Result:
-        import subprocess
-        from subprocess import CalledProcessError
-
-        command = [sys.executable, "-m", "pip", "install", "-U", "spacy"]
-        if get_yes_or_no(
-            "Do you want to download spaCy from a Chinese mirror site? If you"
-            " are inside of China, you may want to use this for a faster network"
-            " connection."
-        ):
-            command.extend(["-i", "https://pypi.tuna.tsinghua.edu.cn/simple"])
-
-        try:
-            subprocess.run(command, check=True, capture_output=False)
-        except CalledProcessError as e:
-            return False, f"Failed to install spaCy: {e}"
-
-        return True, None
-
-    def install_model(self) -> Ns_Procedure_Result:
-        import subprocess
-        from subprocess import CalledProcessError
-
-        if get_yes_or_no(
-            "Do you want to download en_core_web_sm from sourceforge.net? If you"
-            " are inside of China, you may want to use this for a faster network"
-            " connection."
-        ):
-            command = [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "https://master.dl.sourceforge.net/project/en-core-web-sm/en_core_web_sm-3.7.0-py3-none-any.whl?viasf=1",
-            ]
-        else:
-            command = [sys.executable, "-m", "spacy", "download", "en_core_web_sm"]
-
-        try:
-            subprocess.run(command, check=True, capture_output=False)
-        except CalledProcessError as e:
-            return False, f"Failed to download en_core_web_sm: {e}"
-
-        return True, None
-
-    def check_spacy_and_model(self) -> Ns_Procedure_Result:
-        required_version_prefix = "3.7."
-        required_version_range = ">=3.7.0,<3.8.0"
-        ask_install_spacy = False
-        ask_install_model = False
-
-        try:
-            logging.info("Trying to load spaCy...")
-            import spacy  # type: ignore # noqa: F401 'spacy' imported but unused
-
-        except ModuleNotFoundError:
-            ask_install_spacy = True
-        else:
-            spacy_version = spacy.__version__
-            if not spacy_version.startswith(required_version_prefix):
-                logging.info(
-                    f"The installed version {spacy_version} of spaCy does not match the version"
-                    f" required by {__title__}: {required_version_range}"
-                )
-                ask_install_spacy = True
-            else:
-                color_print(
-                    "OKGREEN",
-                    "ok",
-                    prefix=f"spaCy{required_version_range} has already been installed. ",
-                )
-
-        try:
-            logging.info("Trying to load en_core_web_sm...")
-            import en_core_web_sm  # type: ignore # noqa: F401 'en_core_web_sm' imported but unused
-        except ModuleNotFoundError:
-            ask_install_model = True
-        else:
-            model_version = en_core_web_sm.__version__
-            if not model_version.startswith(required_version_prefix):
-                logging.info(
-                    f"The installed version {model_version} of en_core_web_sm does not match the"
-                    f" version required by {__title__}: {required_version_range}"
-                )
-                ask_install_model = True
-            else:
-                color_print(
-                    "OKGREEN",
-                    "ok",
-                    prefix=(f"en_core_web_sm{required_version_range} has already been installed. "),
-                )
-
-        if ask_install_spacy:
-            is_install = get_yes_or_no(
-                f"\nRunning LCA requires spaCy{required_version_range}, do you want me to"
-                " install/update it for you?"
-            )
-            if is_install:
-                self.install_spacy()
-            else:
-                logging.info("\nYou need to manually install it using:\npip install -U spacy")
-
-        if ask_install_model:
-            is_install = get_yes_or_no(
-                f"\nRunning LCA requires spaCy's model en_core_web_sm{required_version_range},"
-                " do you want me to install it for you?"
-            )
-            if is_install:
-                self.install_model()
-            else:
-                logging.info(
-                    "\nYou need to manually install it using:" "\npython -m spacy download en_core_web_sm"
-                )
-
-        return True, None
-
     def exit_routine(self) -> None:
         if self.options.is_quiet or self.options.is_stdout:
             return
@@ -248,10 +129,6 @@ class LCAUI:
 
     def run_tmpl(func: Callable):  # type:ignore
         def wrapper(self, *args, **kwargs):
-            # Has moved to Stanza
-            # sucess, err_msg = self.check_spacy_and_model()
-            # if not sucess:
-            #     return sucess, err_msg
             if not self.options.is_stdout:
                 sucess, err_msg = Ns_IO.is_writable(self.options.ofile)
                 if not sucess:

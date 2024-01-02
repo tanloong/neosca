@@ -7,7 +7,7 @@ import string
 import sys
 from itertools import islice
 from math import log, sqrt
-from typing import Callable, Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 from neosca import DATA_DIR
 from neosca.ns_io import Ns_IO
@@ -86,7 +86,6 @@ class Ns_LCA:
         self.cache_extension = ".pickle.lzma"
 
         self.scaio = Ns_IO()
-        self.nlp_spacy: Optional[Callable] = None
 
         data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug(f"Loading {data_path}...")
@@ -517,17 +516,3 @@ class Ns_LCA:
         handle.close()
 
         return True, None
-
-    def ensure_spacy_initialized(func: Callable):  # type:ignore
-        def wrapper(self, *args, **kwargs):
-            if self.nlp_spacy is None:
-                logging.info("Initializing spaCy...")
-                import spacy  # type: ignore
-
-                # default spacy pipeline: "tok2vec", "tagger", "parser",
-                #  "attribute_ruler", "lemmatizer", "ner"
-                self.nlp_spacy = spacy.load("en_core_web_sm", exclude=["ner", "parser"])
-
-            return func(self, *args, **kwargs)
-
-        return wrapper
