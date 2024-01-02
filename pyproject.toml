@@ -51,6 +51,21 @@ nsca-lca = "neosca.ns_lca.main:lca_main"
 [tool.setuptools.dynamic]
 version = {attr = "neosca.ns_about.__version__"}
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+neosca = ["ns_data/*"]
+
+[tool.setuptools.exclude-package-data]
+neosca = [
+"ns_data/stanza_resources/en/depparse",
+"ns_data/stanza_resources/en/ner",
+"ns_data/stanza_resources/en/sentiment",
+"ns_data/stanza_resources/en/default.zip",
+"ns_data/stanza_resources/zh-hans",
+]
+
 # Ruff complete options: https://docs.astral.sh/ruff/settings/#extend
 [tool.ruff]
 line-length = 112

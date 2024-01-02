@@ -11,17 +11,14 @@ if hasattr(sys, attr):
 else:
     NEOSCA_DIR: Path = PKG_DIR.parent.parent
 
-SETTING_PATH: Path = NEOSCA_DIR / "settings.ini"
-
-IMG_DIR: Path = NEOSCA_DIR / "imgs"
-ICON_PATH: Path = IMG_DIR / "ns_icon.ico"
-ICON_MAC_PATH: Path = IMG_DIR / "ns_icon.icns"
-
 DATA_DIR: Path = PKG_DIR / "ns_data"
-QSS_PATH: Path = DATA_DIR / "ns_style.qss"
+QSS_PATH: Path = DATA_DIR / "styles.qss"
 STANZA_MODEL_DIR: Path = DATA_DIR / "stanza_resources"
 CITING_PATH: Path = DATA_DIR / "citings.json"
 ACKS_PATH: Path = DATA_DIR / "acks.json"
+ICON_PATH: Path = DATA_DIR / "ns_icon.ico"
+ICON_MAC_PATH: Path = DATA_DIR / "ns_icon.icns"
+SETTING_PATH: Path = DATA_DIR / "settings.ini"
 
 DESKTOP_PATH: Path = Path.home().absolute() / "Desktop"
 

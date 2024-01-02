@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from neosca import IMG_DIR
+from neosca import ICON_MAC_PATH, ICON_PATH
 from PIL import Image, ImageDraw, ImageFont
 
 w = 1024
@@ -23,7 +23,7 @@ text_args["xy"] = ((w - text_w) // 2, (h - text_h) // 2)
 draw.text(**text_args, fill=text_color)
 image.save("ns_icon.png")  # {{{
 image.save(
-    IMG_DIR / "ns_icon.ico",
+    ICON_PATH,
     sizes=[
         (16, 16),
         (20, 20),
@@ -42,5 +42,5 @@ image.save(
     ],
 )
 image.save(
-    IMG_DIR / "ns_icon.icns", sizes=[(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)]
+    ICON_MAC_PATH, sizes=[(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)]
 )  # }}}
