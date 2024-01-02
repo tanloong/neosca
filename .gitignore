@@ -41,3 +41,4 @@ data/stanza_resources
 *.DS_Store
 *._.
 corpus
+stanza_resources

@@ -7,12 +7,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neosca"
-dynamic = ["authors", "version"]
+authors = [{"name" = "Tan, Long (谭龙)", "email" = "tanloong@foxmail.com"},]
+dynamic = ["version"]
 description = "Fork of L2SCA and LCA"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.8"
-keywords = ["L2SCA", "LCA", "Syntactic Complexity", "Lexical Complexity", "Constituency Parsing", "Tregex", "Corpus Linguistics"]
+keywords = ["L2SCA", "Syntactic Complexity", "LCA", "Lexical Complexity", "Constituency Parsing", "Tregex", "Corpus Linguistics"]
 classifiers=[
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
@@ -40,12 +41,14 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/tanloong/neosca"
 # Documentation = "https://readthedocs.org"
-Repository = "https://github.com/tanloong/neosca"
 Issues = "https://github.com/tanloong/neosca/issues"
 Changelog = "https://github.com/tanloong/neosca/blob/master/CHANGELOG.md"
 
+[project.scripts]
+nsca = "neosca.ns_main_cli:main_cli"
+nsca-lca = "neosca.ns_lca.main:lca_main"
+
 [tool.setuptools.dynamic]
-authors = [{name = "neosca.ns_about.__author__", email = "neosca.ns_about.__email__"}]
 version = {attr = "neosca.ns_about.__version__"}
 
 # Ruff complete options: https://docs.astral.sh/ruff/settings/#extend

@@ -3,13 +3,13 @@
 import sys
 from pathlib import Path
 
-SRC_DIR: Path = Path(__file__).parent.absolute()
+PKG_DIR: Path = Path(__file__).parent.absolute()
 # https://stackoverflow.com/a/13790741/20732031
 attr = "_MEIPASS"
 if hasattr(sys, attr):
     NEOSCA_DIR: Path = Path(getattr(sys, attr)).absolute()
 else:
-    NEOSCA_DIR: Path = SRC_DIR.parent.parent
+    NEOSCA_DIR: Path = PKG_DIR.parent.parent
 
 SETTING_PATH: Path = NEOSCA_DIR / "settings.ini"
 
@@ -17,7 +17,7 @@ IMG_DIR: Path = NEOSCA_DIR / "imgs"
 ICON_PATH: Path = IMG_DIR / "ns_icon.ico"
 ICON_MAC_PATH: Path = IMG_DIR / "ns_icon.icns"
 
-DATA_DIR: Path = NEOSCA_DIR / "data"
+DATA_DIR: Path = PKG_DIR / "ns_data"
 QSS_PATH: Path = DATA_DIR / "ns_style.qss"
 STANZA_MODEL_DIR: Path = DATA_DIR / "stanza_resources"
 CITING_PATH: Path = DATA_DIR / "citings.json"
@@ -25,4 +25,4 @@ ACKS_PATH: Path = DATA_DIR / "acks.json"
 
 DESKTOP_PATH: Path = Path.home().absolute() / "Desktop"
 
-sys.path.insert(0, str(SRC_DIR))
+sys.path.insert(0, str(PKG_DIR))

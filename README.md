@@ -11,13 +11,13 @@
 [![downloads](https://static.pepy.tech/badge/neosca)](https://pepy.tech/project/neosca)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE.txt)
 
-<!-- ![](img/testing-on-Windows.gif) -->
-
 [简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)|
 [繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)|
 English
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA), with added support for Windows and an improved command-line interface for easier usage. NeoSCA is written by Tan, Long (谭龙)。It accepts written English texts and computes the following measures:
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/). NeoSCA is written by Tan, Long (谭龙)。
+
+It accepts written English texts and computes the following measures:<!--{{{-->
 
 <details>
 
@@ -58,9 +58,7 @@ the frequency of 9 structures in the text:
 13. complex nominals per T-unit (CN/T)
 14. complex nominals per clause (CP/C)
 
-</details>
-
-<a name="readme-top"></a>
+</details>}}}
 
 ## Contents
 
@@ -82,25 +80,19 @@ the frequency of 9 structures in the text:
 ## Highlights
 
 * Cross-platform compatibility: Windows, macOS, and Linux
-* Flexible command-line options to serve various needs
-* Supports reading txt/docx/odt files
-* Custom syntactic structure search/calculation
+* Both graphical and command-line interfaces
+* Multiple filetypes support: txt/docx/odt
 
-## Install
+## Download
 
-### Install NeoSCA
+### Get binary builds
 
-To install NeoSCA, you need to have [Python](https://www.python.org/) 3.7 or later installed on your system. You can check if you already have Python installed by running the following command in your terminal:
+1. [Github Releases]()
+2. [Baidu Netdisk]()
 
-```sh
-python --version
-```
+### From PyPI
 
-If Python is not installed, you can download and install it from [Python website](https://www.python.org/downloads/). Once you have Python installed, you can install `neosca` using `pip`:
-
-```sh
-pip install neosca
-```
+`pip3 install neosca`
 
 If you are in China and having trouble with slow download speeds or network issues, you can use the Tsinghua University PyPI mirror to install `neosca`:
 
@@ -108,26 +100,14 @@ If you are in China and having trouble with slow download speeds or network issu
 pip install neosca -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Install dependencies
+Prebuilt binaries
 
-NeoSCA depends on [Java](https://www.java.com/en/download/manual.jsp), [Stanford Parser](https://nlp.stanford.edu/software/lex-parser.shtml), and [Stanford Tregex](https://nlp.stanford.edu/software/tregex.html). NeoSCA provides an option to install all of them:
+### Building
 
-```sh
-nsca --check-depends
-```
-
-Called with the `--check-depends`,
-NeoSCA will download and unzip archive files of these three to
-`%AppData%`
-(for Windows users, usually `C:\\Users\\<username>\\AppData\\Roaming`) or
-`~/.local/share`
-(for macOS and Linux users),
-and set the environment variable `JAVA_HOME`, `STANFORD_PARSER_HOME`, and `STANFORD_TREGEX_HOME`.
-**If you have previously installed any of the three, you need to manually set the according environment variable.**
+git clone https://github.com/tanloong/neosca
+make
 
 ## Usage
-
-NeoSCA is a command-line tool. You can see the help message by running `nsca --help` in your terminal.
 
 ### Basic usage
 

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-import operator
-
-from neosca.ns_exceptions import StructureNotFoundError
 from neosca.ns_sca import l2sca
-from neosca.ns_sca.structure_counter import Structure, StructureCounter
 from neosca.ns_tregex.tree import Tree
 
 from .base_tmpl import BaseTmpl

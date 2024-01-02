@@ -1,4 +1,4 @@
-.PHONY: build run clean lint
+.PHONY: build run clean install lint
 
 build:
 	pyinstaller ./neosca-gui.spec --noconfirm
@@ -15,6 +15,8 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 
+install:
+	pip install .
 lint:
 	ruff format src/ tests/
 	ruff check src/ tests/

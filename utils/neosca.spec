@@ -23,31 +23,31 @@ if IS_MAC:
 datas.extend(
     [
         # Stanza
-        ("./data/stanza_resources/resources.json", "data/stanza_resources/"),
+        ("../src/neosca/ns_data/stanza_resources/resources.json", "data/stanza_resources/"),
         (
-            "./data/stanza_resources/en/backward_charlm/",
-            "./data/stanza_resources/en/backward_charlm/",
+            "../src/neosca/ns_data/stanza_resources/en/backward_charlm/",
+            "../src/neosca/ns_data/stanza_resources/en/backward_charlm/",
         ),
         (
-            "./data/stanza_resources/en/constituency/",
-            "./data/stanza_resources/en/constituency/",
+            "../src/neosca/ns_data/stanza_resources/en/constituency/",
+            "../src/neosca/ns_data/stanza_resources/en/constituency/",
         ),
         (
-            "./data/stanza_resources/en/forward_charlm/",
-            "./data/stanza_resources/en/forward_charlm/",
+            "../src/neosca/ns_data/stanza_resources/en/forward_charlm/",
+            "../src/neosca/ns_data/stanza_resources/en/forward_charlm/",
         ),
-        ("./data/stanza_resources/en/lemma/", "data/stanza_resources/en/lemma/"),
-        ("./data/stanza_resources/en/mwt/", "data/stanza_resources/en/mwt/"),
-        ("./data/stanza_resources/en/pos/", "data/stanza_resources/en/pos/"),
-        ("./data/stanza_resources/en/pretrain/", "data/stanza_resources/en/pretrain/"),
-        ("./data/stanza_resources/en/tokenize/", "data/stanza_resources/en/tokenize/"),
+        ("../src/neosca/ns_data/stanza_resources/en/lemma/", "data/stanza_resources/en/lemma/"),
+        ("../src/neosca/ns_data/stanza_resources/en/mwt/", "data/stanza_resources/en/mwt/"),
+        ("../src/neosca/ns_data/stanza_resources/en/pos/", "data/stanza_resources/en/pos/"),
+        ("../src/neosca/ns_data/stanza_resources/en/pretrain/", "data/stanza_resources/en/pretrain/"),
+        ("../src/neosca/ns_data/stanza_resources/en/tokenize/", "data/stanza_resources/en/tokenize/"),
         # Others
-        ("./data/l2sca_structures.json", "data/"),
-        ("./data/anc_all_count.pickle.lzma", "data/"),
-        ("./data/bnc_all_filtered.pickle.lzma", "data/"),
-        ("./data/citings.json", "data/"),
-        ("./data/acks.json", "data/"),
-        ("./data/ns_style.qss", "data/"),
+        ("../src/neosca/ns_data/l2sca_structures.json", "data/"),
+        ("../src/neosca/ns_data/anc_all_count.pickle.lzma", "data/"),
+        ("../src/neosca/ns_data/bnc_all_filtered.pickle.lzma", "data/"),
+        ("../src/neosca/ns_data/citings.json", "data/"),
+        ("../src/neosca/ns_data/acks.json", "data/"),
+        ("../src/neosca/ns_data/ns_style.qss", "data/"),
         ("./imgs/", "imgs/"),
     ]
 )
