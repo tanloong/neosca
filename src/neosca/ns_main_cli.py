@@ -433,6 +433,8 @@ Contact:
     def run(self) -> Ns_Procedure_Result:
         if self.options.version:
             return self.show_version()
+        elif self.options.gui:
+            return self.run_gui()
         elif self.options.list_fields:
             return self.list_fields()
         elif self.options.expand_wildcards:
@@ -442,7 +444,8 @@ Contact:
         elif self.verified_ifiles or self.verified_subfiles_list:
             return self.run_on_ifiles()  # type: ignore
         else:
-            return self.run_gui()
+            self.args_parser.print_help()
+            return True, None
 
     def list_fields(self) -> Ns_Procedure_Result:
         from neosca.ns_sca.structure_counter import StructureCounter
