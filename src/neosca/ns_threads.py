@@ -117,8 +117,6 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            # Drop file_path
-            del values[0]
             model.set_item_str(rowno, 0, file_name)
             model.set_row_num(rowno, values, start=1)
             model.row_added.emit()
