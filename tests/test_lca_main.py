@@ -1,5 +1,6 @@
 import glob
 import os.path as os_path
+from neosca import DATA_DIR
 
 from neosca.ns_lca.main import LCAUI
 
@@ -91,12 +92,12 @@ class TestLCAMain(BaseTmpl):
         assert ui.verified_ifiles is not None
         self.assertSetEqual(ui.verified_ifiles, set(expected_ifiles))
 
-        args = ["nsca-lca", self.samples_dir, os_path.join(self.project_dir, "imgs")]
+        args = ["nsca-lca", self.samples_dir, str(DATA_DIR)]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         self.assertSetEqual(ui.verified_ifiles, set(expected_ifiles))
 
-        args = ["nsca-lca", os_path.join(self.project_dir, "imgs")]
+        args = ["nsca-lca", str(DATA_DIR)]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         self.assertFalse(ui.verified_ifiles)

@@ -1,6 +1,8 @@
 import os.path as os_path
 import re
 
+from neosca import DATA_DIR
+
 from .cmdline_tmpl import CmdlineTmpl
 
 cmdline_text = "This is a test."
@@ -123,7 +125,7 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "neosca",
                 self.samples_dir,
                 # gif file
-                os_path.join(self.project_dir, "imgs"),
+                str(DATA_DIR),
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
