@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-acks_path = Path(__file__).parent.parent.absolute() / "data" / "acks.json"
+acks_path = Path(__file__).parent.parent.absolute() / "src" / "neosca" / "ns_data" / "acks.json"
 with open(acks_path, encoding="utf-8") as f:
     ack_data = json.load(f)
 acknowledgment, projects = ack_data.values()

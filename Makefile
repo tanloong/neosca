@@ -1,7 +1,8 @@
-.PHONY: build run clean install lint
+.PHONY: build run clean install lint test
 
 build:
-	pyinstaller ./neosca-gui.spec --noconfirm
+	python -m build
+	pyinstaller ./utils/ns_packaging.spec --noconfirm --clean
 
 run:
 	./dist/neosca-gui/neosca-gui
@@ -14,10 +15,16 @@ clean:
 	rm -rf coverage.xml
 	rm -rf build/
 	rm -rf dist/
+	rm -rf src/neosca.egg-info
 
 install:
+	echo > src/neosca/ns_data/settings.ini
 	pip install .
+
 lint:
 	ruff format src/ tests/
 	ruff check src/ tests/
 	mypy --check-untyped-defs src/
+
+test:
+	python -m unittest

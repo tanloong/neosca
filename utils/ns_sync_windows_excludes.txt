@@ -1,1 +1,10 @@
 stanza_resources
+git
+idea
+ruff_cache
+editorconfig
+build
+dist
+corpus
+egg-info
+__pycache__

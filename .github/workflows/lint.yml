@@ -12,7 +12,7 @@ jobs:
   lint:
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,10 +21,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependency
-        run: pip install black flake8 mypy
-      - name: Run black
-        run: black neosca/ tests/ --line-length 97 --preview
-      - name: Run flake8
-        run: flake8 neosca/ tests/ --count --max-line-length=97 --statistics --ignore=E203,E501,W503
-      - name: Run mypy 
-        run: mypy --check-untyped-defs neosca/
+        run: pip install ruff mypy
+      - name: Run ruff
+        run: ruff check src/neosca/ tests/
+      - name: Run mypy
+        run: mypy --check-untyped-defs src/neosca/

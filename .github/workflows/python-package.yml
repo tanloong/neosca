@@ -17,7 +17,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.8', '3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -34,7 +34,6 @@ jobs:
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         export SHELL=bash
-        python -m neosca --check-depends --yes
       shell: bash
     - name: Install dependencies on Windows
       if: matrix.os == 'windows-latest'
@@ -42,19 +41,18 @@ jobs:
         python -m pip install --upgrade pip
         if (Test-Path -Path '.\requirements-dev.txt' -PathType Leaf) {pip install --upgrade -r requirements-dev.txt}
         if (Test-Path -Path '.\requirements.txt' -PathType Leaf) {pip install --upgrade -r requirements.txt}
-        python -m neosca --check-depends --yes
       shell: pwsh
     - name: Build dist and test with unittest on macOS and Linux
       if: matrix.os != 'windows-latest'
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         pip install dist/*.whl
         python -m unittest
       shell: bash
     - name: Build dist and test with unittest on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         pip install (Get-ChildItem dist/*.whl)
         python -m unittest
       shell: pwsh
