@@ -26,8 +26,6 @@ class Ns_NLP_Stanza:
         cls.pipeline = stanza.Pipeline(
             lang=lang,
             dir=model_dir,
-            # TODO: need to (1) choose processors dynamically when initializing
-            # (2) see if possible to drop or load processors after initializing
             processors=cls.processors,
             # https://github.com/stanfordnlp/stanza/issues/331
             resources_url="stanford",
@@ -53,13 +51,9 @@ class Ns_NLP_Stanza:
         cls,
         doc: Union[str, Document],
         processors: Optional[tuple] = None,
-        is_cache_for_future_runs: bool = True,
         cache_path: Optional[str] = None,
     ) -> Document:
         has_just_processed: bool = False
-
-        if cache_path is None:
-            cache_path = "cmdline_text.pickle.lzma"
 
         if processors is None:
             processors = cls.processors
@@ -80,7 +74,7 @@ class Ns_NLP_Stanza:
                 setattr(doc, attr, existing_processors | filtered_processors)
                 has_just_processed = True
 
-        if has_just_processed and is_cache_for_future_runs:
+        if has_just_processed and cache_path is not None:
             logging.debug(f"Caching document to {cache_path}")
             with open(cache_path, "wb") as f:
                 f.write(lzma.compress(cls.doc2serialized(doc)))
@@ -98,26 +92,21 @@ class Ns_NLP_Stanza:
     def get_constituency_tree(
         cls,
         doc: Union[str, Document],
-        is_cache_for_future_runs: bool = True,
+        *,
         cache_path: Optional[str] = None,
     ) -> str:
         if cache_path is None:
             cache_path = "cmdline_text.pickle.lzma"
-        doc = cls.nlp(
-            doc,
-            processors=("tokenize", "pos", "constituency"),
-            is_cache_for_future_runs=is_cache_for_future_runs,
-            cache_path=cache_path,
-        )
+        doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
         return cls.doc2tree(doc)
 
     @classmethod
     def get_lemma_and_pos(
         cls,
         doc: Union[str, Document],
+        *,
         tagset: Literal["ud", "ptb"],
-        is_cache_for_future_runs: bool = False,
-        cache_path: str = "cmdline_text.pkl.lzma",
+        cache_path: Optional[str] = None,
     ) -> Generator[Tuple[str, str], None, None]:
         if tagset == "ud":
             pos_attr = "upos"
@@ -126,12 +115,7 @@ class Ns_NLP_Stanza:
         else:
             assert False, "Invalid tagset"
 
-        doc = cls.nlp(
-            doc,
-            is_cache_for_future_runs=is_cache_for_future_runs,
-            cache_path=cache_path,
-            processors=("tokenize", "pos", "lemma"),
-        )
+        doc = cls.nlp(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path)
         for sent in doc.sentences:
             for word in sent.words:
                 # Foreign words

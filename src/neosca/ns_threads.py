@@ -59,7 +59,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             try:
                 counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except Exception as ex:
+            except BaseException as ex:
                 raise ex
             else:
                 assert counter is not None, "SCA StructureCounter is None"
@@ -110,7 +110,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
                 values = lca_instance._analyze(file_path=file_path)
-            except Exception as ex:
+            except BaseException as ex:
                 raise ex
             else:
                 assert values is not None, f"LCA got None on {file_name}"
@@ -137,7 +137,7 @@ class Ns_Thread(QThread):
         self.start()
         try:
             self.worker.run()
-        except Exception as ex:
+        except BaseException as ex:
             self.err_occurs.emit(ex)
 
     # def cancel(self) -> None:

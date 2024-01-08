@@ -1915,6 +1915,6 @@ class TestL2SCA(BaseTmpl):
         self.run_test(l2sca.CP, "(NODE (CC))", 0)
 
     # }}}
-    def run_test(self, searcher: l2sca.Abstract_Searcher, tree_str: str, expected_matches: int):
+    def run_test(self, searcher, tree_str: str, expected_matches: int):
         tree = next(Tree.fromstring(tree_str))
         self.assertEqual(len(list(searcher.searchNodeIterator(tree))), expected_matches)

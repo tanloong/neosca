@@ -7,7 +7,7 @@ import sys
 from typing import Callable, List, Optional
 
 from neosca.ns_about import __title__, __version__
-from neosca.ns_io import Ns_IO
+from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_print import color_print
 from neosca.ns_util import Ns_Procedure_Result
 
@@ -260,7 +260,7 @@ Contact:
             logging.info(f"Command-line text: {options.text}")
             self.verified_ifiles = None
         else:
-            self.verified_ifiles = Ns_IO().get_verified_ifile_list(ifile_list)
+            self.verified_ifiles = Ns_IO.get_verified_ifile_list(ifile_list)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list: List[list] = []
@@ -354,6 +354,8 @@ Contact:
             )
 
     def exit_routine(self) -> None:
+        Ns_Cache.dump_cache_info()
+
         if self.options.is_quiet or self.options.is_stdout:
             return
 

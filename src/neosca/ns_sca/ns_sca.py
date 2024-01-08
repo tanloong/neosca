@@ -7,7 +7,7 @@ import sys
 from typing import Dict, List, Optional, Set, Tuple
 
 from neosca.ns_about import __title__
-from neosca.ns_io import Ns_IO
+from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_sca.querier import Ns_Tregex
 from neosca.ns_sca.structure_counter import StructureCounter
 
@@ -35,13 +35,12 @@ class Ns_SCA:
         self.selected_measures = selected_measures
         self.precision = precision
         self.is_reserve_parsed = is_reserve_parsed
-        self.is_use_past_parsed = is_use_past_parsed
+        self.use_cache = is_use_past_parsed
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
         self.is_skip_querying = is_skip_querying
         self.is_skip_parsing = is_skip_parsing
         self.is_auto_save = is_auto_save
-        self.cache_extension = ".pickle.lzma"
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
         logging.debug(f"[{__title__}] user_snames: {self.user_snames}")
@@ -50,7 +49,6 @@ class Ns_SCA:
             StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
 
         self.counters: List[StructureCounter] = []
-        self.io = Ns_IO()
         self.is_stanford_tregex_initialized = False
 
     def update_options(self, kwargs: Dict):
@@ -85,18 +83,12 @@ class Ns_SCA:
         return counter
 
     def parse_text(self, text: str, cache_path: Optional[str] = None) -> str:
-        from neosca.ns_nlp import Ns_NLP_Stanza
-
         if self.is_skip_parsing:  # assume input as parse trees
             return text
 
-        if cache_path is None:
-            cache_path = f"cmdline_text{self.cache_extension}"
-        trees = Ns_NLP_Stanza.get_constituency_tree(
-            text,
-            is_cache_for_future_runs=self.is_reserve_parsed,
-            cache_path=cache_path,
-        )
+        from neosca.ns_nlp import Ns_NLP_Stanza
+
+        trees = Ns_NLP_Stanza.get_constituency_tree(text, cache_path=cache_path)
         return trees
 
     def parse_ifile(self, ifile: str) -> Optional[str]:
@@ -105,29 +97,28 @@ class Ns_SCA:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         if self.is_skip_parsing:
-            # assume input as parse trees
-            return self.io.read_txt(ifile, is_guess_encoding=False)
+            # Assume input as parse trees
+            return Ns_IO.read_txt(ifile, is_guess_encoding=False)
 
-        cache_path = os_path.splitext(ifile)[0] + self.cache_extension
-        if self.is_use_past_parsed and Ns_IO.has_valid_cache(file_path=ifile, cache_path=cache_path):
-            logging.info(
-                f"Loading cache: {cache_path} already exists, and is non-empty and newer than {ifile}."
-            )
-            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            return Ns_NLP_Stanza.get_constituency_tree(
-                doc, is_cache_for_future_runs=self.is_reserve_parsed, cache_path=cache_path
-            )
+        if self.use_cache:
+            cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
+            if cache_available:
+                logging.info(f"Loading cache: {cache_path}.")
+                doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+                return Ns_NLP_Stanza.get_constituency_tree(doc, cache_path=cache_path)
+        else:
+            cache_path = None
+            cache_available = False
 
-        text = self.io.read_file(ifile)
-        if text is None:
+        if (text := Ns_IO.read_file(ifile)) is None:
             return None
-
         try:
             trees = self.parse_text(text, cache_path)
-        except KeyboardInterrupt:
-            if os_path.exists(cache_path):
+        except BaseException as e:
+            # If cache is generated at current run, remove it as it is potentially broken
+            if cache_path is not None and os_path.exists(cache_path) and not cache_available:
                 os.remove(cache_path)
-            sys.exit(1)
+            raise e
         else:
             return trees
 

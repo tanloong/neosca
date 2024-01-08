@@ -5,12 +5,16 @@ try:
 except ImportError:
     from xml.etree.ElementTree import XML, fromstring
 import glob
+import json
 import logging
+import lzma
 import os.path as os_path
+import pickle
 import sys
 import zipfile
 from os import PathLike
-from typing import Any, ByteString, Callable, Dict, Iterable, Optional, Set, Union
+from pathlib import Path
+from typing import Any, ByteString, Dict, Iterable, Optional, Sequence, Set, Tuple, Union
 
 from charset_normalizer import detect
 
@@ -28,13 +32,10 @@ class Ns_IO:
     ODT_NAMESPACE = ".//{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
     ODT_PARA = ODT_NAMESPACE + "p"
 
-    def __init__(self):
-        self.extension_readfunc_map: Dict[str, Callable] = {
-            extension: getattr(self, f"read_{extension}") for extension in self.SUPPORTED_EXTENSIONS
-        }
-        self.previous_encoding: str = "utf-8"
+    previous_encoding: str = "utf-8"
 
-    def read_docx(self, path: str) -> str:
+    @classmethod
+    def read_docx(cls, path: str) -> str:
         """
         Take the path of a docx file as argument, return the text in unicode.
         This approach does not extract text from headers and footers.
@@ -46,19 +47,21 @@ class Ns_IO:
         tree = XML(xml_content)
 
         paragraphs = []
-        for paragraph in tree.iter(self.DOCX_PARA):
-            text = "".join(node.text for node in paragraph.iter(self.DOCX_TEXT) if node.text)
+        for paragraph in tree.iter(cls.DOCX_PARA):
+            text = "".join(node.text for node in paragraph.iter(cls.DOCX_TEXT) if node.text)
             paragraphs.append(text)
         return "\n".join(paragraphs)
 
-    def read_odt(self, path: str) -> str:
+    @classmethod
+    def read_odt(cls, path: str) -> str:
         with zipfile.ZipFile(path) as zip_file:
             xml_content = zip_file.read("content.xml")
         root = fromstring(xml_content)
-        paragraphs = root.findall(self.ODT_PARA)
+        paragraphs = root.findall(cls.ODT_PARA)
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
-    def _read_txt(self, path: str, mode: str, encoding: Optional[str] = None) -> Union[str, ByteString]:
+    @classmethod
+    def _read_txt(cls, path: str, mode: str, encoding: Optional[str] = None) -> Union[str, ByteString]:
         try:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()
@@ -70,16 +73,17 @@ class Ns_IO:
         else:
             return content
 
-    def read_txt(self, path: str, is_guess_encoding: bool = True) -> Optional[str]:
+    @classmethod
+    def read_txt(cls, path: str, is_guess_encoding: bool = True) -> Optional[str]:
         if not is_guess_encoding:
-            return self._read_txt(path, "r", "utf-8")  # type:ignore
+            return cls._read_txt(path, "r", "utf-8")  # type:ignore
 
         try:
-            logging.info(f"Attempting to read {path} with {self.previous_encoding} encoding...")
-            content = self._read_txt(path, "r", self.previous_encoding)  # type:ignore
+            logging.info(f"Attempting to read {path} with {cls.previous_encoding} encoding...")
+            content = cls._read_txt(path, "r", cls.previous_encoding)  # type:ignore
         except UnicodeDecodeError:
             logging.info(f"Attempt failed. Reading {path} in binary mode...")
-            bytes_ = self._read_txt(path, "rb")
+            bytes_ = cls._read_txt(path, "rb")
             logging.info("Guessing the encoding of the byte string...")
             encoding = detect(bytes_)["encoding"]  # type:ignore
 
@@ -87,14 +91,14 @@ class Ns_IO:
                 logging.warning(f"{path} is of unsupported file type. Skipped.")
                 return None
 
-            self.previous_encoding = encoding  # type:ignore
+            cls.previous_encoding = encoding  # type:ignore
             logging.info(f"Decoding the byte string with {encoding} encoding...")
             content = bytes_.decode(encoding=encoding)  # type:ignore
 
         return content  # type:ignore
 
     @classmethod
-    def suffix(cls, file_path: Union[str, PathLike]) -> str:
+    def suffix(cls, file_path: Union[str, PathLike], strip_dot: bool = False) -> str:
         """
         >>> suffix('my/library/setup.py')
         .py
@@ -103,15 +107,19 @@ class Ns_IO:
         >>> suffix('my/library')
         ''
         """
-        return os_path.splitext(file_path)[-1]
+        extension = os_path.splitext(file_path)[-1]
+        if strip_dot:
+            extension = extension.lstrip(".")
+        return extension
 
-    def read_file(self, path: str) -> Optional[str]:
-        extension = self.suffix(path)
-        if extension not in self.SUPPORTED_EXTENSIONS:
+    @classmethod
+    def read_file(cls, path: str) -> Optional[str]:
+        extension = cls.suffix(path, strip_dot=True)
+        if extension not in cls.SUPPORTED_EXTENSIONS:
             logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
             return None
 
-        return self.extension_readfunc_map[extension](path)
+        return getattr(cls, f"read_{extension}")(path)
 
     @classmethod
     def is_writable(cls, filename: str) -> Ns_Procedure_Result:
@@ -136,12 +144,9 @@ class Ns_IO:
 
     @classmethod
     def load_pickle_lzma(cls, file_path: Union[str, PathLike]) -> Any:
-        import lzma
-        import pickle
-
         if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} does not exist")
-        if not str(file_path).endswith((".pkl.lzma", ".pickle.lzma")):
+            raise FileNotFoundError(f"{file_path} is not an existing file")
+        if not str(file_path).endswith((".pickle.lzma", ".pkl.lzma")):
             raise ValueError(
                 f"{file_path} does not look like a pickle lzma file as it has neither .pkl.lzma nor .pickle.lzma extension"
             )
@@ -154,10 +159,8 @@ class Ns_IO:
 
     @classmethod
     def load_pickle(cls, file_path: Union[str, PathLike]) -> Any:
-        import pickle
-
         if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} does not exist")
+            raise FileNotFoundError(f"{file_path} is not an existing file")
         if not str(file_path).endswith((".pkl", ".pickle")):
             raise ValueError(
                 f"{file_path} does not look like a pickle file as it has neither .pkl nor .pickle extension"
@@ -169,10 +172,8 @@ class Ns_IO:
 
     @classmethod
     def load_lzma(cls, file_path: Union[str, PathLike]) -> bytes:
-        import lzma
-
         if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} does not exist")
+            raise FileNotFoundError(f"{file_path} is not an existing file")
         if not str(file_path).endswith(".lzma"):
             raise ValueError(f"{file_path} does not look like a json file because it has no .lzma extension")
 
@@ -182,22 +183,26 @@ class Ns_IO:
 
     @classmethod
     def load_json(cls, file_path: Union[str, PathLike]) -> Any:
-        import json
-
         if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} does not exist")
+            raise FileNotFoundError(f"{file_path} is not an existing file")
         if not str(file_path).endswith(".json"):
             raise ValueError(f"{file_path} does not look like a json file because it has no .json extension")
 
         with open(file_path, "rb") as f:
             return json.load(f)
 
-    def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> Set[str]:
+    @classmethod
+    def dump_json(cls, data: Any, json_path: Union[str, PathLike]) -> None:
+        with open(json_path, "w") as f:
+            json.dump(data, f, ensure_ascii=False)
+
+    @classmethod
+    def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> Set[str]:
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
-                extension = self.suffix(path)
-                if extension not in self.SUPPORTED_EXTENSIONS:
+                extension = cls.suffix(path)
+                if extension not in cls.SUPPORTED_EXTENSIONS:
                     logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
                     continue
                 logging.debug(f"[Ns_IO] Adding {path} to input file list")
@@ -206,7 +211,7 @@ class Ns_IO:
                 verified_ifile_list.extend(
                     path
                     for path in glob.glob(f"{path}{os_path.sep}*")
-                    if os_path.isfile(path) and self.suffix(path) in self.SUPPORTED_EXTENSIONS
+                    if os_path.isfile(path) and cls.suffix(path) in cls.SUPPORTED_EXTENSIONS
                 )
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
@@ -222,12 +227,50 @@ class Ns_IO:
         return set(verified_ifile_list)
 
     @classmethod
-    def has_valid_cache(cls, file_path: str, cache_path: str) -> bool:
-        ret = False
-        is_exist = os_path.exists(cache_path)
-        if is_exist:
-            is_not_empty = os_path.getsize(cache_path) > 0
-            is_cache_newer_than_input = os_path.getmtime(cache_path) > os_path.getmtime(file_path)
-            if is_not_empty and is_cache_newer_than_input:
-                ret = True
-        return ret
+    def ensure_unique_filestem(cls, name: str, existing_names: Sequence[str]) -> str:
+        if name in existing_names:
+            occurrence = 2
+            while f"{name} ({occurrence})" in existing_names:
+                occurrence += 1
+            name = f"{name} ({occurrence})"
+        return name
+
+
+class Ns_Cache:
+    from neosca.ns_platform_info import USER_CACHE_PATH
+
+    CACHE_INFO_PATH: Path = USER_CACHE_PATH / "cache_info.json"
+    CACHE_INFO: Dict[str, str] = {} if not os_path.exists(CACHE_INFO_PATH) else Ns_IO.load_json(CACHE_INFO_PATH)
+    CACHE_EXTENSION = ".pickle.lzma"
+
+    @classmethod
+    def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
+        if not os_path.isfile(file_path):
+            raise FileNotFoundError(f"{file_path} is not an existing file")
+        if file_path not in cls.CACHE_INFO:
+            cache_path = cls.register_cache_path(file_path)
+            return cache_path, False
+
+        cache_path = cls.CACHE_INFO[file_path]
+        not_exist = not os_path.exists(cache_path)
+        outdated = os_path.getmtime(cache_path) <= os_path.getmtime(file_path)
+        empty = os_path.getsize(cache_path) == 0
+        if not_exist or outdated or empty:
+            return cache_path, False
+
+        logging.info(f"Found cache: {cache_path} exists, and is non-empty and newer than {file_path}.")
+        return cache_path, True
+
+    @classmethod
+    def register_cache_path(cls, file_path: str) -> str:
+        cache_stem = Ns_IO.ensure_unique_filestem(
+            Path(file_path).stem, tuple(map(lambda p: Path(p).stem, cls.CACHE_INFO.keys()))
+        )
+        cache_path = str(cls.USER_CACHE_PATH / f"{cache_stem}{cls.CACHE_EXTENSION}")
+        cls.CACHE_INFO[file_path] = cache_path
+        return cache_path
+
+    @classmethod
+    def dump_cache_info(cls) -> None:
+        logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}.")
+        Ns_IO.dump_json(cls.CACHE_INFO, cls.CACHE_INFO_PATH)

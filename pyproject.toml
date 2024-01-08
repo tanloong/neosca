@@ -7,11 +7,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neosca"
-authors = [{"name" = "Tan, Long (谭龙)", "email" = "tanloong@foxmail.com"},]
 dynamic = ["version"]
+license = {text = "GNU GPLv3"}
+authors = [{"name" = "Tan, Long", "email" = "tanloong@foxmail.com"},]
 description = "Fork of L2SCA and LCA"
 readme = "README.md"
-license = {file = "LICENSE"}
 requires-python = ">=3.8"
 keywords = ["L2SCA", "Syntactic Complexity", "LCA", "Lexical Complexity", "Constituency Parsing", "Tregex", "Corpus Linguistics"]
 classifiers=[
@@ -29,13 +29,9 @@ dependencies = [
     "charset_normalizer>=3.3.2",
     "openpyxl>=3.1.2",
     "pyinstaller>=6.1.0",
-    "pyside6>=6.6.1",
+    "pyside6-essentials>=6.6.1",
     "stanza>=1.7.0",
-]
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.1.9",
-    "mypy>=1.7.1",
+    "platformdirs>=4.1.0",
 ]
 
 [project.urls]
@@ -72,18 +68,12 @@ line-length = 112
 
 [tool.ruff.lint]
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # flake8-bugbear
-    "B",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
+    "E", # pycodestyle
+    "F", # Pyflakes
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I", # isort
 ]
 ignore = ["E501", "B011"]
 

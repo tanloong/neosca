@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-from ns_about import __version__
+from neosca.ns_about import __version__
 
 PKG_DIR: Path = Path(__file__).parent.absolute()
 # https://stackoverflow.com/a/13790741/20732031

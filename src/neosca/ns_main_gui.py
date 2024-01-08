@@ -6,6 +6,7 @@ import os.path as os_path
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Generator, List, Set
 
 from PySide6.QtCore import QModelIndex, Qt
@@ -30,7 +31,7 @@ from PySide6.QtWidgets import (
 from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_buttons import Ns_PushButton
-from neosca.ns_io import Ns_IO
+from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
@@ -41,6 +42,7 @@ from neosca.ns_settings.ns_settings_default import available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
 from neosca.ns_widgets.ns_delegates import Ns_Delegate_SCA
 from neosca.ns_widgets.ns_dialogs import (
+    Ns_Dialog_About,
     Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table,
     Ns_Dialog_Table_Acknowledgments,
@@ -52,8 +54,9 @@ from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
 
 
 class Ns_Main_Gui(QMainWindow):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, with_button_pdb: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
+        self.with_button_pdb = with_button_pdb
 
         self.setWindowTitle(f"{__title__} {__version__}")
         self.setWindowIcon(QIcon(str(ICON_PATH)))
@@ -118,53 +121,41 @@ class Ns_Main_Gui(QMainWindow):
 
     def setup_menu(self):
         # File
-        self.menu_file = QMenu("&File", self.menuBar())
-        action_open_file = QAction("&Open File...", self.menu_file)
+        self.menu_file = self.menuBar().addMenu("&File")
+        action_open_file = self.menu_file.addAction("&Open File...")
         action_open_file.setShortcut("CTRL+O")
         action_open_file.triggered.connect(self.menubar_file_open_file)
-        action_open_folder = QAction("Open &Folder...", self.menu_file)
+        action_open_folder = self.menu_file.addAction("Open &Folder...")
         action_open_folder.triggered.connect(self.menubar_file_open_folder)
+        self.menu_file.addSeparator()
+        action_quit = self.menu_file.addAction("&Quit")
+        action_quit.setShortcut("CTRL+Q")
+        action_quit.triggered.connect(self.close)
         # action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
         # action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
         # action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        action_quit = QAction("&Quit", self.menu_file)
-        action_quit.setShortcut("CTRL+Q")
-        action_quit.triggered.connect(self.close)
-        self.menu_file.addAction(action_open_file)
-        self.menu_file.addAction(action_open_folder)
-        self.menu_file.addSeparator()
         # self.menu_file.addAction(action_restart)
-        self.menu_file.addAction(action_quit)
         # Preferences
-        self.menu_prefs = QMenu("&Preferences", self.menuBar())
-        action_settings = QAction("&Settings...", self.menu_prefs)
-        # TODO: remove this before releasing
+        self.menu_prefs = self.menuBar().addMenu("&Preferences")
+        action_settings = self.menu_prefs.addAction("&Settings...")
         action_settings.setShortcut("CTRL+,")
         action_settings.triggered.connect(self.menubar_prefs_settings)
-        action_increase_font_size = QAction("Increase Font Size", self.menu_prefs)
+        action_increase_font_size = self.menu_prefs.addAction("Increase Font Size")
         action_increase_font_size.setShortcut("CTRL+=")
         action_increase_font_size.triggered.connect(self.menubar_prefs_increase_font_size)
-        action_decrease_font_size = QAction("Decrease Font Size", self.menu_prefs)
+        action_decrease_font_size = self.menu_prefs.addAction("Decrease Font Size")
         action_decrease_font_size.setShortcut("CTRL+-")
         action_decrease_font_size.triggered.connect(self.menubar_prefs_decrease_font_size)
-        action_reset_layout = QAction("&Reset Layouts", self.menu_prefs)
+        action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
         action_reset_layout.triggered.connect(lambda: self.resize_splitters(is_reset=True))
-        self.menu_prefs.addAction(action_settings)
-        self.menu_prefs.addAction(action_increase_font_size)
-        self.menu_prefs.addAction(action_decrease_font_size)
-        self.menu_prefs.addAction(action_reset_layout)
         # Help
-        self.menu_help = QMenu("&Help", self.menuBar())
-        action_citing = QAction("&Citing", self.menu_help)
+        self.menu_help = self.menuBar().addMenu("&Help")
+        action_citing = self.menu_help.addAction("&Citing")
         action_citing.triggered.connect(self.menubar_help_citing)
-        action_acks = QAction("&Acknowledgments", self.menu_help)
+        action_acks = self.menu_help.addAction("&Acknowledgments")
         action_acks.triggered.connect(self.menubar_help_acks)
-        self.menu_help.addAction(action_citing)
-        self.menu_help.addAction(action_acks)
-
-        self.menuBar().addMenu(self.menu_file)
-        self.menuBar().addMenu(self.menu_prefs)
-        self.menuBar().addMenu(self.menu_help)
+        action_about = self.menu_help.addAction("A&bout")
+        action_about.triggered.connect(self.menubar_help_about)
 
     # Override
     def close(self) -> bool:
@@ -188,6 +179,7 @@ class Ns_Main_Gui(QMainWindow):
         for splitter in (self.splitter_central_widget,):
             Ns_Settings.setValue(splitter.objectName(), splitter.saveState())
         Ns_Settings.sync()
+        Ns_Cache.dump_cache_info()
 
         return super().close()
 
@@ -215,12 +207,13 @@ class Ns_Main_Gui(QMainWindow):
             Ns_Settings.setValue(key, point_size)
 
     def menubar_help_citing(self) -> None:
-        dialog_citing = Ns_Dialog_TextEdit_Citing(self)
-        dialog_citing.exec()
+        Ns_Dialog_TextEdit_Citing(self).open()
 
     def menubar_help_acks(self) -> None:
-        dialog_acks = Ns_Dialog_Table_Acknowledgments(self)
-        dialog_acks.exec()
+        Ns_Dialog_Table_Acknowledgments(self).open()
+
+    def menubar_help_about(self) -> None:
+        Ns_Dialog_About(self).open()
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = Ns_PushButton("Generate table", False)
@@ -231,10 +224,8 @@ class Ns_Main_Gui(QMainWindow):
         self.button_export_matches_sca = Ns_PushButton("Export matches...", False)
         self.button_clear_table_sca = Ns_PushButton("Clear table", False)
 
-        # TODO comment this out before releasing
-        self.button_custom_func = QPushButton("Custom func")
-        # TODO comment this out before releasing
-        self.button_custom_func.clicked.connect(self.custom_func)
+        self.button_pdb = QPushButton("Run Pdb")
+        self.button_pdb.clicked.connect(self.run_pdb)
 
         self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *StructureCounter.DEFAULT_MEASURES))
         proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
@@ -260,11 +251,13 @@ class Ns_Main_Gui(QMainWindow):
                 self.button_export_table_sca,
                 self.button_export_matches_sca,
                 self.button_clear_table_sca,
-                self.button_custom_func,
             ),
             start=1,
         ):
             self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
+        if self.with_button_pdb:
+            self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
+            btn_no += 1
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
@@ -283,7 +276,7 @@ class Ns_Main_Gui(QMainWindow):
         self.button_clear_table_sca.setEnabled(True)
         self.button_generate_table_sca.setEnabled(False)
 
-    def custom_func(self):
+    def run_pdb(self):
         # import gc
         # import time
         #
@@ -409,7 +402,7 @@ class Ns_Main_Gui(QMainWindow):
         already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
         file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
         file_paths_unsupported: Set[str] = set(
-            filter(lambda p: Ns_IO.suffix(p) not in Ns_IO.SUPPORTED_EXTENSIONS, file_paths_to_add)
+            filter(lambda p: Ns_IO.suffix(p).lstrip(".") not in Ns_IO.SUPPORTED_EXTENSIONS, file_paths_to_add)
         )
         file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
         file_paths_ok: Set[str] = (
@@ -423,17 +416,13 @@ class Ns_Main_Gui(QMainWindow):
             self.model_file.remove_empty_rows()
             colno_name = 0
             # Has no duplicates
-            already_added_file_names = list(self.model_file.yield_column(colno_name))
+            already_added_file_stems = list(self.model_file.yield_column(colno_name))
             for file_path in file_paths_ok:
-                file_name = os_path.splitext(os_path.basename(file_path))[0]
-                if file_name in already_added_file_names:
-                    occurrence = 2
-                    while f"{file_name} ({occurrence})" in already_added_file_names:
-                        occurrence += 1
-                    file_name = f"{file_name} ({occurrence})"
-                already_added_file_names.append(file_name)
+                file_stem = Path(file_path).stem
+                file_stem = Ns_IO.ensure_unique_filestem(file_stem, already_added_file_stems)
+                already_added_file_stems.append(file_stem)
                 rowno = self.model_file.rowCount()
-                self.model_file.set_row_str(rowno, (file_name, file_path))
+                self.model_file.set_row_str(rowno, (file_stem, file_path))
                 self.model_file.row_added.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
@@ -537,7 +526,7 @@ def main_gui():
     # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_main.py#L1238
     os.environ["QT_SCALE_FACTOR"] = re.sub(r"([0-9]{2})%$", r".\1", ui_scaling)
     ns_app = QApplication(sys.argv)
-    ns_window = Ns_Main_Gui()
+    ns_window = Ns_Main_Gui(with_button_pdb=False)
     ns_window.showMaximized()
     sys.exit(ns_app.exec())
 
