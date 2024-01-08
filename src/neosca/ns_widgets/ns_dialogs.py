@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from PySide6.QtCore import (
     QElapsedTimer,
+    QSize,
     QSortFilterProxyModel,
     QTime,
     QTimer,
@@ -25,13 +26,22 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QLabel,
     QPushButton,
-    QTextEdit,
+    QTextBrowser,
 )
 
 from neosca import ACKS_PATH, CITING_PATH, ICON_PATH
-from neosca.ns_about import __email__, __title__, __version__
-from neosca.ns_widgets.ns_labels import Ns_Label_Html, Ns_Label_Html_Centered, Ns_Label_WordWrapped
+from neosca.ns_about import __email__, __title__, __version__, __year__
+from neosca.ns_io import Ns_IO
+from neosca.ns_widgets.ns_labels import (
+    Ns_Label_Html,
+    Ns_Label_Html_Centered,
+    Ns_Label_Html_VBottom,
+    Ns_Label_Html_VTop,
+    Ns_Label_Html_WordWrapped,
+    Ns_Label_WordWrapped,
+)
 from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_widgets import Ns_TextEdit_ReadOnly
 
 
 class Ns_Dialog(QDialog):
@@ -53,27 +63,10 @@ class Ns_Dialog(QDialog):
         """
         super().__init__(main, **kwargs)
         self.main = main
-        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
-        # [Copied code starts here]
-        # Dialog size
-        if resizable:
-            if not width:
-                width = self.size().width()
+        self.spec_width = width
+        self.spec_height = height
+        self.resizable = resizable
 
-            if not height:
-                height = self.size().height()
-
-            self.resize(width, height)
-        else:
-            if width:
-                self.setFixedWidth(width)
-
-            if height:
-                self.setFixedHeight(height)
-            # Gives the window a thin dialog border on Windows. This style is
-            # traditionally used for fixed-size dialogs.
-            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-        # [Copied code ends here]
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon(str(ICON_PATH)))
 
@@ -115,6 +108,38 @@ class Ns_Dialog(QDialog):
         self.raise_()
         self.activateWindow()
 
+    def set_size(self):
+        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
+        if self.resizable:
+            width = self.spec_width if self.spec_width else self.size().width()
+            height = self.spec_height if self.spec_height else self.size().height()
+            self.resize(width, height)
+        else:
+            if self.spec_width:
+                self.setFixedWidth(self.spec_width)
+            if self.spec_height:
+                self.setFixedHeight(self.spec_height)
+            # Gives the window a thin dialog border on Windows. This style is
+            # traditionally used for fixed-size dialogs.
+            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
+
+        # https://stackoverflow.com/a/1679399/20732031
+        self.adjustSize()
+    
+    # Override
+    def open(self) -> None:
+        self.set_size()
+        return super().open()
+
+    # Override
+    def show(self) -> None:
+        self.set_size()
+        return super().show()
+
+    # Override
+    def exec(self) -> int:
+        self.set_size()
+        return super().exec()
 
 class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
@@ -189,8 +214,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
 class Ns_Dialog_TextEdit(Ns_Dialog):
     def __init__(self, main, title: str = "", text: str = "", **kwargs) -> None:
         super().__init__(main, title=title, resizable=True, **kwargs)
-        self.textedit = QTextEdit(text)
-        self.textedit.setReadOnly(True)
+        self.textedit = Ns_TextEdit_ReadOnly(text=text)
         # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
         indentation: int = self.fontMetrics().horizontalAdvance("abcd")
         self.fmt_textedit = QTextBlockFormat()
@@ -257,9 +281,7 @@ class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
 class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
     def __init__(self, main, **kwargs):
         super().__init__(main, title="Citing", **kwargs)
-        with open(CITING_PATH, encoding="utf-8") as f:
-            self.style_citation_mapping = json.load(f)
-
+        self.style_citation_mapping = Ns_IO.load_json(CITING_PATH)
         self.label_citing = Ns_Label_WordWrapped(
             f"If you use {__title__} in your research, please cite as follows."
         )
@@ -287,7 +309,7 @@ class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
         )
         self.setText(trace_back + meta_data)
 
-        self.label_desc = Ns_Label_WordWrapped(
+        self.label_desc = Ns_Label_Html_WordWrapped(
             f"An error occurred. Please send the following error messages to <a href='{__email__}'>{__email__}</a> to contact the author for support."
         )
         self.addWidget(self.label_desc)
@@ -298,17 +320,20 @@ class Ns_Dialog_Table(Ns_Dialog):
         self,
         main,
         title: str,
-        text: str,
         tableview: Ns_TableView,
+        text: Optional[str] = None,
+        html: Optional[str] = None,
         export_filename: Optional[str] = None,
         width: int = 500,
         height: int = 300,
-        resizable=True,
     ) -> None:
-        super().__init__(main, title=title, width=width, height=height, resizable=resizable)
+        super().__init__(main, title=title, width=width, height=height, resizable=True)
         self.tableview: Ns_TableView = tableview
-        self.layout_content.addWidget(Ns_Label_WordWrapped(text), 0, 0)
-        self.layout_content.addWidget(tableview, 1, 0)
+        if text is not None:
+            self.layout_content.addWidget(Ns_Label_WordWrapped(text), 0, 0)
+        if html is not None:
+            self.layout_content.addWidget(Ns_Label_Html_WordWrapped(html), 0, 0)
+        self.layout_content.addWidget(tableview, self.rowCount(), 0)
 
         self.button_ok = QPushButton("OK")
         self.button_ok.clicked.connect(self.accept)
@@ -322,8 +347,7 @@ class Ns_Dialog_Table(Ns_Dialog):
 
 class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
     def __init__(self, main) -> None:
-        with open(ACKS_PATH, encoding="utf-8") as f:
-            ack_data = json.load(f)
+        ack_data = Ns_IO.load_json(ACKS_PATH)
         acknowledgment = ack_data["acknowledgment"]
         projects = ack_data["projects"]
         model_ack = Ns_StandardItemModel(main)
@@ -343,4 +367,40 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
             )
             for colno, label in enumerate(cols):
                 tableview_ack.setIndexWidget(model_ack.index(rowno, colno), label)
-        super().__init__(main, title="Acknowledgments", text=acknowledgment, tableview=tableview_ack)
+        super().__init__(main, title="Acknowledgments", tableview=tableview_ack, html=acknowledgment)
+
+
+class Ns_Dialog_About(Ns_Dialog):
+    def __init__(self, main) -> None:
+        import textwrap
+
+        super().__init__(main, title=f"About {__title__}", resizable=True)
+        text = textwrap.dedent(
+            f"""\
+        <strong>A fork of <a href="https://sites.psu.edu/xxl13/l2sca/">L2SCA</a> and <a href="https://sites.psu.edu/xxl13/lca/">LCA</a></strong>
+        <br><br>
+        Copyright © Tan, Long, 2022-{__year__}.
+        <br>
+        <a href="https://github.com/tanloong/neosca">https://github.com/tanloong/neosca</a>
+        <br><br>
+        {__title__} is an open source software available under the terms of the General Public License version 3 (<a href="https://www.gnu.org/copyleft/gpl.html">GPLv3</a>).
+        """
+        )
+        label_icon = QLabel()
+        label_icon.setPixmap(QIcon(str(ICON_PATH)).pixmap(QSize(64, 64)))
+        label_name = Ns_Label_Html_VTop(f"<h1>{__title__}</h1>")
+        label_version = Ns_Label_Html_VBottom(f"v{__version__}")
+        textbrowser = QTextBrowser()
+        textbrowser.setOpenExternalLinks(True)
+        textbrowser.setHtml(text)
+
+        self.addWidget(label_icon, 0, 0, 2, 1)
+        self.addWidget(label_name, 0, 1)
+        self.addWidget(label_version, 1, 1)
+        self.addWidget(textbrowser, 2, 0, 1, 3)
+        self.setColumnStretch(2, 1)
+        self.setRowStretch(2, 1)
+
+        btn_ok = QPushButton("OK")
+        btn_ok.clicked.connect(self.accept)
+        self.addButtons(btn_ok, alignment=self.ButtonAlignmentFlag.AlignRight)

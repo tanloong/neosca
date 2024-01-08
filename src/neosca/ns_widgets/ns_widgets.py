@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
+    QTextEdit,
     QWidget,
 )
 
@@ -172,3 +173,9 @@ class Ns_MessageBox_Confirm(QMessageBox):
     def exec(self) -> bool:
         ret = super().exec()
         return ret == QMessageBox.StandardButton.Yes.value
+
+
+class Ns_TextEdit_ReadOnly(QTextEdit):
+    def __init__(self, *, text: str = "", parent=None):
+        super().__init__(text, parent)
+        self.setReadOnly(True)
