@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+from ns_about import __version__
+
 PKG_DIR: Path = Path(__file__).parent.absolute()
 # https://stackoverflow.com/a/13790741/20732031
 attr = "_MEIPASS"
@@ -23,3 +25,5 @@ SETTING_PATH: Path = DATA_DIR / "settings.ini"
 DESKTOP_PATH: Path = Path.home().absolute() / "Desktop"
 
 sys.path.insert(0, str(PKG_DIR))
+
+__all__ = ["__version__"]
