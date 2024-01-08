@@ -89,7 +89,7 @@ class Ns_LCA:
 
         data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug(f"Loading {data_path}...")
-        data = self.scaio.load_pickle_lzma_file(data_path)
+        data = self.scaio.load_pickle_lzma(data_path)
         self.word_dict = data["word_dict"]
         self.adj_dict = data["adj_dict"]
         self.verb_dict = data["verb_dict"]
@@ -387,7 +387,7 @@ class Ns_LCA:
                 logging.info(
                     f"Loading cache: {cache_path} already exists, and is non-empty and newer than {file_path}."
                 )
-                doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma_file(cache_path))
+                doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             else:
                 doc = self.scaio.read_file(file_path)
         else:

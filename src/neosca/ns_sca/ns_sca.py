@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import json
 import logging
 import os
 import os.path as os_path
@@ -63,9 +62,7 @@ class Ns_SCA:
         user_snames: Optional[Set[str]] = None
 
         if config is not None:
-            with open(config, encoding="utf-8") as f:
-                user_data = json.load(f)
-
+            user_data = Ns_IO.load_json(config)
             user_structure_defs = user_data["structures"]
             user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
 
@@ -116,7 +113,7 @@ class Ns_SCA:
             logging.info(
                 f"Loading cache: {cache_path} already exists, and is non-empty and newer than {ifile}."
             )
-            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma_file(cache_path))
+            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             return Ns_NLP_Stanza.get_constituency_tree(
                 doc, is_cache_for_future_runs=self.is_reserve_parsed, cache_path=cache_path
             )

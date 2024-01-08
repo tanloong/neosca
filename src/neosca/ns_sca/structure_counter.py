@@ -1,4 +1,3 @@
-import json
 import logging
 from collections import OrderedDict
 from copy import deepcopy
@@ -6,6 +5,7 @@ from typing import Dict, List, Optional, Set, Union
 
 from neosca import DATA_DIR
 from neosca.ns_exceptions import StructureNotFoundError
+from neosca.ns_io import Ns_IO
 
 
 class Structure:
@@ -114,10 +114,7 @@ class Structure:
 
 
 class StructureCounter:
-    data_file = DATA_DIR / "l2sca_structures.json"
-    with open(data_file, encoding="utf-8") as f:
-        BUILTIN_DATA = json.load(f)
-
+    BUILTIN_DATA = Ns_IO.load_json(DATA_DIR / "l2sca_structures.json")
     BUILTIN_STRUCTURE_DEFS: Dict[str, Structure] = {}
     for kwargs in BUILTIN_DATA["structures"]:
         BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Structure(**kwargs)

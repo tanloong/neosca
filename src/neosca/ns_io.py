@@ -94,9 +94,16 @@ class Ns_IO:
         return content  # type:ignore
 
     @classmethod
-    def suffix(cls, path: str) -> str:
-        *_, extension = path.split(".")
-        return extension
+    def suffix(cls, file_path: Union[str, PathLike]) -> str:
+        """
+        >>> suffix('my/library/setup.py')
+        .py
+        >>> suffix('my/library.tar.gz')
+        .gz
+        >>> suffix('my/library')
+        ''
+        """
+        return os_path.splitext(file_path)[-1]
 
     def read_file(self, path: str) -> Optional[str]:
         extension = self.suffix(path)
@@ -128,42 +135,62 @@ class Ns_IO:
             return True, None
 
     @classmethod
-    def load_pickle_lzma_file(cls, file_path: Union[str, PathLike], default: Any = None) -> dict:
+    def load_pickle_lzma(cls, file_path: Union[str, PathLike]) -> Any:
         import lzma
         import pickle
 
-        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
-            with open(file_path, "rb") as f:
-                data_pickle_lzma = f.read()
+        if not os_path.isfile(file_path):
+            raise FileNotFoundError(f"{file_path} does not exist")
+        if not str(file_path).endswith((".pkl.lzma", ".pickle.lzma")):
+            raise ValueError(
+                f"{file_path} does not look like a pickle lzma file as it has neither .pkl.lzma nor .pickle.lzma extension"
+            )
 
-            data_pickle = lzma.decompress(data_pickle_lzma)
-            return pickle.loads(data_pickle)
-        else:
-            return default
+        with open(file_path, "rb") as f:
+            data_pickle_lzma = f.read()
+
+        data_pickle = lzma.decompress(data_pickle_lzma)
+        return pickle.loads(data_pickle)
 
     @classmethod
-    def load_pickle_file(cls, file_path: Union[str, PathLike], default: Any = None) -> Any:
+    def load_pickle(cls, file_path: Union[str, PathLike]) -> Any:
         import pickle
 
-        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
-            with open(file_path, "rb") as f:
-                data_pickle = f.read()
-            return pickle.loads(data_pickle)
-        else:
-            return default
+        if not os_path.isfile(file_path):
+            raise FileNotFoundError(f"{file_path} does not exist")
+        if not str(file_path).endswith((".pkl", ".pickle")):
+            raise ValueError(
+                f"{file_path} does not look like a pickle file as it has neither .pkl nor .pickle extension"
+            )
+
+        with open(file_path, "rb") as f:
+            data_pickle = f.read()
+        return pickle.loads(data_pickle)
 
     @classmethod
-    def load_lzma_file(cls, file_path: Union[str, PathLike], default: Any = None) -> bytes:
+    def load_lzma(cls, file_path: Union[str, PathLike]) -> bytes:
         import lzma
 
-        if os_path.isfile(file_path) and os_path.getsize(file_path) > 0:
-            with open(file_path, "rb") as f:
-                data_lzma = f.read()
+        if not os_path.isfile(file_path):
+            raise FileNotFoundError(f"{file_path} does not exist")
+        if not str(file_path).endswith(".lzma"):
+            raise ValueError(f"{file_path} does not look like a json file because it has no .lzma extension")
 
-            data = lzma.decompress(data_lzma)
-            return data
-        else:
-            return default
+        with open(file_path, "rb") as f:
+            data_lzma = f.read()
+        return lzma.decompress(data_lzma)
+
+    @classmethod
+    def load_json(cls, file_path: Union[str, PathLike]) -> Any:
+        import json
+
+        if not os_path.isfile(file_path):
+            raise FileNotFoundError(f"{file_path} does not exist")
+        if not str(file_path).endswith(".json"):
+            raise ValueError(f"{file_path} does not look like a json file because it has no .json extension")
+
+        with open(file_path, "rb") as f:
+            return json.load(f)
 
     def get_verified_ifile_list(self, ifile_list: Iterable[str]) -> Set[str]:
         verified_ifile_list = []
