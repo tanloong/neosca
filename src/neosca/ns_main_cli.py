@@ -14,7 +14,6 @@ from neosca.ns_util import Ns_Procedure_Result
 
 class Ns_Main_Cli:
     def __init__(self) -> None:
-        self.supported_extensions = Ns_IO.SUPPORTED_EXTENSIONS
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
@@ -72,8 +71,8 @@ class Ns_Main_Cli:
         args_parser.add_argument(
             "--ftype",
             dest="ifile_types",
-            choices=self.supported_extensions,
-            default=self.supported_extensions,
+            choices=Ns_IO.SUPPORTED_EXTENSIONS,
+            default=Ns_IO.SUPPORTED_EXTENSIONS,
             nargs="+",
             help=(
                 "Analyze files of the specified type(s). If not set, the program will process"

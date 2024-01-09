@@ -415,7 +415,7 @@ class Ns_LCA:
             cache_path = None
             cache_available = False
 
-        if (text := Ns_IO.read_file(ifile)) is None:
+        if (text := Ns_IO.load_file(ifile)) is None:
             return None
         try:
             yield from self.parse_text(text, cache_path=cache_path)

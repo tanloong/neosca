@@ -14,7 +14,7 @@ import sys
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, ByteString, Dict, Iterable, Optional, Sequence, Set, Tuple, Union
+from typing import Any, ByteString, Dict, Iterable, Optional, Set, Tuple, Union
 
 from charset_normalizer import detect
 
@@ -22,8 +22,18 @@ from neosca.ns_platform_info import IS_WINDOWS
 from neosca.ns_util import Ns_Procedure_Result
 
 
-class Ns_IO:
-    SUPPORTED_EXTENSIONS = ("txt", "docx", "odt")
+class Ns_IO_Meta(type):
+    def __new__(cls, name, bases, dict_):
+        dict_["SUPPORTED_EXTENSIONS"] = tuple(
+            attr.removeprefix("read_") for attr in dict_ if attr.startswith("read_")
+        )
+        return super().__new__(cls, name, bases, dict_)
+
+
+class Ns_IO(metaclass=Ns_IO_Meta):
+    # Type checker does not detect definition in Ns_IO_Meta, so declare here to
+    # silence the "access unknown member warning"
+    SUPPORTED_EXTENSIONS = tuple()
 
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"
@@ -33,32 +43,6 @@ class Ns_IO:
     ODT_PARA = ODT_NAMESPACE + "p"
 
     previous_encoding: str = "utf-8"
-
-    @classmethod
-    def read_docx(cls, path: str) -> str:
-        """
-        Take the path of a docx file as argument, return the text in unicode.
-        This approach does not extract text from headers and footers.
-
-        https://etienned.github.io/posts/extract-text-from-word-docx-simply/
-        """
-        with zipfile.ZipFile(path) as zip_file:
-            xml_content = zip_file.read("word/document.xml")
-        tree = XML(xml_content)
-
-        paragraphs = []
-        for paragraph in tree.iter(cls.DOCX_PARA):
-            text = "".join(node.text for node in paragraph.iter(cls.DOCX_TEXT) if node.text)
-            paragraphs.append(text)
-        return "\n".join(paragraphs)
-
-    @classmethod
-    def read_odt(cls, path: str) -> str:
-        with zipfile.ZipFile(path) as zip_file:
-            xml_content = zip_file.read("content.xml")
-        root = fromstring(xml_content)
-        paragraphs = root.findall(cls.ODT_PARA)
-        return "\n".join("".join(node.itertext()) for node in paragraphs)
 
     @classmethod
     def _read_txt(cls, path: str, mode: str, encoding: Optional[str] = None) -> Union[str, ByteString]:
@@ -98,6 +82,32 @@ class Ns_IO:
         return content  # type:ignore
 
     @classmethod
+    def read_docx(cls, path: str) -> str:
+        """
+        Take the path of a docx file as argument, return the text in unicode.
+        This approach does not extract text from headers and footers.
+
+        https://etienned.github.io/posts/extract-text-from-word-docx-simply/
+        """
+        with zipfile.ZipFile(path) as zip_file:
+            xml_content = zip_file.read("word/document.xml")
+        tree = XML(xml_content)
+
+        paragraphs = []
+        for paragraph in tree.iter(cls.DOCX_PARA):
+            text = "".join(node.text for node in paragraph.iter(cls.DOCX_TEXT) if node.text)
+            paragraphs.append(text)
+        return "\n".join(paragraphs)
+
+    @classmethod
+    def read_odt(cls, path: str) -> str:
+        with zipfile.ZipFile(path) as zip_file:
+            xml_content = zip_file.read("content.xml")
+        root = fromstring(xml_content)
+        paragraphs = root.findall(cls.ODT_PARA)
+        return "\n".join("".join(node.itertext()) for node in paragraphs)
+
+    @classmethod
     def suffix(cls, file_path: Union[str, PathLike], strip_dot: bool = False) -> str:
         """
         >>> suffix('my/library/setup.py')
@@ -113,7 +123,7 @@ class Ns_IO:
         return extension
 
     @classmethod
-    def read_file(cls, path: str) -> Optional[str]:
+    def load_file(cls, path: str) -> Optional[str]:
         extension = cls.suffix(path, strip_dot=True)
         if extension not in cls.SUPPORTED_EXTENSIONS:
             logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
@@ -240,10 +250,11 @@ class Ns_Cache:
     from neosca import CACHE_DIR, CACHE_INFO_PATH
 
     CACHE_EXTENSION = ".pickle.lzma"
-    # { "<file_path1>": "<cache_name1>", ... }
+    # { "/path/to/foo.txt": "foo.pickle.lzma", ... }
     fpath_cname: Dict[str, str] = (
         {} if not os_path.exists(CACHE_INFO_PATH) else Ns_IO.load_json(CACHE_INFO_PATH)
     )
+    has_new_cache: bool = False
 
     @classmethod
     def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
@@ -294,9 +305,14 @@ class Ns_Cache:
         cache_stem = Ns_IO.ensure_unique_filestem(cache_stem, map(cls._name2stem, cls.fpath_cname.keys()))
         cache_name = cls._stem2name(cache_stem)
         cls.fpath_cname[file_path] = cache_name
+        if not cls.has_new_cache:
+            cls.has_new_cache = True
         return cls._name2path(cache_name)
 
     @classmethod
     def dump_cache_info(cls) -> None:
-        logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}...")
-        Ns_IO.dump_json(cls.fpath_cname, cls.CACHE_INFO_PATH)
+        if cls.has_new_cache:
+            logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}...")
+            Ns_IO.dump_json(cls.fpath_cname, cls.CACHE_INFO_PATH)
+        else:
+            logging.info("No new cache information to dump.")

@@ -110,7 +110,7 @@ class Ns_SCA:
             cache_path = None
             cache_available = False
 
-        if (text := Ns_IO.read_file(ifile)) is None:
+        if (text := Ns_IO.load_file(ifile)) is None:
             return None
         try:
             trees = self.parse_text(text, cache_path)
