@@ -28,39 +28,6 @@ from PySide6.QtWidgets import (
 from neosca.ns_singleton import QSingleton
 
 
-class Ns_FileDialog(QFileDialog):
-    def __init__(self, *args, **kwargs) -> None:
-        return super().__init__(*args, **kwargs)
-
-    # https://github.com/hibtc/madgui/blob/50d59037eab6e59a4510b5a7c4f953ddee4727f7/src/madgui/widget/filedialog.py#L25
-    # https://codebrowser.dev/qt5/qtbase/src/widgets/dialogs/qfiledialog.cpp.html#_ZN11QFileDialog14getSaveFileUrlEP7QWidgetRK7QStringRK4QUrlS4_PS2_6QFlagsINS_6OptionEERK11QStringList
-    @classmethod
-    def getSaveFolderName(
-        cls,
-        parent: Optional[QWidget] = None,
-        caption: str = "",
-        dir: str = "",
-        filter: str = "",
-        selectedFilter: Optional[str] = None,
-    ):
-        dialog = cls(parent, caption, dir, filter)
-        dialog.setOptions(QFileDialog.Option.ShowDirsOnly)
-        dialog.setFileMode(QFileDialog.FileMode.Directory)
-        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
-        if selectedFilter is not None and selectedFilter:
-            dialog.selectNameFilter(selectedFilter)
-
-        if dialog.exec() != QFileDialog.DialogCode.Accepted:
-            return None
-
-        # Returns a list of strings containing the absolute paths of the
-        # selected files in the dialog. If no files are selected, or the mode
-        # is not ExistingFiles or ExistingFile, selectedFiles() contains the
-        # current path in the viewport.
-        filename = dialog.selectedFiles()[0]
-        return filename
-
-
 # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_widgets/wl_layouts.py#L108
 class Ns_ScrollArea(QScrollArea):
     def __init__(self, parent=None):
