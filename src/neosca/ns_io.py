@@ -66,7 +66,7 @@ class Ns_IO:
             with open(path, mode=mode, encoding=encoding) as f:
                 content = f.read()
         # input file existence has already been checked in main.py, here check
-        # it again in case users remove input files during runtime
+        # it again in case users delete input files during runtime
         except FileNotFoundError:
             logging.critical(f"{path} does not exist.")
             sys.exit(1)
@@ -227,31 +227,33 @@ class Ns_IO:
         return set(verified_ifile_list)
 
     @classmethod
-    def ensure_unique_filestem(cls, name: str, existing_names: Sequence[str]) -> str:
-        if name in existing_names:
+    def ensure_unique_filestem(cls, stem: str, existing_stems: Iterable[str]) -> str:
+        if stem in existing_stems:
             occurrence = 2
-            while f"{name} ({occurrence})" in existing_names:
+            while f"{stem} ({occurrence})" in existing_stems:
                 occurrence += 1
-            name = f"{name} ({occurrence})"
-        return name
+            stem = f"{stem} ({occurrence})"
+        return stem
 
 
 class Ns_Cache:
-    from neosca.ns_platform_info import USER_CACHE_PATH
+    from neosca import CACHE_DIR, CACHE_INFO_PATH
 
-    CACHE_INFO_PATH: Path = USER_CACHE_PATH / "cache_info.json"
-    CACHE_INFO: Dict[str, str] = {} if not os_path.exists(CACHE_INFO_PATH) else Ns_IO.load_json(CACHE_INFO_PATH)
     CACHE_EXTENSION = ".pickle.lzma"
+    # { "<file_path1>": "<cache_name1>", ... }
+    fpath_cname: Dict[str, str] = (
+        {} if not os_path.exists(CACHE_INFO_PATH) else Ns_IO.load_json(CACHE_INFO_PATH)
+    )
 
     @classmethod
     def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
         if not os_path.isfile(file_path):
             raise FileNotFoundError(f"{file_path} is not an existing file")
-        if file_path not in cls.CACHE_INFO:
+        if file_path not in cls.fpath_cname:
             cache_path = cls.register_cache_path(file_path)
             return cache_path, False
 
-        cache_path = cls.CACHE_INFO[file_path]
+        cache_path = cls._name2path(cls.fpath_cname[file_path])
         not_exist = not os_path.exists(cache_path)
         outdated = os_path.getmtime(cache_path) <= os_path.getmtime(file_path)
         empty = os_path.getsize(cache_path) == 0
@@ -262,15 +264,39 @@ class Ns_Cache:
         return cache_path, True
 
     @classmethod
+    def _stem2name(cls, stem: str) -> str:
+        """
+        >>> _stem2name("foo")
+        foo.pickle.lzma
+        """
+        return f"{stem}{cls.CACHE_EXTENSION}"
+
+    @classmethod
+    def _name2stem(cls, name: str) -> str:
+        """
+        >>> _name2stem("foo.pickle.lzma")
+        foo
+        """
+        return name.removesuffix(cls.CACHE_EXTENSION)
+
+    @classmethod
+    def _name2path(cls, name: str) -> str:
+        """
+        >>> _name2path("foo.pickle.lzma")
+        /path/to/cache_dir/foo.pickle.lzma
+        """
+        return str(cls.CACHE_DIR / name)
+
+    @classmethod
     def register_cache_path(cls, file_path: str) -> str:
-        cache_stem = Ns_IO.ensure_unique_filestem(
-            Path(file_path).stem, tuple(map(lambda p: Path(p).stem, cls.CACHE_INFO.keys()))
-        )
-        cache_path = str(cls.USER_CACHE_PATH / f"{cache_stem}{cls.CACHE_EXTENSION}")
-        cls.CACHE_INFO[file_path] = cache_path
-        return cache_path
+        logging.info(f"Registering cache path for {file_path}...")
+        cache_stem = Path(file_path).stem
+        cache_stem = Ns_IO.ensure_unique_filestem(cache_stem, map(cls._name2stem, cls.fpath_cname.keys()))
+        cache_name = cls._stem2name(cache_stem)
+        cls.fpath_cname[file_path] = cache_name
+        return cls._name2path(cache_name)
 
     @classmethod
     def dump_cache_info(cls) -> None:
-        logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}.")
-        Ns_IO.dump_json(cls.CACHE_INFO, cls.CACHE_INFO_PATH)
+        logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}...")
+        Ns_IO.dump_json(cls.fpath_cname, cls.CACHE_INFO_PATH)

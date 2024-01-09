@@ -10,6 +10,7 @@ dist/
 # data
 libs/
 tests/data/
+cache/
 
 # unit test / coverage report
 htmlcov/

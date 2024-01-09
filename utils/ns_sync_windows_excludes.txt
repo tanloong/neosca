@@ -1,4 +1,5 @@
 stanza_resources
+cache
 git
 idea
 ruff_cache

@@ -31,7 +31,6 @@ dependencies = [
     "pyinstaller>=6.1.0",
     "pyside6-essentials>=6.6.1",
     "stanza>=1.7.0",
-    "platformdirs>=4.1.0",
 ]
 
 [project.urls]
@@ -60,6 +59,7 @@ neosca = [
 "ns_data/stanza_resources/en/sentiment",
 "ns_data/stanza_resources/en/default.zip",
 "ns_data/stanza_resources/zh-hans",
+"ns_data/cache",
 ]
 
 # Ruff complete options: https://docs.astral.sh/ruff/settings/#extend
