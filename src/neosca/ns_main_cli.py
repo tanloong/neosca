@@ -353,7 +353,7 @@ Contact:
             )
 
     def exit_routine(self) -> None:
-        Ns_Cache.dump_cache_info()
+        Ns_Cache.save_cache_info()
 
         if self.options.is_quiet or self.options.is_stdout:
             return

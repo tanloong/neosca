@@ -14,10 +14,11 @@ import sys
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, ByteString, Dict, Iterable, Optional, Set, Tuple, Union
+from typing import Any, ByteString, Dict, Generator, Iterable, Optional, Set, Tuple, Union
 
 from charset_normalizer import detect
 
+from neosca import CACHE_DIR, CACHE_INFO_PATH
 from neosca.ns_platform_info import IS_WINDOWS
 from neosca.ns_util import Ns_Procedure_Result
 
@@ -247,21 +248,20 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
 
 class Ns_Cache:
-    from neosca import CACHE_DIR, CACHE_INFO_PATH
-
     CACHE_EXTENSION = ".pickle.lzma"
-    # { "/path/to/foo.txt": "foo.pickle.lzma", ... }
-    fpath_cname: Dict[str, str] = (
-        {} if not os_path.exists(CACHE_INFO_PATH) else Ns_IO.load_json(CACHE_INFO_PATH)
-    )
-    has_new_cache: bool = False
+    # { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
+    fpath_cname: Dict[str, str] = Ns_IO.load_json(CACHE_INFO_PATH) if CACHE_INFO_PATH.exists() else {}
+    info_changed: bool = False
 
     @classmethod
     def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
+        """
+        return (cache_path, available: whether the cache is available for use)
+        """
         if not os_path.isfile(file_path):
             raise FileNotFoundError(f"{file_path} is not an existing file")
         if file_path not in cls.fpath_cname:
-            cache_path = cls.register_cache_path(file_path)
+            cache_path = cls._name2path(cls.register_cache_name(file_path))
             return cache_path, False
         cache_path = cls._name2path(cls.fpath_cname[file_path])
         if not os_path.exists(cache_path):
@@ -275,6 +275,15 @@ class Ns_Cache:
 
         logging.info(f"Found cache: {cache_path} exists, and is non-empty and newer than {file_path}.")
         return cache_path, True
+
+    @classmethod
+    def yield_cname_cpath_csize_fpath(cls) -> Generator[Tuple[str, str, str, str], None, None]:
+        for file_path, cache_name in Ns_Cache.fpath_cname.items():
+            cache_path = Ns_Cache._name2path(cache_name)
+            if not os_path.exists(cache_path):
+                continue
+            cache_size = f"{round(os_path.getsize(cache_path) / 1024, 2):,} K"
+            yield cache_name, cache_path, cache_size, file_path
 
     @classmethod
     def _stem2name(cls, stem: str) -> str:
@@ -298,23 +307,39 @@ class Ns_Cache:
         >>> _name2path("foo.pickle.lzma")
         /path/to/cache_dir/foo.pickle.lzma
         """
-        return str(cls.CACHE_DIR / name)
+        return str(CACHE_DIR / name)
 
     @classmethod
-    def register_cache_path(cls, file_path: str) -> str:
+    def _path2name(cls, path: str) -> str:
+        """
+        >>> _path2name("/path/to/cache_dir/foo.pickle.lzma")
+        foo.pickle.lzma
+        """
+        return os_path.basename(path)
+
+    @classmethod
+    def register_cache_name(cls, file_path: str) -> str:
         logging.info(f"Registering cache path for {file_path}...")
         cache_stem = Path(file_path).stem
         cache_stem = Ns_IO.ensure_unique_filestem(cache_stem, map(cls._name2stem, cls.fpath_cname.keys()))
         cache_name = cls._stem2name(cache_stem)
         cls.fpath_cname[file_path] = cache_name
-        if not cls.has_new_cache:
-            cls.has_new_cache = True
-        return cls._name2path(cache_name)
+        if not cls.info_changed:
+            cls.info_changed = True
+        return cache_name
 
     @classmethod
-    def dump_cache_info(cls) -> None:
-        if cls.has_new_cache:
-            logging.info(f"Dumping cache information to {cls.CACHE_INFO_PATH}...")
-            Ns_IO.dump_json(cls.fpath_cname, cls.CACHE_INFO_PATH)
+    def delete_cache_entries(cls, deleted_cache_paths: Iterable[str]) -> None:
+        logging.debug(f"Deleting cache entries from {CACHE_INFO_PATH}...")
+        deleted_cache_names = tuple(map(cls._path2name, deleted_cache_paths))
+        cls.fpath_cname = {k: v for k, v in cls.fpath_cname.items() if v not in deleted_cache_names}
+        if not cls.info_changed:
+            cls.info_changed = True
+
+    @classmethod
+    def save_cache_info(cls) -> None:
+        if cls.info_changed:
+            logging.info(f"Saving cache information to {CACHE_INFO_PATH}...")
+            Ns_IO.dump_json(cls.fpath_cname, CACHE_INFO_PATH)
         else:
-            logging.info("No new cache information to dump.")
+            logging.info("No new cache information to save.")

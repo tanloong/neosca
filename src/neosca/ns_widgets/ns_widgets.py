@@ -12,6 +12,7 @@ from PySide6.QtGui import (
     Qt,
 )
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QCompleter,
     QFileDialog,
@@ -122,19 +123,22 @@ class Ns_Combobox_Editable(QComboBox):
         self.setEditable(True)
 
 
-class Ns_MessageBox_Confirm(QMessageBox):
+class Ns_MessageBox_Question(QMessageBox):
     def __init__(
         self,
         parent=None,
         title: str = "",
         text: str = "",
-        icon: QMessageBox.Icon = QMessageBox.Icon.Information,
+        icon: QMessageBox.Icon = QMessageBox.Icon.Question,
+        checkbox: Optional[QCheckBox] = None,
     ):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setText(text)
         self.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         self.setIcon(icon)
+        if checkbox is not None:
+            self.setCheckBox(checkbox)
 
     # Override
     def exec(self) -> bool:

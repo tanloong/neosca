@@ -50,6 +50,7 @@ settings_default = {
     "Lexical Complexity Analyzer/wordlist": "bnc",
     "Lexical Complexity Analyzer/tagset": "ud",
     "Miscellaneous/dont-confirm-on-exit": False,
+    "Miscellaneous/dont-confirm-on-cache-deletion": False,
     "Miscellaneous/cache-for-future-runs": True,
     "Miscellaneous/use-past-cache": True,
     "default-splitter-sca": 200,

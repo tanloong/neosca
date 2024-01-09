@@ -67,13 +67,13 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
 
-            model.set_item_str(rowno, 0, file_name)
+            model.set_item_left_shifted(rowno, 0, file_name)
             for colno in range(1, model.columnCount()):
                 sname = model.horizontalHeaderItem(colno).text()
                 value = counter.get_value(sname)
                 if value is None:
                     raise ValueError(f"SCA got None on {file_name}")
-                item = model.set_item_num(rowno, colno, value)
+                item = model.set_item_right_shifted(rowno, colno, value)
                 if matches := counter.get_matches(sname):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
             model.row_added.emit()
@@ -117,8 +117,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
-            model.set_item_str(rowno, 0, file_name)
-            model.set_row_num(rowno, values, start=1)
+            model.set_item_left_shifted(rowno, 0, file_name)
+            model.set_row_right_shifted(rowno, values, start=1)
             model.row_added.emit()
 
         self.worker_done.emit()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import re
 import sys
 import traceback
@@ -21,17 +22,20 @@ from PySide6.QtGui import (
     QTextCursor,
 )
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QGridLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QTextBrowser,
 )
 
-from neosca import ACKS_PATH, CITING_PATH, ICON_PATH
+from neosca import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
 from neosca.ns_about import __email__, __title__, __version__, __year__
-from neosca.ns_io import Ns_IO
+from neosca.ns_io import Ns_Cache, Ns_IO
+from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets.ns_labels import (
     Ns_Label_Html,
     Ns_Label_Html_Centered,
@@ -41,7 +45,7 @@ from neosca.ns_widgets.ns_labels import (
     Ns_Label_WordWrapped,
 )
 from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
-from neosca.ns_widgets.ns_widgets import Ns_TextEdit_ReadOnly
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
 
 
 class Ns_Dialog_Meta(type(QDialog)):
@@ -50,6 +54,7 @@ class Ns_Dialog_Meta(type(QDialog)):
         # Set size after initialization, be it the Ns_Dialog itself or its subclasses
         obj.set_size()
         return obj
+
 
 class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
     class ButtonAlignmentFlag(Enum):
@@ -88,6 +93,7 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
 
     def set_size(self):
         # Called in Ns_Dialog_Meta
+
         # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
         if self.resizable:
             width = self.spec_width if self.spec_width else self.size().width()
@@ -101,9 +107,6 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
             # Gives the window a thin dialog border on Windows. This style is
             # traditionally used for fixed-size dialogs.
             self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-
-        # https://stackoverflow.com/a/1679399/20732031
-        self.adjustSize()
 
     def rowCount(self) -> int:
         return self.layout_content.rowCount()
@@ -133,6 +136,7 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
         )
         self.raise_()
         self.activateWindow()
+
 
 class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
@@ -273,7 +277,7 @@ class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
 
 class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
     def __init__(self, main, **kwargs):
-        super().__init__(main, title="Citing", **kwargs)
+        super().__init__(main, title="Citing", width=420, height=420, **kwargs)
         self.style_citation_mapping = Ns_IO.load_json(CITING_PATH)
         self.label_citing = Ns_Label_WordWrapped(
             f"If you use {__title__} in your research, please cite as follows."
@@ -303,7 +307,7 @@ class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
         self.setText(trace_back + meta_data)
 
         self.label_desc = Ns_Label_Html_WordWrapped(
-            f"An error occurred. Please send the following error messages to <a href='{__email__}'>{__email__}</a> to contact the author for support."
+            f"An error occurred. Please send the following error messages to <a href='mailto:{__email__}'>{__email__}</a> to contact the author for support."
         )
         self.addWidget(self.label_desc)
 
@@ -316,26 +320,31 @@ class Ns_Dialog_Table(Ns_Dialog):
         tableview: Ns_TableView,
         text: Optional[str] = None,
         html: Optional[str] = None,
-        export_filename: Optional[str] = None,
         width: int = 500,
         height: int = 300,
+        export_filename: Optional[str] = None,
+        disable_default_br_buttons: bool = False,
     ) -> None:
         super().__init__(main, title=title, width=width, height=height, resizable=True)
         self.tableview: Ns_TableView = tableview
+        assert (text is not None) ^ (html is not None), "Must provide either text or html, but not both"
         if text is not None:
             self.layout_content.addWidget(Ns_Label_WordWrapped(text), 0, 0)
         if html is not None:
             self.layout_content.addWidget(Ns_Label_Html_WordWrapped(html), 0, 0)
         self.layout_content.addWidget(tableview, self.rowCount(), 0)
 
-        self.button_ok = QPushButton("OK")
-        self.button_ok.clicked.connect(self.accept)
-        self.addButtons(self.button_ok, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
-
+        # Bottom left buttons
         if export_filename is not None:
             self.button_export_table = QPushButton("Export table...")
             self.button_export_table.clicked.connect(lambda: self.tableview.export_table(export_filename))
             self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+
+        # Bottom right buttons
+        if not disable_default_br_buttons:
+            self.button_ok = QPushButton("OK")
+            self.button_ok.clicked.connect(self.accept)
+            self.addButtons(self.button_ok, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
 
 
 class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
@@ -343,8 +352,9 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
         ack_data = Ns_IO.load_json(ACKS_PATH)
         acknowledgment = ack_data["acknowledgment"]
         projects = ack_data["projects"]
-        model_ack = Ns_StandardItemModel(main)
-        model_ack.setHorizontalHeaderLabels(("Name", "Version", "Authors", "License"))
+        model_ack = Ns_StandardItemModel(
+            main, hor_labels=("Name", "Version", "Authors", "License"), show_empty_row=False
+        )
         model_ack.setRowCount(len(projects))
         tableview_ack = Ns_TableView(main, model=model_ack)
         for rowno, project in enumerate(projects):
@@ -360,14 +370,16 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
             )
             for colno, label in enumerate(cols):
                 tableview_ack.setIndexWidget(model_ack.index(rowno, colno), label)
-        super().__init__(main, title="Acknowledgments", tableview=tableview_ack, html=acknowledgment)
+        super().__init__(
+            main, title="Acknowledgments", tableview=tableview_ack, html=acknowledgment, width=500, height=500
+        )
 
 
 class Ns_Dialog_About(Ns_Dialog):
     def __init__(self, main) -> None:
         import textwrap
 
-        super().__init__(main, title=f"About {__title__}", resizable=True)
+        super().__init__(main, title=f"About {__title__}", width=420, height=420, resizable=True)
         text = textwrap.dedent(
             f"""\
         <strong>A fork of <a href="https://sites.psu.edu/xxl13/l2sca/">L2SCA</a> and <a href="https://sites.psu.edu/xxl13/lca/">LCA</a></strong>
@@ -397,3 +409,74 @@ class Ns_Dialog_About(Ns_Dialog):
         btn_ok = QPushButton("OK")
         btn_ok.clicked.connect(self.accept)
         self.addButtons(btn_ok, alignment=self.ButtonAlignmentFlag.AlignRight)
+
+
+class Ns_Dialog_Table_CacheDeletion(Ns_Dialog_Table):
+    def __init__(self, main) -> None:
+        self.model_cache = Ns_StandardItemModel(
+            main, hor_labels=("Cache Name", "Cache Size", "Source Path"), show_empty_row=False
+        )
+        for cache_name, cache_path, cache_size, file_path in Ns_Cache.yield_cname_cpath_csize_fpath():
+            rowno = self.model_cache.rowCount()
+            item = self.model_cache.set_item_left_shifted(rowno, 0, cache_name)
+            item.setData(cache_path, Qt.ItemDataRole.UserRole)
+            item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
+            item.setCheckState(Qt.CheckState.Unchecked)
+            self.model_cache.set_item_right_shifted(rowno, 1, cache_size)
+            self.model_cache.set_item_left_shifted(rowno, 2, file_path)
+        tableview_cache = Ns_TableView(main, model=self.model_cache)
+
+        super().__init__(
+            main,
+            title="Cache Deletion",
+            tableview=tableview_cache,
+            html=f"Choose from the table below to delete cache files, which are at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
+            export_filename="neosca_cache_files.xlsx",
+            disable_default_br_buttons=True,
+        )
+
+        # Bottom right buttons
+        button_delete_all = QPushButton("Delete All")
+        button_delete_all.clicked.connect(self.on_delete_all)
+        button_cancel = QPushButton("Cancel")
+        button_cancel.clicked.connect(self.reject)
+        button_delete = QPushButton("Delete")
+        button_delete.clicked.connect(self.on_delete)
+        self.addButtons(
+            button_delete_all, button_cancel, button_delete, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight
+        )
+
+    def on_delete_all(self) -> None:
+        cache_paths = tuple(self.model_cache.yield_column(0, Qt.ItemDataRole.UserRole))
+        self.delete_cache(cache_paths)
+
+    def on_delete(self) -> None:
+        cache_paths = tuple(self.model_cache.yield_checked_item_data(colno=0, role=Qt.ItemDataRole.UserRole))
+        self.delete_cache(cache_paths)
+
+    def delete_cache(self, cache_paths) -> None:
+        if not cache_paths:
+            QMessageBox.warning(self, "No Cache Files Chosen", "Please choose at least one cache file.")
+            return
+
+        key = "Miscellaneous/dont-confirm-on-cache-deletion"
+        if not Ns_Settings.value(key, type=bool):
+            checkbox = QCheckBox("Don't confirm on cache deletion")
+            checkbox.stateChanged.connect(lambda: Ns_Settings.setValue(key, checkbox.isChecked()))
+            messagebox = Ns_MessageBox_Question(
+                self,
+                "Confirm Deletion",
+                "Are you sure you want to delete the chosen cache files?",
+                checkbox=checkbox,
+            )
+            if not messagebox.exec():
+                return
+
+        for cache_path in cache_paths:
+            try:
+                os.remove(cache_path)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Error deleting file: {e}")
+        Ns_Cache.delete_cache_entries(cache_paths)
+        QMessageBox.information(self, "Deletion Successful", f"{len(cache_paths)} cache files deleted.")
+        self.accept()

@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from neosca import CACHE_DIR, ICON_PATH, QSS_PATH
+from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_Cache, Ns_IO
@@ -45,11 +45,12 @@ from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table,
     Ns_Dialog_Table_Acknowledgments,
+    Ns_Dialog_Table_CacheDeletion,
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
 from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
 class Ns_Main_Gui(QMainWindow):
@@ -159,32 +160,6 @@ class Ns_Main_Gui(QMainWindow):
         action_about = self.menu_help.addAction("A&bout")
         action_about.triggered.connect(self.menubar_help_about)
 
-    # Override
-    def close(self) -> bool:
-        if not Ns_Settings.value("Miscellaneous/dont-confirm-on-exit", type=bool) and any(
-            (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
-        ):
-            checkbox_exit = QCheckBox("Don't confirm on exit")
-            checkbox_exit.stateChanged.connect(
-                lambda: Ns_Settings.setValue("Miscellaneous/dont-confirm-on-exit", checkbox_exit.isChecked())
-            )
-            messagebox = Ns_MessageBox_Confirm(
-                self,
-                f"Quit {__title__}",
-                "<b>All unsaved data will be lost.</b> Do you really want to exit?",
-                QMessageBox.Icon.Warning,
-            )
-            messagebox.setCheckBox(checkbox_exit)
-            if not messagebox.exec():
-                return False
-
-        for splitter in (self.splitter_central_widget,):
-            Ns_Settings.setValue(splitter.objectName(), splitter.saveState())
-        Ns_Settings.sync()
-        Ns_Cache.dump_cache_info()
-
-        return super().close()
-
     def menubar_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
             caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
@@ -199,7 +174,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def menubar_file_open_file(self):
         file_paths_to_add, _ = QFileDialog.getOpenFileNames(
-            parent=None,
+            parent=self,
             caption="Open Files",
             dir=Ns_Settings.value("Import/default-path"),
             filter=";;".join(available_import_types),
@@ -210,30 +185,10 @@ class Ns_Main_Gui(QMainWindow):
         self.add_file_paths(file_paths_to_add)
 
     def menubar_file_clear_cache(self):
-        cache_paths_to_delete, _ = QFileDialog.getOpenFileNames(
-            parent=None,
-            caption="Select Cache Files",
-            dir=str(CACHE_DIR),
-        )
-        if not cache_paths_to_delete:
-            return
-
-        reply = QMessageBox.question(
-            None,
-            "Confirm Deletion",
-            f"Are you sure you want to delete the selected cache files?\n\n{', '.join(cache_paths_to_delete)}",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if reply == QMessageBox.StandardButton.Yes:
-            # Delete the selected cache files
-            for file_path in cache_paths_to_delete:
-                try:
-                    os.remove(file_path)
-                except Exception as e:
-                    QMessageBox.critical(None, "Error", f"Error deleting file: {e}")
-
-            QMessageBox.information(None, "Deletion Successful", "Selected cache files deleted successfully.")
+        if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
+            Ns_Dialog_Table_CacheDeletion(self).open()
+        else:
+            QMessageBox.information(self, "No Caches", "There are no caches to clear.")
 
     # def menubar_file_restart(self):
     #     self.trayicon.hide()
@@ -245,11 +200,11 @@ class Ns_Main_Gui(QMainWindow):
     def menubar_prefs_settings(self) -> None:
         attr = "dialog_settings"
         if hasattr(self, attr):
-            getattr(self, attr).exec()
+            getattr(self, attr).open()
         else:
             dialog_settings = Ns_Dialog_Settings(self)
             setattr(self, attr, dialog_settings)
-            dialog_settings.exec()
+            dialog_settings.open()
 
     def menubar_prefs_increase_font_size(self) -> None:
         key = "Appearance/font-size"
@@ -481,12 +436,13 @@ class Ns_Main_Gui(QMainWindow):
                 file_stem = Ns_IO.ensure_unique_filestem(file_stem, already_added_file_stems)
                 already_added_file_stems.append(file_stem)
                 rowno = self.model_file.rowCount()
-                self.model_file.set_row_str(rowno, (file_stem, file_path))
+                self.model_file.set_row_left_shifted(rowno, (file_stem, file_path))
                 self.model_file.row_added.emit()
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ns_StandardItemModel(self)
-            model_err_files.setHorizontalHeaderLabels(("Error Type", "File Path"))
+            model_err_files = Ns_StandardItemModel(
+                self, hor_labels=("Error Type", "File Path"), show_empty_row=False
+            )
             for reason, file_paths in (
                 ("Duplicate file", file_paths_dup),
                 ("Unsupported file type", file_paths_unsupported),
@@ -503,7 +459,7 @@ class Ns_Main_Gui(QMainWindow):
                 tableview=tableview_err_files,
                 export_filename="neosca_error_files.xlsx",
             )
-            dialog.exec()
+            dialog.open()
 
     def setup_main_window(self):
         self.setup_tab_sca()
@@ -526,18 +482,18 @@ class Ns_Main_Gui(QMainWindow):
 
         self.ns_worker_sca_generate_table = Ns_Worker_SCA_Generate_Table(main=self)
         self.ns_thread_sca_generate_table = Ns_Thread(self.ns_worker_sca_generate_table)
-        self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.exec)
+        self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.open)
         self.ns_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
         self.ns_thread_sca_generate_table.err_occurs.connect(
-            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).exec()
+            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open()
         )
 
         self.ns_worker_lca_generate_table = Ns_Worker_LCA_Generate_Table(main=self)
         self.ns_thread_lca_generate_table = Ns_Thread(self.ns_worker_lca_generate_table)
-        self.ns_thread_lca_generate_table.started.connect(self.dialog_processing.exec)
+        self.ns_thread_lca_generate_table.started.connect(self.dialog_processing.open)
         self.ns_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
         self.ns_thread_lca_generate_table.err_occurs.connect(
-            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).exec()
+            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open()
         )
 
     def yield_added_file_names(self) -> Generator[str, None, None]:
@@ -547,6 +503,31 @@ class Ns_Main_Gui(QMainWindow):
     def yield_added_file_paths(self) -> Generator[str, None, None]:
         colno_path = 1
         return self.model_file.yield_column(colno_path)
+
+    # Override
+    def close(self) -> bool:
+        key = "Miscellaneous/dont-confirm-on-exit"
+        if not Ns_Settings.value(key, type=bool) and any(
+            (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
+        ):
+            checkbox_exit = QCheckBox("Don't confirm on exit")
+            checkbox_exit.stateChanged.connect(lambda: Ns_Settings.setValue(key, checkbox_exit.isChecked()))
+            messagebox = Ns_MessageBox_Question(
+                self,
+                f"Quit {__title__}",
+                "<b>All unsaved data will be lost.</b> Do you really want to exit?",
+                QMessageBox.Icon.Warning,
+                checkbox_exit,
+            )
+            if not messagebox.exec():
+                return False
+
+        for splitter in (self.splitter_central_widget,):
+            Ns_Settings.setValue(splitter.objectName(), splitter.saveState())
+        Ns_Settings.sync()
+        Ns_Cache.save_cache_info()
+
+        return super().close()
 
 
 def main_gui():

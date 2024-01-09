@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from typing import Generator, Iterable, List, Literal, Optional, Sequence, Union
+from typing import Any, Generator, Iterable, List, Literal, Optional, Sequence, Union
 
 from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Signal
 from PySide6.QtGui import (
@@ -23,7 +23,7 @@ from neosca import DESKTOP_PATH
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Confirm
+from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
 class Ns_StandardItemModel(QStandardItemModel):
@@ -63,25 +63,31 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.row_added.connect(lambda: self.set_has_been_exported(False))
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
 
-    def set_item_str(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> QStandardItem:
+    def set_item_left_shifted(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> QStandardItem:
         if isinstance(value, QStandardItem):
             item = value
         elif isinstance(value, str):
-            item = QStandardItem(value)
+            item = QStandardItem()
+            # https://stackoverflow.com/a/20469423/20732031
+            item.setData(value, Qt.ItemDataRole.DisplayRole)
         else:
             assert False, f"Invalid value type: {type(value)}"
         item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
         return item
 
-    def set_row_str(self, rowno: int, values: Iterable[Union[QStandardItem, str]], start: int = 0) -> None:
+    def set_row_left_shifted(
+        self, rowno: int, values: Iterable[Union[QStandardItem, str]], start: int = 0
+    ) -> None:
         for colno, value in enumerate(values, start=start):
-            self.set_item_str(rowno, colno, value)
+            self.set_item_left_shifted(rowno, colno, value)
 
-    def set_item_num(self, rowno: int, colno: int, value: Union[QStandardItem, int, float]) -> QStandardItem:
+    def set_item_right_shifted(
+        self, rowno: int, colno: int, value: Union[QStandardItem, str, int, float]
+    ) -> QStandardItem:
         if isinstance(value, QStandardItem):
             item = value
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, (str, int, float)):
             item = QStandardItem()
             # https://stackoverflow.com/a/20469423/20732031
             item.setData(value, Qt.ItemDataRole.DisplayRole)
@@ -91,11 +97,11 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.setItem(rowno, colno, item)
         return item
 
-    def set_row_num(
-        self, rowno: int, values: Iterable[Union[QStandardItem, int, float]], start: int = 0
+    def set_row_right_shifted(
+        self, rowno: int, values: Iterable[Union[QStandardItem, str, int, float]], start: int = 0
     ) -> None:
         for colno, value in enumerate(values, start=start):
-            self.set_item_num(rowno, colno, value)
+            self.set_item_right_shifted(rowno, colno, value)
 
     def set_has_been_exported(self, exported: bool) -> None:
         self.has_been_exported = exported
@@ -118,7 +124,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         if not confirm or self.has_been_exported:
             return self._clear_data()
         else:
-            messagebox = Ns_MessageBox_Confirm(
+            messagebox = Ns_MessageBox_Question(
                 self.main,
                 "Clear Table",
                 "The table has not been exported yet and all the data will be lost. Continue?",
@@ -149,9 +155,19 @@ class Ns_StandardItemModel(QStandardItemModel):
                 self.removeRow(rowno)
 
     # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
-    def yield_column(self, colno: int) -> Generator[str, None, None]:
+    def yield_column(
+        self, colno: int, role: Qt.ItemDataRole = Qt.ItemDataRole.DisplayRole
+    ) -> Generator[Any, None, None]:
         items = (self.item(rowno, colno) for rowno in range(self.rowCount()))
-        return (item.text() for item in items if item is not None)
+        return (item.data(role) for item in items if item is not None)
+
+    def yield_checked_item_data(self, colno: int, role: Qt.ItemDataRole) -> Generator[Any, None, None]:
+        for rowno in range(self.rowCount()):
+            item = self.item(rowno, colno)
+            if item is None:
+                continue
+            if item.checkState() == Qt.CheckState.Checked:
+                yield item.data(role)
 
     # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
     # def flags(self, index) -> Qt.ItemFlag:
@@ -290,7 +306,7 @@ class Ns_TableView(QTableView):
 
     def export_table(self, filename: str = "") -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
-            parent=None,
+            parent=self,
             caption="Export Table",
             dir=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
@@ -472,7 +488,7 @@ class Ns_TableView(QTableView):
 
     def export_matches(self) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
-            parent=None,
+            parent=self,
             caption="Export Table",
             dir=str(DESKTOP_PATH / "neosca_sca_matches.xlsx"),
             filter=";;".join(available_export_types),
