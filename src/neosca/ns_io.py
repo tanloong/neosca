@@ -263,12 +263,14 @@ class Ns_Cache:
         if file_path not in cls.fpath_cname:
             cache_path = cls.register_cache_path(file_path)
             return cache_path, False
-
         cache_path = cls._name2path(cls.fpath_cname[file_path])
-        not_exist = not os_path.exists(cache_path)
+        if not os_path.exists(cache_path):
+            return cache_path, False
         outdated = os_path.getmtime(cache_path) <= os_path.getmtime(file_path)
+        if outdated:
+            return cache_path, False
         empty = os_path.getsize(cache_path) == 0
-        if not_exist or outdated or empty:
+        if empty:
             return cache_path, False
 
         logging.info(f"Found cache: {cache_path} exists, and is non-empty and newer than {file_path}.")
