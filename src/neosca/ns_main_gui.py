@@ -4,7 +4,6 @@ import glob
 import os
 import os.path as os_path
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Generator, List, Set
@@ -28,7 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from neosca import ICON_PATH, QSS_PATH
+from neosca import CACHE_DIR, ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_Cache, Ns_IO
@@ -128,6 +127,9 @@ class Ns_Main_Gui(QMainWindow):
         action_open_folder = self.menu_file.addAction("Open &Folder...")
         action_open_folder.triggered.connect(self.menubar_file_open_folder)
         self.menu_file.addSeparator()
+        action_clear_cache = self.menu_file.addAction("&Clear Cache...")
+        action_clear_cache.triggered.connect(self.menubar_file_clear_cache)
+        self.menu_file.addSeparator()
         action_quit = self.menu_file.addAction("&Quit")
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
@@ -182,6 +184,63 @@ class Ns_Main_Gui(QMainWindow):
         Ns_Cache.dump_cache_info()
 
         return super().close()
+
+    def menubar_file_open_folder(self):
+        folder_path = QFileDialog.getExistingDirectory(
+            caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
+        )
+        if not folder_path:
+            return
+
+        file_paths_to_add = []
+        for extension in Ns_IO.SUPPORTED_EXTENSIONS:
+            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
+        self.add_file_paths(file_paths_to_add)
+
+    def menubar_file_open_file(self):
+        file_paths_to_add, _ = QFileDialog.getOpenFileNames(
+            parent=None,
+            caption="Open Files",
+            dir=Ns_Settings.value("Import/default-path"),
+            filter=";;".join(available_import_types),
+            selectedFilter=Ns_Settings.value("Import/default-type"),
+        )
+        if not file_paths_to_add:
+            return
+        self.add_file_paths(file_paths_to_add)
+
+    def menubar_file_clear_cache(self):
+        cache_paths_to_delete, _ = QFileDialog.getOpenFileNames(
+            parent=None,
+            caption="Select Cache Files",
+            dir=str(CACHE_DIR),
+        )
+        if not cache_paths_to_delete:
+            return
+
+        reply = QMessageBox.question(
+            None,
+            "Confirm Deletion",
+            f"Are you sure you want to delete the selected cache files?\n\n{', '.join(cache_paths_to_delete)}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            # Delete the selected cache files
+            for file_path in cache_paths_to_delete:
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    QMessageBox.critical(None, "Error", f"Error deleting file: {e}")
+
+            QMessageBox.information(None, "Deletion Successful", "Selected cache files deleted successfully.")
+
+    # def menubar_file_restart(self):
+    #     self.trayicon.hide()
+    #     self.close()
+    #     command = [sys.executable, "-m", "neosca"]
+    #     subprocess.call(command, env=os.environ.copy(), close_fds=False)
+    #     sys.exit(0)
 
     def menubar_prefs_settings(self) -> None:
         attr = "dialog_settings"
@@ -488,37 +547,6 @@ class Ns_Main_Gui(QMainWindow):
     def yield_added_file_paths(self) -> Generator[str, None, None]:
         colno_path = 1
         return self.model_file.yield_column(colno_path)
-
-    def menubar_file_open_folder(self):
-        folder_path = QFileDialog.getExistingDirectory(
-            caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
-        )
-        if not folder_path:
-            return
-
-        file_paths_to_add = []
-        for extension in Ns_IO.SUPPORTED_EXTENSIONS:
-            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
-        self.add_file_paths(file_paths_to_add)
-
-    def menubar_file_open_file(self):
-        file_paths_to_add, _ = QFileDialog.getOpenFileNames(
-            parent=None,
-            caption="Open Files",
-            dir=Ns_Settings.value("Import/default-path"),
-            filter=";;".join(available_import_types),
-            selectedFilter=Ns_Settings.value("Import/default-type"),
-        )
-        if not file_paths_to_add:
-            return
-        self.add_file_paths(file_paths_to_add)
-
-    def menubar_file_restart(self):
-        self.trayicon.hide()
-        self.close()
-        command = [sys.executable, "-m", "neosca"]
-        subprocess.call(command, env=os.environ.copy(), close_fds=False)
-        sys.exit(0)
 
 
 def main_gui():
