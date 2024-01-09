@@ -44,7 +44,14 @@ from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItem
 from neosca.ns_widgets.ns_widgets import Ns_TextEdit_ReadOnly
 
 
-class Ns_Dialog(QDialog):
+class Ns_Dialog_Meta(type(QDialog)):
+    def __call__(self, *args, **kwargs):
+        obj = super().__call__(*args, **kwargs)
+        # Set size after initialization, be it the Ns_Dialog itself or its subclasses
+        obj.set_size()
+        return obj
+
+class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
     class ButtonAlignmentFlag(Enum):
         AlignLeft = 0
         AlignRight = 2
@@ -79,6 +86,25 @@ class Ns_Dialog(QDialog):
         self.grid_layout.addLayout(self.layout_button, 1, 0)
         self.setLayout(self.grid_layout)
 
+    def set_size(self):
+        # Called in Ns_Dialog_Meta
+        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
+        if self.resizable:
+            width = self.spec_width if self.spec_width else self.size().width()
+            height = self.spec_height if self.spec_height else self.size().height()
+            self.resize(width, height)
+        else:
+            if self.spec_width:
+                self.setFixedWidth(self.spec_width)
+            if self.spec_height:
+                self.setFixedHeight(self.spec_height)
+            # Gives the window a thin dialog border on Windows. This style is
+            # traditionally used for fixed-size dialogs.
+            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
+
+        # https://stackoverflow.com/a/1679399/20732031
+        self.adjustSize()
+
     def rowCount(self) -> int:
         return self.layout_content.rowCount()
 
@@ -107,39 +133,6 @@ class Ns_Dialog(QDialog):
         )
         self.raise_()
         self.activateWindow()
-
-    def set_size(self):
-        # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
-        if self.resizable:
-            width = self.spec_width if self.spec_width else self.size().width()
-            height = self.spec_height if self.spec_height else self.size().height()
-            self.resize(width, height)
-        else:
-            if self.spec_width:
-                self.setFixedWidth(self.spec_width)
-            if self.spec_height:
-                self.setFixedHeight(self.spec_height)
-            # Gives the window a thin dialog border on Windows. This style is
-            # traditionally used for fixed-size dialogs.
-            self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
-
-        # https://stackoverflow.com/a/1679399/20732031
-        self.adjustSize()
-    
-    # Override
-    def open(self) -> None:
-        self.set_size()
-        return super().open()
-
-    # Override
-    def show(self) -> None:
-        self.set_size()
-        return super().show()
-
-    # Override
-    def exec(self) -> int:
-        self.set_size()
-        return super().exec()
 
 class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
     started = Signal()
