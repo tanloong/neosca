@@ -210,14 +210,14 @@ class Ns_Main_Gui(QMainWindow):
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) + 1
         if point_size < Ns_Settings.value("Appearance/font-size-max", type=int):
-            Ns_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
 
     def menubar_prefs_decrease_font_size(self) -> None:
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) - 1
         if point_size > Ns_Settings.value("Appearance/font-size-min", type=int):
-            Ns_QSS.set_value(self, {"*": {"font-size": f"{point_size}pt"}})
+            Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
 
     def menubar_help_citing(self) -> None:
@@ -231,10 +231,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def setup_tab_sca(self):
         self.button_generate_table_sca = Ns_PushButton("Generate table", False)
-        # self.button_generate_table_sca.setShortcut("CTRL+G")
         self.button_export_table_sca = Ns_PushButton("Export table...", False)
-        # self.button_export_selected_cells = QPushButton("Export selected cells...")
-        # self.button_export_selected_cells.setEnabled(False)
         self.button_export_matches_sca = Ns_PushButton("Export matches...", False)
         self.button_clear_table_sca = Ns_PushButton("Clear table", False)
 
@@ -310,10 +307,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def setup_tab_lca(self):
         self.button_generate_table_lca = Ns_PushButton("Generate table", False)
-        # self.button_generate_table_lca.setShortcut("CTRL+G")
         self.button_export_table_lca = Ns_PushButton("Export table...", False)
-        # self.button_export_selected_cells = QPushButton("Export selected cells...")
-        # self.button_export_selected_cells.setEnabled(False)
         self.button_clear_table_lca = Ns_PushButton("Clear table", False)
 
         self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA.FIELDNAMES[1:]))
@@ -413,7 +407,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def add_file_paths(self, file_paths_to_add: List[str]) -> None:
         unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
-        already_added_file_paths: Set[str] = set(self.yield_added_file_paths())
+        already_added_file_paths: Set[str] = set(self.model_file.yield_column(1))
         file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
         file_paths_unsupported: Set[str] = set(
             filter(lambda p: Ns_IO.suffix(p).lstrip(".") not in Ns_IO.SUPPORTED_EXTENSIONS, file_paths_to_add)
@@ -495,14 +489,6 @@ class Ns_Main_Gui(QMainWindow):
         self.ns_thread_lca_generate_table.err_occurs.connect(
             lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open()
         )
-
-    def yield_added_file_names(self) -> Generator[str, None, None]:
-        colno_path = 0
-        return self.model_file.yield_column(colno_path)
-
-    def yield_added_file_paths(self) -> Generator[str, None, None]:
-        colno_path = 1
-        return self.model_file.yield_column(colno_path)
 
     # Override
     def close(self) -> bool:

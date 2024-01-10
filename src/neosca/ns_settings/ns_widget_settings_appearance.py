@@ -238,7 +238,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         is_bold = self.checkbox_bold.isChecked()
         Ns_Settings.setValue(key, is_bold)
 
-        Ns_QSS.set_value(
+        Ns_QSS.update(
             self.main,
             {
                 "*": {

@@ -103,5 +103,5 @@ class TestQSS(BaseTmpl):
         w.setStyleSheet(qss)
 
         font_size = 20
-        Ns_QSS.set_value(w, {"*": {"font-size": f"{font_size}pt;"}})
+        Ns_QSS.update(w, {"*": {"font-size": f"{font_size}pt;"}})
         self.assertEqual(Ns_QSS.get_value(w.styleSheet(), "*", "font-size"), f"{font_size}pt")

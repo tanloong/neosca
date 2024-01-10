@@ -120,7 +120,7 @@ class Ns_QSS:
         return sel_dec_mapping
 
     @classmethod
-    def set_value(cls, widget: QWidget, new_qss_mapping: Dict[str, Dict[str, str]]) -> None:
+    def update(cls, widget: QWidget, new_qss_mapping: Dict[str, Dict[str, str]]) -> None:
         qss_str = widget.styleSheet()
         selector_declaration_mapping: QSSMapping = cls.str_to_mapping(qss_str)
         selector_declaration_mapping.update(new_qss_mapping)
