@@ -2,12 +2,14 @@
 
 import logging
 import lzma
+from pathlib import Path
 import pickle
 from typing import Any, Dict, Generator, Literal, Optional, Sequence, Tuple, Union
 
 from stanza import Document
 
 from neosca import STANZA_MODEL_DIR
+from neosca.ns_io import Ns_IO
 
 
 class Ns_NLP_Stanza:
@@ -75,9 +77,9 @@ class Ns_NLP_Stanza:
                 has_just_processed = True
 
         if has_just_processed and cache_path is not None:
-            logging.debug(f"Caching document to {cache_path}")
-            with open(cache_path, "wb") as f:
-                f.write(lzma.compress(cls.doc2serialized(doc)))
+            logging.debug(f"Caching document to {cache_path}...")
+            Ns_IO.dump_binary(lzma.compress(cls.doc2serialized(doc)), cache_path)
+
         return doc
 
     @classmethod

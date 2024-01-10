@@ -203,9 +203,24 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             return json.load(f)
 
     @classmethod
-    def dump_json(cls, data: Any, json_path: Union[str, PathLike]) -> None:
-        with open(json_path, "w") as f:
-            json.dump(data, f, ensure_ascii=False)
+    def dump_json(cls, data: Any, path: Union[str, PathLike]) -> None:
+        try:
+            with open(path, "w") as f:
+                json.dump(data, f, ensure_ascii=False)
+        except FileNotFoundError:
+            Path(path).parent.mkdir(parents=True)
+            with open(path, "w") as f:
+                json.dump(data, f, ensure_ascii=False)
+
+    @classmethod
+    def dump_binary(cls, data: bytes, path: Union[str, PathLike]) -> None:
+        try:
+            with open(path, "wb") as f:
+                f.write(data)
+        except FileNotFoundError:
+            Path(path).parent.mkdir(parents=True)
+            with open(path, "wb") as f:
+                f.write(data)
 
     @classmethod
     def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> Set[str]:
