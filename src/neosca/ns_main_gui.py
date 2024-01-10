@@ -134,10 +134,6 @@ class Ns_Main_Gui(QMainWindow):
         action_quit = self.menu_file.addAction("&Quit")
         action_quit.setShortcut("CTRL+Q")
         action_quit.triggered.connect(self.close)
-        # action_restart = QAction("Restart", self.menu_file)  # TODO remove this before releasing
-        # action_restart.triggered.connect(self.menubar_file_restart)  # TODO remove this before releasing
-        # action_restart.setShortcut("CTRL+R")  # TODO remove this before releasing
-        # self.menu_file.addAction(action_restart)
         # Preferences
         self.menu_prefs = self.menuBar().addMenu("&Preferences")
         action_settings = self.menu_prefs.addAction("&Settings...")
@@ -189,13 +185,6 @@ class Ns_Main_Gui(QMainWindow):
             Ns_Dialog_Table_CacheDeletion(self).open()
         else:
             QMessageBox.information(self, "No Caches", "There are no caches to clear.")
-
-    # def menubar_file_restart(self):
-    #     self.trayicon.hide()
-    #     self.close()
-    #     command = [sys.executable, "-m", "neosca"]
-    #     subprocess.call(command, env=os.environ.copy(), close_fds=False)
-    #     sys.exit(0)
 
     def menubar_prefs_settings(self) -> None:
         attr = "dialog_settings"
