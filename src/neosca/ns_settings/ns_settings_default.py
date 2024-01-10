@@ -56,4 +56,5 @@ settings_default = {
     "default-splitter-sca": 200,
     "default-splitter-lca": 200,
     "default-splitter-file": 150,
+    "show-statusbar": True,
 }

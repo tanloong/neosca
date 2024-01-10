@@ -30,8 +30,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
+        input_file_names: Generator[str, None, None] = self.main.model_file.yield_column(0)
+        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_column(1)
 
         sca_kwargs = {
             "is_auto_save": False,
@@ -86,8 +86,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.yield_added_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.yield_added_file_paths()
+        input_file_names: Generator[str, None, None] = self.main.model_file.yield_column(0)
+        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_column(1)
 
         lca_kwargs = {
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),

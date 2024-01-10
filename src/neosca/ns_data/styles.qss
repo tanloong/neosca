@@ -28,3 +28,6 @@ QHeaderView::section:vertical:hover {
 QHeaderView::section:vertical:pressed {
     background-color: #606060;
 }
+QStatusBar {
+    background-color: #D0D0D0;
+}

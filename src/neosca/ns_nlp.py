@@ -2,7 +2,6 @@
 
 import logging
 import lzma
-from pathlib import Path
 import pickle
 from typing import Any, Dict, Generator, Literal, Optional, Sequence, Tuple, Union
 

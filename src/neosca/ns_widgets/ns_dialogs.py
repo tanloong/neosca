@@ -5,10 +5,11 @@ import re
 import sys
 import traceback
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
 from PySide6.QtCore import (
     QElapsedTimer,
+    QModelIndex,
     QSize,
     QSortFilterProxyModel,
     QTime,
@@ -29,6 +30,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QTableView,
     QTextBrowser,
 )
 
@@ -176,6 +178,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         self.started.connect(self.elapsedtimer.start)
         # If the timer is already running, it will be stopped and restarted.
         self.started.connect(lambda: self.timer.start(self.interval))
+        self.accepted.connect(self.update_statusbar)
         # Either 'accepted' or 'rejected', although 'rejected' is disabled (see rejected below)
         self.finished.connect(self.reset_time_elapsed)
         self.finished.connect(self.timer.stop)
@@ -187,6 +190,18 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         time_elapsed: int = self.elapsedtimer.elapsed()
         qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
         self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
+
+    def update_statusbar(self) -> None:
+        time_elapsed: int = self.elapsedtimer.elapsed()
+        qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
+        formatted_time_elapsed = "".join(
+            (
+                f"{qtime.hour()} hours " if qtime.hour() != 0 else "",
+                f"{qtime.minute()} minutes " if qtime.minute() != 0 else "",
+                f"{qtime.second()}.{qtime.msec()} seconds",
+            )
+        )
+        self.main.statusBar().showMessage(f"Process completed. (In {formatted_time_elapsed})")
 
     # Override
     def reject(self) -> None:
@@ -411,7 +426,7 @@ class Ns_Dialog_About(Ns_Dialog):
         self.addButtons(btn_ok, alignment=self.ButtonAlignmentFlag.AlignRight)
 
 
-class Ns_Dialog_Table_CacheDeletion(Ns_Dialog_Table):
+class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
     def __init__(self, main) -> None:
         self.model_cache = Ns_StandardItemModel(
             main, hor_labels=("Cache Name", "Cache Size", "Source Path"), show_empty_row=False
@@ -420,45 +435,60 @@ class Ns_Dialog_Table_CacheDeletion(Ns_Dialog_Table):
             rowno = self.model_cache.rowCount()
             item = self.model_cache.set_item_left_shifted(rowno, 0, cache_name)
             item.setData(cache_path, Qt.ItemDataRole.UserRole)
-            item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
-            item.setCheckState(Qt.CheckState.Unchecked)
             self.model_cache.set_item_right_shifted(rowno, 1, cache_size)
             self.model_cache.set_item_left_shifted(rowno, 2, file_path)
-        tableview_cache = Ns_TableView(main, model=self.model_cache)
+        self.tableview_cache = Ns_TableView(main, model=self.model_cache)
+        self.tableview_cache.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.tableview_cache.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
 
         super().__init__(
             main,
             title="Cache Deletion",
-            tableview=tableview_cache,
-            html=f"Choose from the table below to delete cache files, which are at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
+            tableview=self.tableview_cache,
+            html=f"Select from the table below to delete cache files, which are at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
             export_filename="neosca_cache_files.xlsx",
             disable_default_br_buttons=True,
         )
 
         # Bottom right buttons
-        button_delete_all = QPushButton("Delete All")
-        button_delete_all.clicked.connect(self.on_delete_all)
-        button_cancel = QPushButton("Cancel")
-        button_cancel.clicked.connect(self.reject)
-        button_delete = QPushButton("Delete")
-        button_delete.clicked.connect(self.on_delete)
+        self.button_delete_all = QPushButton("Delete All")
+        self.button_cancel = QPushButton("Cancel")
+        self.button_delete_selected = QPushButton("Delete Selected")
+        self.button_delete_selected.clicked.connect(self.on_delete_selected)
         self.addButtons(
-            button_delete_all, button_cancel, button_delete, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight
+            self.button_delete_all,
+            self.button_cancel,
+            self.button_delete_selected,
+            alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight,
         )
+
+        # Bind
+        self.button_delete_all.clicked.connect(self.on_delete_all)
+        self.button_cancel.clicked.connect(self.reject)
+        self.button_delete_selected.setEnabled(False)
+        self.tableview_cache.selectionModel().selectionChanged.connect(self.on_selection_changed)
+
+    def on_selection_changed(self) -> None:
+        if self.tableview_cache.selectionModel().selectedRows(column=0):
+            self.button_delete_selected.setEnabled(True)
+        else:
+            self.button_delete_selected.setEnabled(False)
 
     def on_delete_all(self) -> None:
         cache_paths = tuple(self.model_cache.yield_column(0, Qt.ItemDataRole.UserRole))
         self.delete_cache(cache_paths)
 
-    def on_delete(self) -> None:
-        cache_paths = tuple(self.model_cache.yield_checked_item_data(colno=0, role=Qt.ItemDataRole.UserRole))
+    def on_delete_selected(self) -> None:
+        indexes: List[QModelIndex] = self.tableview_cache.selectionModel().selectedRows(column=0)
+        cache_paths = tuple(index.data(Qt.ItemDataRole.UserRole) for index in indexes)
         self.delete_cache(cache_paths)
 
-    def delete_cache(self, cache_paths) -> None:
+    def delete_cache(self, cache_paths: Sequence[str]) -> None:
         if not cache_paths:
-            QMessageBox.warning(self, "No Cache Files Chosen", "Please choose at least one cache file.")
+            QMessageBox.warning(self, "No Cache Files Selected", "Please select at least one cache file.")
             return
 
+        len_cache_paths = len(cache_paths)
         key = "Miscellaneous/dont-confirm-on-cache-deletion"
         if not Ns_Settings.value(key, type=bool):
             checkbox = QCheckBox("Don't confirm on cache deletion")
@@ -466,7 +496,7 @@ class Ns_Dialog_Table_CacheDeletion(Ns_Dialog_Table):
             messagebox = Ns_MessageBox_Question(
                 self,
                 "Confirm Deletion",
-                "Are you sure you want to delete the chosen cache files?",
+                f"Are you sure you want to delete the selected {len_cache_paths} cache files?",
                 checkbox=checkbox,
             )
             if not messagebox.exec():
@@ -477,6 +507,9 @@ class Ns_Dialog_Table_CacheDeletion(Ns_Dialog_Table):
                 os.remove(cache_path)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Error deleting file: {e}")
+
         Ns_Cache.delete_cache_entries(cache_paths)
-        QMessageBox.information(self, "Deletion Successful", f"{len(cache_paths)} cache files deleted.")
+
+        noun = "cache file" if len_cache_paths == 1 else "cache files"
+        self.main.statusBar().showMessage(f"{len_cache_paths} {noun} has been deleted.")
         self.accept()

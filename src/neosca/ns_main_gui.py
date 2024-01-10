@@ -6,7 +6,7 @@ import os.path as os_path
 import re
 import sys
 from pathlib import Path
-from typing import Generator, List, Set
+from typing import List, Set
 
 from PySide6.QtCore import QModelIndex, Qt
 from PySide6.QtGui import QAction, QCursor, QIcon, QStandardItem
@@ -45,7 +45,7 @@ from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table,
     Ns_Dialog_Table_Acknowledgments,
-    Ns_Dialog_Table_CacheDeletion,
+    Ns_Dialog_Table_Cache,
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
@@ -70,8 +70,13 @@ class Ns_Main_Gui(QMainWindow):
         self.setup_worker()
         self.setup_main_window()
         self.resize_splitters()
-        self.fix_macos_layout(self)
         self.setup_tray()
+
+        self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
+        self.statusBar().showMessage("Ready!")
+        self.statusBar().setFixedHeight(20)
+
+        self.fix_macos_layout(self)
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L421C3-L433C24
     def setup_tray(self) -> None:
@@ -82,8 +87,8 @@ class Ns_Main_Gui(QMainWindow):
         menu_tray.aboutToShow.connect(
             lambda: action_toggle.setText("Minimize to Tray" if self.isVisible() else f"Show {__title__}")
         )
-
         menu_tray.addSeparator()
+
         action_quit = menu_tray.addAction("Quit")
         action_quit.triggered.connect(self.close)
 
@@ -122,41 +127,53 @@ class Ns_Main_Gui(QMainWindow):
     def setup_menu(self):
         # File
         self.menu_file = self.menuBar().addMenu("&File")
-        action_open_file = self.menu_file.addAction("&Open File...")
-        action_open_file.setShortcut("CTRL+O")
-        action_open_file.triggered.connect(self.menubar_file_open_file)
-        action_open_folder = self.menu_file.addAction("Open &Folder...")
-        action_open_folder.triggered.connect(self.menubar_file_open_folder)
+        self.action_open_file = self.menu_file.addAction("&Open File...")
+        self.action_open_file.setShortcut("CTRL+O")
+        self.action_open_file.triggered.connect(self.menu_file_open_file)
+        self.action_open_folder = self.menu_file.addAction("Open &Folder...")
+        self.action_open_folder.triggered.connect(self.menu_file_open_folder)
         self.menu_file.addSeparator()
-        action_clear_cache = self.menu_file.addAction("&Clear Cache...")
-        action_clear_cache.triggered.connect(self.menubar_file_clear_cache)
+
+        self.action_clear_cache = self.menu_file.addAction("&Clear Cache...")
+        self.action_clear_cache.triggered.connect(self.menu_file_clear_cache)
         self.menu_file.addSeparator()
-        action_quit = self.menu_file.addAction("&Quit")
-        action_quit.setShortcut("CTRL+Q")
-        action_quit.triggered.connect(self.close)
+
+        self.action_quit = self.menu_file.addAction("&Quit")
+        self.action_quit.setShortcut("CTRL+Q")
+        self.action_quit.triggered.connect(self.close)
+
+        self.menu_file.aboutToShow.connect(self.menu_file_about_to_show)
+
         # Preferences
         self.menu_prefs = self.menuBar().addMenu("&Preferences")
-        action_settings = self.menu_prefs.addAction("&Settings...")
-        action_settings.setShortcut("CTRL+,")
-        action_settings.triggered.connect(self.menubar_prefs_settings)
-        action_increase_font_size = self.menu_prefs.addAction("Increase Font Size")
-        action_increase_font_size.setShortcut("CTRL+=")
-        action_increase_font_size.triggered.connect(self.menubar_prefs_increase_font_size)
-        action_decrease_font_size = self.menu_prefs.addAction("Decrease Font Size")
-        action_decrease_font_size.setShortcut("CTRL+-")
-        action_decrease_font_size.triggered.connect(self.menubar_prefs_decrease_font_size)
-        action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
-        action_reset_layout.triggered.connect(lambda: self.resize_splitters(is_reset=True))
+        self.action_settings = self.menu_prefs.addAction("&Settings...")
+        self.action_settings.setShortcut("CTRL+,")
+        self.action_settings.triggered.connect(self.menu_prefs_settings)
+
+        self.menu_prefs.addSeparator()
+        self.action_enlarge_font = self.menu_prefs.addAction("Enlarge Font")
+        self.action_enlarge_font.setShortcut("CTRL+=")
+        self.action_enlarge_font.triggered.connect(self.menu_prefs_enlarge_font)
+        self.action_shrink_font = self.menu_prefs.addAction("Shrink Font")
+        self.action_shrink_font.setShortcut("CTRL+-")
+        self.action_shrink_font.triggered.connect(self.menu_prefs_shrink_font)
+
+        self.menu_prefs.addSeparator()
+        self.action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
+        self.action_reset_layout.triggered.connect(lambda: self.resize_splitters(reset=True))
+        self.action_toggle_statusbar = self.menu_prefs.addAction("&Toggle Statusbar")
+        self.action_toggle_statusbar.triggered.connect(self.menu_prefs_toggle_statusbar)
+
         # Help
         self.menu_help = self.menuBar().addMenu("&Help")
-        action_citing = self.menu_help.addAction("&Citing")
-        action_citing.triggered.connect(self.menubar_help_citing)
-        action_acks = self.menu_help.addAction("&Acknowledgments")
-        action_acks.triggered.connect(self.menubar_help_acks)
-        action_about = self.menu_help.addAction("A&bout")
-        action_about.triggered.connect(self.menubar_help_about)
+        self.action_citing = self.menu_help.addAction("&Citing")
+        self.action_citing.triggered.connect(self.menu_help_citing)
+        self.action_acks = self.menu_help.addAction("&Acknowledgments")
+        self.action_acks.triggered.connect(self.menu_help_acks)
+        self.action_about = self.menu_help.addAction("A&bout")
+        self.action_about.triggered.connect(self.menu_help_about)
 
-    def menubar_file_open_folder(self):
+    def menu_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
             caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
         )
@@ -168,7 +185,7 @@ class Ns_Main_Gui(QMainWindow):
             file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
         self.add_file_paths(file_paths_to_add)
 
-    def menubar_file_open_file(self):
+    def menu_file_open_file(self):
         file_paths_to_add, _ = QFileDialog.getOpenFileNames(
             parent=self,
             caption="Open Files",
@@ -180,13 +197,19 @@ class Ns_Main_Gui(QMainWindow):
             return
         self.add_file_paths(file_paths_to_add)
 
-    def menubar_file_clear_cache(self):
+    def menu_file_clear_cache(self):
         if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
-            Ns_Dialog_Table_CacheDeletion(self).open()
+            Ns_Dialog_Table_Cache(self).open()
         else:
             QMessageBox.information(self, "No Caches", "There are no caches to clear.")
 
-    def menubar_prefs_settings(self) -> None:
+    def menu_file_about_to_show(self):
+        if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
+            self.action_clear_cache.setEnabled(True)
+        else:
+            self.action_clear_cache.setEnabled(False)
+
+    def menu_prefs_settings(self) -> None:
         attr = "dialog_settings"
         if hasattr(self, attr):
             getattr(self, attr).open()
@@ -195,27 +218,31 @@ class Ns_Main_Gui(QMainWindow):
             setattr(self, attr, dialog_settings)
             dialog_settings.open()
 
-    def menubar_prefs_increase_font_size(self) -> None:
+    def menu_prefs_enlarge_font(self) -> None:
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) + 1
         if point_size < Ns_Settings.value("Appearance/font-size-max", type=int):
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
 
-    def menubar_prefs_decrease_font_size(self) -> None:
+    def menu_prefs_shrink_font(self) -> None:
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) - 1
         if point_size > Ns_Settings.value("Appearance/font-size-min", type=int):
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
 
-    def menubar_help_citing(self) -> None:
+    def menu_prefs_toggle_statusbar(self) -> None:
+        self.statusBar().setVisible(not self.statusBar().isVisible())
+        Ns_Settings.setValue("show-statusbar", self.statusBar().isVisible())
+
+    def menu_help_citing(self) -> None:
         Ns_Dialog_TextEdit_Citing(self).open()
 
-    def menubar_help_acks(self) -> None:
+    def menu_help_acks(self) -> None:
         Ns_Dialog_Table_Acknowledgments(self).open()
 
-    def menubar_help_about(self) -> None:
+    def menu_help_about(self) -> None:
         Ns_Dialog_About(self).open()
 
     def setup_tab_sca(self):
@@ -302,11 +329,12 @@ class Ns_Main_Gui(QMainWindow):
         self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA.FIELDNAMES[1:]))
         proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
         self.tableview_lca = Ns_TableView(self, model=proxy_model_lca)
-        # TODO: tableview_sca use custom delegate to only enable
-        # clickable items, in which case a dialog will pop up to show matches.
-        # Here when tableview_lca also use custom delegate, remember to
-        # remove this line.
-        self.tableview_lca.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        # TODO: tableview_sca use custom delegate to only enable clickable
+        # items, in which case a dialog will pop up to show matches. Here when
+        # tableview_lca also use custom delegate, remember to remove this line.
+        # Remember that there is also setEditTriggers expression in
+        # Ns_Dialog_Table_Cache.
+        self.tableview_lca.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
 
         # Bind
         self.button_generate_table_lca.clicked.connect(self.ns_thread_lca_generate_table.start)
@@ -343,10 +371,10 @@ class Ns_Main_Gui(QMainWindow):
         self.button_clear_table_lca.setEnabled(True)
         self.button_generate_table_lca.setEnabled(False)
 
-    def resize_splitters(self, is_reset: bool = False) -> None:
+    def resize_splitters(self, reset: bool = False) -> None:
         for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
-            if not is_reset and Ns_Settings.contains(key):
+            if not reset and Ns_Settings.contains(key):
                 splitter.restoreState(Ns_Settings.value(key))
             else:
                 if splitter.orientation() == Qt.Orientation.Vertical:
@@ -387,6 +415,10 @@ class Ns_Main_Gui(QMainWindow):
         if self.model_file.rowCount() == 0:
             self.model_file.clear_data()
 
+        num = len(indexes)
+        noun = "file" if num == 1 else "files"
+        self.statusBar().showMessage(f"{num} {noun} has been removed.")
+
     def show_menu_for_tableview_file(self) -> None:
         if not self.tableview_file.selectionModel().selectedRows():
             self.action_tableview_file_remove.setEnabled(False)
@@ -421,6 +453,10 @@ class Ns_Main_Gui(QMainWindow):
                 rowno = self.model_file.rowCount()
                 self.model_file.set_row_left_shifted(rowno, (file_stem, file_path))
                 self.model_file.row_added.emit()
+
+            num = len(file_paths_ok)
+            noun = "file" if num == 1 else "files"
+            self.statusBar().showMessage(f"{num} {noun} has been added.")
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ns_StandardItemModel(
