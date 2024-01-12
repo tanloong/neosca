@@ -12,8 +12,8 @@ from neosca.ns_io import Ns_IO
 
 
 class Ns_NLP_Stanza:
-    # Stores all possibly needed processors in the whole application
-    processors: tuple = ("tokenize", "pos", "lemma", "constituency")
+    # Stores all processors needed in the whole application
+    processors: tuple = ("tokenize", "mwt", "pos", "lemma", "constituency")
 
     @classmethod
     def initialize(cls, lang: Optional[str] = None, model_dir: Optional[str] = None) -> None:
@@ -77,7 +77,7 @@ class Ns_NLP_Stanza:
 
         if has_just_processed and cache_path is not None:
             logging.debug(f"Caching document to {cache_path}...")
-            Ns_IO.dump_binary(lzma.compress(cls.doc2serialized(doc)), cache_path)
+            Ns_IO.dump_bytes(lzma.compress(cls.doc2serialized(doc)), cache_path)
 
         return doc
 

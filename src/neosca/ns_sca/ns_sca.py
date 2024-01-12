@@ -49,7 +49,6 @@ class Ns_SCA:
             StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
 
         self.counters: List[StructureCounter] = []
-        self.is_stanford_tregex_initialized = False
 
     def update_options(self, kwargs: Dict):
         self.__init__(**kwargs)
@@ -66,14 +65,8 @@ class Ns_SCA:
 
         return user_data, user_structure_defs, user_snames
 
-    def ensure_stanford_tregex_initialized(self) -> None:
-        if not self.is_stanford_tregex_initialized:
-            self.tregex = Ns_Tregex()
-            self.is_stanford_tregex_initialized = True
-
     def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
-        self.ensure_stanford_tregex_initialized()
-        counter = self.tregex.query(
+        counter = Ns_Tregex.query(
             counter,
             trees,
             is_reserve_matched=self.is_reserve_matched,
@@ -83,7 +76,7 @@ class Ns_SCA:
         return counter
 
     def parse_text(self, text: str, cache_path: Optional[str] = None) -> str:
-        if self.is_skip_parsing:  # assume input as parse trees
+        if self.is_skip_parsing:  # Assume input as parse trees
             return text
 
         from neosca.ns_nlp import Ns_NLP_Stanza
@@ -186,7 +179,7 @@ class Ns_SCA:
                     continue
                 parent_counter += child_counter
 
-            self.tregex.set_all_values(parent_counter, "")
+            Ns_Tregex.set_all_values(parent_counter, "")
             self.counters.append(parent_counter)
 
     def run_on_ifiles(

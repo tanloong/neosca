@@ -60,7 +60,7 @@ BibTeX
 </summary>
 
 ```BibTeX
-@misc{tan2024neosca,
+@misc{long2024neosca,
 title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.0},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},

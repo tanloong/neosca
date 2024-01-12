@@ -124,6 +124,17 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return extension
 
     @classmethod
+    def supports(cls, file_path: Union[str, PathLike]) -> bool:
+        # Can instead use hasattr(f"read_{extension}").
+        # The SUPPORTED_EXTENSIONS is required by ns_main_cli:74 to list
+        #  supported extensions to users.
+        return cls.suffix(file_path, strip_dot=True) in cls.SUPPORTED_EXTENSIONS
+
+    @classmethod
+    def not_supports(cls, file_path: Union[str, PathLike]) -> bool:
+        return not cls.supports(file_path)
+
+    @classmethod
     def load_file(cls, path: str) -> Optional[str]:
         extension = cls.suffix(path, strip_dot=True)
         if extension not in cls.SUPPORTED_EXTENSIONS:
@@ -213,7 +224,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 json.dump(data, f, ensure_ascii=False)
 
     @classmethod
-    def dump_binary(cls, data: bytes, path: Union[str, PathLike]) -> None:
+    def dump_bytes(cls, data: bytes, path: Union[str, PathLike]) -> None:
         try:
             with open(path, "wb") as f:
                 f.write(data)
@@ -271,14 +282,18 @@ class Ns_Cache:
     @classmethod
     def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
         """
-        return (cache_path, available: whether the cache is available for use)
+        return (cache_path, available: whether the cache is usable)
         """
         if not os_path.isfile(file_path):
             raise FileNotFoundError(f"{file_path} is not an existing file")
+        cache_name = cls.fpath_cname.get(file_path, None)
         if file_path not in cls.fpath_cname:
-            cache_path = cls._name2path(cls.register_cache_name(file_path))
+            cache_name = cls.register_cache_name(file_path)
+            cache_path = cls._name2path(cache_name)
             return cache_path, False
-        cache_path = cls._name2path(cls.fpath_cname[file_path])
+
+        cache_name = cls.fpath_cname[file_path]
+        cache_path = cls._name2path(cache_name)
         if not os_path.exists(cache_path):
             return cache_path, False
         outdated = os_path.getmtime(cache_path) <= os_path.getmtime(file_path)
@@ -334,7 +349,7 @@ class Ns_Cache:
 
     @classmethod
     def register_cache_name(cls, file_path: str) -> str:
-        logging.info(f"Registering cache path for {file_path}...")
+        logging.debug(f"Registering cache path for {file_path}...")
         cache_stem = Path(file_path).stem
         cache_stem = Ns_IO.ensure_unique_filestem(cache_stem, map(cls._name2stem, cls.fpath_cname.keys()))
         cache_name = cls._stem2name(cache_stem)
@@ -354,7 +369,7 @@ class Ns_Cache:
     @classmethod
     def save_cache_info(cls) -> None:
         if cls.info_changed:
-            logging.info(f"Saving cache information to {CACHE_INFO_PATH}...")
+            logging.debug(f"Saving cache information to {CACHE_INFO_PATH}...")
             Ns_IO.dump_json(cls.fpath_cname, CACHE_INFO_PATH)
         else:
-            logging.info("No new cache information to save.")
+            logging.debug("No new cache information to save.")

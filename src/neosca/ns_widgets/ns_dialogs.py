@@ -513,3 +513,26 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
         noun = "cache file" if len_cache_paths == 1 else "cache files"
         self.main.statusBar().showMessage(f"{len_cache_paths} {noun} has been deleted.")
         self.accept()
+
+
+class Ns_Dialog_Table_Subfiles(Ns_Dialog_Table):
+    def __init__(self, main, name_index: QModelIndex, path_index: QModelIndex) -> None:
+        self.model_subfiles = Ns_StandardItemModel(main, hor_labels=("Name", "Path"), show_empty_row=False)
+
+        names_retained = name_index.data(Qt.ItemDataRole.UserRole)
+        paths_retained = path_index.data(Qt.ItemDataRole.UserRole)
+        for rowno, row in enumerate(zip(names_retained, paths_retained)):
+            self.model_subfiles.set_row_left_shifted(rowno, row)
+
+        self.tableview_subfiles = Ns_TableView(main, model=self.model_subfiles)
+        self.tableview_subfiles.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.tableview_subfiles.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
+
+        name_display = name_index.data(Qt.ItemDataRole.DisplayRole)
+        super().__init__(
+            main,
+            title="Subfiles",
+            tableview=self.tableview_subfiles,
+            text=f'The result of these files will be under "{name_display}" in the output.',
+            export_filename="neosca_subfiles.xlsx",
+        )

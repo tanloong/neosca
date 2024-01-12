@@ -73,12 +73,12 @@ class Ns_LCA:
     ) -> None:
         assert wordlist in ("bnc", "anc")
         assert tagset in ("ud", "ptb")
-
         logging.debug(f"Using {wordlist.upper()} wordlist")
         self.wordlist = wordlist
         logging.debug(f"Using {tagset.upper()} POS tagset")
         assert tagset in ("ud", "ptb")
         self.tagset: Literal["ud", "ptb"] = tagset
+
         self.section_size = section_size
         self.precision = precision
         self.ofile = ofile
@@ -96,30 +96,18 @@ class Ns_LCA:
         self.word_ranks = sorted(self.word_dict.keys(), key=lambda w: self.word_dict[w], reverse=True)
         self.easy_words = self.word_ranks[:easy_word_threshold]
 
-        self.TAGSET_CONDITION_MAP = {
-            "ud": {
-                "is_misc": self._is_misc_ud,
-                "is_sword": self._is_sword_ud,
-                "is_noun": self._is_noun_ud,
-                "is_adj": self._is_adj_ud,
-                "is_adv": self._is_adv_ud,
-                "is_verb": self._is_verb_ud,
-            },
-            "ptb": {
-                "is_misc": self._is_misc_ptb,
-                "is_sword": self._is_sword_ptb,
-                "is_noun": self._is_noun_ptb,
-                "is_adj": self._is_adj_ptb,
-                "is_adv": self._is_adv_ptb,
-                "is_verb": self._is_verb_ptb,
-            },
-        }
-        self.condition_map = self.TAGSET_CONDITION_MAP[tagset]
-
     # }}}
-    def update_options(self, kwargs: Dict):
+    def update_options(self, kwargs: Dict):  # {{{
         self.__init__(**kwargs)
 
+    # }}}
+    def is_word_class(  # {{{
+        self, class_: Literal["misc", "sword", "noun", "adj", "adv", "verb"], lemma: str, pos: str
+    ) -> bool:
+        func = getattr(self, f"_is_{class_}_{self.tagset}")
+        return func(lemma, pos)
+
+    # }}}
     def _is_misc_ud(self, lemma: str, pos: str) -> bool:  # {{{
         if pos in ("PUNCT", "SYM", "SPACE"):
             return True
@@ -448,10 +436,10 @@ class Ns_LCA:
         adj_count_map: Dict[str, int] = {}
         adv_count_map: Dict[str, int] = {}
         noun_count_map: Dict[str, int] = {}
-        condition_map = self.condition_map  # }}}
+        # }}}
         for lemma, pos in lemma_pos_gen:  # {{{
             # Universal POS tags: https://universaldependencies.org/u/pos/
-            if condition_map["is_misc"](lemma, pos):  # {{{
+            if self.is_word_class("misc", lemma, pos):  # {{{
                 continue
 
             word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
@@ -460,7 +448,7 @@ class Ns_LCA:
             is_lexical = False
             is_verb = False
             # }}}
-            if condition_map["is_noun"](lemma, pos):  # {{{
+            if self.is_word_class("noun", lemma, pos):  # {{{
                 noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a noun')
 
@@ -469,7 +457,7 @@ class Ns_LCA:
 
                 is_lexical = True
             # }}}
-            elif condition_map["is_adj"](lemma, pos):  # {{{
+            elif self.is_word_class("adj", lemma, pos):  # {{{
                 adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as an adjective')
 
@@ -478,7 +466,7 @@ class Ns_LCA:
 
                 is_lexical = True
             # }}}
-            elif condition_map["is_adv"](lemma, pos):  # {{{
+            elif self.is_word_class("adv", lemma, pos):  # {{{
                 adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as an adverb')
 
@@ -487,7 +475,7 @@ class Ns_LCA:
 
                 is_lexical = True
             # }}}
-            elif condition_map["is_verb"](lemma, pos):  # {{{
+            elif self.is_word_class("verb", lemma, pos):  # {{{
                 verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a verb')
 
@@ -497,7 +485,7 @@ class Ns_LCA:
                 is_lexical = True
                 is_verb = True
             # }}}
-            if condition_map["is_sword"](lemma, pos):  # {{{
+            if self.is_word_class("sword", lemma, pos):  # {{{
                 sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a sophisticated word')
 

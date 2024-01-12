@@ -348,7 +348,7 @@ Contact:
                 False,
                 (
                     f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                    f" {__title__} only supports Python 3.7 or higher."
+                    f" {__title__} only supports Python 3.8 or higher."
                 ),
             )
 
@@ -488,6 +488,7 @@ def main_cli() -> None:
     if not success:
         logging.critical(err_msg)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main_cli()

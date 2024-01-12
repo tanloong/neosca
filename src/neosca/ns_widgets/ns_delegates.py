@@ -6,22 +6,14 @@ from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QPoint
 from PySide6.QtGui import QBrush, QColor, QPainter, Qt
 from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 
-from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets import ns_dialogs
 
 
-class Ns_Delegate_SCA(QStyledItemDelegate):
-    def __init__(self, parent=None, qss: str = ""):
+class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        if (
-            triangle_rgb := Ns_QSS.get_value(qss, "QHeaderView::section:vertical", "background-color")
-        ) is not None:
-            self.triangle_rgb = triangle_rgb
-        else:
-            self.triangle_rgb = "#000000"
-
-        self.pos_dialog_mappings: Dict[Tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
+        self.triangle_rgb = "#737373"
 
     def paint(
         self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex
@@ -42,16 +34,36 @@ class Ns_Delegate_SCA(QStyledItemDelegate):
             )
             painter.restore()
 
+
+class Ns_StyledItemDelegate_SCA(Ns_StyledItemDelegate_Triangle):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.pos_dialog_mappings: Dict[Tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_SCA_Matched_Subtrees] = {}
+
     # Override
-    def createEditor(self, parent, option, index):
+    def createEditor(self, parent, option, index): # type: ignore
         if not index.data(Qt.ItemDataRole.UserRole):
             return None
-        pos = (index.row(), index.column())
-        if pos in self.pos_dialog_mappings:
-            self.pos_dialog_mappings[pos].bring_to_front()
+        position = (index.row(), index.column())
+        if position in self.pos_dialog_mappings:
+            self.pos_dialog_mappings[position].bring_to_front()
         else:
             dialog = ns_dialogs.Ns_Dialog_TextEdit_SCA_Matched_Subtrees(parent, index=index)
-            self.pos_dialog_mappings[pos] = dialog
-            dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(pos))
+            self.pos_dialog_mappings[position] = dialog
+            dialog.finished.connect(lambda: self.pos_dialog_mappings.pop(position))
             dialog.show()
 
+
+class Ns_StyledItemDelegate_File(Ns_StyledItemDelegate_Triangle):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    # Override
+    def createEditor(self, parent, option, index): # type: ignore
+        if index.column() != 0:
+            return None
+        if not index.data(Qt.ItemDataRole.UserRole):
+            return None
+
+        return super().createEditor(parent, option, index)

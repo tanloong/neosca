@@ -60,6 +60,7 @@ neosca = [
 "ns_data/stanza_resources/en/default.zip",
 "ns_data/stanza_resources/zh-hans",
 "ns_data/cache",
+"ns_data/settings.ini",
 ]
 
 # Ruff complete options: https://docs.astral.sh/ruff/settings/#extend

@@ -103,11 +103,12 @@ class Ns_LineEdit_Path(QWidget):
         self.lineedit.setText(text)
 
     def browse_path(self):
-        folder_path = QFileDialog.getExistingDirectory(caption="Choose Path")
+        folder_path = QFileDialog.getExistingDirectory(self, caption="Choose Path")
         if not folder_path:
             return
         self.lineedit.setText(folder_path)
 
+    # Override
     def setFocus(self) -> None:
         self.lineedit.setFocus()
 
