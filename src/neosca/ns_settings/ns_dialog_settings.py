@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import QListWidget, QPushButton, QStackedWidget
+from PySide6.QtWidgets import QDialogButtonBox, QListWidget, QPushButton, QStackedWidget
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
@@ -28,10 +28,21 @@ class Ns_Dialog_Settings(Ns_Dialog):
         self.stackedwidget_settings = QStackedWidget()
         self.scrollarea_settings = Ns_ScrollArea()
         self.scrollarea_settings.setWidget(self.stackedwidget_settings)
-        self.button_reset = QPushButton("Reset all settings")
-        self.button_ok = QPushButton("OK")
-        self.button_cancel = QPushButton("Cancel")
-        self.button_apply = QPushButton("Apply")
+
+        buttonbox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Reset
+            | QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Apply
+        )
+        self.button_reset = buttonbox.button(QDialogButtonBox.StandardButton.Reset)
+        self.button_ok = buttonbox.button(QDialogButtonBox.StandardButton.Ok)
+        self.button_cancel = buttonbox.button(QDialogButtonBox.StandardButton.Cancel)
+        self.button_apply = buttonbox.button(QDialogButtonBox.StandardButton.Apply)
+        # self.button_reset = QPushButton("Reset all settings")
+        # self.button_ok = QPushButton("OK")
+        # self.button_cancel = QPushButton("Cancel")
+        # self.button_apply = QPushButton("Apply")
 
         for section in self.sections:
             self.listwidget_settings.addItem(section.name)
@@ -43,6 +54,7 @@ class Ns_Dialog_Settings(Ns_Dialog):
         # Bind
         self.listwidget_settings.selectionModel().selectionChanged.connect(self.on_selection_changed)
         self.button_reset.clicked.connect(self.reset_settings)
+
         self.button_ok.clicked.connect(self.apply_settings_and_close)
         self.button_cancel.clicked.connect(self.reject)
         self.button_apply.clicked.connect(self.apply_settings)

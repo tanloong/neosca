@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QDialogButtonBox,
     QGridLayout,
     QLabel,
     QMessageBox,
@@ -201,7 +202,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
                 f"{qtime.second()}.{qtime.msec()} seconds",
             )
         )
-        self.main.statusBar().showMessage(f"Process completed. (In {formatted_time_elapsed})")
+        self.main.statusBar().showMessage(f"Process completed in {formatted_time_elapsed}")
 
     # Override
     def reject(self) -> None:
@@ -233,14 +234,14 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
         self.fmt_textedit.setLeftMargin(indentation)
         self.fmt_textedit.setTextIndent(-indentation)
 
-        self.button_copy = QPushButton("Copy")
-        self.button_copy.clicked.connect(self.copy)
+        button_copy = QPushButton("Copy")
+        button_copy.clicked.connect(self.copy)
 
-        self.button_close = QPushButton("Close")
-        self.button_close.clicked.connect(self.reject)
+        buttonbox_close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttonbox_close.rejected.connect(self.reject)
 
-        self.addButtons(self.button_copy, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
-        self.addButtons(self.button_close, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
+        self.addButtons(button_copy, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+        self.addButtons(buttonbox_close, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
 
     def setText(self, text: str) -> None:
         self.textedit.setText(text)
@@ -338,7 +339,7 @@ class Ns_Dialog_Table(Ns_Dialog):
         width: int = 500,
         height: int = 300,
         export_filename: Optional[str] = None,
-        disable_default_br_buttons: bool = False,
+        disable_default_botright_buttons: bool = False,
     ) -> None:
         super().__init__(main, title=title, width=width, height=height, resizable=True)
         self.tableview: Ns_TableView = tableview
@@ -356,10 +357,10 @@ class Ns_Dialog_Table(Ns_Dialog):
             self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
 
         # Bottom right buttons
-        if not disable_default_br_buttons:
-            self.button_ok = QPushButton("OK")
-            self.button_ok.clicked.connect(self.accept)
-            self.addButtons(self.button_ok, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
+        if not disable_default_botright_buttons:
+            buttonbox_close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            buttonbox_close.rejected.connect(self.reject)
+            self.addButtons(buttonbox_close, alignment=self.ButtonAlignmentFlag.AlignRight)
 
 
 class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
@@ -421,9 +422,9 @@ class Ns_Dialog_About(Ns_Dialog):
         self.setColumnStretch(2, 1)
         self.setRowStretch(2, 1)
 
-        btn_ok = QPushButton("OK")
-        btn_ok.clicked.connect(self.accept)
-        self.addButtons(btn_ok, alignment=self.ButtonAlignmentFlag.AlignRight)
+        buttonbox_close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttonbox_close.rejected.connect(self.reject)
+        self.addButtons(buttonbox_close, alignment=self.ButtonAlignmentFlag.AlignRight)
 
 
 class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
@@ -447,7 +448,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             tableview=self.tableview_cache,
             html=f"Select from the table below to delete cache files, which are at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
             export_filename="neosca_cache_files.xlsx",
-            disable_default_br_buttons=True,
+            disable_default_botright_buttons=True,
         )
 
         # Bottom right buttons
@@ -511,7 +512,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
         Ns_Cache.delete_cache_entries(cache_paths)
 
         noun = "cache file" if len_cache_paths == 1 else "cache files"
-        self.main.statusBar().showMessage(f"{len_cache_paths} {noun} has been deleted.")
+        self.main.statusBar().showMessage(f"Deleted {len_cache_paths} {noun}")
         self.accept()
 
 
@@ -533,6 +534,6 @@ class Ns_Dialog_Table_Subfiles(Ns_Dialog_Table):
             main,
             title="Subfiles",
             tableview=self.tableview_subfiles,
-            text=f'The result of these files will be under "{name_display}" in the output.',
+            text=f'Combined result of these files will be under "{name_display}" in the output.',
             export_filename="neosca_subfiles.xlsx",
         )
