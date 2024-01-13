@@ -44,17 +44,18 @@ class Structure:
         self.value_source = value_source
 
         self.value: Optional[Union[float, int]] = None
-        self.matches: Optional[List[str]] = None
+        self.matches: List[str] = []
+
+    def definition(self) -> str:
+        if self.tregex_pattern is not None:
+            return f"tregex_pattern: {self.tregex_pattern}"
+        elif self.value_source is not None:
+            return f"value_source: {self.value_source}"
+        else:
+            raise ValueError("Either tregex_pattern or value_source should be provided, but not both")
 
     def __repr__(self) -> str:  # pragma: no cover
-        return (
-            f"name: {self.name}"
-            + f"\ndescription: {self.description}"
-            + f"\ntregex_pattern: {self.tregex_pattern}"
-            + f"\nvalue_source: {self.value_source}"
-            + f"\nmatches: {self.matches}"
-            + f"\nfrequency: {self.value}"
-        )
+        return f"name: {self.name}\ndescription: {self.description}\n{self.definition()}\nvalue: {self.value}"
 
     def __add__(self, other) -> Union[int, float]:
         assert self.value is not None
@@ -227,7 +228,7 @@ class StructureCounter:
         else:
             return structure
 
-    def set_matches(self, structure_name: str, matches: list) -> None:
+    def set_matches(self, structure_name: str, matches: List[str]) -> None:
         if structure_name not in self.sname_structure_map:
             raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
@@ -235,7 +236,15 @@ class StructureCounter:
         else:
             self.sname_structure_map[structure_name].matches = matches
 
-    def get_matches(self, sname: str) -> Optional[List[str]]:
+    def add_matches(self, structure_name: str, matches: List[str]) -> None:
+        if structure_name not in self.sname_structure_map:
+            raise StructureNotFoundError(f"{structure_name} not found")
+        elif not isinstance(matches, list):
+            raise ValueError("matches should be a list object")
+        else:
+            self.sname_structure_map[structure_name].matches.extend(matches)
+
+    def get_matches(self, sname: str) -> List[str]:
         s = self.get_structure(sname)
         return s.matches
 
@@ -264,23 +273,24 @@ class StructureCounter:
         return freq_dict
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
-        logging.debug("[StructureCounter] Adding counters...")
+        logging.debug("[StructureCounter] Combining counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
-        # TODO: looks like a bug. Why doesn't snames_defined_by_value_source used for anything afterwards?
-        snames_defined_by_value_source: List[str] = []
         for sname, structure in new.sname_structure_map.items():
             # structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern
             if structure.value_source is not None:
-                logging.debug(f"[StructureCounter] Skip {sname} which is defined by value_source.")
-                snames_defined_by_value_source.append(sname)
+                logging.debug(f"[StructureCounter] Skip combining {sname} as it is defined by value_source.")
                 continue
 
-            this_value = self.get_value(sname)
-            that_value = other.get_value(sname)
-            value = (this_value or 0) + (that_value or 0)
+            this_value = self.get_value(sname) or 0
+            that_value = other.get_value(sname) or 0
+            value = this_value + that_value
             new.set_value(sname, value)
-            logging.debug(f"[StructureCounter] Added {sname}: {this_value} + {that_value} = {value}")
+            logging.debug(f"[StructureCounter] Combined {sname}: {this_value} + {that_value} = {value}")
+
+            matches: List[str] = self.get_matches(sname) + other.get_matches(sname)
+            new.set_matches(sname, matches)
+
         return new

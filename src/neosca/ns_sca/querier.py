@@ -96,7 +96,7 @@ class Ns_Tregex:
                 get_structure_code = f"counter.get_structure('{tokval}')"
                 if is_addition_only:
                     try:  # noqa: SIM105
-                        matches.extend(counter.get_matches(tokval))  # type: ignore
+                        matches.extend(counter.get_matches(tokval))
                     except TypeError:
                         pass
                 tokens.append((toknum, get_structure_code))
@@ -121,7 +121,7 @@ class Ns_Tregex:
         return counter.get_structure(sname).tregex_pattern is not None
 
     @classmethod
-    def set_value_from_pattern(cls, counter: "StructureCounter", sname: str, trees: str):
+    def set_value_from_tregex_pattern(cls, counter: "StructureCounter", sname: str, trees: str):
         structure = counter.get_structure(sname)
         tregex_pattern = structure.tregex_pattern
         assert tregex_pattern is not None
@@ -136,7 +136,7 @@ class Ns_Tregex:
         counter.set_value(sname, len(matched_subtrees))
 
     @classmethod
-    def set_value_from_source(
+    def set_value_from_value_source(
         cls, counter: "StructureCounter", sname: str, trees: str, ancestor_snames: List[str]
     ) -> None:
         structure = counter.get_structure(sname)
@@ -172,11 +172,11 @@ class Ns_Tregex:
             return
 
         if cls.has_tregex_pattern(counter, sname):
-            cls.set_value_from_pattern(counter, sname, trees)
+            cls.set_value_from_tregex_pattern(counter, sname, trees)
         else:
             if ancestor_snames is None:
                 ancestor_snames = []
-            cls.set_value_from_source(counter, sname, trees, ancestor_snames)
+            cls.set_value_from_value_source(counter, sname, trees, ancestor_snames)
 
     @classmethod
     def set_all_values(cls, counter: "StructureCounter", trees: str) -> None:
@@ -210,14 +210,10 @@ class Ns_Tregex:
             os.makedirs(subodir_matched)
         for sname, structure in counter.sname_structure_map.items():
             matches = structure.matches
-            if matches is None or len(matches) == 0:
+            if not matches:
                 continue
 
-            meta_data = (
-                f"# name: {structure.name}\n"
-                + f"# description: {structure.description}\n"
-                + f"# tregex_pattern: {structure.tregex_pattern}\n\n"
-            )
+            meta_data = str(structure)
             res = "\n".join(matches)
             # only accept alphanumeric chars, underscore, and hypen
             escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
@@ -226,9 +222,9 @@ class Ns_Tregex:
                 extension = ".txt"
                 fn_match_output = os_path.join(subodir_matched, matches_id + extension)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
-                    f.write(meta_data)
+                    f.write(f"{meta_data}\n\n")
                     f.write(res)
             else:
-                sys.stdout.write(matches_id + "\n")
-                sys.stdout.write(meta_data)
+                sys.stdout.write(f"{matches_id}\n")
+                sys.stdout.write(f"{meta_data}\n\n")
                 sys.stdout.write(res)

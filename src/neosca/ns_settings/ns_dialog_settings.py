@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import QDialogButtonBox, QListWidget, QPushButton, QStackedWidget
+from PySide6.QtWidgets import QDialogButtonBox, QListWidget, QStackedWidget
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
