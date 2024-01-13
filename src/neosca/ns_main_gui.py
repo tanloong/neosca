@@ -36,7 +36,7 @@ from neosca.ns_qss import Ns_QSS
 from neosca.ns_sca.structure_counter import StructureCounter
 from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_settings_default import available_import_types
+from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
 from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_SCA
 from neosca.ns_widgets.ns_dialogs import (
@@ -151,7 +151,7 @@ class Ns_Main_Gui(QMainWindow):
 
         # Preferences
         self.menu_prefs = self.menuBar().addMenu("&Preferences")
-        self.action_settings = self.menu_prefs.addAction("&Settings...")
+        self.action_settings = self.menu_prefs.addAction("&Settings")
         self.action_settings.setShortcut("CTRL+,")
         self.action_settings.triggered.connect(self.menu_prefs_settings)
 
@@ -162,6 +162,8 @@ class Ns_Main_Gui(QMainWindow):
         self.action_shrink_font = self.menu_prefs.addAction("Shrink Font")
         self.action_shrink_font.setShortcut("CTRL+-")
         self.action_shrink_font.triggered.connect(self.menu_prefs_shrink_font)
+        self.action_default_font_size = self.menu_prefs.addAction("Default size")
+        self.action_default_font_size.triggered.connect(self.menu_prefs_default_font_size)
 
         self.menu_prefs.addSeparator()
         self.action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
@@ -180,7 +182,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def menu_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
-            caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
+            parent=self, caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
         )
         if not folder_path:
             return
@@ -226,16 +228,34 @@ class Ns_Main_Gui(QMainWindow):
     def menu_prefs_enlarge_font(self) -> None:
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) + 1
-        if point_size < Ns_Settings.value("Appearance/font-size-max", type=int):
+        max_size = Ns_Settings.value("Appearance/font-size-max", type=int)
+        if point_size <= max_size:
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
+            self.statusBar().showMessage(f"Enlarged font to {point_size}pt")
+        else:
+            self.statusBar().showMessage(f"Reached maximum font size ({max_size}pt)")
 
     def menu_prefs_shrink_font(self) -> None:
         key = "Appearance/font-size"
         point_size = Ns_Settings.value(key, type=int) - 1
-        if point_size > Ns_Settings.value("Appearance/font-size-min", type=int):
+        min_size = Ns_Settings.value("Appearance/font-size-min", type=int)
+        if point_size >= min_size:
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
+            self.statusBar().showMessage(f"Shrunk font to {point_size}pt")
+        else:
+            self.statusBar().showMessage(f"Reached minimum font size ({min_size}pt)")
+
+    def menu_prefs_default_font_size(self) -> None:
+        key = "Appearance/font-size"
+        curr_size = Ns_Settings.value(key, type=int)
+        if curr_size != DEFAULT_FONT_SIZE:
+            Ns_QSS.update(self, {"*": {"font-size": f"{DEFAULT_FONT_SIZE}pt"}})
+            Ns_Settings.setValue(key, DEFAULT_FONT_SIZE)
+            self.statusBar().showMessage(f"Reset font size to {DEFAULT_FONT_SIZE}pt")
+        else:
+            self.statusBar().showMessage(f"Already default font size ({DEFAULT_FONT_SIZE}pt)")
 
     def menu_prefs_toggle_status_bar(self) -> None:
         self.statusBar().setVisible(not self.statusBar().isVisible())
@@ -483,7 +503,7 @@ class Ns_Main_Gui(QMainWindow):
         self.model_file.item(rowno_retained, 1).setData(paths_retained, Qt.ItemDataRole.UserRole)
 
         self.tableview_file.edit(self.model_file.index(rowno_retained, 0))
-        self.statusBar().showMessage(f"{len(names_retained)} files has been marked for combination.")
+        self.statusBar().showMessage(f"Marked {len(names_retained)} files for combination")
 
     def split_file_paths(self) -> None:
         name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
@@ -502,7 +522,7 @@ class Ns_Main_Gui(QMainWindow):
 
         self.model_file.setData(name_index, None, Qt.ItemDataRole.UserRole)
         self.model_file.setData(path_index, None, Qt.ItemDataRole.UserRole)
-        self.statusBar().showMessage(f"A combination mark for {len(names_retained)} files has been removed.")
+        self.statusBar().showMessage(f"Demarked {len(names_retained)} files from combination")
 
     def show_subfiles(self) -> None:
         name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
@@ -566,7 +586,7 @@ class Ns_Main_Gui(QMainWindow):
 
             num = len(file_paths_ok)
             noun = "file" if num == 1 else "files"
-            self.statusBar().showMessage(f"{num} {noun} has been added.")
+            self.statusBar().showMessage(f"Added {num} {noun}")
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
             model_err_files = Ns_StandardItemModel(
