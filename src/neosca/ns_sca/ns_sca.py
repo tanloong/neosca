@@ -8,7 +8,6 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca.ns_about import __title__
 from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_sca.querier import Ns_Tregex
 from neosca.ns_sca.structure_counter import StructureCounter
 
 
@@ -24,7 +23,6 @@ class Ns_SCA:
         is_use_past_parsed: bool = True,
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
-        is_skip_querying: bool = False,
         is_skip_parsing: bool = False,
         is_auto_save: bool = True,
         config: Optional[str] = None,
@@ -38,7 +36,6 @@ class Ns_SCA:
         self.use_cache = is_use_past_parsed
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
-        self.is_skip_querying = is_skip_querying
         self.is_skip_parsing = is_skip_parsing
         self.is_auto_save = is_auto_save
 
@@ -65,16 +62,6 @@ class Ns_SCA:
 
         return user_data, user_structure_defs, user_snames
 
-    def query_against_trees(self, trees: str, counter: StructureCounter) -> StructureCounter:
-        counter = Ns_Tregex.query(
-            counter,
-            trees,
-            is_reserve_matched=self.is_reserve_matched,
-            odir_matched=self.odir_matched,
-            is_stdout=self.is_stdout,
-        )
-        return counter
-
     def parse_text(self, text: str, cache_path: Optional[str] = None) -> str:
         if self.is_skip_parsing:  # Assume input as parse trees
             return text
@@ -84,17 +71,17 @@ class Ns_SCA:
         trees = Ns_NLP_Stanza.get_constituency_tree(text, cache_path=cache_path)
         return trees
 
-    def parse_ifile(self, ifile: str) -> Optional[str]:
+    def parse_file(self, file_path: str) -> Optional[str]:
         from stanza import Document
 
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         if self.is_skip_parsing:
             # Assume input as parse trees
-            return Ns_IO.read_txt(ifile, is_guess_encoding=False)
+            return Ns_IO.read_txt(file_path, is_guess_encoding=False)
 
         if self.use_cache:
-            cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
+            cache_path, cache_available = Ns_Cache.get_cache_path(file_path)
             if cache_available:
                 logging.info(f"Loading cache: {cache_path}.")
                 doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
@@ -103,7 +90,7 @@ class Ns_SCA:
             cache_path = None
             cache_available = False
 
-        if (text := Ns_IO.load_file(ifile)) is None:
+        if (text := Ns_IO.load_file(file_path)) is None:
             return None
         try:
             trees = self.parse_text(text, cache_path)
@@ -115,70 +102,70 @@ class Ns_SCA:
         else:
             return trees
 
-    def run_on_text(self, text: str, ifile: str = "cmdline_text") -> None:
+    def run_on_text(self, text: str, file_path: str = "cmdline_text") -> None:
         trees: str = self.parse_text(text)
 
-        if self.is_skip_querying:
-            return
-
         counter = StructureCounter(
-            ifile,
+            file_path,
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
         )
-        counter = self.query_against_trees(trees, counter)
+        counter.determine_all_values(trees)
+        if self.is_reserve_matched:
+            counter.dump_matches(self.odir_matched, self.is_stdout)
         self.counters.append(counter)
         if self.is_auto_save:
-            self.write_value_output()
+            self.dump_values()
 
-    def parse_and_query_ifile(self, ifile: str) -> Optional[StructureCounter]:
-        trees = self.parse_ifile(ifile)
+    def parse_and_query_file(self, file_path: str) -> Optional[StructureCounter]:
+        trees = self.parse_file(file_path)
         if trees is None:
             return None
 
         counter = StructureCounter(
-            ifile,
+            file_path,
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
-            precision=self.precision,
         )
-        return self.query_against_trees(trees, counter)
+        counter.determine_all_values(trees)
+        if self.is_reserve_matched:
+            counter.dump_matches(self.odir_matched, self.is_stdout)
+        return counter
 
-    def parse_ifiles(self, ifiles: List[str]):
-        total = len(ifiles)
-        for i, ifile in enumerate(ifiles, 1):
-            logging.info(f'[{__title__}] Processing "{ifile}" ({i}/{total})...')
-            self.parse_ifile(ifile)
-
-    def parse_subfiles_list(self, subfiles_list: List[List[str]]):
-        for subfiles in subfiles_list:
-            self.parse_ifiles(subfiles)
-
-    def parse_and_query_ifiles(self, ifiles):
-        total = len(ifiles)
-        for i, ifile in enumerate(ifiles, 1):
-            logging.info(f'[{__title__}] Processing "{ifile}" ({i}/{total})...')
-            counter = self.parse_and_query_ifile(ifile)
+    def parse_and_query_files(self, file_paths: List[str]) -> None:
+        total = len(file_paths)
+        for i, file_path in enumerate(file_paths, 1):
+            logging.info(f'[{__title__}] Processing "{file_path}" ({i}/{total})...')
+            counter = self.parse_and_query_file(file_path)
             if counter is None:
                 continue
             self.counters.append(counter)
+
+    # def parse_files(self, file_paths: List[str]):{{{
+    #     total = len(file_paths)
+    #     for i, file_path in enumerate(file_paths, 1):
+    #         logging.info(f'[{__title__}] Processing "{file_path}" ({i}/{total})...')
+    #         self.parse_file(file_path)
+
+    # def parse_subfiles_list(self, subfiles_list: List[List[str]]):
+    #     for subfiles in subfiles_list:
+    #         self.parse_files(subfiles)}}}
 
     def parse_and_query_subfiles(self, subfiles: List[str]) -> StructureCounter:
         total = len(subfiles)
         parent_counter = StructureCounter(
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
-            precision=self.precision,
         )
 
         for i, subfile in enumerate(subfiles, 1):
             logging.info(f'[{__title__}] Processing "{subfile}" ({i}/{total})...')
-            child_counter = self.parse_and_query_ifile(subfile)
+            child_counter = self.parse_and_query_file(subfile)
             if child_counter is None:
                 continue
             parent_counter += child_counter
+        parent_counter.determine_all_values("")
 
-        Ns_Tregex.set_all_values(parent_counter, "")
         return parent_counter
 
     def parse_and_query_subfiles_list(self, subfiles_list: List[List[str]]):
@@ -186,46 +173,48 @@ class Ns_SCA:
             parent_counter = self.parse_and_query_subfiles(subfiles)
             self.counters.append(parent_counter)
 
+    def parse_file_or_subfiles(self, file_or_subfiles: Union[str, List[str]]):
+        if isinstance(file_or_subfiles, str):
+            return self.parse_file(file_or_subfiles)
+        elif isinstance(file_or_subfiles, list):
+            return self.parse_subfiles(file_or_subfiles)
+        else:
+            raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
+
     def parse_and_query_file_or_subfiles(
         self, file_or_subfiles: Union[str, List[str]]
     ) -> Optional[StructureCounter]:
         if isinstance(file_or_subfiles, str):
-            return self.parse_and_query_ifile(file_or_subfiles)
+            return self.parse_and_query_file(file_or_subfiles)
         elif isinstance(file_or_subfiles, list):
             return self.parse_and_query_subfiles(file_or_subfiles)
         else:
             raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
 
-    def run_on_ifiles(
-        self, files: Optional[List[str]] = None, subfiles_list: Optional[List[List[str]]] = None
-    ) -> None:
-        if files is None:
-            files = []
-        if subfiles_list is None:
-            subfiles_list = []
-
-        if self.is_skip_querying:
-            self.parse_ifiles(files)
-            self.parse_subfiles_list(subfiles_list)
-            return
-
-        self.parse_and_query_ifiles(files)
+    def run_on_files(self, files_or_subfiles_list: List[Union[str, List[str]]]) -> None:
+        # if self.is_skip_querying:
+        #     self.parse_files(files)
+        #     self.parse_subfiles_list(subfiles_list)
+        #     return
+        #
+        self.parse_and_query_files(files)
         self.parse_and_query_subfiles_list(subfiles_list)
         if self.is_auto_save:
-            self.write_value_output()
+            self.dump_values()
 
-    def write_value_output(self) -> None:
+    def dump_values(self) -> None:
         logging.debug(f"[{__title__}] Writting counts and/or frequencies...")
 
-        counters = self.counters
-        if len(counters) == 0:
+        if len(self.counters) == 0:
             raise ValueError("empty counter list")
 
         oformat_freq = self.oformat_freq
         if oformat_freq not in ("csv", "json"):
             raise ValueError(f'oformat_freq {oformat_freq} not in ("csv", "json")')
 
-        sname_value_maps: List[Dict[str, str]] = [counter.get_all_values() for counter in counters]
+        sname_value_maps: List[Dict[str, str]] = [
+            counter.get_all_values(self.precision) for counter in self.counters
+        ]
 
         handle = sys.stdout if self.is_stdout else open(self.ofile_freq, "w", encoding="utf-8", newline="")  # noqa: SIM115
 

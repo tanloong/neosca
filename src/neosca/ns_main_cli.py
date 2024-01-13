@@ -145,13 +145,6 @@ class Ns_Main_Cli:
             ),
         )
         args_parser.add_argument(
-            "--no-query",
-            dest="is_skip_querying",
-            action="store_true",
-            default=False,
-            help="Parse the input files, save the parse trees and exit.",
-        )
-        args_parser.add_argument(
             "--quiet",
             dest="is_quiet",
             action="store_true",
@@ -217,9 +210,7 @@ class Ns_Main_Cli:
     Use multiple -c to combine different lists of subfiles respectively.
 16. nsca -c sample1-sub*.txt -c sample2-sub*.txt -- sample[3-9].txt
     Use -- to separate input filenames from names of the subfiles.
-17. nsca sample1.txt --no-query
-    Parse the input files, save the parsed trees and exit.
-18. nsca sample1.parsed --no-parse
+17. nsca sample1.parsed --no-parse
     Assume input as parse trees. Skip the parsing step and proceed directly to querying.
 
 Contact:
@@ -247,10 +238,7 @@ Contact:
         else:
             logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-        if options.is_skip_querying:
-            options.is_reserve_parsed = True
         if options.is_skip_parsing:
-            options.is_skip_querying = False
             options.is_reserve_parsed = False
 
         if options.text is not None:
@@ -332,7 +320,6 @@ Contact:
             "is_reserve_parsed": options.is_reserve_parsed,
             "is_reserve_matched": options.is_reserve_matched,
             "is_stdout": options.is_stdout,
-            "is_skip_querying": options.is_skip_querying,
             "is_skip_parsing": options.is_skip_parsing,
             "config": user_config,
         }
@@ -358,15 +345,13 @@ Contact:
         if self.options.is_quiet or self.options.is_stdout:
             return
 
-        msg_num = 0
-        if not self.options.is_skip_querying:
-            msg_num += 1
-            color_print(
-                "OKGREEN",
-                f"{os_path.abspath(self.options.ofile_freq)}",
-                prefix=f"{msg_num}. Frequency output was saved to ",
-                postfix=".",
-            )
+        msg_num = 1
+        color_print(
+            "OKGREEN",
+            f"{os_path.abspath(self.options.ofile_freq)}",
+            prefix=f"{msg_num}. Frequency output was saved to ",
+            postfix=".",
+        )
         if self.options.is_reserve_parsed:
             if self.verified_ifiles or self.verified_subfiles_list:
                 msg_num += 1
@@ -421,9 +406,7 @@ Contact:
 
         analyzer = Ns_SCA(**self.init_kwargs)
 
-        analyzer.run_on_ifiles(
-            files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or []
-        )
+        analyzer.run_on_files(files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or [])
 
     def run_gui(self) -> Ns_Procedure_Result:
         from neosca.ns_main_gui import main_gui

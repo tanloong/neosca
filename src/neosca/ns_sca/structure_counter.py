@@ -1,11 +1,23 @@
+#!/usr/bin/env python3
+
 import logging
+import os
+import os.path as os_path
+import re
+import shutil
+import sys
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Dict, List, Optional, Set, Union
+from io import BytesIO
+from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca import DATA_DIR
-from neosca.ns_exceptions import StructureNotFoundError
+from neosca.ns_about import __title__
+from neosca.ns_exceptions import CircularDefinitionError, InvalidSourceError, StructureNotFoundError
 from neosca.ns_io import Ns_IO
+from neosca.ns_sca import l2sca
+from neosca.ns_tregex.tree import Tree
 
 
 class Structure:
@@ -53,6 +65,12 @@ class Structure:
             return f"value_source: {self.value_source}"
         else:
             raise ValueError("Either tregex_pattern or value_source should be provided, but not both")
+
+    def has_value_source(self) -> bool:
+        return self.value_source is not None
+
+    def has_tregex_pattern(self) -> bool:
+        return self.tregex_pattern is not None
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"name: {self.name}\ndescription: {self.description}\n{self.definition()}\nvalue: {self.value}"
@@ -146,16 +164,30 @@ class StructureCounter:
         "CN/C",
     ]
 
+    SNAME_SEARCHER_MAPPING = {
+        "S": l2sca.S,
+        "VP1": l2sca.VP1,
+        "VP2": l2sca.VP2,
+        "C1": l2sca.C1,
+        "C2": l2sca.C2,
+        "T1": l2sca.T1,
+        "T2": l2sca.T2,
+        "CN1": l2sca.CN1,
+        "CN2": l2sca.CN2,
+        "CN3": l2sca.CN3,
+        "DC": l2sca.DC,
+        "CT": l2sca.CT,
+        "CP": l2sca.CP,
+    }
+
     def __init__(
         self,
         ifile="",
         *,
         selected_measures: Optional[List[str]] = None,
         user_structure_defs: Optional[List[Dict[str, str]]] = None,
-        precision: int = 4,
     ) -> None:
         self.ifile = ifile
-        self.precision = precision
 
         user_sname_structure_map: Dict[str, Structure] = {}
         user_snames: Optional[Set[str]] = None
@@ -256,21 +288,185 @@ class StructureCounter:
         else:
             self.sname_structure_map[sname].value = value
 
-    def get_value(self, sname: str, precision: Optional[int] = None) -> Optional[Union[float, int]]:
-        if precision is None:
-            precision = self.precision
+    def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
         value = self.get_structure(sname).value
         return round(value, precision) if value is not None else value
 
-    def get_all_values(self, precision: Optional[int] = None) -> dict:
-        if precision is None:
-            precision = self.precision
+    def get_all_values(self, precision: int = 4) -> dict:
         # TODO should store Filename in an extra metadata layer
         # https://articles.zsxq.com/id_wnw0w98lzgsq.html
         freq_dict = OrderedDict({"Filepath": self.ifile})
         for sname in self.selected_measures:
             freq_dict[sname] = str(self.get_value(sname, precision))
         return freq_dict
+
+    def sname_has_value_source(self, sname: str) -> bool:
+        return self.get_structure(sname).has_value_source()
+
+    def sname_has_tregex_pattern(self, sname: str) -> bool:
+        return self.get_structure(sname).has_tregex_pattern()
+
+    def check_circular_def(self, descendant_sname: str, ancestor_snames: List[str]) -> None:
+        if descendant_sname in ancestor_snames:
+            circular_definition = ", ".join(
+                f"{ancestor_sname} = {self.get_structure(ancestor_sname).value_source}"
+                for ancestor_sname in ancestor_snames
+            )
+            raise CircularDefinitionError(f"Circular definition: {circular_definition}")
+        else:
+            logging.debug(
+                "[Tregex] Circular definition check passed: descendant"
+                f" {descendant_sname} not in ancestors {ancestor_snames}"
+            )
+
+    @classmethod
+    def search_sname(cls, sname: str, trees: str) -> List[str]:
+        if sname not in cls.SNAME_SEARCHER_MAPPING:
+            raise ValueError(f"{sname} is not yet supported in {__title__}.")
+
+        matches = []
+        last_node = None
+        for tree in Tree.fromstring(trees):
+            for node in cls.SNAME_SEARCHER_MAPPING[sname].searchNodeIterator(tree):
+                if node is last_node:
+                    # Mimic Tregex's -o option
+                    # https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
+                    continue
+                last_node = node
+                span_string = node.span_string()
+                matches.append(span_string)
+        return matches
+
+    def exec_value_source(
+        self,
+        value_source: str,
+        sname: str,
+        trees: str,
+        ancestor_snames: List[str],
+    ) -> Tuple[Union[float, int], List[str]]:
+        tokens = []
+        g = tokenize(BytesIO(value_source.encode("utf-8")).readline)
+        next(g)  # Skip the "utf-8" token
+
+        matches: List[str] = []
+        is_addition_only: bool = True
+        for toknum, tokval, *_ in g:
+            if toknum == NAME:
+                ancestor_snames.append(sname)
+                self.check_circular_def(tokval, ancestor_snames)
+
+                self.determine_value(tokval, trees, ancestor_snames)
+                if not self.sname_has_value_source(tokval):
+                    # No circular def problem in terminal node.
+                    # Note that we currently have only two definition types,
+                    #  value_source and tregex_pattern. When new types are
+                    #  added, not having value source may do NOT necessarily
+                    #  mean a terminal node.
+                    ancestor_snames.clear()
+
+                get_structure_code = f"counter.get_structure('{tokval}')"
+                if is_addition_only:
+                    matches.extend(self.get_matches(tokval))
+                tokens.append((toknum, get_structure_code))
+
+            elif toknum == NUMBER or tokval in ("(", ")"):
+                tokens.append((toknum, tokval))
+            elif tokval in ("+", "-", "*", "/"):
+                tokens.append((toknum, tokval))
+                if tokval != "+":
+                    matches.clear()
+                    is_addition_only = False
+            # Limit value_source as only NAMEs and numberic operators to assure security for `eval`
+            elif tokval != "":
+                raise InvalidSourceError(f'Unexpected token: "{tokval}"')
+
+        # Append "+ 0" to force tokens evaluated as number if value_source contains just name of another Structure
+        tokens.extend(((PLUS, "+"), (NUMBER, "0")))
+        return eval(untokenize(tokens)), matches
+
+    def determine_value_from_tregex_pattern(self, sname: str, trees: str):
+        structure = self.get_structure(sname)
+        tregex_pattern = structure.tregex_pattern
+        assert tregex_pattern is not None
+
+        logging.info(
+            f" Searching for {sname}"
+            + (f" ({structure.description})..." if structure.description is not None else "...")
+        )
+        logging.debug(f" Searching for {tregex_pattern}")
+        matched_subtrees = self.search_sname(sname, trees)
+        self.set_value(sname, len(matched_subtrees))
+        self.set_matches(sname, matched_subtrees)
+
+    def determine_value_from_value_source(self, sname: str, trees: str, ancestor_snames: List[str]) -> None:
+        structure = self.get_structure(sname)
+        value_source = structure.value_source
+        assert value_source is not None, f"value_source for {sname} is None."
+
+        logging.info(
+            f" Calculating {sname} "
+            + (f"({structure.description}) " if structure.description is not None else "")
+            + f"= {value_source}..."
+        )
+        value, matches = self.exec_value_source(value_source, sname, trees, ancestor_snames)
+        self.set_value(sname, value)
+        self.set_matches(sname, matches)
+
+    def determine_value(
+        self,
+        sname: str,
+        trees: str,
+        ancestor_snames: Optional[List[str]] = None,
+    ) -> None:
+        value = self.get_value(sname)
+        if value is not None:
+            logging.debug(f"[Tregex] {sname} has already been set as {value}, skipping...")
+            return
+
+        if sname == "W":
+            logging.info(' Searching for "words"')
+            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
+            self.set_value(sname, value)
+            return
+
+        if self.sname_has_tregex_pattern(sname):
+            self.determine_value_from_tregex_pattern(sname, trees)
+        else:
+            if ancestor_snames is None:
+                ancestor_snames = []
+            self.determine_value_from_value_source(sname, trees, ancestor_snames)
+
+    def determine_all_values(self, trees: str) -> None:
+        for sname in self.selected_measures:
+            self.determine_value(sname, trees)
+
+    def dump_matches(self, odir_matched: str = "", is_stdout: bool = False) -> None:  # pragma: no cover
+        bn_input = os_path.basename(self.ifile)
+        bn_input_noext = os_path.splitext(bn_input)[0]
+        subodir_matched = os_path.join(odir_matched, bn_input_noext).strip()
+        if not is_stdout:
+            shutil.rmtree(subodir_matched, ignore_errors=True)
+            os.makedirs(subodir_matched)
+        for sname, structure in self.sname_structure_map.items():
+            matches = structure.matches
+            if not matches:
+                continue
+
+            meta_data = str(structure)
+            res = "\n".join(matches)
+            # only accept alphanumeric chars, underscore, and hypen
+            escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
+            matches_id = bn_input_noext + "-" + escaped_sname
+            if not is_stdout:
+                extension = ".txt"
+                fn_match_output = os_path.join(subodir_matched, matches_id + extension)
+                with open(fn_match_output, "w", encoding="utf-8") as f:
+                    f.write(f"{meta_data}\n\n")
+                    f.write(res)
+            else:
+                sys.stdout.write(f"{matches_id}\n")
+                sys.stdout.write(f"{meta_data}\n\n")
+                sys.stdout.write(res)
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
         logging.debug("[StructureCounter] Combining counters...")

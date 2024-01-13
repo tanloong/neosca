@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class Ns_Tregex:
-    SNAME_SEARCHER_MAPPING = {
+    SNAME_SEARCHER_MAPPING = {# {{{
         "S": l2sca.S,
         "VP1": l2sca.VP1,
         "VP2": l2sca.VP2,
@@ -34,10 +34,9 @@ class Ns_Tregex:
         "DC": l2sca.DC,
         "CT": l2sca.CT,
         "CP": l2sca.CP,
-    }
-
-    @classmethod
-    def get_matches(cls, sname: str, trees: str) -> list:
+    }# }}}
+    @classmethod# {{{
+    def search_sname(cls, sname: str, trees: str) -> List[str]:
         if sname not in cls.SNAME_SEARCHER_MAPPING:
             raise ValueError(f"{sname} is not yet supported in {__title__}.")
 
@@ -46,30 +45,29 @@ class Ns_Tregex:
         for tree in Tree.fromstring(trees):
             for node in cls.SNAME_SEARCHER_MAPPING[sname].searchNodeIterator(tree):
                 if node is last_node:
-                    # implement Tregex's -o option: https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
+                    # Mimic Tregex's -o option
+                    # https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
                     continue
                 last_node = node
                 span_string = node.span_string()
                 matches.append(span_string)
-        return matches
-
-    @classmethod
+        return matches# }}}
+    @classmethod# {{{
     def check_circular_def(
         cls, descendant_sname: str, ancestor_snames: List[str], counter: "StructureCounter"
     ) -> None:
         if descendant_sname in ancestor_snames:
             circular_definition = ", ".join(
-                f"{upstream_sname} = {counter.get_structure(upstream_sname).value_source}"
-                for upstream_sname in ancestor_snames
+                f"{ancestor_sname} = {counter.get_structure(ancestor_sname).value_source}"
+                for ancestor_sname in ancestor_snames
             )
             raise CircularDefinitionError(f"Circular definition: {circular_definition}")
         else:
             logging.debug(
                 "[Tregex] Circular definition check passed: descendant"
                 f" {descendant_sname} not in ancestors {ancestor_snames}"
-            )
-
-    @classmethod
+            )# }}}
+    @classmethod# {{{
     def exec_value_source(
         cls,
         value_source: str,
@@ -80,7 +78,7 @@ class Ns_Tregex:
     ) -> Tuple[Union[float, int], List[str]]:
         tokens = []
         g = tokenize(BytesIO(value_source.encode("utf-8")).readline)
-        next(g)  # skip the "utf-8" token
+        next(g)  # Skip the "utf-8" token
 
         matches: List[str] = []
         is_addition_only: bool = True
@@ -90,15 +88,17 @@ class Ns_Tregex:
                 cls.check_circular_def(tokval, ancestor_snames, counter)
 
                 cls.set_value(counter, tokval, trees, ancestor_snames)
-                if cls.has_tregex_pattern(counter, tokval):
+                if not counter.sname_has_value_source(tokval):
+                    # No circular def problem in terminal node.
+                    # Note that we currently have only two definition types,
+                    #  value_source and tregex_pattern. When new types are
+                    #  added, not having value source may do NOT necessarily
+                    #  mean a terminal node.
                     ancestor_snames.clear()
 
                 get_structure_code = f"counter.get_structure('{tokval}')"
                 if is_addition_only:
-                    try:  # noqa: SIM105
-                        matches.extend(counter.get_matches(tokval))
-                    except TypeError:
-                        pass
+                    matches.extend(counter.get_matches(tokval))
                 tokens.append((toknum, get_structure_code))
 
             elif toknum == NUMBER or tokval in ("(", ")"):
@@ -108,19 +108,15 @@ class Ns_Tregex:
                 if tokval != "+":
                     matches.clear()
                     is_addition_only = False
-            # constrain value_source as only NAMEs and numberic ops to assure security for `eval`
+            # Limit value_source as only NAMEs and numberic operators to assure security for `eval`
             elif tokval != "":
                 raise InvalidSourceError(f'Unexpected token: "{tokval}"')
 
-        # append "+ 0" to force tokens evaluated as num if value_source contains just name of another Structure
+        # Append "+ 0" to force tokens evaluated as number if value_source contains just name of another Structure
         tokens.extend(((PLUS, "+"), (NUMBER, "0")))
-        return eval(untokenize(tokens)), matches
+        return eval(untokenize(tokens)), matches# }}}
 
-    @classmethod
-    def has_tregex_pattern(cls, counter: "StructureCounter", sname: str) -> bool:
-        return counter.get_structure(sname).tregex_pattern is not None
-
-    @classmethod
+    @classmethod# {{{
     def set_value_from_tregex_pattern(cls, counter: "StructureCounter", sname: str, trees: str):
         structure = counter.get_structure(sname)
         tregex_pattern = structure.tregex_pattern
@@ -131,12 +127,12 @@ class Ns_Tregex:
             + (f" ({structure.description})..." if structure.description is not None else "...")
         )
         logging.debug(f" Searching for {tregex_pattern}")
-        matched_subtrees = cls.get_matches(sname, trees)
+        matched_subtrees = cls.search_sname(sname, trees)
         counter.set_matches(sname, matched_subtrees)
-        counter.set_value(sname, len(matched_subtrees))
+        counter.set_value(sname, len(matched_subtrees))# }}}
 
     @classmethod
-    def set_value_from_value_source(
+    def set_value_from_value_source(# {{{
         cls, counter: "StructureCounter", sname: str, trees: str, ancestor_snames: List[str]
     ) -> None:
         structure = counter.get_structure(sname)
@@ -150,9 +146,9 @@ class Ns_Tregex:
         )
         value, matches = cls.exec_value_source(value_source, counter, sname, trees, ancestor_snames)
         counter.set_value(sname, value)
-        counter.set_matches(sname, matches)
+        counter.set_matches(sname, matches)# }}}
 
-    @classmethod
+    @classmethod# {{{
     def set_value(
         cls,
         counter: "StructureCounter",
@@ -171,17 +167,17 @@ class Ns_Tregex:
             counter.set_value(sname, value)
             return
 
-        if cls.has_tregex_pattern(counter, sname):
+        if counter.sname_has_tregex_pattern(sname):
             cls.set_value_from_tregex_pattern(counter, sname, trees)
         else:
             if ancestor_snames is None:
                 ancestor_snames = []
             cls.set_value_from_value_source(counter, sname, trees, ancestor_snames)
-
-    @classmethod
+# }}}
+    @classmethod# {{{
     def set_all_values(cls, counter: "StructureCounter", trees: str) -> None:
         for sname in counter.selected_measures:
-            cls.set_value(counter, sname, trees)
+            cls.set_value(counter, sname, trees)# }}}
 
     @classmethod
     def query(
@@ -198,7 +194,7 @@ class Ns_Tregex:
             cls.write_match_output(counter, odir_matched, is_stdout)
         return counter
 
-    @classmethod
+    @classmethod# {{{
     def write_match_output(
         cls, counter: "StructureCounter", odir_matched: str = "", is_stdout: bool = False
     ) -> None:  # pragma: no cover
@@ -227,4 +223,4 @@ class Ns_Tregex:
             else:
                 sys.stdout.write(f"{matches_id}\n")
                 sys.stdout.write(f"{meta_data}\n\n")
-                sys.stdout.write(res)
+                sys.stdout.write(res)# }}}
