@@ -326,7 +326,6 @@ class Ns_Main_Gui(QMainWindow):
         if self.model_sca.has_user_data():
             self.button_export_matches_sca.setEnabled(True)
         self.button_clear_table_sca.setEnabled(True)
-        self.button_generate_table_sca.setEnabled(False)
 
     def run_pdb(self):
         # import gc
@@ -394,7 +393,6 @@ class Ns_Main_Gui(QMainWindow):
     def on_model_lca_row_added(self) -> None:
         self.button_export_table_lca.setEnabled(True)
         self.button_clear_table_lca.setEnabled(True)
-        self.button_generate_table_lca.setEnabled(False)
 
     def resize_splitters(self, reset: bool = False) -> None:
         for splitter in (self.splitter_central_widget,):
