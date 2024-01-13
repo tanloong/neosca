@@ -200,9 +200,15 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
                 yield from data
 
     def yield_flat_file_names(self) -> Generator[str, None, None]:
+        """
+        For simple row, yield file name displayed (str); for combined row, yield each combined subfile name (str)
+        """
         return self._yield_flat_file_column(0)
 
     def yield_flat_file_paths(self) -> Generator[str, None, None]:
+        """
+        For simple row, yield file path displayed (str); for combined row, yield each combined subfile path (str)
+        """
         return self._yield_flat_file_column(1)
 
     def _yield_file_column(self, colno) -> Generator[Union[str, List[str]], None, None]:
@@ -211,10 +217,16 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
             if isinstance(data, (str, list)):
                 yield data
 
-    def yield_file_names(self) -> Generator[Union[str, List[str]], None, None]:
-        return self._yield_file_column(0)
+    def yield_file_names(self) -> Generator[str, None, None]:
+        """
+        For either simple or combined row, yield file name displayed (str)
+        """
+        return self.yield_column(0)
 
     def yield_file_paths(self) -> Generator[Union[str, List[str]], None, None]:
+        """
+        For simple row, yield file path displayed (str); for combined row, yield the list of subfile paths (list[str])
+        """
         return self._yield_file_column(1)
 
 
@@ -519,7 +531,9 @@ class Ns_TableView(QTableView):
                         for rowno in range(row_count):
                             csv_writer.writerow(model.index(rowno, colno).data() for colno in range(col_count))
             QMessageBox.information(
-                self, "Success", f"The table has been successfully exported to {file_path}."
+                self,
+                "Success",
+                f"The table has been successfully exported to <a href='file:{file_path}'>{file_path}</a>.",
             )
         except PermissionError:
             QMessageBox.critical(
@@ -660,7 +674,11 @@ class Ns_TableView(QTableView):
                             sname = model.headerData(colno, Qt.Orientation.Horizontal)
                             matches = index.data(Qt.ItemDataRole.UserRole)
                             csv_writer.writerows((filename, sname, match) for match in matches)
-            QMessageBox.information(self, "Success", f"Matches has been successfully exported to {file_path}.")
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Matches has been successfully exported to <a href='file:{file_path}'>{file_path}</a>.",
+            )
         except PermissionError:
             QMessageBox.critical(
                 self, "Error Exporting Cells", f"PermissionError: failed to export matches to {file_path}."

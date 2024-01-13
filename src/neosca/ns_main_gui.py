@@ -6,12 +6,11 @@ import os.path as os_path
 import re
 import sys
 from pathlib import Path
-from typing import Any, List, Set, Tuple, Union
+from typing import List, Set, Tuple, Union
 
 from PySide6.QtCore import QModelIndex, Qt
-from PySide6.QtGui import QAction, QCursor, QIcon, QStandardItem
+from PySide6.QtGui import QCursor, QIcon, QStandardItem
 from PySide6.QtWidgets import (
-    QAbstractItemView,
     QApplication,
     QCheckBox,
     QFileDialog,
@@ -398,20 +397,21 @@ class Ns_Main_Gui(QMainWindow):
         self.model_file = Ns_StandardItemModel_File(self)
         self.tableview_file = Ns_TableView(self, model=self.model_file)
         self.tableview_file.setItemDelegate(Ns_StyledItemDelegate_File(self))
-        # self.tableview_file.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableview_file.setCornerButtonEnabled(True)
         # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
         self.menu_tableview_file = QMenu(self)
-        self.action_tableview_file_remove = self.menu_tableview_file.addAction("Remove")
-        self.action_tableview_file_remove.triggered.connect(self.remove_file_paths)
         self.action_tableview_file_combine = self.menu_tableview_file.addAction("Combine")
         self.action_tableview_file_combine.triggered.connect(self.combine_file_paths)
         self.action_tableview_file_split = self.menu_tableview_file.addAction("Split")
         self.action_tableview_file_split.triggered.connect(self.split_file_paths)
         self.action_tableview_file_show_subfiles = self.menu_tableview_file.addAction("Show Subfiles...")
         self.action_tableview_file_show_subfiles.triggered.connect(self.show_subfiles)
+
+        self.menu_tableview_file.addSeparator()
+        self.action_tableview_file_remove = self.menu_tableview_file.addAction("Remove")
+        self.action_tableview_file_remove.triggered.connect(self.remove_file_paths)
         self.menu_tableview_file.aboutToShow.connect(self.on_menu_tableview_file_about_to_show)
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_tableview_file)
 
@@ -427,29 +427,6 @@ class Ns_Main_Gui(QMainWindow):
             self.action_tableview_file_combine.setEnabled(True)
             self.action_tableview_file_split.setEnabled(False)
             self.action_tableview_file_show_subfiles.setEnabled(False)
-
-    def remove_file_paths(self) -> None:
-        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
-        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        # Need to count num before takeRow
-        num = sum(
-            map(
-                lambda index: 1
-                if isinstance((data := self.model_file.user_or_display_data(index)), str)
-                else len(data),
-                indexes,
-            )
-        )
-        # Remove rows from bottom up, or otherwise lower row indexes will
-        # change as upper rows are removed
-        rownos = sorted((index.row() for index in indexes), reverse=True)
-        for rowno in rownos:
-            self.model_file.takeRow(rowno)
-        if self.model_file.rowCount() == 0:
-            self.model_file.clear_data()
-
-        noun = "file" if num == 1 else "files"
-        self.statusBar().showMessage(f"{num} {noun} has been removed.")
 
     def combine_file_paths(self) -> None:
         name_indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=0)
@@ -530,8 +507,31 @@ class Ns_Main_Gui(QMainWindow):
     def show_subfiles(self) -> None:
         name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
         path_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=1)[0]
-        
+
         Ns_Dialog_Table_Subfiles(self, name_index, path_index).open()
+
+    def remove_file_paths(self) -> None:
+        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
+        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
+        # Need to count num before takeRow
+        num = sum(
+            map(
+                lambda index: 1
+                if isinstance((data := self.model_file.user_or_display_data(index)), str)
+                else len(data),
+                indexes,
+            )
+        )
+        # Remove rows from bottom up, or otherwise lower row indexes will
+        # change as upper rows are removed
+        rownos = sorted((index.row() for index in indexes), reverse=True)
+        for rowno in rownos:
+            self.model_file.takeRow(rowno)
+        if self.model_file.rowCount() == 0:
+            self.model_file.clear_data()
+
+        noun = "file" if num == 1 else "files"
+        self.statusBar().showMessage(f"Removed {num} {noun}")
 
     def show_menu_tableview_file(self) -> None:
         if not self.tableview_file.selectionModel().selectedRows():

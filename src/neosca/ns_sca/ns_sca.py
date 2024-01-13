@@ -4,7 +4,7 @@ import logging
 import os
 import os.path as os_path
 import sys
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca.ns_about import __title__
 from neosca.ns_io import Ns_Cache, Ns_IO
@@ -163,24 +163,38 @@ class Ns_SCA:
                 continue
             self.counters.append(counter)
 
+    def parse_and_query_subfiles(self, subfiles: List[str]) -> StructureCounter:
+        total = len(subfiles)
+        parent_counter = StructureCounter(
+            selected_measures=self.selected_measures,
+            user_structure_defs=self.user_structure_defs,
+            precision=self.precision,
+        )
+
+        for i, subfile in enumerate(subfiles, 1):
+            logging.info(f'[{__title__}] Processing "{subfile}" ({i}/{total})...')
+            child_counter = self.parse_and_query_ifile(subfile)
+            if child_counter is None:
+                continue
+            parent_counter += child_counter
+
+        Ns_Tregex.set_all_values(parent_counter, "")
+        return parent_counter
+
     def parse_and_query_subfiles_list(self, subfiles_list: List[List[str]]):
         for subfiles in subfiles_list:
-            total = len(subfiles)
-            parent_counter = StructureCounter(
-                selected_measures=self.selected_measures,
-                user_structure_defs=self.user_structure_defs,
-                precision=self.precision,
-            )
-
-            for i, subfile in enumerate(subfiles, 1):
-                logging.info(f'[{__title__}] Processing "{subfile}" ({i}/{total})...')
-                child_counter = self.parse_and_query_ifile(subfile)
-                if child_counter is None:
-                    continue
-                parent_counter += child_counter
-
-            Ns_Tregex.set_all_values(parent_counter, "")
+            parent_counter = self.parse_and_query_subfiles(subfiles)
             self.counters.append(parent_counter)
+
+    def parse_and_query_file_or_subfiles(
+        self, file_or_subfiles: Union[str, List[str]]
+    ) -> Optional[StructureCounter]:
+        if isinstance(file_or_subfiles, str):
+            return self.parse_and_query_ifile(file_or_subfiles)
+        elif isinstance(file_or_subfiles, list):
+            return self.parse_and_query_subfiles(file_or_subfiles)
+        else:
+            raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
 
     def run_on_ifiles(
         self, files: Optional[List[str]] = None, subfiles_list: Optional[List[List[str]]] = None

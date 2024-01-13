@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Generator, Optional
+from typing import Generator, List, Optional, Union
 
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import Qt
@@ -24,14 +24,12 @@ class Ns_Worker(QObject):
 
 
 class Ns_Worker_SCA_Generate_Table(Ns_Worker):
-    counter_ready = Signal(StructureCounter, str, int)
-
     def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
         input_file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_file_paths()
+        input_file_paths: Generator[Union[str, List[str]], None, None] = self.main.model_file.yield_file_paths()
 
         sca_kwargs = {
             "is_auto_save": False,
@@ -57,7 +55,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
-                counter: Optional[StructureCounter] = sca_instance.parse_and_query_ifile(file_path)
+                counter: Optional[StructureCounter] = sca_instance.parse_and_query_file_or_subfiles(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
             except BaseException as ex:
                 raise ex
@@ -86,8 +84,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.model_file.yield_column(0)
-        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_column(1)
+        input_file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
+        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_file_paths()
 
         lca_kwargs = {
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
