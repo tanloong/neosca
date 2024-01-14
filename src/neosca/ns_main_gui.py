@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import List, Set, Tuple, Union
 
-from PySide6.QtCore import QModelIndex, Qt
+from PySide6.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
 from PySide6.QtGui import QCursor, QIcon, QStandardItem
 from PySide6.QtWidgets import (
     QApplication,
@@ -308,7 +308,7 @@ class Ns_Main_Gui(QMainWindow):
         ):
             self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
         if self.with_button_pdb:
-            self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
+            self.layout_previewarea_sca.addWidget(self.button_pdb, 1, btn_no)
             btn_no += 1
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
@@ -506,20 +506,31 @@ class Ns_Main_Gui(QMainWindow):
     def split_file_paths(self) -> None:
         name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
         path_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=1)[0]
-        rowno = name_index.row()
+        top_rowno = name_index.row()
 
         names_retained = name_index.data(Qt.ItemDataRole.UserRole)
         paths_retained = path_index.data(Qt.ItemDataRole.UserRole)
 
         self.model_file.setData(name_index, names_retained[0])
         self.model_file.setData(path_index, paths_retained[0])
+        self.tableview_file.selectRow(top_rowno)
 
-        self.model_file.insertRows(rowno + 1, len(names_retained) - 1)
-        for i, row in enumerate(zip(names_retained[1:], paths_retained[1:]), start=rowno + 1):
-            self.model_file.set_row_left_shifted(i, row)
+        self.model_file.insertRows(top_rowno + 1, len(names_retained) - 1)
+        for bot_rowno, row in enumerate(zip(names_retained[1:], paths_retained[1:]), start=top_rowno + 1):
+            self.model_file.set_row_left_shifted(bot_rowno, row)
+            self.tableview_file.selectRow(bot_rowno)
 
+        # Select rows split off
+        # https://forum.pythonguis.com/t/programmatically-select-multiple-rows-in-qtableview/510
+        selection = QItemSelection()
+        selection.select(self.model_file.index(top_rowno, 0), self.model_file.index(bot_rowno, 1))
+        mode = QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows
+        self.tableview_file.selectionModel().select(selection, mode)
+
+        # Clear subfile list
         self.model_file.setData(name_index, None, Qt.ItemDataRole.UserRole)
         self.model_file.setData(path_index, None, Qt.ItemDataRole.UserRole)
+
         self.statusBar().showMessage(f"Demarked {len(names_retained)} files from combination")
 
     def show_subfiles(self) -> None:
