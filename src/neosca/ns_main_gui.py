@@ -79,7 +79,6 @@ class Ns_Main_Gui(QMainWindow):
 
         self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
         self.statusBar().showMessage("Ready!")
-        self.statusBar().setFixedHeight(20)
 
         self.fix_macos_layout(self)
 
