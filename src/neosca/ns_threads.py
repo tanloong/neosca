@@ -35,9 +35,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             "is_auto_save": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_reserve_parsed": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
-            "is_use_past_parsed": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
-            "is_skip_querying": False,
+            "is_cache": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_use_cache": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
             "is_skip_parsing": False,
             "config": None,
         }
@@ -91,7 +90,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
             "tagset": Ns_Settings.value("Lexical Complexity Analyzer/tagset"),
             "is_stdout": False,
-            "is_cache_for_future_runs": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
+            "is_cache": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
             "is_use_past_cache": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
         }
         attrname = "lca_instance"

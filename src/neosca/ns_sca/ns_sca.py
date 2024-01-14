@@ -19,8 +19,8 @@ class Ns_SCA:
         odir_matched: str = "",
         selected_measures: Optional[List[str]] = None,
         precision: int = 4,
-        is_reserve_parsed: bool = True,
-        is_use_past_parsed: bool = True,
+        is_cache: bool = True,
+        is_use_cache: bool = True,
         is_reserve_matched: bool = False,
         is_stdout: bool = False,
         is_skip_parsing: bool = False,
@@ -32,8 +32,8 @@ class Ns_SCA:
         self.odir_matched = odir_matched
         self.selected_measures = selected_measures
         self.precision = precision
-        self.is_reserve_parsed = is_reserve_parsed
-        self.use_cache = is_use_past_parsed
+        self.is_cache = is_cache
+        self.is_use_cache = is_use_cache
         self.is_reserve_matched = is_reserve_matched
         self.is_stdout = is_stdout
         self.is_skip_parsing = is_skip_parsing
@@ -80,18 +80,20 @@ class Ns_SCA:
             # Assume input as parse trees
             return Ns_IO.read_txt(file_path, is_guess_encoding=False)
 
-        if self.use_cache:
-            cache_path, cache_available = Ns_Cache.get_cache_path(file_path)
-            if cache_available:
-                logging.info(f"Loading cache: {cache_path}.")
-                doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-                return Ns_NLP_Stanza.get_constituency_tree(doc, cache_path=cache_path)
-        else:
-            cache_path = None
-            cache_available = False
-
+        cache_path, cache_available = Ns_Cache.get_cache_path(file_path)
+        # Use cache
+        if self.is_use_cache and cache_available:
+            logging.info(f"Loading cache: {cache_path}.")
+            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+            return Ns_NLP_Stanza.get_constituency_tree(doc, cache_path=cache_path)
+             
+        # Use raw text
         if (text := Ns_IO.load_file(file_path)) is None:
             return None
+
+        if not self.is_cache:
+            cache_path = None
+
         try:
             trees = self.parse_text(text, cache_path)
         except BaseException as e:

@@ -364,7 +364,7 @@ class StructureCounter:
                     #  mean a terminal node.
                     ancestor_snames.clear()
 
-                get_structure_code = f"counter.get_structure('{tokval}')"
+                get_structure_code = f"self.get_structure('{tokval}')"
                 if is_addition_only:
                     matches.extend(self.get_matches(tokval))
                 tokens.append((toknum, get_structure_code))

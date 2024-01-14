@@ -68,7 +68,7 @@ class Ns_LCA:
         precision: int = 4,
         ofile: str = "result.csv",
         is_stdout: bool = False,
-        is_cache_for_future_runs: bool = True,
+        is_cache: bool = True,
         is_use_past_cache: bool = True,
     ) -> None:
         assert wordlist in ("bnc", "anc")
@@ -83,7 +83,7 @@ class Ns_LCA:
         self.precision = precision
         self.ofile = ofile
         self.is_stdout = is_stdout
-        self.is_cache_for_future_runs = is_cache_for_future_runs
+        self.is_cache = is_cache
         self.use_cache = is_use_past_cache
 
         data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
@@ -392,19 +392,21 @@ class Ns_LCA:
     def parse_ifile(self, ifile: str) -> Optional[Generator[Tuple[str, str], None, None]]:  # {{{
         from neosca.ns_nlp import Ns_NLP_Stanza
 
-        if self.use_cache:
-            cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
-            if cache_available:
-                logging.info(f"Loading cache: {cache_path}.")
-                doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-                yield from Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
-                return
-        else:
-            cache_path = None
-            cache_available = False
+        cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
+        # Use cache
+        if self.use_cache and cache_available:
+            logging.info(f"Loading cache: {cache_path}.")
+            doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+            yield from Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
+            return
 
+        # Use raw text
         if (text := Ns_IO.load_file(ifile)) is None:
             return None
+
+        if not self.is_cache:
+            cache_path = None
+
         try:
             yield from self.parse_text(text, cache_path=cache_path)
         except BaseException as e:
