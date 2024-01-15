@@ -276,7 +276,11 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 class Ns_Cache:
     CACHE_EXTENSION = ".pickle.lzma"
     # { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
-    fpath_cname: Dict[str, str] = Ns_IO.load_json(CACHE_INFO_PATH) if CACHE_INFO_PATH.exists() else {}
+    fpath_cname: Dict[str, str] = (
+        Ns_IO.load_json(CACHE_INFO_PATH)
+        if CACHE_INFO_PATH.exists() and os_path.getsize(CACHE_INFO_PATH) > 0
+        else {}
+    )
     info_changed: bool = False
 
     @classmethod
@@ -307,12 +311,21 @@ class Ns_Cache:
         return cache_path, True
 
     @classmethod
+    def _human_readable_filesize(cls, filesize: int) -> str:
+        units = (("PB", 1 << 50), ("TB", 1 << 40), ("GB", 1 << 30), ("MB", 1 << 20), ("KB", 1 << 10))
+        for unit_name, unit_base in units:
+            norm_size = filesize / unit_base
+            if norm_size >= 0.8:
+                return f"{norm_size:.2f} {unit_name}"
+        return f"{filesize:.2f} B"
+
+    @classmethod
     def yield_cname_cpath_csize_fpath(cls) -> Generator[Tuple[str, str, str, str], None, None]:
         for file_path, cache_name in Ns_Cache.fpath_cname.items():
             cache_path = Ns_Cache._name2path(cache_name)
             if not os_path.exists(cache_path):
                 continue
-            cache_size = f"{round(os_path.getsize(cache_path) / 1024, 2):,} K"
+            cache_size = cls._human_readable_filesize(os_path.getsize(cache_path))
             yield cache_name, cache_path, cache_size, file_path
 
     @classmethod
