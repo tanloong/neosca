@@ -28,3 +28,6 @@ lint:
 
 test:
 	python -m unittest
+
+ACKNOWLEDGMENTS.md: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
+	python utils/ns_generate_acks.py

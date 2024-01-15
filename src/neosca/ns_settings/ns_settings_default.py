@@ -32,7 +32,7 @@ else:
     DEFAULT_FONT_SIZE = 11
 
 
-available_import_types = ("Text files (*.txt)", "Docx files (*.docx)", "Odt files (*.odt)", "All files (*)")
+available_import_types = ("All files (*)", "Text files (*.txt)", "Docx files (*.docx)", "Odt files (*.odt)")
 available_export_types = ("Excel Workbook (*.xlsx)", "CSV File (*.csv)", "TSV File (*.tsv)")
 settings_default = {
     "Appearance/scaling": DEFAULT_SCALING,
@@ -51,8 +51,8 @@ settings_default = {
     "Lexical Complexity Analyzer/tagset": "ud",
     "Miscellaneous/dont-confirm-on-exit": False,
     "Miscellaneous/dont-confirm-on-cache-deletion": False,
-    "Miscellaneous/cache-for-future-runs": True,
-    "Miscellaneous/use-past-cache": True,
+    "Miscellaneous/cache": True,
+    "Miscellaneous/use-cache": True,
     "default-splitter-sca": 200,
     "default-splitter-lca": 200,
     "default-splitter-file": 150,

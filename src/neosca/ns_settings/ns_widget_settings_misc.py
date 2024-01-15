@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from PySide6.QtWidgets import QCheckBox, QGridLayout, QGroupBox, QSizePolicy, QSpacerItem
 
 from neosca.ns_settings.ns_settings import Ns_Settings
@@ -20,12 +19,12 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
     def setup_cache(self) -> None:
-        self.checkbox_cache_for_future_runs = QCheckBox("Cache for future runs")
-        self.checkbox_use_past_cache = QCheckBox("Use past cache if available")
+        self.checkbox_cache = QCheckBox("Cache uncached files for faster future runs.")
+        self.checkbox_use_cache = QCheckBox("Use cache if available")
 
         gridlayout_cache = QGridLayout()
-        gridlayout_cache.addWidget(self.checkbox_cache_for_future_runs, 0, 0)
-        gridlayout_cache.addWidget(self.checkbox_use_past_cache, 1, 0)
+        gridlayout_cache.addWidget(self.checkbox_cache, 0, 0)
+        gridlayout_cache.addWidget(self.checkbox_use_cache, 1, 0)
         self.groupbox_cache = QGroupBox("Cache")
         self.groupbox_cache.setLayout(gridlayout_cache)
 
@@ -44,10 +43,8 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
         self.load_settings_confirmation()
 
     def load_settings_cache(self) -> None:
-        self.checkbox_cache_for_future_runs.setChecked(
-            Ns_Settings.value(f"{self.name}/cache-for-future-runs", type=bool)
-        )
-        self.checkbox_use_past_cache.setChecked(Ns_Settings.value(f"{self.name}/use-past-cache", type=bool))
+        self.checkbox_cache.setChecked(Ns_Settings.value(f"{self.name}/cache", type=bool))
+        self.checkbox_use_cache.setChecked(Ns_Settings.value(f"{self.name}/use-cache", type=bool))
 
     def load_settings_confirmation(self) -> None:
         self.checkbox_dont_confirm_on_exit.setChecked(
@@ -65,10 +62,8 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
         self.apply_settings_confirmation()
 
     def apply_settings_cache(self) -> None:
-        Ns_Settings.setValue(
-            f"{self.name}/cache-for-future-runs", self.checkbox_cache_for_future_runs.isChecked()
-        )
-        Ns_Settings.setValue(f"{self.name}/use-past-cache", self.checkbox_use_past_cache.isChecked())
+        Ns_Settings.setValue(f"{self.name}/cache", self.checkbox_cache.isChecked())
+        Ns_Settings.setValue(f"{self.name}/use-cache", self.checkbox_use_cache.isChecked())
 
     def apply_settings_confirmation(self) -> None:
         Ns_Settings.setValue(

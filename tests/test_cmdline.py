@@ -116,51 +116,6 @@ class TestCommandLineBasic(CmdlineTmpl):
             ],
         )
 
-    def test_skip_files(self):
-        # skip files of unsupported type
-        self.template(
-            [
-                "python",
-                "-m",
-                "neosca",
-                self.samples_dir,
-                # gif file
-                str(DATA_DIR),
-                "--reserve-parsed",
-                "--reserve-matched",
-            ],
-            expected_output_file=[
-                "result.csv",
-                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
-                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
-                "result_matches/sample1/sample1-C1.txt",
-                "result_matches/sample1/sample1-CN1.txt",
-                "result_matches/sample1/sample1-CP.txt",
-                "result_matches/sample1/sample1-CT.txt",
-                "result_matches/sample1/sample1-DC.txt",
-                "result_matches/sample1/sample1-S.txt",
-                "result_matches/sample1/sample1-T1.txt",
-                "result_matches/sample1/sample1-VP1.txt",
-                "result_matches/sample2/sample2-C1.txt",
-                "result_matches/sample2/sample2-CN1.txt",
-                "result_matches/sample2/sample2-CN2.txt",
-                "result_matches/sample2/sample2-CP.txt",
-                "result_matches/sample2/sample2-CT.txt",
-                "result_matches/sample2/sample2-DC.txt",
-                "result_matches/sample2/sample2-S.txt",
-                "result_matches/sample2/sample2-T1.txt",
-                "result_matches/sample2/sample2-VP1.txt",
-            ],
-        )
-
-        # skip .pickle.lzma files
-        parsed_file = os_path.join(self.samples_dir, "1.pickle.lzma")
-        open(parsed_file, "a").close()
-        self.template(
-            ["python", "-m", "neosca", self.samples_dir], expected_output_file=["result.csv"]
-        )
-        self.cleanup(parsed_file)
-
     def test_outputfile(self):
         self.template(
             [

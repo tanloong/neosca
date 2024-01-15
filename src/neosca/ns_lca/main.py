@@ -99,7 +99,7 @@ class LCAUI:
             options.ofile = "result.csv"
 
         if options.text is not None:
-            logging.info(f"Command-line text: {options.text}")
+            logging.info(f"CLI text: {options.text}")
             if ifile_list:
                 return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
             self.verified_ifiles = None

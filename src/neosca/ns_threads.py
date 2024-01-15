@@ -32,11 +32,11 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         input_file_paths: Generator[Union[str, List[str]], None, None] = self.main.model_file.yield_file_paths()
 
         sca_kwargs = {
-            "is_auto_save": False,
+            "is_save_values": False,
             "odir_matched": "",
             "selected_measures": None,
-            "is_cache": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
-            "is_use_cache": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
+            "is_cache": Ns_Settings.value("Miscellaneous/cache", type=bool),
+            "is_use_cache": Ns_Settings.value("Miscellaneous/use-cache", type=bool),
             "is_skip_parsing": False,
             "config": None,
         }
@@ -54,7 +54,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
             try:
-                counter: Optional[StructureCounter] = sca_instance.parse_and_query_file_or_subfiles(file_path)
+                counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
             except BaseException as ex:
                 raise ex
@@ -90,8 +90,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
             "tagset": Ns_Settings.value("Lexical Complexity Analyzer/tagset"),
             "is_stdout": False,
-            "is_cache": Ns_Settings.value("Miscellaneous/cache-for-future-runs", type=bool),
-            "is_use_past_cache": Ns_Settings.value("Miscellaneous/use-past-cache", type=bool),
+            "is_cache": Ns_Settings.value("Miscellaneous/cache", type=bool),
+            "is_use_cache": Ns_Settings.value("Miscellaneous/use-cache", type=bool),
         }
         attrname = "lca_instance"
         try:

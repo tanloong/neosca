@@ -90,14 +90,12 @@ class Ns_NLP_Stanza:
         )
 
     @classmethod
-    def get_constituency_tree(
+    def get_constituency_forest(
         cls,
         doc: Union[str, Document],
         *,
         cache_path: Optional[str] = None,
     ) -> str:
-        if cache_path is None:
-            cache_path = "cmdline_text.pickle.lzma"
         doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
         return cls.doc2tree(doc)
 

@@ -320,13 +320,13 @@ class StructureCounter:
             )
 
     @classmethod
-    def search_sname(cls, sname: str, trees: str) -> List[str]:
+    def search_sname(cls, sname: str, forest: str) -> List[str]:
         if sname not in cls.SNAME_SEARCHER_MAPPING:
             raise ValueError(f"{sname} is not yet supported in {__title__}.")
 
         matches = []
         last_node = None
-        for tree in Tree.fromstring(trees):
+        for tree in Tree.fromstring(forest):
             for node in cls.SNAME_SEARCHER_MAPPING[sname].searchNodeIterator(tree):
                 if node is last_node:
                     # Mimic Tregex's -o option
@@ -341,7 +341,7 @@ class StructureCounter:
         self,
         value_source: str,
         sname: str,
-        trees: str,
+        forest: str,
         ancestor_snames: List[str],
     ) -> Tuple[Union[float, int], List[str]]:
         tokens = []
@@ -355,7 +355,7 @@ class StructureCounter:
                 ancestor_snames.append(sname)
                 self.check_circular_def(tokval, ancestor_snames)
 
-                self.determine_value(tokval, trees, ancestor_snames)
+                self.determine_value(tokval, forest, ancestor_snames)
                 if not self.sname_has_value_source(tokval):
                     # No circular def problem in terminal node.
                     # Note that we currently have only two definition types,
@@ -384,7 +384,7 @@ class StructureCounter:
         tokens.extend(((PLUS, "+"), (NUMBER, "0")))
         return eval(untokenize(tokens)), matches
 
-    def determine_value_from_tregex_pattern(self, sname: str, trees: str):
+    def determine_value_from_tregex_pattern(self, sname: str, forest: str):
         structure = self.get_structure(sname)
         tregex_pattern = structure.tregex_pattern
         assert tregex_pattern is not None
@@ -394,11 +394,11 @@ class StructureCounter:
             + (f" ({structure.description})..." if structure.description is not None else "...")
         )
         logging.debug(f" Searching for {tregex_pattern}")
-        matched_subtrees = self.search_sname(sname, trees)
+        matched_subtrees = self.search_sname(sname, forest)
         self.set_value(sname, len(matched_subtrees))
         self.set_matches(sname, matched_subtrees)
 
-    def determine_value_from_value_source(self, sname: str, trees: str, ancestor_snames: List[str]) -> None:
+    def determine_value_from_value_source(self, sname: str, forest: str, ancestor_snames: List[str]) -> None:
         structure = self.get_structure(sname)
         value_source = structure.value_source
         assert value_source is not None, f"value_source for {sname} is None."
@@ -408,14 +408,14 @@ class StructureCounter:
             + (f"({structure.description}) " if structure.description is not None else "")
             + f"= {value_source}..."
         )
-        value, matches = self.exec_value_source(value_source, sname, trees, ancestor_snames)
+        value, matches = self.exec_value_source(value_source, sname, forest, ancestor_snames)
         self.set_value(sname, value)
         self.set_matches(sname, matches)
 
     def determine_value(
         self,
         sname: str,
-        trees: str,
+        forest: str,
         ancestor_snames: Optional[List[str]] = None,
     ) -> None:
         value = self.get_value(sname)
@@ -425,20 +425,20 @@ class StructureCounter:
 
         if sname == "W":
             logging.info(' Searching for "words"')
-            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", trees))
+            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", forest))
             self.set_value(sname, value)
             return
 
         if self.sname_has_tregex_pattern(sname):
-            self.determine_value_from_tregex_pattern(sname, trees)
+            self.determine_value_from_tregex_pattern(sname, forest)
         else:
             if ancestor_snames is None:
                 ancestor_snames = []
-            self.determine_value_from_value_source(sname, trees, ancestor_snames)
+            self.determine_value_from_value_source(sname, forest, ancestor_snames)
 
-    def determine_all_values(self, trees: str) -> None:
+    def determine_all_values(self, forest: str = "") -> None:
         for sname in self.selected_measures:
-            self.determine_value(sname, trees)
+            self.determine_value(sname, forest)
 
     def dump_matches(self, odir_matched: str = "", is_stdout: bool = False) -> None:  # pragma: no cover
         bn_input = os_path.basename(self.ifile)
@@ -461,12 +461,9 @@ class StructureCounter:
                 extension = ".txt"
                 fn_match_output = os_path.join(subodir_matched, matches_id + extension)
                 with open(fn_match_output, "w", encoding="utf-8") as f:
-                    f.write(f"{meta_data}\n\n")
-                    f.write(res)
+                    f.write(f"{meta_data}\n\n{res}\n")
             else:
-                sys.stdout.write(f"{matches_id}\n")
-                sys.stdout.write(f"{meta_data}\n\n")
-                sys.stdout.write(res)
+                sys.stdout.write(f"{matches_id}\n{meta_data}\n\n{res}\n")
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
         logging.debug("[StructureCounter] Combining counters...")

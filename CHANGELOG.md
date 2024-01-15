@@ -6,6 +6,8 @@
 
 + Remove `--max-length`
 + Remove `--config`
++ Rename `--reserve-matched` to `--save-matches`
++ Rename `--reserve-parsed` to `--cache`
 
 ### Dependency Changes
 
@@ -18,6 +20,10 @@
 ### New Features
 
 + Add graphical user interface (`nsca --gui`). NeoSCA borrows tons of code and design ideas to its GUI component from [Wordless](https://github.com/BLKSerene/Wordless).
+
+### Deprecated Features
+
++ `--no-querying`
 
 ### Bug fixes
 

@@ -69,7 +69,7 @@ class Ns_LCA:
         ofile: str = "result.csv",
         is_stdout: bool = False,
         is_cache: bool = True,
-        is_use_past_cache: bool = True,
+        is_use_cache: bool = True,
     ) -> None:
         assert wordlist in ("bnc", "anc")
         assert tagset in ("ud", "ptb")
@@ -84,7 +84,7 @@ class Ns_LCA:
         self.ofile = ofile
         self.is_stdout = is_stdout
         self.is_cache = is_cache
-        self.use_cache = is_use_past_cache
+        self.is_use_cache = is_use_cache
 
         data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug(f"Loading {data_path}...")
@@ -394,15 +394,14 @@ class Ns_LCA:
 
         cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
         # Use cache
-        if self.use_cache and cache_available:
+        if self.is_use_cache and cache_available:
             logging.info(f"Loading cache: {cache_path}.")
             doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             yield from Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
             return
 
         # Use raw text
-        if (text := Ns_IO.load_file(ifile)) is None:
-            return None
+        text = Ns_IO.load_file(ifile)
 
         if not self.is_cache:
             cache_path = None
@@ -534,7 +533,7 @@ class Ns_LCA:
         if text is not None:
             values = self._analyze(doc=text)
             if values is not None:
-                csv_writer.writerow(("cmdline_text", *values))
+                csv_writer.writerow(("cli_text", *values))
 
         else:
             for ifile in ifiles:  # type: ignore

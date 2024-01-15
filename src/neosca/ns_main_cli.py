@@ -119,7 +119,7 @@ class Ns_Main_Cli:
             dest="is_cache",
             action="store_true",
             default=False,
-            help="Cache for futurn runs.",
+            help="Cache uncached files for faster future runs.",
         )
         args_parser.add_argument(
             "--use-cache",
@@ -129,12 +129,12 @@ class Ns_Main_Cli:
             help="Use cache if available.",
         )
         args_parser.add_argument(
-            "--reserve-matched",
+            "--save-matches",
             "-m",
-            dest="is_reserve_matched",
+            dest="is_save_matches",
             default=False,
             action="store_true",
-            help="Reserve the matched subtrees.",
+            help="Save the matched subtrees.",
         )
         args_parser.add_argument(
             "--no-parse",
@@ -147,7 +147,7 @@ class Ns_Main_Cli:
                 " already have parsed input files, use this flag to indicate that"
                 " the program should skip the parsing step and proceed directly"
                 " to querying. When this flag is set, the --cache and --use-cache"
-                " flags are automatically set as False."
+                " flags will be automatically set as False."
             ),
         )
         args_parser.add_argument(
@@ -164,13 +164,13 @@ class Ns_Main_Cli:
             default=False,
             help="Print detailed logging messages.",
         )
-        args_parser.add_argument(
-            "--yes",
-            dest="is_assume_yes",
-            action="store_true",
-            default=False,
-            help="Assume the answer to all prompts is yes, used when installing dependencies.",
-        )
+        # args_parser.add_argument(
+        #     "--yes",
+        #     dest="is_assume_yes",
+        #     action="store_true",
+        #     default=False,
+        #     help="Assume the answer to all prompts is yes, used when installing dependencies.",
+        # )
         # args_parser.add_argument(
         #     "--config",
         #     dest="config",
@@ -208,13 +208,13 @@ class Ns_Main_Cli:
         if options.text is not None:
             if ifile_list:
                 return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
-            logging.info(f"Command-line text: {options.text}")
+            logging.info(f"CLI text: {options.text}")
             self.verified_ifiles = None
         else:
             self.verified_ifiles = Ns_IO.get_verified_ifile_list(ifile_list)
 
         if options.subfiles_list is None:
-            self.verified_subfiles_list: List[list] = []
+            self.verified_subfiles_list: List[List[str]] = []
         else:
             verified_subfiles_list = []
             for subfiles in options.subfiles_list:
@@ -283,7 +283,7 @@ class Ns_Main_Cli:
             "selected_measures": options.selected_measures,
             "is_cache": options.is_cache,
             "is_use_cache": options.is_use_cache,
-            "is_reserve_matched": options.is_reserve_matched,
+            "is_save_matches": options.is_save_matches,
             "is_stdout": options.is_stdout,
             "is_skip_parsing": options.is_skip_parsing,
             "config": user_config,
@@ -328,11 +328,11 @@ class Ns_Main_Cli:
                 msg_num += 1
                 color_print(
                     "OKGREEN",
-                    f"{self.cwd}{os.sep}cmdline_text.parsed",
+                    f"{self.cwd}{os.sep}cli_text.parsed",
                     prefix=f"{msg_num}. parse trees were saved to ",
                     postfix=".",
                 )
-        if self.options.is_reserve_matched:
+        if self.options.is_save_matches:
             msg_num += 1
             color_print(
                 "OKGREEN",
@@ -371,7 +371,12 @@ class Ns_Main_Cli:
 
         analyzer = Ns_SCA(**self.init_kwargs)
 
-        analyzer.run_on_files(files=self.verified_ifiles or [], subfiles_list=self.verified_subfiles_list or [])
+        files = []
+        if self.verified_ifiles:
+            files.extend(self.verified_ifiles)
+        if self.verified_subfiles_list:
+            files.extend(self.verified_subfiles_list)
+        analyzer.run_on_file_or_subfiles_list(files)
 
     def run_gui(self) -> Ns_Procedure_Result:
         from neosca.ns_main_gui import main_gui

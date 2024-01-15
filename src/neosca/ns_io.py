@@ -14,7 +14,7 @@ import sys
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, ByteString, Dict, Generator, Iterable, Optional, Set, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, Set, Tuple, Union
 
 from charset_normalizer import detect
 
@@ -46,41 +46,29 @@ class Ns_IO(metaclass=Ns_IO_Meta):
     previous_encoding: str = "utf-8"
 
     @classmethod
-    def _read_txt(cls, path: str, mode: str, encoding: Optional[str] = None) -> Union[str, ByteString]:
-        try:
-            with open(path, mode=mode, encoding=encoding) as f:
-                content = f.read()
-        # input file existence has already been checked in main.py, here check
-        # it again in case users delete input files during runtime
-        except FileNotFoundError:
-            logging.critical(f"{path} does not exist.")
-            sys.exit(1)
-        else:
-            return content
-
-    @classmethod
-    def read_txt(cls, path: str, is_guess_encoding: bool = True) -> Optional[str]:
+    def read_txt(cls, path: str, is_guess_encoding: bool = True) -> str:
         if not is_guess_encoding:
-            return cls._read_txt(path, "r", "utf-8")  # type:ignore
+            with open(path, encoding="utf-8") as f:
+                return f.read()
 
         try:
             logging.info(f"Attempting to read {path} with {cls.previous_encoding} encoding...")
-            content = cls._read_txt(path, "r", cls.previous_encoding)  # type:ignore
+            with open(path, encoding=cls.previous_encoding) as f:
+                content = f.read()
         except UnicodeDecodeError:
             logging.info(f"Attempt failed. Reading {path} in binary mode...")
-            bytes_ = cls._read_txt(path, "rb")
+            with open(path, "rb") as f:
+                bytes_ = f.read()
+
             logging.info("Guessing the encoding of the byte string...")
-            encoding = detect(bytes_)["encoding"]  # type:ignore
+            encoding = detect(bytes_)["encoding"]
+            assert isinstance(encoding, str), f"Got invalid encoding for {path}: {encoding}"
 
-            if encoding is None:
-                logging.warning(f"{path} is of unsupported file type. Skipped.")
-                return None
-
-            cls.previous_encoding = encoding  # type:ignore
             logging.info(f"Decoding the byte string with {encoding} encoding...")
-            content = bytes_.decode(encoding=encoding)  # type:ignore
+            content = bytes_.decode(encoding=encoding)
+            cls.previous_encoding = encoding
 
-        return content  # type:ignore
+        return content
 
     @classmethod
     def read_docx(cls, path: str) -> str:
@@ -135,13 +123,12 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return not cls.supports(file_path)
 
     @classmethod
-    def load_file(cls, path: str) -> Optional[str]:
-        extension = cls.suffix(path, strip_dot=True)
+    def load_file(cls, file_path: str) -> str:
+        extension = cls.suffix(file_path, strip_dot=True)
         if extension not in cls.SUPPORTED_EXTENSIONS:
-            logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
-            return None
+            raise ValueError(f"[Ns_IO] {file_path} is of unsupported filetype. Skipping.")
 
-        return getattr(cls, f"read_{extension}")(path)
+        return getattr(cls, f"read_{extension}")(file_path)
 
     @classmethod
     def is_writable(cls, filename: str) -> Ns_Procedure_Result:
@@ -238,8 +225,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         verified_ifile_list = []
         for path in ifile_list:
             if os_path.isfile(path):
-                extension = cls.suffix(path)
-                if extension not in cls.SUPPORTED_EXTENSIONS:
+                if cls.not_supports(path):
                     logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
                     continue
                 logging.debug(f"[Ns_IO] Adding {path} to input file list")
@@ -248,7 +234,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 verified_ifile_list.extend(
                     path
                     for path in glob.glob(f"{path}{os_path.sep}*")
-                    if os_path.isfile(path) and cls.suffix(path) in cls.SUPPORTED_EXTENSIONS
+                    if os_path.isfile(path) and cls.supports(path)
                 )
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
