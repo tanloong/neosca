@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
+import io
 import logging
 import os
 import os.path as os_path
 import re
 import shutil
 import sys
+import tokenize
 from collections import OrderedDict
 from copy import deepcopy
-from io import BytesIO
-from tokenize import NAME, NUMBER, PLUS, tokenize, untokenize
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca import DATA_DIR
@@ -345,44 +345,38 @@ class StructureCounter:
         ancestor_snames: List[str],
     ) -> Tuple[Union[float, int], List[str]]:
         tokens = []
-        g = tokenize(BytesIO(value_source.encode("utf-8")).readline)
-        next(g)  # Skip the "utf-8" token
-
         matches: List[str] = []
         is_addition_only: bool = True
-        for toknum, tokval, *_ in g:
-            if toknum == NAME:
+        for t in tokenize.generate_tokens(io.StringIO(value_source).readline):
+            token_type, token_string, *_ = t
+            if token_type == tokenize.NAME:
                 ancestor_snames.append(sname)
-                self.check_circular_def(tokval, ancestor_snames)
-
-                self.determine_value(tokval, forest, ancestor_snames)
-                if not self.sname_has_value_source(tokval):
+                self.check_circular_def(token_string, ancestor_snames)
+                self.determine_value(token_string, forest, ancestor_snames)
+                if not self.sname_has_value_source(token_string):
                     # No circular def problem in terminal node.
                     # Note that we currently have only two definition types,
                     #  value_source and tregex_pattern. When new types are
                     #  added, not having value source may do NOT necessarily
                     #  mean a terminal node.
                     ancestor_snames.clear()
-
-                get_structure_code = f"self.get_structure('{tokval}')"
+                get_structure_code = f"self.get_structure('{token_string}')"
                 if is_addition_only:
-                    matches.extend(self.get_matches(tokval))
-                tokens.append((toknum, get_structure_code))
-
-            elif toknum == NUMBER or tokval in ("(", ")"):
-                tokens.append((toknum, tokval))
-            elif tokval in ("+", "-", "*", "/"):
-                tokens.append((toknum, tokval))
-                if tokval != "+":
+                    matches.extend(self.get_matches(token_string))
+                tokens.append((token_type, get_structure_code))
+            elif token_type == tokenize.NUMBER or token_string in ("(", ")"):
+                tokens.append((token_type, token_string))
+            elif token_string in ("+", "-", "*", "/"):
+                tokens.append((token_type, token_string))
+                if token_string != "+":
                     matches.clear()
                     is_addition_only = False
             # Limit value_source as only NAMEs and numberic operators to assure security for `eval`
-            elif tokval != "":
-                raise InvalidSourceError(f'Unexpected token: "{tokval}"')
-
+            elif token_string != "":
+                raise InvalidSourceError(f'Unexpected token: "{token_string}"')
         # Append "+ 0" to force tokens evaluated as number if value_source contains just name of another Structure
-        tokens.extend(((PLUS, "+"), (NUMBER, "0")))
-        return eval(untokenize(tokens)), matches
+        tokens.extend(((tokenize.PLUS, "+"), (tokenize.NUMBER, "0")))
+        return eval(tokenize.untokenize(tokens)), matches
 
     def determine_value_from_tregex_pattern(self, sname: str, forest: str):
         structure = self.get_structure(sname)
