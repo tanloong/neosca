@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-try:
-    from xml.etree.ElementTree import XML, fromstring
-except ImportError:
-    from xml.etree.ElementTree import XML, fromstring
 import glob
 import json
 import logging
@@ -15,6 +11,7 @@ import zipfile
 from os import PathLike
 from pathlib import Path
 from typing import Any, Dict, Generator, Iterable, Set, Tuple, Union
+from xml.etree.ElementTree import XML, fromstring
 
 from charset_normalizer import detect
 
