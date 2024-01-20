@@ -10,7 +10,7 @@ import sys
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, Set, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, Sequence, Set, Tuple, Union
 from xml.etree.ElementTree import XML, fromstring
 
 from charset_normalizer import detect
@@ -247,7 +247,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return set(verified_ifile_list)
 
     @classmethod
-    def ensure_unique_filestem(cls, stem: str, existing_stems: Iterable[str]) -> str:
+    def ensure_unique_filestem(cls, stem: str, existing_stems: Sequence[str]) -> str:
         if stem in existing_stems:
             occurrence = 2
             while f"{stem} ({occurrence})" in existing_stems:
@@ -294,13 +294,13 @@ class Ns_Cache:
         return cache_path, True
 
     @classmethod
-    def _human_readable_filesize(cls, filesize: int) -> str:
-        units = (("PB", 1 << 50), ("TB", 1 << 40), ("GB", 1 << 30), ("MB", 1 << 20), ("KB", 1 << 10))
-        for unit_name, unit_base in units:
-            norm_size = filesize / unit_base
-            if norm_size >= 0.8:
-                return f"{norm_size:.2f} {unit_name}"
-        return f"{filesize:.2f} B"
+    def _size_fmt(cls, filesize: Union[int, float], suffix: str = "B") -> str:
+        # https://github.com/gaogaotiantian/viztracer/blob/3ecd46aa0e70df7dd78f720a2660d6da211c4a51/src/viztracer/util.py#L12
+        for unit in ("", "Ki", "Mi", "Gi"):
+            if abs(filesize) < 1024.0:
+                return f"{filesize:3.1f} {unit}{suffix}"
+            filesize /= 1024.0
+        return f"{filesize:.1f} {'Ti'}{suffix}"
 
     @classmethod
     def yield_cname_cpath_csize_fpath(cls) -> Generator[Tuple[str, str, str, str], None, None]:
@@ -308,7 +308,7 @@ class Ns_Cache:
             cache_path = Ns_Cache._name2path(cache_name)
             if not os_path.exists(cache_path):
                 continue
-            cache_size = cls._human_readable_filesize(os_path.getsize(cache_path))
+            cache_size = cls._size_fmt(os_path.getsize(cache_path))
             yield cache_name, cache_path, cache_size, file_path
 
     @classmethod
@@ -347,7 +347,9 @@ class Ns_Cache:
     def register_cache_name(cls, file_path: str) -> str:
         logging.debug(f"Registering cache path for {file_path}...")
         cache_stem = Path(file_path).stem
-        cache_stem = Ns_IO.ensure_unique_filestem(cache_stem, map(cls._name2stem, cls.fpath_cname.keys()))
+        cache_stem = Ns_IO.ensure_unique_filestem(
+            cache_stem, tuple(map(cls._name2stem, cls.fpath_cname.values()))
+        )
         cache_name = cls._stem2name(cache_stem)
         cls.fpath_cname[file_path] = cache_name
         if not cls.info_changed:
