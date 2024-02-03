@@ -663,11 +663,9 @@ class Ns_Main_Gui(QMainWindow):
 
     # Override
     def close(self) -> bool:
-        key = "Miscellaneous/dont-confirm-on-exit"
-        if not Ns_Settings.value(key, type=bool) and any(
-            (not model.is_empty() and not model.has_been_exported) for model in (self.model_sca, self.model_lca)
-        ):
-            checkbox_exit = QCheckBox("Don't confirm on exit")
+        key = "Miscellaneous/dont-warn-on-exit"
+        if not Ns_Settings.value(key, type=bool):
+            checkbox_exit = QCheckBox("Don't warn on exit")
             checkbox_exit.stateChanged.connect(lambda: Ns_Settings.setValue(key, checkbox_exit.isChecked()))
             messagebox = Ns_MessageBox_Question(
                 self,
