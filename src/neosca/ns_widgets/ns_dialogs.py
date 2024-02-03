@@ -446,7 +446,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             main,
             title="Cache Deletion",
             tableview=self.tableview_cache,
-            html=f"Select from the table below to delete cache files, which are at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
+            html=f"Select from the table below to delete cache files located at <a href='file:{CACHE_DIR}'>{CACHE_DIR}</a>.",
             export_filename="neosca_cache_files.xlsx",
             disable_default_botright_buttons=True,
         )
@@ -490,9 +490,9 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             return
 
         len_cache_paths = len(cache_paths)
-        key = "Miscellaneous/dont-confirm-on-cache-deletion"
+        key = "Miscellaneous/dont-warn-on-cache-deletion"
         if not Ns_Settings.value(key, type=bool):
-            checkbox = QCheckBox("Don't confirm on cache deletion")
+            checkbox = QCheckBox("Don't warn on cache deletion")
             checkbox.stateChanged.connect(lambda: Ns_Settings.setValue(key, checkbox.isChecked()))
             messagebox = Ns_MessageBox_Question(
                 self,

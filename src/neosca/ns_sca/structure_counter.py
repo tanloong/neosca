@@ -194,7 +194,7 @@ class StructureCounter:
 
         if user_structure_defs is not None:
             user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
-            logging.debug(f"[StructureCounter] user_snames: {user_snames}")
+            logging.debug(f"User definded snames: {user_snames}")
 
             for kwargs in user_structure_defs:
                 user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
@@ -211,7 +211,7 @@ class StructureCounter:
         self.selected_measures: List[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
-        logging.debug(f"[StructureCounter] selected_measures: {self.selected_measures}")
+        logging.debug(f"Selected measures: {self.selected_measures}")
 
     @classmethod
     def check_user_structure_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
@@ -234,7 +234,7 @@ class StructureCounter:
                 raise ValueError(f'Duplicated structure definition "{sname}".')
 
             user_defined_snames.add(sname)
-        logging.debug(f"[StructureCounter] user_defined_snames: {user_defined_snames}")
+        logging.debug(f"User defined snames: {user_defined_snames}")
         return user_defined_snames
 
     @classmethod
@@ -246,7 +246,7 @@ class StructureCounter:
             all_measures = StructureCounter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
             all_measures = set(StructureCounter.BUILTIN_STRUCTURE_DEFS.keys())
-        logging.debug(f"[StructureCounter] all_measures: {all_measures}")
+        logging.debug(f"All measures: {all_measures}")
 
         for m in selected_measures:
             if m not in all_measures:
@@ -460,7 +460,7 @@ class StructureCounter:
                 sys.stdout.write(f"{matches_id}\n{meta_data}\n\n{res}\n")
 
     def __add__(self, other: "StructureCounter") -> "StructureCounter":
-        logging.debug("[StructureCounter] Combining counters...")
+        logging.debug("Combining counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
@@ -468,14 +468,14 @@ class StructureCounter:
             # structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern
             if structure.value_source is not None:
-                logging.debug(f"[StructureCounter] Skip combining {sname} as it is defined by value_source.")
+                logging.debug(f"Skip combining {sname} as it is defined by value_source.")
                 continue
 
             this_value = self.get_value(sname) or 0
             that_value = other.get_value(sname) or 0
             value = this_value + that_value
             new.set_value(sname, value)
-            logging.debug(f"[StructureCounter] Combined {sname}: {this_value} + {that_value} = {value}")
+            logging.debug(f"Combined {sname}: {this_value} + {that_value} = {value}")
 
             matches: List[str] = self.get_matches(sname) + other.get_matches(sname)
             new.set_matches(sname, matches)

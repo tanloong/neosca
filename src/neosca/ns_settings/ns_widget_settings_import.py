@@ -62,7 +62,7 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
             QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Path Not Found",
-                f'Found no existing directory named "{path}". Please check and try again.',
+                f'The specified directory "{path}" could not be found. Please check and try again.',
                 QMessageBox.StandardButton.Ok,
                 self,
             ).exec()

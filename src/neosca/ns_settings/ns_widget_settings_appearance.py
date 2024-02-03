@@ -176,7 +176,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
             QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Writing System Not Found",
-                f'Found no writing system named "{writins_system_name}". Please check and try again.',
+                f'The specified writing system "{writins_system_name}" could not be found. Please check and try again.',
                 QMessageBox.StandardButton.Ok,
                 self,
             ).exec()

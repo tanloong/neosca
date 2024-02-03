@@ -100,6 +100,8 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         .py
         >>> suffix('my/library.tar.gz')
         .gz
+        >>> suffix('my/library.tar.gz', strip_dot=True)
+        gz
         >>> suffix('my/library')
         ''
         """
@@ -123,13 +125,13 @@ class Ns_IO(metaclass=Ns_IO_Meta):
     def load_file(cls, file_path: str) -> str:
         extension = cls.suffix(file_path, strip_dot=True)
         if extension not in cls.SUPPORTED_EXTENSIONS:
-            raise ValueError(f"[Ns_IO] {file_path} is of unsupported filetype. Skipping.")
+            raise ValueError(f"{file_path} is of unsupported filetype. Skipping.")
 
         return getattr(cls, f"read_{extension}")(file_path)
 
     @classmethod
     def is_writable(cls, filename: str) -> Ns_Procedure_Result:
-        """check whether files are opened by such other processes as WPS"""
+        """check whether files are opened by other processes such as WPS"""
         if not os_path.exists(filename):
             return True, None
         try:
@@ -223,9 +225,9 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         for path in ifile_list:
             if os_path.isfile(path):
                 if cls.not_supports(path):
-                    logging.warning(f"[Ns_IO] {path} is of unsupported filetype. Skipping.")
+                    logging.warning(f"{path} is of unsupported filetype. Skipping.")
                     continue
-                logging.debug(f"[Ns_IO] Adding {path} to input file list")
+                logging.debug(f"Adding {path} to input file list")
                 verified_ifile_list.append(path)
             elif os_path.isdir(path):
                 verified_ifile_list.extend(
@@ -258,7 +260,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
 class Ns_Cache:
     CACHE_EXTENSION = ".pickle.lzma"
-    # { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
+    # fpath_cname: { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
     fpath_cname: Dict[str, str] = (
         Ns_IO.load_json(CACHE_INFO_PATH)
         if CACHE_INFO_PATH.exists() and os_path.getsize(CACHE_INFO_PATH) > 0

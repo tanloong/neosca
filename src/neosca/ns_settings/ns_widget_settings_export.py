@@ -64,7 +64,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
             messagebox = Ns_MessageBox_Question(
                 self,
                 "Path Not Found",
-                f'Found no existing directory named "{path}". Do you want to create the directory?',
+                f'The specified directory "{path}" could not be found. Do you want to create the directory?',
                 QMessageBox.Icon.Warning,
             )
             if messagebox.exec():

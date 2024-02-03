@@ -12,14 +12,14 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
     def __init__(self, main=None):
         super().__init__(main)
         self.setup_cache()
-        self.setup_confirmation()
+        self.setup_warning()
 
         self.gridlayout.addWidget(self.groupbox_cache, 0, 0)
-        self.gridlayout.addWidget(self.groupbox_confirmation, 1, 0)
+        self.gridlayout.addWidget(self.groupbox_warning, 1, 0)
         self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
 
     def setup_cache(self) -> None:
-        self.checkbox_cache = QCheckBox("Cache uncached files for faster future runs.")
+        self.checkbox_cache = QCheckBox("Cache uncached files for faster future runs")
         self.checkbox_use_cache = QCheckBox("Use cache if available")
 
         gridlayout_cache = QGridLayout()
@@ -28,30 +28,30 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
         self.groupbox_cache = QGroupBox("Cache")
         self.groupbox_cache.setLayout(gridlayout_cache)
 
-    def setup_confirmation(self) -> None:
-        self.checkbox_dont_confirm_on_exit = QCheckBox("Don't confirm on exit")
-        self.checkbox_dont_confirm_on_cache_deletion = QCheckBox("Don't confirm on cache deletion")
+    def setup_warning(self) -> None:
+        self.checkbox_dont_warn_on_exit = QCheckBox("Don't warn on exit")
+        self.checkbox_dont_warn_on_cache_deletion = QCheckBox("Don't warn on cache deletion")
 
-        gridlayout_confirmation = QGridLayout()
-        gridlayout_confirmation.addWidget(self.checkbox_dont_confirm_on_exit, 0, 0)
-        gridlayout_confirmation.addWidget(self.checkbox_dont_confirm_on_cache_deletion, 1, 0)
-        self.groupbox_confirmation = QGroupBox("Confirmation")
-        self.groupbox_confirmation.setLayout(gridlayout_confirmation)
+        gridlayout_warning = QGridLayout()
+        gridlayout_warning.addWidget(self.checkbox_dont_warn_on_exit, 0, 0)
+        gridlayout_warning.addWidget(self.checkbox_dont_warn_on_cache_deletion, 1, 0)
+        self.groupbox_warning = QGroupBox("Warning")
+        self.groupbox_warning.setLayout(gridlayout_warning)
 
     def load_settings(self) -> None:
         self.load_settings_cache()
-        self.load_settings_confirmation()
+        self.load_settings_warning()
 
     def load_settings_cache(self) -> None:
         self.checkbox_cache.setChecked(Ns_Settings.value(f"{self.name}/cache", type=bool))
         self.checkbox_use_cache.setChecked(Ns_Settings.value(f"{self.name}/use-cache", type=bool))
 
-    def load_settings_confirmation(self) -> None:
-        self.checkbox_dont_confirm_on_exit.setChecked(
-            Ns_Settings.value(f"{self.name}/dont-confirm-on-exit", type=bool)
+    def load_settings_warning(self) -> None:
+        self.checkbox_dont_warn_on_exit.setChecked(
+            Ns_Settings.value(f"{self.name}/dont-warn-on-exit", type=bool)
         )
-        self.checkbox_dont_confirm_on_cache_deletion.setChecked(
-            Ns_Settings.value(f"{self.name}/dont-confirm-on-cache-deletion", type=bool)
+        self.checkbox_dont_warn_on_cache_deletion.setChecked(
+            Ns_Settings.value(f"{self.name}/dont-warn-on-cache-deletion", type=bool)
         )
 
     def verify_settings(self) -> bool:
@@ -59,17 +59,17 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
 
     def apply_settings(self) -> None:
         self.apply_settings_cache()
-        self.apply_settings_confirmation()
+        self.apply_settings_warning()
 
     def apply_settings_cache(self) -> None:
         Ns_Settings.setValue(f"{self.name}/cache", self.checkbox_cache.isChecked())
         Ns_Settings.setValue(f"{self.name}/use-cache", self.checkbox_use_cache.isChecked())
 
-    def apply_settings_confirmation(self) -> None:
+    def apply_settings_warning(self) -> None:
         Ns_Settings.setValue(
-            f"{self.name}/dont-confirm-on-exit", self.checkbox_dont_confirm_on_exit.isChecked()
+            f"{self.name}/dont-warn-on-exit", self.checkbox_dont_warn_on_exit.isChecked()
         )
         Ns_Settings.setValue(
-            f"{self.name}/dont-confirm-on-cache-deletion",
-            self.checkbox_dont_confirm_on_cache_deletion.isChecked(),
+            f"{self.name}/dont-warn-on-cache-deletion",
+            self.checkbox_dont_warn_on_cache_deletion.isChecked(),
         )
