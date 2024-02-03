@@ -296,6 +296,8 @@ class Ns_Main_Gui(QMainWindow):
         self.widget_previewarea_sca = QWidget()
         self.layout_previewarea_sca = QGridLayout()
         self.widget_previewarea_sca.setLayout(self.layout_previewarea_sca)
+
+        btn_no = 0
         for btn_no, btn in enumerate(
             (
                 self.button_generate_table_sca,
@@ -310,6 +312,7 @@ class Ns_Main_Gui(QMainWindow):
             self.layout_previewarea_sca.addWidget(self.button_pdb, 1, btn_no)
             btn_no += 1
         self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
+
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
     def on_model_sca_data_cleared(self) -> None:
@@ -371,6 +374,8 @@ class Ns_Main_Gui(QMainWindow):
         self.widget_previewarea_lca = QWidget()
         self.layout_previewarea_lca = QGridLayout()
         self.widget_previewarea_lca.setLayout(self.layout_previewarea_lca)
+
+        btn_no = 0
         for btn_no, btn in enumerate(
             (
                 self.button_generate_table_lca,
@@ -381,6 +386,7 @@ class Ns_Main_Gui(QMainWindow):
         ):
             self.layout_previewarea_lca.addWidget(btn, 1, btn_no - 1)
         self.layout_previewarea_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
+
         self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
 
     def on_model_lca_data_cleared(self) -> None:
@@ -515,6 +521,8 @@ class Ns_Main_Gui(QMainWindow):
         self.tableview_file.selectRow(top_rowno)
 
         self.model_file.insertRows(top_rowno + 1, len(names_retained) - 1)
+
+        bot_rowno = 0
         for bot_rowno, row in enumerate(zip(names_retained[1:], paths_retained[1:]), start=top_rowno + 1):
             self.model_file.set_row_left_shifted(bot_rowno, row)
             self.tableview_file.selectRow(bot_rowno)
