@@ -40,16 +40,12 @@ class Ns_SCA:
         self.is_skip_parsing = is_skip_parsing
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
-        logging.debug(f"[{__title__}] user_snames: {self.user_snames}")
+        logging.debug(f"User defined snames: {self.user_snames}")
 
         if selected_measures is not None:
             StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
 
         self.counters: List[StructureCounter] = []
-
-    # }}}
-    def update_options(self, kwargs: Dict):  # {{{
-        self.__init__(**kwargs)
 
     # }}}
     def load_user_config(self, config: Optional[str]) -> Tuple[dict, List[dict], Optional[Set[str]]]:  # {{{

@@ -41,15 +41,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             "config": None,
         }
 
-        attrname = "sca_instance"
-        try:
-            sca_instance = getattr(self.main, attrname)
-        except AttributeError:
-            sca_instance = Ns_SCA(**sca_kwargs)
-            setattr(self.main, attrname, sca_instance)
-        else:
-            sca_instance.update_options(sca_kwargs)
-
+        sca_instance = Ns_SCA(**sca_kwargs)
         model: Ns_StandardItemModel = self.main.model_sca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
@@ -93,15 +85,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
             "is_cache": Ns_Settings.value("Miscellaneous/cache", type=bool),
             "is_use_cache": Ns_Settings.value("Miscellaneous/use-cache", type=bool),
         }
-        attrname = "lca_instance"
-        try:
-            lca_instance = getattr(self.main, attrname)
-        except AttributeError:
-            lca_instance = Ns_LCA(**lca_kwargs)
-            setattr(self.main, attrname, lca_instance)
-        else:
-            lca_instance.update_options(lca_kwargs)
-
+        lca_instance = Ns_LCA(**lca_kwargs)
         model: Ns_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):

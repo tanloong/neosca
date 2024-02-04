@@ -97,10 +97,6 @@ class Ns_LCA:
         self.easy_words = self.word_ranks[:easy_word_threshold]
 
     # }}}
-    def update_options(self, kwargs: Dict):  # {{{
-        self.__init__(**kwargs)
-
-    # }}}
     def is_word_class(  # {{{
         self, class_: Literal["misc", "sword", "noun", "adj", "adv", "verb"], lemma: str, pos: str
     ) -> bool:
