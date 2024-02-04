@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QFontComboBox,
     QFormLayout,
     QGridLayout,
     QGroupBox,
@@ -21,7 +20,7 @@ from PySide6.QtWidgets import (
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from neosca.ns_widgets.ns_widgets import Ns_Combobox_Editable
+from neosca.ns_widgets.ns_widgets import Ns_Combobox_Editable, Ns_Combobox_Font
 
 
 class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
@@ -47,16 +46,16 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.formlayout_scaling.addRow(label_scaling, self.combobox_scaling)
 
     def setup_font(self) -> None:
-        self.name_writins_system_mapping: Dict[str, QFontDatabase.WritingSystem] = {
+        self.name_writing_system_mapping: Dict[str, QFontDatabase.WritingSystem] = {
             "Any": QFontDatabase.WritingSystem.Any
         }
-        self.name_writins_system_mapping.update(
+        self.name_writing_system_mapping.update(
             {QFontDatabase.writingSystemName(ws): ws for ws in QFontDatabase.writingSystems()}
         )
-        self.combobox_writins_system = Ns_Combobox_Editable()
-        self.combobox_writins_system.addItems(tuple(self.name_writins_system_mapping.keys()))
-        self.combobox_writins_system.setCurrentText("Any")
-        self.combobox_family = QFontComboBox()
+        self.combobox_writing_system = Ns_Combobox_Editable()
+        self.combobox_writing_system.addItems(tuple(self.name_writing_system_mapping.keys()))
+        self.combobox_writing_system.setCurrentText("Any")
+        self.combobox_family = Ns_Combobox_Font()
         self.spinbox_point_size = QSpinBox()
         self.spinbox_point_size.setSuffix(" pt")
         self.checkbox_italic = QCheckBox("Italic")
@@ -66,11 +65,11 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.gridlayout_font_style.addWidget(self.checkbox_bold, 0, 1)
 
         # Bind
-        self.combobox_writins_system.currentTextChanged.connect(self.update_available_font_families)
+        self.combobox_writing_system.currentTextChanged.connect(self.update_available_font_families)
         self.combobox_family.currentTextChanged.connect(self.set_italic_bold_enabled)
 
         formlayout_font = QFormLayout()
-        formlayout_font.addRow(QLabel("Writing system:"), self.combobox_writins_system)
+        formlayout_font.addRow(QLabel("Writing system:"), self.combobox_writing_system)
         formlayout_font.addRow(QLabel("Font family:"), self.combobox_family)
         formlayout_font.addRow(QLabel("Font size:"), self.spinbox_point_size)
         formlayout_font.addRow(QLabel("Font style:"), self.gridlayout_font_style)
@@ -78,12 +77,12 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.groupbox_font.setLayout(formlayout_font)
 
     def update_available_font_families(self, name: str) -> None:
-        if name in self.name_writins_system_mapping:
+        if name in self.name_writing_system_mapping:
             self.combobox_family.setEnabled(True)
             self.spinbox_point_size.setEnabled(True)
             self.set_italic_bold_enabled(self.combobox_family.currentText())
 
-            self.combobox_family.setWritingSystem(self.name_writins_system_mapping[name])
+            self.combobox_family.setWritingSystem(self.name_writing_system_mapping[name])
 
             current_family = Ns_Settings.value(f"{self.name}/font-family")
             contains_current_family = any(
@@ -155,37 +154,37 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         return True
 
     def verify_settings_font(self) -> bool:
-        return self.verify_settings_font_writins_system() and self.verify_settings_font_family()
+        return self.verify_settings_font_writing_system() and self.verify_settings_font_family()
 
-    def verify_settings_font_writins_system(self) -> bool:
-        writins_system_name = self.combobox_writins_system.currentText()
-        if writins_system_name.isspace():
-            self.combobox_writins_system.lineEdit().setFocus()
-            self.combobox_writins_system.lineEdit().selectAll()
+    def verify_settings_font_writing_system(self) -> bool:
+        writing_system_name = self.combobox_writing_system.currentText()
+        if not writing_system_name.strip():
+            self.combobox_writing_system.lineEdit().setFocus()
+            self.combobox_writing_system.lineEdit().selectAll()
             QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Empty Writing System",
                 "Writing system should not be left empty.",
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
-        if writins_system_name not in self.name_writins_system_mapping:
-            self.combobox_writins_system.lineEdit().setFocus()
-            self.combobox_writins_system.lineEdit().selectAll()
+        if writing_system_name not in self.name_writing_system_mapping:
+            self.combobox_writing_system.lineEdit().setFocus()
+            self.combobox_writing_system.lineEdit().selectAll()
             QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Writing System Not Found",
-                f'The specified writing system "{writins_system_name}" could not be found. Please check and try again.',
+                f'The specified writing system "{writing_system_name}" could not be found. Please check and try again.',
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
         return True
 
     def verify_settings_font_family(self) -> bool:
         font_family = self.combobox_family.currentText()
-        if font_family.isspace():
+        if not font_family.strip():
             self.combobox_family.lineEdit().setFocus()
             self.combobox_family.lineEdit().selectAll()
             QMessageBox(
@@ -194,7 +193,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
                 "Font family should not be left empty.",
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
         if font_family not in QFontDatabase.families():
             self.combobox_family.lineEdit().setFocus()
@@ -202,10 +201,10 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
             QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Font Family Not Found",
-                f'Found no font family named "{font_family}". Please check and try again.',
+                f'The specified font family "{font_family}" could not be found. Please check and try again.',
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
         return True
 

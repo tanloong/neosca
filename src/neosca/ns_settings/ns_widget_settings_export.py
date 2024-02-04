@@ -58,7 +58,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
                 "The path should not be left empty.",
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
         if not os_path.isdir(path):
             messagebox = Ns_MessageBox_Question(

@@ -54,7 +54,7 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
                 "The path should not be left empty.",
                 QMessageBox.StandardButton.Ok,
                 self,
-            ).exec()
+            ).open()
             return False
         if not os_path.isdir(path):
             self.lineedit_path.setFocus()

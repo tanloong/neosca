@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QCompleter,
     QFileDialog,
     QFileSystemModel,
+    QFontComboBox,
     QHBoxLayout,
     QLineEdit,
     QMessageBox,
@@ -122,6 +123,12 @@ class Ns_Combobox_Editable(QComboBox):
         # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
         self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         self.setEditable(True)
+
+
+class Ns_Combobox_Font(QFontComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
 
 
 class Ns_MessageBox_Question(QMessageBox):
