@@ -131,7 +131,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
     @classmethod
     def is_writable(cls, filename: str) -> Ns_Procedure_Result:
-        """check whether files are opened by other processes such as WPS"""
+        """Check whether files are opened by other processes such as WPS"""
         if not os_path.exists(filename):
             return True, None
         try:
@@ -151,13 +151,17 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             return True, None
 
     @classmethod
-    def load_pickle_lzma(cls, file_path: Union[str, PathLike]) -> Any:
+    def _check_file_extension(
+        cls, file_path: Union[str, PathLike], valid_extensions: Union[str, Tuple[str, ...]]
+    ):
         if not os_path.isfile(file_path):
             raise FileNotFoundError(f"{file_path} is not an existing file")
-        if not str(file_path).endswith((".pickle.lzma", ".pkl.lzma")):
-            raise ValueError(
-                f"{file_path} does not look like a pickle lzma file as it has neither .pkl.lzma nor .pickle.lzma extension"
-            )
+        if not str(file_path).endswith(valid_extensions):
+            raise ValueError(f"{file_path} does not have a valid extension")
+
+    @classmethod
+    def load_pickle_lzma(cls, file_path: Union[str, PathLike]) -> Any:
+        cls._check_file_extension(file_path, (".pickle.lzma", ".pkl.lzma"))
 
         with open(file_path, "rb") as f:
             data_pickle_lzma = f.read()
@@ -167,12 +171,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
     @classmethod
     def load_pickle(cls, file_path: Union[str, PathLike]) -> Any:
-        if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} is not an existing file")
-        if not str(file_path).endswith((".pkl", ".pickle")):
-            raise ValueError(
-                f"{file_path} does not look like a pickle file as it has neither .pkl nor .pickle extension"
-            )
+        cls._check_file_extension(file_path, (".pickle", ".pkl"))
 
         with open(file_path, "rb") as f:
             data_pickle = f.read()
@@ -180,10 +179,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
     @classmethod
     def load_lzma(cls, file_path: Union[str, PathLike]) -> bytes:
-        if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} is not an existing file")
-        if not str(file_path).endswith(".lzma"):
-            raise ValueError(f"{file_path} does not look like a json file because it has no .lzma extension")
+        cls._check_file_extension(file_path, ".lzma")
 
         with open(file_path, "rb") as f:
             data_lzma = f.read()
@@ -191,10 +187,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 
     @classmethod
     def load_json(cls, file_path: Union[str, PathLike]) -> Any:
-        if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} is not an existing file")
-        if not str(file_path).endswith(".json"):
-            raise ValueError(f"{file_path} does not look like a json file because it has no .json extension")
+        cls._check_file_extension(file_path, ".json")
 
         with open(file_path, "rb") as f:
             return json.load(f)
