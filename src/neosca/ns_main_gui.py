@@ -216,13 +216,7 @@ class Ns_Main_Gui(QMainWindow):
             self.action_clear_cache.setEnabled(False)
 
     def menu_prefs_settings(self) -> None:
-        attr = "dialog_settings"
-        if hasattr(self, attr):
-            getattr(self, attr).open()
-        else:
-            dialog_settings = Ns_Dialog_Settings(self)
-            setattr(self, attr, dialog_settings)
-            dialog_settings.open()
+        Ns_Dialog_Settings(self).open()
 
     def menu_prefs_enlarge_font(self) -> None:
         key = "Appearance/font-size"
