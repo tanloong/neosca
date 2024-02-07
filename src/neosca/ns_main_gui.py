@@ -74,7 +74,7 @@ class Ns_Main_Gui(QMainWindow):
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
-        self.resize_splitters()
+        self.restore_splitters()
         self.setup_tray()
 
         self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
@@ -166,7 +166,7 @@ class Ns_Main_Gui(QMainWindow):
 
         self.menu_prefs.addSeparator()
         self.action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
-        self.action_reset_layout.triggered.connect(lambda: self.resize_splitters(reset=True))
+        self.action_reset_layout.triggered.connect(self.menu_prefs_reset_layout)
         self.action_toggle_status_bar = self.menu_prefs.addAction("&Toggle Status Bar")
         self.action_toggle_status_bar.triggered.connect(self.menu_prefs_toggle_status_bar)
 
@@ -393,10 +393,10 @@ class Ns_Main_Gui(QMainWindow):
         self.button_export_table_lca.setEnabled(True)
         self.button_clear_table_lca.setEnabled(True)
 
-    def resize_splitters(self, reset: bool = False) -> None:
+    def _restore_splitters(self, use_default: bool) -> None:
         for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
-            if not reset and Ns_Settings.contains(key):
+            if not use_default and Ns_Settings.contains(key):
                 splitter.restoreState(Ns_Settings.value(key))
             else:
                 if splitter.orientation() == Qt.Orientation.Vertical:
@@ -405,6 +405,13 @@ class Ns_Main_Gui(QMainWindow):
                     total_size = splitter.size().width()
                 section_size = Ns_Settings.value(f"default-{key}", type=int)
                 splitter.setSizes((total_size - section_size, section_size))
+
+    def restore_splitters(self) -> None:
+        self._restore_splitters(use_default=False)
+
+    def menu_prefs_reset_layout(self) -> None:
+        self._restore_splitters(use_default=True)
+        self.statusBar().showMessage("Layout reset")
 
     def enable_button_generate_table(self, enabled: bool) -> None:
         self.button_generate_table_sca.setEnabled(enabled)
