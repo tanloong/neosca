@@ -28,8 +28,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        input_file_paths: Generator[Union[str, List[str]], None, None] = self.main.model_file.yield_file_paths()
+        file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
+        file_paths: Generator[Union[str, List[str]], None, None] = self.main.model_file.yield_file_paths()
 
         sca_kwargs = {
             "is_save_values": False,
@@ -44,7 +44,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         sca_instance = Ns_SCA(**sca_kwargs)
         model: Ns_StandardItemModel = self.main.model_sca
         has_trailing_rows: bool = True
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
+        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
             try:
                 counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
                 # TODO should concern --no-parse, --no-query, ... after adding all available options
@@ -75,8 +75,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        input_file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        input_file_paths: Generator[str, None, None] = self.main.model_file.yield_file_paths()
+        file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
+        file_paths: Generator[str, None, None] = self.main.model_file.yield_file_paths()
 
         lca_kwargs = {
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
@@ -88,7 +88,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         lca_instance = Ns_LCA(**lca_kwargs)
         model: Ns_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
-        for rowno, (file_name, file_path) in enumerate(zip(input_file_names, input_file_paths)):
+        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
             try:
                 values = lca_instance._analyze(file_path=file_path)
             except BaseException as ex:

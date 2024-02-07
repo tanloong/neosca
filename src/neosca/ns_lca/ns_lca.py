@@ -388,9 +388,9 @@ class Ns_LCA:
     def parse_ifile(self, ifile: str) -> Optional[Generator[Tuple[str, str], None, None]]:  # {{{
         from neosca.ns_nlp import Ns_NLP_Stanza
 
-        cache_path, cache_available = Ns_Cache.get_cache_path(ifile)
+        cache_path, is_cache_available = Ns_Cache.get_cache_path(ifile)
         # Use cache
-        if self.is_use_cache and cache_available:
+        if self.is_use_cache and is_cache_available:
             logging.info(f"Loading cache: {cache_path}.")
             doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             yield from Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
@@ -406,7 +406,7 @@ class Ns_LCA:
             yield from self.parse_text(text, cache_path=cache_path)
         except BaseException as e:
             # If cache is generated at current run, remove it as it is potentially broken
-            if cache_path is not None and os_path.exists(cache_path) and not cache_available:
+            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
                 os.remove(cache_path)
             raise e
 

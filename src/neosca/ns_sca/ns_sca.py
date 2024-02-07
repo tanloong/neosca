@@ -80,9 +80,9 @@ class Ns_SCA:
             # Assume input as parse trees, e.g., (ROOT (S (NP) (VP)))
             return Ns_IO.load_file(file_path)
 
-        cache_path, cache_available = Ns_Cache.get_cache_path(file_path)
+        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
         # Use cache
-        if self.is_use_cache and cache_available:
+        if self.is_use_cache and is_cache_available:
             logging.info(f"Loading cache: {cache_path}.")
             doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             return Ns_NLP_Stanza.get_constituency_forest(doc, cache_path=cache_path)
@@ -97,7 +97,7 @@ class Ns_SCA:
             forest = self.get_forest_for_text(text, cache_path)
         except BaseException as e:
             # If cache is generated at current run, remove it as it is potentially broken
-            if cache_path is not None and os_path.exists(cache_path) and not cache_available:
+            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
                 os.remove(cache_path)
             raise e
         else:
