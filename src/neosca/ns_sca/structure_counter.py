@@ -254,25 +254,22 @@ class StructureCounter:
         else:
             return structure
 
-    def set_matches(self, structure_name: str, matches: List[str]) -> None:
+    def _check_matches(self, structure_name: str, matches: List[str]) -> None:
         if structure_name not in self.sname_structure_map:
             raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
             raise ValueError("matches should be a list object")
-        else:
-            self.sname_structure_map[structure_name].matches = matches
 
-    def add_matches(self, structure_name: str, matches: List[str]) -> None:
-        if structure_name not in self.sname_structure_map:
-            raise StructureNotFoundError(f"{structure_name} not found")
-        elif not isinstance(matches, list):
-            raise ValueError("matches should be a list object")
-        else:
-            self.sname_structure_map[structure_name].matches.extend(matches)
+    def set_matches(self, structure_name: str, matches: List[str]) -> None:
+        self._check_matches(structure_name, matches)
+        self.sname_structure_map[structure_name].matches = matches
+
+    def extend_matches(self, structure_name: str, matches: List[str]) -> None:
+        self._check_matches(structure_name, matches)
+        self.sname_structure_map[structure_name].matches.extend(matches)
 
     def get_matches(self, sname: str) -> List[str]:
-        s = self.get_structure(sname)
-        return s.matches
+        return self.get_structure(sname).matches
 
     def set_value(self, sname: str, value: Union[int, float]) -> None:
         if sname not in self.sname_structure_map:
