@@ -45,13 +45,9 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         model: Ns_StandardItemModel = self.main.model_sca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
-            try:
-                counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
-                # TODO should concern --no-parse, --no-query, ... after adding all available options
-            except BaseException as ex:
-                raise ex
-            else:
-                assert counter is not None, "SCA StructureCounter is None"
+            # TODO: add handling --no-parse, --no-query, ...
+            counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
+            assert counter is not None, "SCA StructureCounter is None"
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
@@ -59,8 +55,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             model.set_item_left_shifted(rowno, 0, file_name)
             for colno in range(1, model.columnCount()):
                 sname = model.horizontalHeaderItem(colno).text()
-                value = counter.get_value(sname)
-                if value is None:
+                if value := counter.get_value(sname) is None:
                     raise ValueError(f"SCA got None on {file_name}")
                 item = model.set_item_right_shifted(rowno, colno, value)
                 if matches := counter.get_matches(sname):
@@ -89,15 +84,12 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         model: Ns_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
-            try:
-                values = lca_instance._analyze(file_path=file_path)
-            except BaseException as ex:
-                raise ex
-            else:
-                assert values is not None, f"LCA got None on {file_name}"
+            values = lca_instance._analyze(file_path=file_path)
+            assert values is not None, f"LCA got None on {file_name}"
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
+
             model.set_item_left_shifted(rowno, 0, file_name)
             model.set_row_right_shifted(rowno, values, start=1)
             model.row_added.emit()
