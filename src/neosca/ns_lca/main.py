@@ -7,7 +7,7 @@ from typing import Callable, List
 from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_print import color_print
-from neosca.ns_util import Ns_Procedure_Result
+from neosca.ns_utils import Ns_Procedure_Result
 
 
 class LCAUI:

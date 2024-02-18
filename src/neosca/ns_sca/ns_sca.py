@@ -61,7 +61,7 @@ class Ns_SCA:
         return user_data, user_structure_defs, user_snames
 
     # }}}
-    def get_forest_for_text(self, text: str, cache_path: Optional[str] = None) -> str:  # {{{
+    def get_forest_frm_text(self, text: str, cache_path: Optional[str] = None) -> str:  # {{{
         if self.is_skip_parsing:  # Assume input as parse trees
             return text
 
@@ -71,7 +71,7 @@ class Ns_SCA:
         return forest
 
     # }}}
-    def get_forest_for_file(self, file_path: str) -> str:  # {{{
+    def get_forest_frm_file(self, file_path: str) -> str:  # {{{
         from stanza import Document
 
         from neosca.ns_nlp import Ns_NLP_Stanza
@@ -94,7 +94,7 @@ class Ns_SCA:
             cache_path = None
 
         try:
-            forest = self.get_forest_for_text(text, cache_path)
+            forest = self.get_forest_frm_text(text, cache_path)
         except BaseException as e:
             # If cache is generated at current run, remove it as it is potentially broken
             if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
@@ -105,7 +105,7 @@ class Ns_SCA:
 
     # }}}
     def run_on_text(self, text: str, file_path: str = "cli_text") -> None:  # {{{
-        forest: str = self.get_forest_for_text(text)
+        forest: str = self.get_forest_frm_text(text)
         counter = StructureCounter(
             file_path,
             selected_measures=self.selected_measures,
@@ -126,7 +126,7 @@ class Ns_SCA:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
             # Parse
-            forest = self.get_forest_for_file(file_path)
+            forest = self.get_forest_frm_file(file_path)
             counter = StructureCounter(
                 file_path,
                 selected_measures=self.selected_measures,

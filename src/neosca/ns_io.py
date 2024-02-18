@@ -17,7 +17,7 @@ from charset_normalizer import detect
 
 from neosca import CACHE_DIR, CACHE_INFO_PATH
 from neosca.ns_platform_info import IS_WINDOWS
-from neosca.ns_util import Ns_Procedure_Result
+from neosca.ns_utils import Ns_Procedure_Result
 
 
 class Ns_IO_Meta(type):

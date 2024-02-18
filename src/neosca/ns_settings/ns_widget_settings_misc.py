@@ -66,9 +66,7 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
         Ns_Settings.setValue(f"{self.name}/use-cache", self.checkbox_use_cache.isChecked())
 
     def apply_settings_warning(self) -> None:
-        Ns_Settings.setValue(
-            f"{self.name}/dont-warn-on-exit", self.checkbox_dont_warn_on_exit.isChecked()
-        )
+        Ns_Settings.setValue(f"{self.name}/dont-warn-on-exit", self.checkbox_dont_warn_on_exit.isChecked())
         Ns_Settings.setValue(
             f"{self.name}/dont-warn-on-cache-deletion",
             self.checkbox_dont_warn_on_cache_deletion.isChecked(),
