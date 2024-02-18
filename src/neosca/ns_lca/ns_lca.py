@@ -4,15 +4,15 @@ import logging
 import os
 import os.path as os_path
 import random
-import string
 import sys
 from itertools import islice
 from math import log, sqrt
-from typing import Dict, Generator, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 from neosca import DATA_DIR
 from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_util import Ns_Procedure_Result
+from neosca.ns_lca import word_classifiers
+from neosca.ns_utils import Ns_Procedure_Result
 
 
 class Ns_LCA:
@@ -86,120 +86,13 @@ class Ns_LCA:
         self.is_cache = is_cache
         self.is_use_cache = is_use_cache
 
-        data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
-        logging.debug(f"Loading {data_path}...")
-        data = Ns_IO.load_pickle_lzma(data_path)
-        self.word_dict = data["word_dict"]
-        self.adj_dict = data["adj_dict"]
-        self.verb_dict = data["verb_dict"]
-        self.noun_dict = data["noun_dict"]
-        self.word_ranks = sorted(self.word_dict.keys(), key=lambda w: self.word_dict[w], reverse=True)
-        self.easy_words = self.word_ranks[:easy_word_threshold]
-
-    # }}}
-    def is_word_class(  # {{{
-        self, class_: Literal["misc", "sword", "noun", "adj", "adv", "verb"], lemma: str, pos: str
-    ) -> bool:
-        func = getattr(self, f"_is_{class_}_{self.tagset}")
-        return func(lemma, pos)
-
-    # }}}
-    def _is_misc_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        if pos in ("PUNCT", "SYM", "SPACE"):
-            return True
-        # https://universaldependencies.org/u/pos/X.html
-        if pos == "X" and not lemma.isalpha():
-            return True
-        return False
-
-    # }}}
-    def _is_misc_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if lemma.isspace():
-            return True
-        if pos[0] in string.punctuation:
-            return True
-        if pos in ("SENT", "SYM", "HYPH"):
-            return True
-        return False
-
-    # }}}
-    def _is_sword_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        # sophisticated word
-        if lemma not in self.easy_words and pos != "NUM":
-            return True
-        return False
-
-    # }}}
-    def _is_sword_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if lemma not in self.easy_words and pos != "CD":
-            return True
-        return False
-
-    # }}}
-    def _is_noun_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        # |UD    |PTB     |
-        # |------|--------|
-        # |NOUN  |NN, NNS |
-        # |PROPN |NNP,NNPS|
-        if pos in ("NOUN", "PROPN"):
-            return True
-        return False
-
-    # }}}
-    def _is_noun_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if pos.startswith("N"):
-            return True
-        return False
-
-    # }}}
-    def _is_adj_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        if pos == "ADJ":
-            return True
-        return False
-
-    # }}}
-    def _is_adj_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if pos.startswith("J"):
-            return True
-        return False
-
-    # }}}
-    def _is_adv_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        if pos != "ADV":
-            return False
-        if lemma in self.adj_dict:
-            return True
-        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
-            return True
-        return False
-
-    # }}}
-    def _is_adv_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if not pos.startswith("R"):
-            return False
-        if lemma in self.adj_dict:
-            return True
-        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
-            return True
-        return False
-
-    # }}}
-    def _is_verb_ud(self, lemma: str, pos: str) -> bool:  # {{{
-        # Don't have to filter auxiliary verbs, because the VERB tag covers
-        # main verbs (content verbs) but it does not cover auxiliary verbs and
-        # verbal copulas (in the narrow sense), for which there is the AUX tag.
-        #  https://universaldependencies.org/u/pos/VERB.html
-        if pos == "VERB":
-            return True
-        return False
-
-    # }}}
-    def _is_verb_ptb(self, lemma: str, pos: str) -> bool:  # {{{
-        if not pos.startswith("V"):
-            return False
-        if lemma in ("be", "have"):
-            return False
-        return True
+        word_data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
+        logging.debug(f"Loading {word_data_path}...")
+        word_data = Ns_IO.load_pickle_lzma(word_data_path)
+        self.word_classifier = {
+            "ud": word_classifiers.UD_Word_Classifier,
+            "ptb": word_classifiers.PTB_Word_Classifier,
+        }[self.tagset](word_data, easy_word_threshold)
 
     # }}}
     def get_ndw_first_z(self, section_size, lemma_lst):  # {{{
@@ -253,19 +146,114 @@ class Ns_LCA:
         return n1 / n2 if n2 else 0
 
     # }}}
-    def compute(  # {{{
-        self,
-        word_count_map,
-        sword_count_map,
-        lex_count_map,
-        slex_count_map,
-        verb_count_map,
-        sverb_count_map,
-        adj_count_map,
-        adv_count_map,
-        noun_count_map,
-        lemma_lst,
-    ):
+    def get_lempos_frm_text(
+        self, text: str, cache_path: Optional[str] = None
+    ) -> Tuple[Tuple[str, str], ...]:  # {{{
+        from neosca.ns_nlp import Ns_NLP_Stanza
+
+        return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
+
+    # }}}
+    def get_lempos_frm_file(self, file_path: str) -> Optional[Tuple[Tuple[str, str], ...]]:  # {{{
+        from neosca.ns_nlp import Ns_NLP_Stanza
+
+        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
+        # Use cache
+        if self.is_use_cache and is_cache_available:
+            logging.info(f"Loading cache: {cache_path}.")
+            doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+            return Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
+            return
+
+        # Use raw text
+        text = Ns_IO.load_file(file_path)
+
+        if not self.is_cache:
+            cache_path = None
+
+        try:
+            return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
+        except BaseException as e:
+            # If cache is generated at current run, remove it as it is potentially broken
+            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
+                os.remove(cache_path)
+            raise e
+
+    # }}}
+    def get_values_frm_lempos(  # {{{
+        self, lempos_tuples: Tuple[Tuple[str, str], ...]
+    ) -> Optional[List[Union[int, float]]]:
+        word_count_map: Dict[str, int] = {}  # {{{
+        sword_count_map: Dict[str, int] = {}
+        lex_count_map: Dict[str, int] = {}
+        slex_count_map: Dict[str, int] = {}
+        verb_count_map: Dict[str, int] = {}
+        sverb_count_map: Dict[str, int] = {}
+        adj_count_map: Dict[str, int] = {}
+        adv_count_map: Dict[str, int] = {}
+        noun_count_map: Dict[str, int] = {}
+        # }}}
+        for lemma, pos in lempos_tuples:  # {{{
+            # Universal POS tags: https://universaldependencies.org/u/pos/
+            if self.word_classifier.is_("misc", lemma, pos):  # {{{
+                continue
+
+            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
+
+            is_sophisticated = False
+            is_lexical = False
+            is_verb = False
+            # }}}
+            if self.word_classifier.is_("noun", lemma, pos):  # {{{
+                noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a noun')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+            # }}}
+            elif self.word_classifier.is_("adj", lemma, pos):  # {{{
+                adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as an adjective')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+            # }}}
+            elif self.word_classifier.is_("adv", lemma, pos):  # {{{
+                adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as an adverb')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+            # }}}
+            elif self.word_classifier.is_("verb", lemma, pos):  # {{{
+                verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a verb')
+
+                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a lexical word')
+
+                is_lexical = True
+                is_verb = True
+            # }}}
+            if self.word_classifier.is_("sword", lemma, pos):  # {{{
+                sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a sophisticated word')
+
+                is_sophisticated = True
+            # }}}
+            if is_lexical and is_sophisticated:  # {{{
+                slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
+                logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
+                if is_verb:
+                    sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
+                    logging.debug(f'Counted "{lemma}" as a sophisticated verb')
+        # }}}}}}
         word_type_nr = len(word_count_map)  # {{{
         word_token_nr = sum(word_count_map.values())
         lemma_nr = word_token_nr
@@ -308,17 +296,18 @@ class Ns_LCA:
         corrected_verb_sophistication1 = self._safe_div(sverb_type_nr, sqrt(2 * verb_token_nr))
         # }}}}}}
         # 3 Lexical diversity or variation{{{
-        # 3.1 NDW, may adjust the values of "self.section_size"{{{
+        lemmas = [lempos[0] for lempos in lempos_tuples]
+        # 3.1 NDW, may adjust the values of self.section_size{{{
         ndw = ndwz = ndwerz = ndwesz = word_type_nr
         if lemma_nr >= self.section_size:
-            ndwz = self.get_ndw_first_z(self.section_size, lemma_lst)
-            ndwerz = self.get_ndw_erz(self.section_size, lemma_lst)
-            ndwesz = self.get_ndw_esz(self.section_size, lemma_lst)
+            ndwz = self.get_ndw_first_z(self.section_size, lemmas)
+            ndwerz = self.get_ndw_erz(self.section_size, lemmas)
+            ndwesz = self.get_ndw_esz(self.section_size, lemmas)
         # }}}
         # 3.2 TTR{{{
         msttr = ttr = self._safe_div(word_type_nr, word_token_nr)
         if lemma_nr >= self.section_size:
-            msttr = self.get_msttr(self.section_size, lemma_lst)
+            msttr = self.get_msttr(self.section_size, lemmas)
         cttr = self._safe_div(word_type_nr, sqrt(2 * word_token_nr))
         rttr = self._safe_div(word_type_nr, sqrt(word_token_nr))
         logttr = self._safe_div(log(word_type_nr), log(word_token_nr))
@@ -340,177 +329,60 @@ class Ns_LCA:
         adverb_variation = self._safe_div(adv_type_nr, lex_token_nr)
         modifier_variation = self._safe_div((adv_type_nr + adj_type_nr), lex_token_nr)
         # }}}# }}}
-        return (  # {{{
-            word_type_nr,
-            sword_type_nr,
-            lex_type_nr,
-            slex_type_nr,
-            word_token_nr,
-            sword_token_nr,
-            lex_token_nr,
-            slex_token_nr,
-            lexical_density,
-            lexical_sophistication1,
-            lexical_sophistication2,
-            verb_sophistication1,
-            verb_sophistication2,
-            corrected_verb_sophistication1,
-            ndw,
-            ndwz,
-            ndwerz,
-            ndwesz,
-            ttr,
-            msttr,
-            cttr,
-            rttr,
-            logttr,
-            uber,
-            lexical_word_variation,
-            verb_variation1,
-            squared_verb_variation1,
-            corrected_verb_variation1,
-            verb_variation2,
-            noun_variation,
-            adjective_variation,
-            adverb_variation,
-            modifier_variation,
-        )
+        return [  # {{{
+            round(v, self.precision)
+            for v in (
+                word_type_nr,
+                sword_type_nr,
+                lex_type_nr,
+                slex_type_nr,
+                word_token_nr,
+                sword_token_nr,
+                lex_token_nr,
+                slex_token_nr,
+                lexical_density,
+                lexical_sophistication1,
+                lexical_sophistication2,
+                verb_sophistication1,
+                verb_sophistication2,
+                corrected_verb_sophistication1,
+                ndw,
+                ndwz,
+                ndwerz,
+                ndwesz,
+                ttr,
+                msttr,
+                cttr,
+                rttr,
+                logttr,
+                uber,
+                lexical_word_variation,
+                verb_variation1,
+                squared_verb_variation1,
+                corrected_verb_variation1,
+                verb_variation2,
+                noun_variation,
+                adjective_variation,
+                adverb_variation,
+                modifier_variation,
+            )
+        ]
 
     # }}}}}}
-    def parse_text(  # {{{
-        self, text: str, cache_path: Optional[str] = None
-    ) -> Generator[Tuple[str, str], None, None]:
-        from neosca.ns_nlp import Ns_NLP_Stanza
-
-        yield from Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
-
-    # }}}
-    def parse_ifile(self, ifile: str) -> Optional[Generator[Tuple[str, str], None, None]]:  # {{{
-        from neosca.ns_nlp import Ns_NLP_Stanza
-
-        cache_path, is_cache_available = Ns_Cache.get_cache_path(ifile)
-        # Use cache
-        if self.is_use_cache and is_cache_available:
-            logging.info(f"Loading cache: {cache_path}.")
-            doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            yield from Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
-            return
-
-        # Use raw text
-        text = Ns_IO.load_file(ifile)
-
-        if not self.is_cache:
-            cache_path = None
-
-        try:
-            yield from self.parse_text(text, cache_path=cache_path)
-        except BaseException as e:
-            # If cache is generated at current run, remove it as it is potentially broken
-            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
-                os.remove(cache_path)
-            raise e
-
-    # }}}
     def _analyze(  # {{{
         self, *, file_path: Optional[str] = None, doc=None
     ) -> Optional[List[Union[int, float]]]:
         if file_path is not None:
-            lemma_pos_gen = self.parse_ifile(file_path)
+            lempos_tuples = self.get_lempos_frm_file(file_path)
         elif doc is not None:
-            lemma_pos_gen = self.parse_text(doc)
+            lempos_tuples = self.get_lempos_frm_text(doc)
         else:
             return None
 
-        if lemma_pos_gen is None:
+        if lempos_tuples is None:
             return None
 
-        word_count_map: Dict[str, int] = {}  # {{{
-        sword_count_map: Dict[str, int] = {}
-        lex_count_map: Dict[str, int] = {}
-        slex_count_map: Dict[str, int] = {}
-        verb_count_map: Dict[str, int] = {}
-        sverb_count_map: Dict[str, int] = {}
-        adj_count_map: Dict[str, int] = {}
-        adv_count_map: Dict[str, int] = {}
-        noun_count_map: Dict[str, int] = {}
-        # }}}
-        for lemma, pos in lemma_pos_gen:  # {{{
-            # Universal POS tags: https://universaldependencies.org/u/pos/
-            if self.is_word_class("misc", lemma, pos):  # {{{
-                continue
-
-            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
-
-            is_sophisticated = False
-            is_lexical = False
-            is_verb = False
-            # }}}
-            if self.is_word_class("noun", lemma, pos):  # {{{
-                noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a noun')
-
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a lexical word')
-
-                is_lexical = True
-            # }}}
-            elif self.is_word_class("adj", lemma, pos):  # {{{
-                adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as an adjective')
-
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a lexical word')
-
-                is_lexical = True
-            # }}}
-            elif self.is_word_class("adv", lemma, pos):  # {{{
-                adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as an adverb')
-
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a lexical word')
-
-                is_lexical = True
-            # }}}
-            elif self.is_word_class("verb", lemma, pos):  # {{{
-                verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a verb')
-
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a lexical word')
-
-                is_lexical = True
-                is_verb = True
-            # }}}
-            if self.is_word_class("sword", lemma, pos):  # {{{
-                sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a sophisticated word')
-
-                is_sophisticated = True
-            # }}}
-            if is_lexical and is_sophisticated:  # {{{
-                slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
-                logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
-                if is_verb:
-                    sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
-                    logging.debug(f'Counted "{lemma}" as a sophisticated verb')
-        # }}}}}}
-        lemma_lst = list(word_count_map.keys())
-        values = self.compute(  # {{{
-            word_count_map,
-            sword_count_map,
-            lex_count_map,
-            slex_count_map,
-            verb_count_map,
-            sverb_count_map,
-            adj_count_map,
-            adv_count_map,
-            noun_count_map,
-            lemma_lst,
-        )  # }}}
-        if values is None:
-            return None
-        return [round(v, self.precision) for v in values]
+        return self.get_values_frm_lempos(lempos_tuples)
 
     # }}}
     def analyze(  # {{{

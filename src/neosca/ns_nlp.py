@@ -3,7 +3,7 @@
 import logging
 import lzma
 import pickle
-from typing import Any, Dict, Generator, Literal, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Literal, Optional, Sequence, Tuple, Union
 
 from stanza import Document
 
@@ -106,7 +106,7 @@ class Ns_NLP_Stanza:
         *,
         tagset: Literal["ud", "ptb"],
         cache_path: Optional[str] = None,
-    ) -> Generator[Tuple[str, str], None, None]:
+    ) -> Tuple[Tuple[str, str], ...]:
         if tagset == "ud":
             pos_attr = "upos"
         elif tagset == "ptb":
@@ -115,12 +115,12 @@ class Ns_NLP_Stanza:
             assert False, "Invalid tagset"
 
         doc = cls.nlp(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path)
-        for sent in doc.sentences:
-            for word in sent.words:
-                # Foreign words
-                if (lemma := word.lemma) is None:
-                    lemma = word.text
-                yield (lemma.lower(), getattr(word, pos_attr))
+        return tuple(
+            # Foreign words could have word.lemma as None
+            (word.lemma.lower() if word.lemma is not None else word.text.lower(), getattr(word, pos_attr))
+            for sent in doc.sentences
+            for word in sent.words
+        )
 
     @classmethod
     def doc2serialized(cls, doc: Document) -> bytes:
