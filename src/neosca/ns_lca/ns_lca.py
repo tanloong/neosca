@@ -5,18 +5,17 @@ import os
 import os.path as os_path
 import random
 import sys
-from itertools import islice
 from math import log, sqrt
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 from neosca import DATA_DIR
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca import word_classifiers
-from neosca.ns_utils import Ns_Procedure_Result
+from neosca.ns_utils import Ns_Procedure_Result, chunks, safe_div
 
 
 class Ns_LCA:
-    FIELDNAMES = (  # {{{
+    FIELDNAMES = (
         "Filepath",
         "wordtypes",
         "swordtypes",
@@ -52,14 +51,13 @@ class Ns_LCA:
         "AdvV",
         "ModV",
     )
-    # }}}
-    WORDLIST_DATAFILE_MAP = {  # {{{
+
+    WORDLIST_DATAFILE_MAP = {
         "bnc": "bnc_all_filtered.pickle.lzma",
         "anc": "anc_all_count.pickle.lzma",
     }
 
-    # }}}
-    def __init__(  # {{{
+    def __init__(
         self,
         wordlist: str = "bnc",
         tagset: Literal["ud", "ptb"] = "ud",
@@ -94,67 +92,55 @@ class Ns_LCA:
             "ptb": word_classifiers.PTB_Word_Classifier,
         }[self.tagset](word_data, easy_word_threshold)
 
-    # }}}
-    def get_ndw_first_z(self, section_size, lemma_lst):  # {{{
+    def get_ndw_first_z(self, lemmas: Sequence[str], section_size: int):
         """NDW for first 'section_size' words in a sample"""
-        return len(set(lemma_lst[:section_size]))
+        if len(lemmas) < section_size:
+            return len(set(lemmas))
+        return len(set(lemmas[:section_size]))
 
-    # }}}
-    def get_ndw_erz(self, section_size, lemma_lst):  # {{{
-        """NDW expected random 'section_size' words, 10 trials"""
+    def get_ndw_erz(self, lemmas: Sequence[str], section_size: int, trials: int = 10):
+        """NDW expected random 'section_size' words, 10 trials by default"""
+        if len(lemmas) < section_size:
+            return len(set(lemmas))
         ndw_erz = 0
-        for _ in range(10):
-            erz_lemma_lst = random.sample(lemma_lst, section_size)
+        for _ in range(trials):
+            erz_lemma_lst = random.sample(lemmas, section_size)
 
             ndw_erz_types = set(erz_lemma_lst)
             ndw_erz += len(ndw_erz_types)
         return ndw_erz / 10
 
-    # }}}
-    def get_ndw_esz(self, section_size, lemma_lst):  # {{{
-        """NDW expected random sequences of 'section_size' words, 10 trials"""
+    def get_ndw_esz(self, lemmas: Sequence[str], section_size: int, trials: int = 10):
+        """NDW expected random sequences of 'section_size' words, 10 trials by default"""
+        if len(lemmas) < section_size:
+            return len(set(lemmas))
         ndw_esz = 0
-        for _ in range(10):
-            start_word = random.randint(0, len(lemma_lst) - section_size)
-            esz_lemma_lst = lemma_lst[start_word : start_word + section_size]
+        for _ in range(trials):
+            start_word = random.randint(0, len(lemmas) - section_size)
+            esz_lemma_lst = lemmas[start_word : start_word + section_size]
 
             ndw_esz_types = set(esz_lemma_lst)
             ndw_esz += len(ndw_esz_types)
         return ndw_esz / 10
 
-    # }}}
-    def _chunk(self, it, size):  # {{{
-        # https://stackoverflow.com/a/22045226/20732031
-        it = iter(it)
-        return iter(lambda: tuple(islice(it, size)), ())
-
-    # }}}
-    def get_msttr(self, section_size: int, lemma_lst: List[str]):  # {{{
+    def get_msttr(self, lemmas: Sequence[str], section_size: int):
         """
         Mean Segmental TTR
         """
-        sample_nr = 0
+        sample_no = 0
         msttr = 0
-        for chunk in self._chunk(lemma_lst, section_size):
+        for chunk in chunks(lemmas, section_size):
             if len(chunk) == section_size:
-                sample_nr += 1
-                msttr += len(set(chunk)) / section_size if section_size else 0
-        return msttr / sample_nr if sample_nr else 0
+                sample_no += 1
+                msttr += safe_div(len(set(chunk)), section_size)
+        return safe_div(msttr, sample_no)
 
-    # }}}
-    def _safe_div(self, n1: Union[int, float], n2: Union[int, float]) -> float:  # {{{
-        return n1 / n2 if n2 else 0
-
-    # }}}
-    def get_lempos_frm_text(
-        self, text: str, cache_path: Optional[str] = None
-    ) -> Tuple[Tuple[str, str], ...]:  # {{{
+    def get_lempos_frm_text(self, text: str, cache_path: Optional[str] = None) -> Tuple[Tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
 
-    # }}}
-    def get_lempos_frm_file(self, file_path: str) -> Optional[Tuple[Tuple[str, str], ...]]:  # {{{
+    def get_lempos_frm_file(self, file_path: str) -> Tuple[Tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
@@ -163,7 +149,6 @@ class Ns_LCA:
             logging.info(f"Loading cache: {cache_path}.")
             doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             return Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
-            return
 
         # Use raw text
         text = Ns_IO.load_file(file_path)
@@ -179,215 +164,199 @@ class Ns_LCA:
                 os.remove(cache_path)
             raise e
 
-    # }}}
-    def get_values_frm_lempos(  # {{{
+    def get_basic_profile_frm_lempos(
         self, lempos_tuples: Tuple[Tuple[str, str], ...]
-    ) -> Optional[List[Union[int, float]]]:
-        word_count_map: Dict[str, int] = {}  # {{{
-        sword_count_map: Dict[str, int] = {}
-        lex_count_map: Dict[str, int] = {}
-        slex_count_map: Dict[str, int] = {}
-        verb_count_map: Dict[str, int] = {}
-        sverb_count_map: Dict[str, int] = {}
-        adj_count_map: Dict[str, int] = {}
-        adv_count_map: Dict[str, int] = {}
-        noun_count_map: Dict[str, int] = {}
-        # }}}
-        for lemma, pos in lempos_tuples:  # {{{
-            # Universal POS tags: https://universaldependencies.org/u/pos/
-            if self.word_classifier.is_("misc", lemma, pos):  # {{{
-                continue
+    ) -> Tuple[Tuple[str, ...], Dict[str, Dict[str, int]]]:
+        profile_table: Dict[str, Dict[str, int]] = {
+            "sword": {},
+            "lex": {},
+            "slex": {},
+            "verb": {},
+            "sverb": {},
+            "adj": {},
+            "adv": {},
+            "noun": {},
+        }
 
-            word_count_map[lemma] = word_count_map.get(lemma, 0) + 1
-
+        filtered_lempos_tuples = tuple(
+            filter(lambda lempos: not self.word_classifier.is_("misc", *lempos), lempos_tuples)
+        )
+        for lemma, pos in filtered_lempos_tuples:
             is_sophisticated = False
             is_lexical = False
             is_verb = False
-            # }}}
-            if self.word_classifier.is_("noun", lemma, pos):  # {{{
-                noun_count_map[lemma] = noun_count_map.get(lemma, 0) + 1
+
+            if self.word_classifier.is_("noun", lemma, pos):
+                profile_table["noun"][lemma] = profile_table["noun"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a noun')
 
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                profile_table["lex"][lemma] = profile_table["lex"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 is_lexical = True
-            # }}}
-            elif self.word_classifier.is_("adj", lemma, pos):  # {{{
-                adj_count_map[lemma] = adj_count_map.get(lemma, 0) + 1
+
+            elif self.word_classifier.is_("adj", lemma, pos):
+                profile_table["adj"][lemma] = profile_table["adj"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as an adjective')
 
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                profile_table["lex"][lemma] = profile_table["lex"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 is_lexical = True
-            # }}}
-            elif self.word_classifier.is_("adv", lemma, pos):  # {{{
-                adv_count_map[lemma] = adv_count_map.get(lemma, 0) + 1
+
+            elif self.word_classifier.is_("adv", lemma, pos):
+                profile_table["adv"][lemma] = profile_table["adv"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as an adverb')
 
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                profile_table["lex"][lemma] = profile_table["lex"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 is_lexical = True
-            # }}}
-            elif self.word_classifier.is_("verb", lemma, pos):  # {{{
-                verb_count_map[lemma] = verb_count_map.get(lemma, 0) + 1
+
+            elif self.word_classifier.is_("verb", lemma, pos):
+                profile_table["verb"][lemma] = profile_table["verb"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a verb')
 
-                lex_count_map[lemma] = lex_count_map.get(lemma, 0) + 1
+                profile_table["lex"][lemma] = profile_table["lex"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a lexical word')
 
                 is_lexical = True
                 is_verb = True
-            # }}}
-            if self.word_classifier.is_("sword", lemma, pos):  # {{{
-                sword_count_map[lemma] = sword_count_map.get(lemma, 0) + 1
+
+            if self.word_classifier.is_("sword", lemma, pos):
+                profile_table["sword"][lemma] = profile_table["sword"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a sophisticated word')
 
                 is_sophisticated = True
-            # }}}
-            if is_lexical and is_sophisticated:  # {{{
-                slex_count_map[lemma] = slex_count_map.get(lemma, 0) + 1
+
+            if is_lexical and is_sophisticated:
+                profile_table["slex"][lemma] = profile_table["slex"].get(lemma, 0) + 1
                 logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
                 if is_verb:
-                    sverb_count_map[lemma] = sverb_count_map.get(lemma, 0) + 1
+                    profile_table["sverb"][lemma] = profile_table["sverb"].get(lemma, 0) + 1
                     logging.debug(f'Counted "{lemma}" as a sophisticated verb')
-        # }}}}}}
-        word_type_nr = len(word_count_map)  # {{{
-        word_token_nr = sum(word_count_map.values())
-        lemma_nr = word_token_nr
 
-        sword_type_nr = len(sword_count_map)
-        sword_token_nr = sum(sword_count_map.values())
+        lemmas = tuple(lempos[0] for lempos in lempos_tuples)
+        return lemmas, profile_table
 
-        lex_type_nr = len(lex_count_map)
-        lex_token_nr = sum(lex_count_map.values())
+    def get_values_frm_profile(
+        self, lemmas: Sequence[str], profile_table: Dict[str, Dict[str, int]]
+    ) -> List[Union[int, float]]:
+        word_type_no = len(set(lemmas))
+        word_token_no = len(lemmas)
+        sword_type_no = len(profile_table["sword"])
+        sword_token_no = sum(profile_table["sword"].values())
+        lex_type_no = len(profile_table["lex"])
+        lex_token_no = sum(profile_table["lex"].values())
+        slex_type_no = len(profile_table["slex"])
+        slex_token_no = sum(profile_table["slex"].values())
+        verb_type_no = len(profile_table["verb"])
+        verb_token_no = sum(profile_table["verb"].values())
+        sverb_type_no = len(profile_table["sverb"])
+        # sverb_token_no = sum(profile_table["sverb"].values())
+        adj_type_no = len(profile_table["adj"])
+        # adj_token_no = sum(profile_table["adj"].values())
+        adv_type_no = len(profile_table["adv"])
+        # adv_token_no = sum(profile_table["adv"].values())
+        noun_type_no = len(profile_table["noun"])
+        noun_token_no = sum(profile_table["noun"].values())
 
-        slex_type_nr = len(slex_count_map)
-        slex_token_nr = sum(slex_count_map.values())
+        # 1. Lexical density
+        lexical_density = safe_div(lex_token_no, word_token_no)
+        # 2. Lexical sophistication
+        # 2.1 Lexical sophistication
+        lexical_sophistication1 = safe_div(slex_token_no, lex_token_no)
+        lexical_sophistication2 = safe_div(sword_type_no, word_type_no)
 
-        verb_type_nr = len(verb_count_map)
-        verb_token_nr = sum(verb_count_map.values())
+        # 2.2 Verb sophistication
+        verb_sophistication1 = safe_div(sverb_type_no, verb_token_no)
+        verb_sophistication2 = safe_div((sverb_type_no**2), verb_token_no)
+        corrected_verb_sophistication1 = safe_div(sverb_type_no, sqrt(2 * verb_token_no))
 
-        sverb_type_nr = len(sverb_count_map)
-        # sverb_token_nr = sum(sverb_count_map.values())
+        # 3 Lexical diversity or variation
+        # 3.1 NDW, may adjust the values of self.section_size
+        ndw = word_type_no
+        ndwz = self.get_ndw_first_z(lemmas, self.section_size)
+        ndwerz = self.get_ndw_erz(lemmas, self.section_size)
+        ndwesz = self.get_ndw_esz(lemmas, self.section_size)
 
-        adj_type_nr = len(adj_count_map)
-        # adj_token_nr = sum(adj_count_map.values())
-
-        adv_type_nr = len(adv_count_map)
-        # adv_token_nr = sum(adv_count_map.values())
-
-        noun_type_nr = len(noun_count_map)
-        noun_token_nr = sum(noun_count_map.values())
-        # }}}
-        # 1. Lexical density{{{
-        lexical_density = self._safe_div(lex_token_nr, word_token_nr)
-        # }}}
-        # 2. Lexical sophistication{{{
-        # 2.1 Lexical sophistication{{{
-        lexical_sophistication1 = self._safe_div(slex_token_nr, lex_token_nr)
-        lexical_sophistication2 = self._safe_div(sword_type_nr, word_type_nr)
-        # }}}
-        # 2.2 Verb sophistication{{{
-        verb_sophistication1 = self._safe_div(sverb_type_nr, verb_token_nr)
-        verb_sophistication2 = self._safe_div((sverb_type_nr**2), verb_token_nr)
-        corrected_verb_sophistication1 = self._safe_div(sverb_type_nr, sqrt(2 * verb_token_nr))
-        # }}}}}}
-        # 3 Lexical diversity or variation{{{
-        lemmas = [lempos[0] for lempos in lempos_tuples]
-        # 3.1 NDW, may adjust the values of self.section_size{{{
-        ndw = ndwz = ndwerz = ndwesz = word_type_nr
-        if lemma_nr >= self.section_size:
-            ndwz = self.get_ndw_first_z(self.section_size, lemmas)
-            ndwerz = self.get_ndw_erz(self.section_size, lemmas)
-            ndwesz = self.get_ndw_esz(self.section_size, lemmas)
-        # }}}
-        # 3.2 TTR{{{
-        msttr = ttr = self._safe_div(word_type_nr, word_token_nr)
-        if lemma_nr >= self.section_size:
-            msttr = self.get_msttr(self.section_size, lemmas)
-        cttr = self._safe_div(word_type_nr, sqrt(2 * word_token_nr))
-        rttr = self._safe_div(word_type_nr, sqrt(word_token_nr))
-        logttr = self._safe_div(log(word_type_nr), log(word_token_nr))
-        uber = self._safe_div(
-            log(word_token_nr, 10) * log(word_token_nr, 10),
-            log(self._safe_div(word_token_nr, word_type_nr), 10),
+        # 3.2 TTR
+        ttr = safe_div(word_type_no, word_token_no)
+        msttr = self.get_msttr(lemmas, self.section_size) if word_token_no >= self.section_size else ttr
+        cttr = safe_div(word_type_no, sqrt(2 * word_token_no))
+        rttr = safe_div(word_type_no, sqrt(word_token_no))
+        logttr = safe_div(log(word_type_no), log(word_token_no))
+        uber = safe_div(
+            log(word_token_no, 10) * log(word_token_no, 10),
+            log(safe_div(word_token_no, word_type_no), 10),
         )
-        # }}}
-        # 3.3 Verb diversity{{{
-        verb_variation1 = self._safe_div(verb_type_nr, verb_token_nr)
-        squared_verb_variation1 = self._safe_div(verb_type_nr * verb_type_nr, verb_token_nr)
-        corrected_verb_variation1 = self._safe_div(verb_type_nr, sqrt(2 * verb_token_nr))
-        # }}}
-        # 3.4 Lexical diversity{{{
-        lexical_word_variation = self._safe_div(lex_type_nr, lex_token_nr)
-        verb_variation2 = self._safe_div(verb_type_nr, lex_token_nr)
-        noun_variation = self._safe_div(noun_type_nr, noun_token_nr)
-        adjective_variation = self._safe_div(adj_type_nr, lex_token_nr)
-        adverb_variation = self._safe_div(adv_type_nr, lex_token_nr)
-        modifier_variation = self._safe_div((adv_type_nr + adj_type_nr), lex_token_nr)
-        # }}}# }}}
-        return [  # {{{
-            round(v, self.precision)
-            for v in (
-                word_type_nr,
-                sword_type_nr,
-                lex_type_nr,
-                slex_type_nr,
-                word_token_nr,
-                sword_token_nr,
-                lex_token_nr,
-                slex_token_nr,
-                lexical_density,
-                lexical_sophistication1,
-                lexical_sophistication2,
-                verb_sophistication1,
-                verb_sophistication2,
-                corrected_verb_sophistication1,
-                ndw,
-                ndwz,
-                ndwerz,
-                ndwesz,
-                ttr,
-                msttr,
-                cttr,
-                rttr,
-                logttr,
-                uber,
-                lexical_word_variation,
-                verb_variation1,
-                squared_verb_variation1,
-                corrected_verb_variation1,
-                verb_variation2,
-                noun_variation,
-                adjective_variation,
-                adverb_variation,
-                modifier_variation,
-            )
-        ]
 
-    # }}}}}}
-    def _analyze(  # {{{
-        self, *, file_path: Optional[str] = None, doc=None
-    ) -> Optional[List[Union[int, float]]]:
+        # 3.3 Verb diversity
+        verb_variation1 = safe_div(verb_type_no, verb_token_no)
+        squared_verb_variation1 = safe_div(verb_type_no * verb_type_no, verb_token_no)
+        corrected_verb_variation1 = safe_div(verb_type_no, sqrt(2 * verb_token_no))
+
+        # 3.4 Lexical diversity
+        lexical_word_variation = safe_div(lex_type_no, lex_token_no)
+        verb_variation2 = safe_div(verb_type_no, lex_token_no)
+        noun_variation = safe_div(noun_type_no, noun_token_no)
+        adjective_variation = safe_div(adj_type_no, lex_token_no)
+        adverb_variation = safe_div(adv_type_no, lex_token_no)
+        modifier_variation = safe_div((adv_type_no + adj_type_no), lex_token_no)
+
+        return list(
+            map(
+                lambda n: round(n, self.precision),
+                (
+                    word_type_no,
+                    sword_type_no,
+                    lex_type_no,
+                    slex_type_no,
+                    word_token_no,
+                    sword_token_no,
+                    lex_token_no,
+                    slex_token_no,
+                    lexical_density,
+                    lexical_sophistication1,
+                    lexical_sophistication2,
+                    verb_sophistication1,
+                    verb_sophistication2,
+                    corrected_verb_sophistication1,
+                    ndw,
+                    ndwz,
+                    ndwerz,
+                    ndwesz,
+                    ttr,
+                    msttr,
+                    cttr,
+                    rttr,
+                    logttr,
+                    uber,
+                    lexical_word_variation,
+                    verb_variation1,
+                    squared_verb_variation1,
+                    corrected_verb_variation1,
+                    verb_variation2,
+                    noun_variation,
+                    adjective_variation,
+                    adverb_variation,
+                    modifier_variation,
+                ),
+            )
+        )
+
+    def _analyze(self, *, file_path: Optional[str] = None, doc=None) -> List[Union[int, float]]:
         if file_path is not None:
             lempos_tuples = self.get_lempos_frm_file(file_path)
         elif doc is not None:
             lempos_tuples = self.get_lempos_frm_text(doc)
         else:
-            return None
+            assert False, "file_path and doc are mutually exclusive"
 
-        if lempos_tuples is None:
-            return None
+        lemmas, profile_table = self.get_basic_profile_frm_lempos(lempos_tuples)
+        return self.get_values_frm_profile(lemmas, profile_table)
 
-        return self.get_values_frm_lempos(lempos_tuples)
-
-    # }}}
-    def analyze(  # {{{
-        self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None
-    ) -> Ns_Procedure_Result:
+    def analyze(self, *, ifiles: Optional[List[str]] = None, text: Optional[str] = None) -> Ns_Procedure_Result:
         if not (ifiles is None) ^ (text is None):
             return False, "One and only one of (input files, text) should be given."
 
@@ -411,4 +380,4 @@ class Ns_LCA:
 
         handle.close()
 
-        return True, None  # }}}
+        return True, None

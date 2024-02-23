@@ -20,6 +20,7 @@ class Abstract_Word_Classifier:
 
 
 class UD_Word_Classifier(Abstract_Word_Classifier):
+    # Universal POS tags: https://universaldependencies.org/u/pos/
     def is_misc(self, lemma: str, pos: str) -> bool:
         if pos in ("PUNCT", "SYM", "SPACE"):
             return True
