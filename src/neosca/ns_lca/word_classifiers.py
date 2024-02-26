@@ -3,7 +3,7 @@
 import string
 
 
-class Abstract_Word_Classifier:
+class Ns_Abstract_Word_Classifier:
     def __init__(self, word_data: dict, easy_word_threshold: int) -> None:
         self.word_dict = word_data["word_dict"]
         self.adj_dict = word_data["adj_dict"]
@@ -18,8 +18,26 @@ class Abstract_Word_Classifier:
         else:
             raise ValueError(f"Invalid class: {class_}")
 
+    def is_misc(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
 
-class UD_Word_Classifier(Abstract_Word_Classifier):
+    def is_sword(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
+
+    def is_noun(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
+
+    def is_adj(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
+
+    def is_adv(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
+
+    def is_verb(self, lemma: str, pos: str) -> bool:
+        raise NotImplementedError
+
+
+class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
     # Universal POS tags: https://universaldependencies.org/u/pos/
     def is_misc(self, lemma: str, pos: str) -> bool:
         if pos in ("PUNCT", "SYM", "SPACE"):
@@ -60,7 +78,7 @@ class UD_Word_Classifier(Abstract_Word_Classifier):
         return pos == "VERB"
 
 
-class PTB_Word_Classifier(Abstract_Word_Classifier):
+class Ns_PTB_Word_Classifier(Ns_Abstract_Word_Classifier):
     def is_verb(self, lemma: str, pos: str) -> bool:
         if not pos.startswith("V"):
             return False

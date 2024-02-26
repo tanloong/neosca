@@ -18,6 +18,7 @@ from neosca.ns_exceptions import CircularDefinitionError, InvalidSourceError, St
 from neosca.ns_io import Ns_IO
 from neosca.ns_sca import l2sca
 from neosca.ns_tregex.tree import Tree
+from neosca.ns_utils import safe_div
 
 
 class Structure:
@@ -66,6 +67,12 @@ class Structure:
     def has_tregex_pattern(self) -> bool:
         return self.tregex_pattern is not None
 
+    def is_terminal(self) -> bool:
+        # Note that we currently have only two definition types, value_source
+        # and tregex_pattern. When new types are added, not having value source
+        # may do NOT necessarily mean a terminal node.
+        return not self.has_value_source()
+
     def __repr__(self) -> str:  # pragma: no cover
         return f"name: {self.name}\ndescription: {self.description}\n{self.definition()}\nvalue: {self.value}"
 
@@ -81,7 +88,7 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other + self.value
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __sub__(self, other) -> Union[int, float]:
         assert self.value is not None
@@ -95,7 +102,7 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other - self.value
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __mul__(self, other) -> Union[int, float]:
         assert self.value is not None
@@ -109,21 +116,21 @@ class Structure:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other * self.value
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __truediv__(self, other) -> float:
         assert self.value is not None
         if isinstance(other, (float, int)):
-            return self.value / other if other else 0
+            return safe_div(self.value, other)
 
         assert other.value is not None
-        return self.value / other.value if other.value else 0
+        return safe_div(self.value, other.value)
 
     def __rtruediv__(self, other) -> float:
         assert self.value is not None
         if isinstance(other, (float, int)):
-            return other / self.value if self.value else 0
-        raise NotImplementedError()
+            return safe_div(other, self.value)
+        raise NotImplementedError
 
 
 class StructureCounter:
@@ -285,17 +292,19 @@ class StructureCounter:
 
     def get_all_values(self, precision: int = 4) -> dict:
         # TODO should store Filename in an extra metadata layer
-        # https://articles.zsxq.com/id_wnw0w98lzgsq.html
-        freq_dict = OrderedDict({"Filepath": self.ifile})
+        ret = OrderedDict({"Filepath": self.ifile})
         for sname in self.selected_measures:
-            freq_dict[sname] = str(self.get_value(sname, precision))
-        return freq_dict
+            ret[sname] = str(self.get_value(sname, precision))
+        return ret
 
     def sname_has_value_source(self, sname: str) -> bool:
         return self.get_structure(sname).has_value_source()
 
     def sname_has_tregex_pattern(self, sname: str) -> bool:
         return self.get_structure(sname).has_tregex_pattern()
+
+    def sname_is_terminal(self, sname: str) -> bool:
+        return self.get_structure(sname).is_terminal()
 
     def check_circular_def(self, descendant_sname: str, ancestor_snames: List[str]) -> None:
         if descendant_sname in ancestor_snames:
@@ -344,12 +353,8 @@ class StructureCounter:
                 ancestor_snames.append(sname)
                 self.check_circular_def(token_string, ancestor_snames)
                 self.determine_value(token_string, forest, ancestor_snames)
-                if not self.sname_has_value_source(token_string):
-                    # No circular def problem in terminal node.
-                    # Note that we currently have only two definition types,
-                    #  value_source and tregex_pattern. When new types are
-                    #  added, not having value source may do NOT necessarily
-                    #  mean a terminal node.
+                if self.sname_is_terminal(token_string):
+                    # No circular definition problem for terminal node.
                     ancestor_snames.clear()
                 get_structure_code = f"self.get_structure('{token_string}')"
                 if is_addition_only:
@@ -439,7 +444,7 @@ class StructureCounter:
 
             meta_data = str(structure)
             res = "\n".join(matches)
-            # only accept alphanumeric chars, underscore, and hypen
+            # Only accept alphanumeric chars, underscore, and hypen
             escaped_sname = re.sub(r"[^\w-]", "", sname.replace("/", "-per-"))
             matches_id = bn_input_noext + "-" + escaped_sname
             if not is_stdout:
@@ -456,7 +461,7 @@ class StructureCounter:
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
         new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
         for sname, structure in new.sname_structure_map.items():
-            # structures defined by value_source should be re-calculated after
+            # Structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern
             if structure.value_source is not None:
                 logging.debug(f"Skip combining {sname} as it is defined by value_source.")

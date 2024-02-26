@@ -6,7 +6,6 @@ import os.path as os_path
 import sys
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from neosca.ns_about import __title__
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_sca.structure_counter import StructureCounter
 
@@ -21,9 +20,9 @@ class Ns_SCA:
         precision: int = 4,
         is_cache: bool = True,
         is_use_cache: bool = True,
-        is_save_matches: bool = False,
         is_stdout: bool = False,
         is_skip_parsing: bool = False,
+        is_save_matches: bool = False,
         is_save_values: bool = True,
         config: Optional[str] = None,
     ) -> None:
@@ -34,10 +33,10 @@ class Ns_SCA:
         self.precision = precision
         self.is_cache = is_cache
         self.is_use_cache = is_use_cache
-        self.is_save_matches = is_save_matches
-        self.is_save_values = is_save_values
         self.is_stdout = is_stdout
         self.is_skip_parsing = is_skip_parsing
+        self.is_save_matches = is_save_matches
+        self.is_save_values = is_save_values
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
         logging.debug(f"User defined snames: {self.user_snames}")
@@ -143,7 +142,7 @@ class Ns_SCA:
             )
             # Merge measures defined by tregex_pattern
             for i, subfile in enumerate(subfiles, 1):
-                logging.info(f'[{__title__}] Processing "{subfile}" ({i}/{total})...')
+                logging.info(f'Processing "{subfile}" ({i}/{total})...')
                 child_counter = self.run_on_file_or_subfiles(subfile)
                 counter += child_counter
             # Re-calc measures defined by value_source
@@ -172,7 +171,7 @@ class Ns_SCA:
 
     # }}}
     def dump_values(self) -> None:  # {{{
-        logging.debug(f"[{__title__}] Writting counts and/or frequencies...")
+        logging.debug("Writting counts and/or frequencies...")
 
         if len(self.counters) == 0:
             raise ValueError("empty counter list")
@@ -191,10 +190,10 @@ class Ns_SCA:
             import csv
 
             fieldnames = sname_value_maps[0].keys()
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            csv_writer = csv.DictWriter(handle, fieldnames=fieldnames)
 
-            writer.writeheader()
-            writer.writerows(sname_value_maps)
+            csv_writer.writeheader()
+            csv_writer.writerows(sname_value_maps)
 
         else:
             import json

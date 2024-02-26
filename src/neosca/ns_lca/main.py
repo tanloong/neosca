@@ -141,13 +141,19 @@ class LCAUI:
     @run_tmpl
     def run_on_text(self) -> Ns_Procedure_Result:
         analyzer = Ns_LCA(**self.init_kwargs)
-        analyzer.analyze(text=self.options.text)
+        analyzer.run_on_text(text=self.options.text)
         return True, None
 
     @run_tmpl
     def run_on_ifiles(self) -> Ns_Procedure_Result:
         analyzer = Ns_LCA(**self.init_kwargs)
-        analyzer.analyze(ifiles=self.verified_ifiles)
+
+        files = []
+        if self.verified_ifiles:
+            files.extend(self.verified_ifiles)
+        if self.verified_subfiles_list:
+            files.extend(self.verified_subfiles_list)
+        analyzer.run_on_file_or_subfiles_list(files)
         return True, None
 
     def run(self) -> Ns_Procedure_Result:

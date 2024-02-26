@@ -359,14 +359,16 @@ class Ns_Main_Cli:
         return wrapper
 
     @run_tmpl
-    def run_on_text(self) -> None:
+    def run_on_text(self) -> Ns_Procedure_Result:
         from neosca.ns_sca.ns_sca import Ns_SCA
 
         analyzer = Ns_SCA(**self.init_kwargs)
         analyzer.run_on_text(self.options.text)
 
+        return True, None
+
     @run_tmpl
-    def run_on_ifiles(self) -> None:
+    def run_on_ifiles(self) -> Ns_Procedure_Result:
         from neosca.ns_sca.ns_sca import Ns_SCA
 
         analyzer = Ns_SCA(**self.init_kwargs)
@@ -377,6 +379,8 @@ class Ns_Main_Cli:
         if self.verified_subfiles_list:
             files.extend(self.verified_subfiles_list)
         analyzer.run_on_file_or_subfiles_list(files)
+
+        return True, None
 
     def run_gui(self) -> Ns_Procedure_Result:
         from neosca.ns_main_gui import main_gui
@@ -394,9 +398,9 @@ class Ns_Main_Cli:
         elif self.options.expand_wildcards:
             return self.expand_wildcards()
         elif self.options.text is not None:
-            return self.run_on_text()  # type: ignore
+            return self.run_on_text()
         elif self.verified_ifiles or self.verified_subfiles_list:
-            return self.run_on_ifiles()  # type: ignore
+            return self.run_on_ifiles()
         else:
             self.args_parser.print_help()
             return True, None

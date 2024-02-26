@@ -17,11 +17,7 @@ elif IS_MAC:
 else:
     linux_distro_font_family_mapping = {"ubuntu": "Ubuntu", "debian": "DejaVu", "arch": "Noto Sans"}
     linux_distro = get_linux_distro()
-    DEFAULT_FONT_FAMILY = (
-        linux_distro_font_family_mapping[linux_distro]
-        if linux_distro in linux_distro_font_family_mapping
-        else "Ubuntu"
-    )
+    DEFAULT_FONT_FAMILY = linux_distro_font_family_mapping.get(linux_distro, "Ubuntu")
 
 # > Font size
 if IS_WINDOWS:

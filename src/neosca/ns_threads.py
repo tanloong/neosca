@@ -47,7 +47,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
             # TODO: add handling --no-parse, --no-query, ...
             counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
-            assert counter is not None, "SCA StructureCounter is None"
+            assert counter is not None
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
@@ -55,10 +55,9 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             model.set_item_left_shifted(rowno, 0, file_name)
             for colno in range(1, model.columnCount()):
                 sname = model.horizontalHeaderItem(colno).text()
-                if value := counter.get_value(sname) is None:
-                    raise ValueError(f"SCA got None on {file_name}")
+                assert (value := counter.get_value(sname)) is not None
                 item = model.set_item_right_shifted(rowno, colno, value)
-                if matches := counter.get_matches(sname):
+                if (matches := counter.get_matches(sname)):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
             model.row_added.emit()
 

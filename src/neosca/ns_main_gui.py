@@ -31,6 +31,7 @@ from neosca.ns_about import __title__, __version__
 from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
+from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_sca.structure_counter import StructureCounter
@@ -346,7 +347,7 @@ class Ns_Main_Gui(QMainWindow):
         self.button_export_table_lca = Ns_PushButton("Export table...", False)
         self.button_clear_table_lca = Ns_PushButton("Clear table", False)
 
-        self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA.FIELDNAMES[1:]))
+        self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA_Counter.DEFAULT_MEASURES))
         proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
         self.tableview_lca = Ns_TableView(self, model=proxy_model_lca)
         # TODO: tableview_sca use custom delegate to only enable clickable
