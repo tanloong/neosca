@@ -22,9 +22,7 @@ class TestCommandLineBasic(CmdlineTmpl):
         """Test that all three options print the same help page"""
         result = self.template(["python", "-m", "neosca"], expected_output_file=None)
         result_h = self.template(["python", "-m", "neosca", "-h"], expected_output_file=None)
-        result_help = self.template(
-            ["python", "-m", "neosca", "--help"], expected_output_file=None
-        )
+        result_help = self.template(["python", "-m", "neosca", "--help"], expected_output_file=None)
 
         self.assertEqual(result_h.stdout.decode("utf-8"), result_help.stdout.decode("utf-8"))
         self.assertEqual(result.stdout.decode("utf-8"), result_h.stdout.decode("utf-8"))
@@ -64,10 +62,10 @@ class TestCommandLineBasic(CmdlineTmpl):
             expected_output_file=["sample.pickle.lzma"],
         )
         self.template(
-            ["python", "-m", "neosca", self.samples_dir, "--no-query"],
+            ["python", "-m", "neosca", self.testdir_data_txt, "--no-query"],
             expected_output_file=[
-                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
-                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
+                os_path.join(self.testdir_data_txt, "sample1.pickle.lzma"),
+                os_path.join(self.testdir_data_txt, "sample2.pickle.lzma"),
             ],
         )
 
@@ -88,14 +86,14 @@ class TestCommandLineBasic(CmdlineTmpl):
                 "python",
                 "-m",
                 "neosca",
-                self.samples_dir,
+                self.testdir_data_txt,
                 "--reserve-parsed",
                 "--reserve-matched",
             ],
             expected_output_file=[
                 "result.csv",
-                os_path.join(self.samples_dir, "sample1.pickle.lzma"),
-                os_path.join(self.samples_dir, "sample2.pickle.lzma"),
+                os_path.join(self.testdir_data_txt, "sample1.pickle.lzma"),
+                os_path.join(self.testdir_data_txt, "sample2.pickle.lzma"),
                 "result_matches/sample1/sample1-C1.txt",
                 "result_matches/sample1/sample1-CN1.txt",
                 "result_matches/sample1/sample1-CP.txt",
@@ -192,18 +190,14 @@ class TestCommandLineBasic(CmdlineTmpl):
         )
 
     def test_list_fields(self):
-        result = self.template(
-            ["python", "-m", "neosca", "--list"], text=None, expected_output_file=None
-        )
+        result = self.template(["python", "-m", "neosca", "--list"], text=None, expected_output_file=None)
         result_stdout = result.stdout.decode("utf-8")
         ncorrect_lines = len(re.findall(r"^[A-Z/]+: .*$", result_stdout, re.MULTILINE))
         self.assertEqual(result_stdout.count("\n"), 23)
         self.assertEqual(ncorrect_lines, 23)
 
     def test_show_version(self):
-        result = self.template(
-            ["python", "-m", "neosca", "--version"], text=None, expected_output_file=None
-        )
+        result = self.template(["python", "-m", "neosca", "--version"], text=None, expected_output_file=None)
         self.assertRegex(result.stdout.decode("utf-8").strip(), r"[^.]+\.[^.]+\.[^.]+")
 
     def test_invalid_file(self):

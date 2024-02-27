@@ -476,4 +476,7 @@ class StructureCounter:
             matches: List[str] = self.get_matches(sname) + other.get_matches(sname)
             new.set_matches(sname, matches)
 
+        # Re-calc measures defined by value_source
+        new.determine_all_values()
+
         return new

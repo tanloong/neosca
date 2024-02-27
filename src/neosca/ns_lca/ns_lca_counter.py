@@ -15,42 +15,6 @@ from neosca.ns_io import Ns_IO
 from neosca.ns_lca import word_classifiers
 from neosca.ns_utils import chunks, safe_div
 
-# class Ns_Word_Counter(dict):
-#     def __add__(self, other):
-#         """Add counts from two counters.
-#
-#         >>> Ns_Word_Counter({'a': 1, 'b': 3}) + Ns_Word_Counter({'b': 1, 'c': 2})
-#         Ns_Word_Counter({'b': 4, 'c': 2, 'a': 1})
-#
-#         https://github.com/python/cpython/blob/main/Lib/collections/__init__.py#L823
-#         """
-#         if not isinstance(other, Ns_Word_Counter):
-#             return NotImplemented
-#         result = Ns_Word_Counter()
-#         for elem, count in self.items():
-#             newcount = count + other[elem]
-#             if newcount > 0:
-#                 result[elem] = newcount
-#         for elem, count in other.items():
-#             if elem not in self and count > 0:
-#                 result[elem] = count
-#         return result
-#
-#     def elements(self):
-#         """Iterator over elements repeating each as many times as its count.
-#
-#         >>> c = Ns_Word_Counter()
-#         >>> for w in 'ABCABC': c[w] = c.get(w, 0) + 1
-#         >>> c.elements()
-#         ['A', 'B', 'C', 'A', 'B', 'C']
-#
-#         Note, if an element's count has been set to zero or is a negative
-#         number, elements() will ignore it.
-#
-#         https://github.com/python/cpython/blob/de2a73dc4649b110351fce789de0abb14c460b97/Lib/collections/__init__.py#L635
-#         """
-#         return _chain.from_iterable(_starmap(_repeat, self.items()))
-
 
 class Ns_LCA_Counter:
     WORDLIST_DATAFILE_MAP = {
@@ -121,7 +85,7 @@ class Ns_LCA_Counter:
         self.word_classifier = {
             "ud": word_classifiers.Ns_UD_Word_Classifier,
             "ptb": word_classifiers.Ns_PTB_Word_Classifier,
-        }[tagset](word_data, easy_word_threshold)
+        }[tagset](word_data=word_data, easy_word_threshold=easy_word_threshold)
 
         self.section_size = section_size
         self.ndw_trials = ndw_trials
@@ -370,4 +334,6 @@ class Ns_LCA_Counter:
         new = Ns_LCA_Counter(new_file_path)
         for item in new.COUNT_ITEMS:
             new.count_table[item] = self.count_table[item] + other.count_table[item]
+        new.determine_freqs()
+
         return new

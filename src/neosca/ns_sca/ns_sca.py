@@ -145,8 +145,6 @@ class Ns_SCA:
                 logging.info(f'Processing "{subfile}" ({i}/{total})...')
                 child_counter = self.run_on_file_or_subfiles(subfile)
                 counter += child_counter
-            # Re-calc measures defined by value_source
-            counter.determine_all_values()
         else:
             raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
         return counter

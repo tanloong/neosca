@@ -115,7 +115,6 @@ class Ns_LCA:
                 logging.info(f'Processing "{subfile}" ({i}/{total})...')
                 child_counter = self.run_on_file_or_subfiles(subfile)
                 counter += child_counter
-            counter.determine_freqs()
         else:
             raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
         return counter

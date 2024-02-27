@@ -1,7 +1,7 @@
 import glob
 import os.path as os_path
-from neosca import DATA_DIR
 
+from neosca import DATA_DIR
 from neosca.ns_lca.main import LCAUI
 
 from .base_tmpl import BaseTmpl
@@ -15,7 +15,7 @@ class TestLCAMain(BaseTmpl):
 
     def test_parse_args(self):
         ui = self.ui
-        filepath = os_path.join(self.samples_dir, "sample1.txt")
+        filepath = os_path.join(self.testdir_data_txt, "sample1.txt")
 
         # default
         args = ["nsca-lca", filepath]
@@ -78,21 +78,21 @@ class TestLCAMain(BaseTmpl):
         self.assertFalse(ui.options.is_quiet)
 
         # # batch
-        expected_ifiles = glob.glob(os_path.join(self.samples_dir, "*.txt"))
-        expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.docx")))
-        expected_ifiles.extend(glob.glob(os_path.join(self.samples_dir, "*.odt")))
+        expected_ifiles = glob.glob(os_path.join(self.testdir_data_txt, "*.txt"))
+        expected_ifiles.extend(glob.glob(os_path.join(self.testdir_data_txt, "*.docx")))
+        expected_ifiles.extend(glob.glob(os_path.join(self.testdir_data_txt, "*.odt")))
 
-        args = ["nsca-lca", os_path.join(self.samples_dir, "*.txt")]
+        args = ["nsca-lca", os_path.join(self.testdir_data_txt, "*.txt")]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         self.assertSetEqual(ui.verified_ifiles, set(expected_ifiles))
 
-        args = ["nsca-lca", self.samples_dir]
+        args = ["nsca-lca", self.testdir_data_txt]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         self.assertSetEqual(ui.verified_ifiles, set(expected_ifiles))
 
-        args = ["nsca-lca", self.samples_dir, str(DATA_DIR)]
+        args = ["nsca-lca", self.testdir_data_txt, str(DATA_DIR)]
         ui.parse_args(args)
         assert ui.verified_ifiles is not None
         self.assertSetEqual(ui.verified_ifiles, set(expected_ifiles))
