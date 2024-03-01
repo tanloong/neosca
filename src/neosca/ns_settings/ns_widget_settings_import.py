@@ -3,8 +3,9 @@
 import os.path as os_path
 
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
-    QFormLayout,
+    QGridLayout,
     QGroupBox,
     QLabel,
     QMessageBox,
@@ -32,16 +33,23 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         self.lineedit_path = Ns_LineEdit_Path()
         self.combobox_type = QComboBox()
         self.combobox_type.addItems(available_import_types)
+        self.checkbox_include_files_in_subfolders = QCheckBox("Include files in subfolders")
 
-        formlayout_files = QFormLayout()
-        formlayout_files.addRow(QLabel("Default path:"), self.lineedit_path)
-        formlayout_files.addRow(QLabel("Default type:"), self.combobox_type)
+        gridlayout_files = QGridLayout()
+        gridlayout_files.addWidget(QLabel("Default path:"), 0, 0)
+        gridlayout_files.addWidget(self.lineedit_path, 0, 1)
+        gridlayout_files.addWidget(QLabel("Default typee:"), 1, 0)
+        gridlayout_files.addWidget(self.combobox_type, 1, 1)
+        gridlayout_files.addWidget(self.checkbox_include_files_in_subfolders, 2, 0, 1, 2)
         self.groupbox_files = QGroupBox("Files")
-        self.groupbox_files.setLayout(formlayout_files)
+        self.groupbox_files.setLayout(gridlayout_files)
 
     def load_settings(self) -> None:
         self.lineedit_path.setText(Ns_Settings.value(f"{self.name}/default-path"))
         self.combobox_type.setCurrentText(Ns_Settings.value(f"{self.name}/default-type"))
+        self.checkbox_include_files_in_subfolders.setChecked(
+            Ns_Settings.value(f"{self.name}/include-files-in-subfolders", type=bool)
+        )
 
     def verify_settings(self) -> bool:
         path = self.lineedit_path.text()
@@ -72,3 +80,6 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
     def apply_settings(self) -> None:
         Ns_Settings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
         Ns_Settings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())
+        Ns_Settings.setValue(
+            f"{self.name}/include-files-in-subfolders", self.checkbox_include_files_in_subfolders.isChecked()
+        )

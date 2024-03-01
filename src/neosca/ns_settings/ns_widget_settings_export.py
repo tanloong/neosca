@@ -6,6 +6,7 @@ import os.path as os_path
 from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
+    QGridLayout,
     QGroupBox,
     QLabel,
     QMessageBox,
@@ -34,11 +35,13 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
         self.combobox_type = QComboBox()
         self.combobox_type.addItems(available_export_types)
 
-        formlayout_tables = QFormLayout()
-        formlayout_tables.addRow(QLabel("Default path:"), self.lineedit_path)
-        formlayout_tables.addRow(QLabel("Default type:"), self.combobox_type)
+        gridlayout_tables = QGridLayout()
+        gridlayout_tables.addWidget(QLabel("Default path:"), 0, 0)
+        gridlayout_tables.addWidget(self.lineedit_path, 0, 1)
+        gridlayout_tables.addWidget(QLabel("Default type:"), 1, 0)
+        gridlayout_tables.addWidget(self.combobox_type, 1, 1)
         self.groupbox_tables = QGroupBox("Tables")
-        self.groupbox_tables.setLayout(formlayout_tables)
+        self.groupbox_tables.setLayout(gridlayout_tables)
 
     def load_settings(self) -> None:
         self.lineedit_path.setText(Ns_Settings.value(f"{self.name}/default-path"))

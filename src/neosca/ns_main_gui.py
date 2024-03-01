@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import glob
 import os
 import os.path as os_path
 import re
@@ -30,7 +29,6 @@ from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
 from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
@@ -187,10 +185,23 @@ class Ns_Main_Gui(QMainWindow):
         if not folder_path:
             return
 
-        file_paths_to_add = []
-        for extension in Ns_IO.SUPPORTED_EXTENSIONS:
-            file_paths_to_add.extend(glob.glob(os_path.join(folder_path, f"*.{extension}")))
-        self.add_file_paths(file_paths_to_add)
+        file_paths = []
+
+        if Ns_Settings.value("Import/include-files-in-subfolders", type=bool):
+            file_paths.extend(
+                os_path.join(dir_path, file_name)
+                for dir_path, _, file_names in os.walk(folder_path)
+                for file_name in file_names
+            )
+        else:
+            file_paths.extend(
+                os_path.join(folder_path, file_name) for file_name in next(os.walk(folder_path))[2]
+            )
+
+        if len(file_paths) == 0:
+            self.statusBar().showMessage("No files found")
+
+        self.add_file_paths(file_paths)
 
     def menu_file_open_file(self):
         file_paths_to_add, _ = QFileDialog.getOpenFileNames(

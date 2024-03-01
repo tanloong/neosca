@@ -41,6 +41,7 @@ settings_default = {
     "Appearance/triangle-height-ratio": 0.23,
     "Import/default-path": str(DESKTOP_PATH),
     "Import/default-type": available_import_types[0],
+    "Import/include-files-in-subfolders": True,
     "Export/default-path": str(DESKTOP_PATH),
     "Export/default-type": available_export_types[0],
     "Lexical Complexity Analyzer/wordlist": "bnc",
