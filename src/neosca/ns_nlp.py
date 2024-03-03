@@ -28,6 +28,7 @@ class Ns_NLP_Stanza:
             lang=lang,
             dir=model_dir,
             processors=cls.processors,
+            verbose=False,
             # https://github.com/stanfordnlp/stanza/issues/331
             resources_url="stanford",
             download_method=None,

@@ -272,7 +272,7 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
         return super().exec()
 
 
-class Ns_Dialog_TextEdit_SCA_Matched_Subtrees(Ns_Dialog_TextEdit):
+class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
     def __init__(self, main, index, **kwargs):
         super().__init__(main, title="Matches", width=500, height=300, **kwargs)
 

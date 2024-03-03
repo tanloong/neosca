@@ -358,7 +358,7 @@ class Ns_TableView(QTableView):
             horizontal=alignment_cell_horizontal, vertical=alignment_cell_vertical, wrap_text=True
         )
 
-    def export_table(self, filename: str = "") -> None:
+    def export_table(self, filename: str = "", /) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
             caption="Export Table",
@@ -542,11 +542,11 @@ class Ns_TableView(QTableView):
         else:
             self.source_model.data_exported.emit()
 
-    def export_matches(self) -> None:
+    def export_matches(self, filename="neosca_matches.xlsx", /) -> None:
         file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
             caption="Export Table",
-            dir=str(DESKTOP_PATH / "neosca_sca_matches.xlsx"),
+            dir=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
             selectedFilter=Ns_Settings.value("Export/default-type"),
         )

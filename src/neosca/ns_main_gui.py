@@ -37,7 +37,7 @@ from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
-from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_SCA
+from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_Matches
 from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_About,
     Ns_Dialog_Processing_With_Elapsed_Time,
@@ -287,14 +287,16 @@ class Ns_Main_Gui(QMainWindow):
         self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *StructureCounter.DEFAULT_MEASURES))
         proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
         self.tableview_sca = Ns_TableView(self, model=proxy_model_sca)
-        self.tableview_sca.setItemDelegate(Ns_StyledItemDelegate_SCA(self))
+        self.tableview_sca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.ns_thread_sca_generate_table.start)
         self.button_export_table_sca.clicked.connect(
             lambda: self.tableview_sca.export_table("neosca_sca_results.xlsx")
         )
-        self.button_export_matches_sca.clicked.connect(self.tableview_sca.export_matches)
+        self.button_export_matches_sca.clicked.connect(
+            lambda: self.tableview_sca.export_matches("neosca_sca_matches.xlsx")
+        )
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
         self.model_sca.data_cleared.connect(self.on_model_sca_data_cleared)
         self.model_sca.row_added.connect(self.on_model_sca_row_added)
@@ -356,22 +358,21 @@ class Ns_Main_Gui(QMainWindow):
     def setup_tab_lca(self):
         self.button_generate_table_lca = Ns_PushButton("Generate table", False)
         self.button_export_table_lca = Ns_PushButton("Export table...", False)
+        self.button_export_matches_lca = Ns_PushButton("Export matches...", False)
         self.button_clear_table_lca = Ns_PushButton("Clear table", False)
 
         self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA_Counter.DEFAULT_MEASURES))
         proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
         self.tableview_lca = Ns_TableView(self, model=proxy_model_lca)
-        # TODO: tableview_sca use custom delegate to only enable clickable
-        # items, in which case a dialog will pop up to show matches. Here when
-        # tableview_lca also use custom delegate, remember to remove this line.
-        # Remember that there is also setEditTriggers expression in
-        # Ns_Dialog_Table_Cache.
-        self.tableview_lca.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.tableview_lca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
 
         # Bind
         self.button_generate_table_lca.clicked.connect(self.ns_thread_lca_generate_table.start)
         self.button_export_table_lca.clicked.connect(
             lambda: self.tableview_lca.export_table("neosca_lca_results.xlsx")
+        )
+        self.button_export_matches_lca.clicked.connect(
+            lambda: self.tableview_lca.export_matches("neosca_lca_matches.xlsx")
         )
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
         self.model_lca.data_cleared.connect(self.on_model_lca_data_cleared)
@@ -386,6 +387,7 @@ class Ns_Main_Gui(QMainWindow):
             (
                 self.button_generate_table_lca,
                 self.button_export_table_lca,
+                self.button_export_matches_lca,
                 self.button_clear_table_lca,
             ),
             start=1,
@@ -399,10 +401,14 @@ class Ns_Main_Gui(QMainWindow):
         if not self.model_file.is_empty():
             self.button_generate_table_lca.setEnabled(True)
         self.button_export_table_lca.setEnabled(False)
+        self.button_export_matches_lca.setEnabled(False)
         self.button_clear_table_lca.setEnabled(False)
 
     def on_model_lca_row_added(self) -> None:
-        self.button_export_table_lca.setEnabled(True)
+        if not self.model_lca.is_empty():
+            self.button_export_table_lca.setEnabled(True)
+        if self.model_lca.has_user_data():
+            self.button_export_matches_lca.setEnabled(True)
         self.button_clear_table_lca.setEnabled(True)
 
     def _restore_splitters(self, use_default: bool) -> None:
