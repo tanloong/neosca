@@ -4,13 +4,14 @@ import glob
 import json
 import logging
 import lzma
+import os
 import os.path as os_path
 import pickle
 import sys
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, Sequence, Set, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, List, Sequence, Tuple, Union
 from xml.etree.ElementTree import XML, fromstring
 
 from charset_normalizer import detect
@@ -94,7 +95,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
     @classmethod
-    def suffix(cls, file_path: Union[str, PathLike], strip_dot: bool = False) -> str:
+    def suffix(cls, file_path: Union[str, PathLike], *, strip_dot: bool = False) -> str:
         """
         >>> suffix('my/library/setup.py')
         .py
@@ -155,7 +156,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         cls, file_path: Union[str, PathLike], valid_extensions: Union[str, Tuple[str, ...]]
     ):
         if not os_path.isfile(file_path):
-            raise FileNotFoundError(f"{file_path} is not an existing file")
+            raise FileNotFoundError(f"File {file_path} does not exist")
         if not str(file_path).endswith(valid_extensions):
             raise ValueError(f"{file_path} does not have a valid extension")
 
@@ -196,11 +197,10 @@ class Ns_IO(metaclass=Ns_IO_Meta):
     def dump_json(cls, data: Any, path: Union[str, PathLike]) -> None:
         try:
             with open(path, "w") as f:
-                json.dump(data, f, ensure_ascii=False)
+                json.dump(data, f, ensure_ascii=False, indent=2)
         except FileNotFoundError:
             Path(path).parent.mkdir(parents=True)
-            with open(path, "w") as f:
-                json.dump(data, f, ensure_ascii=False)
+            cls.dump_json(data, path)
 
     @classmethod
     def dump_bytes(cls, data: bytes, path: Union[str, PathLike]) -> None:
@@ -209,25 +209,28 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 f.write(data)
         except FileNotFoundError:
             Path(path).parent.mkdir(parents=True)
-            with open(path, "wb") as f:
-                f.write(data)
+            cls.dump_bytes(data, path)
 
     @classmethod
-    def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> Set[str]:
+    def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> List[str]:
         verified_ifile_list = []
         for path in ifile_list:
+            # File path
             if os_path.isfile(path):
                 if cls.not_supports(path):
                     logging.warning(f"{path} is of unsupported filetype. Skipping.")
                     continue
                 logging.debug(f"Adding {path} to input file list")
                 verified_ifile_list.append(path)
+            # Dir path
             elif os_path.isdir(path):
                 verified_ifile_list.extend(
-                    path
-                    for path in glob.glob(f"{path}{os_path.sep}*")
-                    if os_path.isfile(path) and cls.supports(path)
+                    filter(
+                        cls.supports,
+                        map(lambda file_name: os_path.join(path, file_name), next(os.walk(path))[2]),
+                    )
                 )
+            # Glob pattern
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
             else:
@@ -239,7 +242,21 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 for path in verified_ifile_list
                 if not (path.endswith(".docx") and os_path.basename(path).startswith("~"))
             ]
-        return set(verified_ifile_list)
+        return verified_ifile_list
+
+    @classmethod
+    def get_verified_subfiles_list(cls, subfiles_list: List[List[str]]) -> List[List[str]]:
+        verified_subfiles_list = []
+        for subfiles in subfiles_list:
+            verified_subfiles: List[str] = cls.get_verified_ifile_list(subfiles)
+            if len(verified_subfiles) == 1:
+                logging.critical(
+                    f"Only 1 subfile provided: ({verified_subfiles.pop()}). There should be 2"
+                    " or more subfiles to combine."
+                )
+                sys.exit(1)
+            verified_subfiles_list.append(verified_subfiles)
+        return verified_subfiles_list
 
     @classmethod
     def ensure_unique_filestem(cls, stem: str, existing_stems: Sequence[str]) -> str:

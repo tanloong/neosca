@@ -1,14 +1,16 @@
 import argparse
-import glob
 import logging
 import os
 import os.path as os_path
 import sys
 from typing import Callable, List, Optional
 
+from neosca import CACHE_DIR
 from neosca.ns_about import __title__, __version__
 from neosca.ns_io import Ns_Cache, Ns_IO
+from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_print import color_print
+from neosca.ns_sca.ns_sca import Ns_SCA
 from neosca.ns_utils import Ns_Procedure_Result
 
 
@@ -19,39 +21,45 @@ class Ns_Main_Cli:
         self.options: argparse.Namespace = argparse.Namespace()
 
     def create_args_parser(self) -> argparse.ArgumentParser:
-        args_parser = argparse.ArgumentParser(prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter)
-        args_parser.add_argument(
+        parser = argparse.ArgumentParser(prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter)
+        parser.add_argument(
             "--version",
             action="store_true",
             default=False,
-            help="Show version and exit.",
+            help="show version and exit",
         )
-        args_parser.add_argument(
-            "--gui",
+        parser.add_argument(
+            "--quiet",
+            dest="is_quiet",
             action="store_true",
             default=False,
-            help="Start the program with a graphical user interface.",
+            help=f"stop {__title__} from printing anything except for final results",
         )
-        args_parser.add_argument(
+        parser.add_argument(
+            "--verbose",
+            dest="is_verbose",
+            action="store_true",
+            default=False,
+            help="print detailed logging messages",
+        )
+        subparsers: argparse._SubParsersAction = parser.add_subparsers(title="commands", dest="command")
+        self.sca_parser = self.create_sca_parser(subparsers)
+        self.lca_parser = self.create_lca_parser(subparsers)
+        self.expand_parser = self.create_expand_parser(subparsers)
+        self.gui_parser = self.create_gui_parser(subparsers)
+        return parser
+
+    def create_sca_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+        sca_parser = subparsers.add_parser("sca", help="syntactic complexity analyzer")
+
+        sca_parser.add_argument(
             "--list",
             dest="list_fields",
             action="store_true",
             default=False,
             help="List built-in measures.",
         )
-        args_parser.add_argument(
-            "--expand-wildcards",
-            dest="expand_wildcards",
-            action="store_true",
-            default=False,
-            help=(
-                "Print all files that match your wildcard pattern. This can help you ensure that"
-                " your pattern matches all desired files and excludes any unwanted ones. Note"
-                " that files that do not exist on the computer will not be included in the"
-                " output, even if they match the specified pattern."
-            ),
-        )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--combine-files",
             "-c",
             metavar="<subfile>",
@@ -61,14 +69,14 @@ class Ns_Main_Cli:
             nargs="+",
             help="Combine frequency output of multiple files.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--text",
             "-t",
             metavar="<text>",
             default=None,
             help="Pass text through the command line.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--ftype",
             dest="ifile_types",
             choices=Ns_IO.SUPPORTED_EXTENSIONS,
@@ -79,7 +87,7 @@ class Ns_Main_Cli:
                 " files of all supported types."
             ),
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--output-file",
             "-o",
             metavar="<filename>",
@@ -87,21 +95,21 @@ class Ns_Main_Cli:
             default=None,
             help='Specify an output file. The default is "result.csv".',
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--output-format",
             dest="oformat_freq",
             choices=["csv", "json"],
             default="csv",
             help='Output format, the default is "csv".',
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--stdout",
             dest="is_stdout",
             action="store_true",
             default=False,
             help="Write the frequency output to the stdout instead of saving it to a file.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--select",
             metavar="<measure>",
             dest="selected_measures",
@@ -114,21 +122,21 @@ class Ns_Main_Cli:
                 ' "CN/C".'
             ),
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--cache",
             dest="is_cache",
             action="store_true",
             default=False,
             help="Cache uncached files for faster future runs.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--use-cache",
             dest="is_use_cache",
             action="store_true",
             default=False,
             help="Use cache if available.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--save-matches",
             "-m",
             dest="is_save_matches",
@@ -136,7 +144,7 @@ class Ns_Main_Cli:
             action="store_true",
             help="Save the matched subtrees.",
         )
-        args_parser.add_argument(
+        sca_parser.add_argument(
             "--no-parse",
             dest="is_skip_parsing",
             action="store_true",
@@ -150,28 +158,7 @@ class Ns_Main_Cli:
                 " flags will be automatically set as False."
             ),
         )
-        args_parser.add_argument(
-            "--quiet",
-            dest="is_quiet",
-            action="store_true",
-            default=False,
-            help=f"Stop {__title__} from printing anything except for final results.",
-        )
-        args_parser.add_argument(
-            "--verbose",
-            dest="is_verbose",
-            action="store_true",
-            default=False,
-            help="Print detailed logging messages.",
-        )
-        # args_parser.add_argument(
-        #     "--yes",
-        #     dest="is_assume_yes",
-        #     action="store_true",
-        #     default=False,
-        #     help="Assume the answer to all prompts is yes, used when installing dependencies.",
-        # )
-        # args_parser.add_argument(
+        # parser_sca.add_argument(
         #     "--config",
         #     dest="config",
         #     default=None,
@@ -180,7 +167,213 @@ class Ns_Main_Cli:
         #         " search or calculate."
         #     ),
         # )
-        return args_parser
+        sca_parser.set_defaults(func=self.parse_sca_args, analyzer_class=Ns_SCA)
+        return sca_parser
+
+    def create_lca_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+        lca_parser: argparse.ArgumentParser = subparsers.add_parser("lca", help="lexical complexity analyzer")
+        lca_parser.add_argument(
+            "--list",
+            dest="list_fields",
+            action="store_true",
+            default=False,
+            help="List built-in measures.",
+        )
+        lca_parser.add_argument(
+            "--combine-files",
+            "-c",
+            metavar="<subfile>",
+            dest="subfiles_list",
+            action="append",
+            default=None,
+            nargs="+",
+            help="Combine frequency output of multiple files.",
+        )
+        lca_parser.add_argument(
+            "--wordlist",
+            dest="wordlist",
+            choices=("bnc", "anc"),
+            default="bnc",
+            help=(
+                "Choose BNC or ANC (American National Corpus) wordlist for lexical"
+                ' sophistication analysis. The default is "bnc".'
+            ),
+        )
+        lca_parser.add_argument(
+            "--tagset",
+            dest="tagset",
+            choices=("ud", "ptb"),
+            default="ud",
+            help='Choose UD or PTB POS tagset for word classification. The default is "ud".',
+        )
+        lca_parser.add_argument(
+            "--output-file",
+            "-o",
+            metavar="<filename>",
+            dest="ofile_freq",
+            default=None,
+            help='Specify an output file. The default is "result.csv".',
+        )
+        lca_parser.add_argument(
+            "--output-format",
+            dest="oformat_freq",
+            choices=["csv", "json"],
+            default="csv",
+            help='Output format, the default is "csv".',
+        )
+        lca_parser.add_argument(
+            "--stdout",
+            dest="is_stdout",
+            action="store_true",
+            default=False,
+            help="Write the output to the stdout instead of saving it to a file.",
+        )
+        lca_parser.add_argument(
+            "--text",
+            "-t",
+            metavar="<text>",
+            default=None,
+            help="Pass text through the command line.",
+        )
+        lca_parser.add_argument(
+            "--cache",
+            dest="is_cache",
+            action="store_true",
+            default=False,
+            help="Cache uncached files for faster future runs.",
+        )
+        lca_parser.add_argument(
+            "--use-cache",
+            dest="is_use_cache",
+            action="store_true",
+            default=False,
+            help="Use cache if available.",
+        )
+        lca_parser.add_argument(
+            "--save-matches",
+            "-m",
+            dest="is_save_matches",
+            default=False,
+            action="store_true",
+            help="Save the matched words.",
+        )
+        lca_parser.set_defaults(func=self.parse_lca_args, analyzer_class=Ns_LCA)
+        return lca_parser
+
+    def create_expand_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+        expand_parser = subparsers.add_parser("expand", help="expand wildcard pattern")
+        expand_parser.set_defaults(is_expand=True)
+        return expand_parser
+
+    def create_gui_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+        gui_parser = subparsers.add_parser("gui", help="start the program with GUI")
+        gui_parser.set_defaults(is_gui=True)
+        return gui_parser
+
+    def parse_sca_args(self, options: argparse.Namespace) -> Ns_Procedure_Result:
+        if options.is_skip_parsing:
+            options.is_cache = False
+            options.is_use_cache = False
+
+        if options.text is not None:
+            logging.debug(f"CLI text: {options.text}")
+
+        if options.subfiles_list is None:
+            self.verified_subfiles_list: List[List[str]] = []
+        else:
+            self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
+
+        self.odir_matched = "result_matches"
+        if options.ofile_freq is not None:
+            self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
+            ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
+            if ofile_freq_ext not in ("csv", "json"):
+                return (
+                    False,
+                    f"The file extension {ofile_freq_ext} is not supported. Use one of the following:\n1. csv\n2. json",
+                )
+            if ofile_freq_ext != options.oformat_freq:
+                logging.debug(
+                    f"Conflict between ofile_freq ({options.ofile_freq}) and oformat_freq ({options.oformat_freq}), using {ofile_freq_ext}"
+                )
+                options.oformat_freq = ofile_freq_ext
+        else:
+            options.ofile_freq = "result." + options.oformat_freq
+
+        if options.selected_measures is not None:
+            # Drop duplicates while retain order. Starting from Python 3.7, the
+            # built-in dictionary is guaranteed to maintain the insertion order
+            options.selected_measures = list(dict.fromkeys(options.selected_measures))
+
+        # user_config = options.config
+        user_config = None
+        if user_config is not None:
+            if not os_path.isfile(user_config):
+                return False, f"no such file as\n\n{user_config}"
+            if not user_config.endswith(".json"):
+                return False, f'"{user_config}" does not seem like a json file.'
+            logging.debug(f"Using configuration file {user_config}")
+        else:
+            default_config_file = "nsca.json"
+            if os_path.isfile(default_config_file):
+                user_config = default_config_file
+                logging.debug(f"Using configuration file {user_config}")
+            else:
+                logging.debug("No configuration file found")
+
+        self.init_kwargs = {
+            "ofile_freq": options.ofile_freq,
+            "oformat_freq": options.oformat_freq,
+            "odir_matched": self.odir_matched,
+            "selected_measures": options.selected_measures,
+            "is_cache": options.is_cache,
+            "is_use_cache": options.is_use_cache,
+            "is_save_matches": options.is_save_matches,
+            "is_stdout": options.is_stdout,
+            "is_skip_parsing": options.is_skip_parsing,
+            "config": user_config,
+        }
+        return True, None
+
+    def parse_lca_args(self, options: argparse.Namespace) -> Ns_Procedure_Result:
+        self.odir_matched = "result_matches"
+        if options.ofile_freq is not None:
+            self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
+            ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
+            if ofile_freq_ext not in ("csv", "json"):
+                return (
+                    False,
+                    f"The file extension {ofile_freq_ext} is not supported. Use one of the following:\n1. csv\n2. json",
+                )
+            if ofile_freq_ext != options.oformat_freq:
+                logging.debug(
+                    f"Conflict between ofile_freq ({options.ofile_freq}) and oformat_freq ({options.oformat_freq}), using {ofile_freq_ext}"
+                )
+                options.oformat_freq = ofile_freq_ext
+        else:
+            options.ofile_freq = "result." + options.oformat_freq
+
+        if options.text is not None:
+            logging.debug(f"CLI text: {options.text}")
+
+        if options.subfiles_list is None:
+            self.verified_subfiles_list: List[List[str]] = []
+        else:
+            self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
+
+        self.init_kwargs = {
+            "wordlist": options.wordlist,
+            "tagset": options.tagset,
+            "ofile_freq": options.ofile_freq,
+            "oformat_freq": options.oformat_freq,
+            "odir_matched": self.odir_matched,
+            "is_stdout": options.is_stdout,
+            "is_cache": options.is_cache,
+            "is_use_cache": options.is_use_cache,
+            "is_save_matches": options.is_save_matches,
+        }
+        self.options = options
+        return True, None
 
     def parse_args(self, argv: List[str]) -> Ns_Procedure_Result:
         idx: Optional[int] = None
@@ -201,93 +394,11 @@ class Ns_Main_Cli:
         else:
             logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-        if options.is_skip_parsing:
-            options.is_cache = False
-            options.is_use_cache = False
+        self.verified_ifiles = Ns_IO.get_verified_ifile_list(ifile_list)
 
-        if options.text is not None:
-            if ifile_list:
-                return False, "Unexpected argument(s):\n\n{}".format("\n".join(ifile_list))
-            logging.info(f"CLI text: {options.text}")
-            self.verified_ifiles = None
-        else:
-            self.verified_ifiles = Ns_IO.get_verified_ifile_list(ifile_list)
+        if (func := getattr(options, "func", None)) is not None:
+            func(options)
 
-        if options.subfiles_list is None:
-            self.verified_subfiles_list: List[List[str]] = []
-        else:
-            verified_subfiles_list = []
-            for subfiles in options.subfiles_list:
-                verified_subfiles = []
-                for path in subfiles:
-                    if os_path.isfile(path):
-                        verified_subfiles.append(path)
-                    elif os_path.isdir(path):
-                        for ftype in options.ifile_types:
-                            verified_subfiles.extend(glob.glob(f"{path}{os_path.sep}*.{ftype}"))
-                    elif glob.glob(path):
-                        verified_subfiles.extend(glob.glob(path))
-                    else:
-                        return False, f"No such file as\n\n{path}"
-                if len(verified_subfiles) == 1:
-                    logging.critical(
-                        f"Only 1 subfile provided: ({verified_subfiles[0]}). There should be 2"
-                        " or more subfiles to combine."
-                    )
-                    sys.exit(1)
-                verified_subfiles_list.append(verified_subfiles)
-            self.verified_subfiles_list = verified_subfiles_list
-
-        self.odir_matched = "result_matches"
-        if options.ofile_freq is not None:
-            self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
-            ofile_freq_ext = os_path.splitext(options.ofile_freq)[-1].lstrip(".")
-            if ofile_freq_ext not in ("csv", "json"):
-                return (
-                    False,
-                    (
-                        f"The file extension {ofile_freq_ext} is not supported. Use one of"
-                        " the following:\n1. csv\n2. json"
-                    ),
-                )
-            if ofile_freq_ext != options.oformat_freq:
-                options.oformat_freq = ofile_freq_ext
-        else:
-            options.ofile_freq = "result." + options.oformat_freq
-
-        if options.selected_measures is not None:
-            # Drop duplicates while retain order. Starting from Python 3.7, the
-            # built-in dictionary is guaranteed to maintain the insertion order
-            options.selected_measures = list(dict.fromkeys(options.selected_measures))
-
-        # user_config = options.config
-        user_config = None
-        if user_config is not None:
-            if not os_path.isfile(user_config):
-                return False, f"no such file as\n\n{user_config}"
-            if not user_config.endswith(".json"):
-                return False, f'"{user_config}" does not seem like a json file.'
-            logging.debug(f"[Main] Using configuration file {user_config}")
-        else:
-            default_config_file = "nsca.json"
-            if os_path.isfile(default_config_file):
-                user_config = default_config_file
-                logging.debug(f"[Main] Using configuration file {user_config}")
-            else:
-                logging.debug("[Main] No configuration file found")
-
-        self.init_kwargs = {
-            "ofile_freq": options.ofile_freq,
-            "oformat_freq": options.oformat_freq,
-            "odir_matched": self.odir_matched,
-            "selected_measures": options.selected_measures,
-            "is_cache": options.is_cache,
-            "is_use_cache": options.is_use_cache,
-            "is_save_matches": options.is_save_matches,
-            "is_stdout": options.is_stdout,
-            "is_skip_parsing": options.is_skip_parsing,
-            "config": user_config,
-        }
         self.options = options
         return True, None
 
@@ -317,27 +428,15 @@ class Ns_Main_Cli:
             prefix=f"{msg_num}. Frequency output was saved to ",
             postfix=".",
         )
-        if self.options.is_cache:
-            if self.verified_ifiles or self.verified_subfiles_list:
-                msg_num += 1
-                logging.info(
-                    f"{msg_num}. parse trees were saved corresponding to input files,"
-                    ' with the same name but a ".parsed" extension.'
-                )
-            elif self.options.text is not None:
-                msg_num += 1
-                color_print(
-                    "OKGREEN",
-                    f"{self.cwd}{os.sep}cli_text.parsed",
-                    prefix=f"{msg_num}. parse trees were saved to ",
-                    postfix=".",
-                )
+        if self.options.is_cache and (self.verified_ifiles or self.verified_subfiles_list):
+            msg_num += 1
+            color_print("OKGREEN", str(CACHE_DIR), prefix=f"{msg_num}. Cache was saved to ", postfix=".")
         if self.options.is_save_matches:
             msg_num += 1
             color_print(
                 "OKGREEN",
                 f"{os_path.abspath(self.odir_matched)}",
-                prefix=f"{msg_num}. Matched subtrees were saved to ",
+                prefix=f"{msg_num}. Matches were saved to ",
                 postfix=".",
             )
         if msg_num > 0:
@@ -359,26 +458,19 @@ class Ns_Main_Cli:
         return wrapper
 
     @run_tmpl
-    def run_on_text(self) -> Ns_Procedure_Result:
-        from neosca.ns_sca.ns_sca import Ns_SCA
+    def run_on_input(self) -> Ns_Procedure_Result:
+        analyzer = self.options.analyzer_class(**self.init_kwargs)
 
-        analyzer = Ns_SCA(**self.init_kwargs)
-        analyzer.run_on_text(self.options.text)
-
-        return True, None
-
-    @run_tmpl
-    def run_on_ifiles(self) -> Ns_Procedure_Result:
-        from neosca.ns_sca.ns_sca import Ns_SCA
-
-        analyzer = Ns_SCA(**self.init_kwargs)
+        if self.options.text is not None:
+            analyzer.run_on_text(self.options.text)
 
         files = []
-        if self.verified_ifiles:
-            files.extend(self.verified_ifiles)
-        if self.verified_subfiles_list:
-            files.extend(self.verified_subfiles_list)
-        analyzer.run_on_file_or_subfiles_list(files)
+        if verified_ifiles := getattr(self, "verified_ifiles", []):
+            files.extend(verified_ifiles)
+        if verified_subfiles_list := getattr(self, "verified_subfiles_list", []):
+            files.extend(verified_subfiles_list)
+        if files:
+            analyzer.run_on_file_or_subfiles_list(files)
 
         return True, None
 
@@ -391,43 +483,40 @@ class Ns_Main_Cli:
     def run(self) -> Ns_Procedure_Result:
         if self.options.version:
             return self.show_version()
-        elif self.options.gui:
+        elif getattr(self.options, "is_gui", False):
             return self.run_gui()
-        elif self.options.list_fields:
-            return self.list_fields()
-        elif self.options.expand_wildcards:
+        elif getattr(self.options, "list_fields", False):
+            return self.options.analyzer_class.list_fields()
+        elif (
+            getattr(self, "verified_ifiles", False)
+            or getattr(self, "verified_subfiles_list", False)
+            or getattr(self.options, "text", None) is not None
+        ):
+            return self.run_on_input()
+        elif getattr(self.options, "is_expand", False):
             return self.expand_wildcards()
-        elif self.options.text is not None:
-            return self.run_on_text()
-        elif self.verified_ifiles or self.verified_subfiles_list:
-            return self.run_on_ifiles()
         else:
-            self.args_parser.print_help()
+            if (sub_parser := getattr(self, f"{self.options.command}_parser", None)) is not None:
+                sub_parser.print_help()
+            else:
+                self.args_parser.print_help()
             return True, None
-
-    def list_fields(self) -> Ns_Procedure_Result:
-        from neosca.ns_sca.structure_counter import StructureCounter
-
-        counter = StructureCounter()
-        for s_name in counter.selected_measures:
-            print(f"{s_name}: {counter.get_structure(s_name).description}")
-        return True, None
 
     def expand_wildcards(self) -> Ns_Procedure_Result:
         is_not_found = True
-        if self.verified_ifiles:
+        if ifiles := getattr(self, "verified_ifiles", []):
             is_not_found = False
             print("Input files:")
-            for i, ifile in enumerate(self.verified_ifiles, 1):
+            for i, ifile in enumerate(ifiles, 1):
                 print(f" {i}. {ifile}")
-        if self.verified_subfiles_list:
+        if subfiles_list := getattr(self, "verified_subfiles_list", []):
             is_not_found = False
-            for i, subfiles in enumerate(self.verified_subfiles_list, 1):
+            for i, subfiles in enumerate(subfiles_list, 1):
                 print(f"Input subfile list {i}:")
                 for j, subfile in enumerate(subfiles, 1):
                     print(f" {j}. {subfile}")
         if is_not_found:
-            print("0 files and subfiles are found.")
+            print(f"No supported input files ({', '.join(Ns_IO.SUPPORTED_EXTENSIONS)}) were found.")
         return True, None
 
     def show_version(self) -> Ns_Procedure_Result:

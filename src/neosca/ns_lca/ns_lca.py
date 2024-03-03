@@ -8,6 +8,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
+from neosca.ns_utils import Ns_Procedure_Result
 
 
 class Ns_LCA:
@@ -19,11 +20,12 @@ class Ns_LCA:
         section_size: int = 50,
         ndw_trials: int = 10,
         precision: int = 4,
-        ofile: str = "result.csv",
+        ofile_freq: str = "result.csv",
+        oformat_freq: str = "csv",
         odir_matched: str = "",
-        is_stdout: bool = False,
         is_cache: bool = True,
         is_use_cache: bool = True,
+        is_stdout: bool = False,
         is_save_matches: bool = False,
         is_save_values: bool = True,
     ) -> None:
@@ -35,11 +37,12 @@ class Ns_LCA:
         assert tagset in ("ud", "ptb")
         self.tagset: Literal["ud", "ptb"] = tagset
 
-        self.easy_word_threshold = self.easy_word_threshold
+        self.easy_word_threshold = easy_word_threshold
         self.section_size = section_size
         self.ndw_trials = ndw_trials
         self.precision = precision
-        self.ofile = ofile
+        self.ofile_freq = ofile_freq
+        self.oformat_freq = oformat_freq
         self.odir_matched = odir_matched
         self.is_stdout = is_stdout
         self.is_cache = is_cache
@@ -73,7 +76,7 @@ class Ns_LCA:
             cache_path = None
 
         try:
-            return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
+            return self.get_lempos_frm_text(text)
         except BaseException as e:
             # If cache is generated at current run, remove it as it is potentially broken
             if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
@@ -90,7 +93,10 @@ class Ns_LCA:
             ndw_trials=self.ndw_trials,
         )
 
-    def run_on_text(self, text: str, file_path: str = "cli_text") -> None:
+    def run_on_text(self, text: str, *, file_path: str = "cli_text", clear: bool = True) -> None:
+        if clear:
+            self.counters.clear()
+
         lempos_tuples = self.get_lempos_frm_text(text)
         counter = self.init_new_counter(file_path)
         counter.determine_all_values(lempos_tuples)
@@ -119,7 +125,12 @@ class Ns_LCA:
             raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
         return counter
 
-    def run_on_file_or_subfiles_list(self, file_or_subfiles_list: List[Union[str, List[str]]]) -> None:
+    def run_on_file_or_subfiles_list(
+        self, file_or_subfiles_list: List[Union[str, List[str]]], *, clear: bool = True
+    ) -> None:
+        if clear:
+            self.counters.clear()
+
         for file_or_subfiles in file_or_subfiles_list:
             counter = self.run_on_file_or_subfiles(file_or_subfiles)
             self.counters.append(counter)
@@ -130,8 +141,6 @@ class Ns_LCA:
             self.dump_values()
 
     def dump_values(self) -> None:
-        import csv
-
         logging.debug("Writting counts and/or frequencies...")
 
         if len(self.counters) == 0:
@@ -141,16 +150,34 @@ class Ns_LCA:
             counter.get_all_values(self.precision) for counter in self.counters
         ]
 
-        handle = sys.stdout if self.is_stdout else open(self.ofile, "w", encoding="utf-8", newline="")  # noqa: SIM115
+        handle = sys.stdout if self.is_stdout else open(self.ofile_freq, "w", encoding="utf-8", newline="")  # noqa: SIM115
 
-        fieldnames = value_tables[0].keys()
-        csv_writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        if self.oformat_freq == "csv":
+            import csv
 
-        csv_writer.writeheader()
-        csv_writer.writerows(value_tables)
+            fieldnames = value_tables[0].keys()
+            csv_writer = csv.DictWriter(handle, fieldnames=fieldnames)
+
+            csv_writer.writeheader()
+            csv_writer.writerows(value_tables)
+        elif self.oformat_freq == "json":
+            import json
+
+            json.dump(value_tables, handle, ensure_ascii=False, indent=2)
+        else:
+            raise ValueError(f'oformat_freq {self.oformat_freq} not in ("csv", "json")')
 
         handle.close()
 
     def dump_matches(self) -> None:
         for counter in self.counters:
             counter.dump_matches(self.odir_matched, self.is_stdout)
+
+    @classmethod
+    def list_fields(cls) -> Ns_Procedure_Result:
+        for short, long in Ns_LCA_Counter.COUNT_ITEMS.items():
+            for suffix in ("types", "tokens"):
+                print(f"{short}{suffix}: {long} {suffix}")
+        for short, long in Ns_LCA_Counter.FREQ_ITEMS.items():
+            print(f"{short}: {long}")
+        return True, None

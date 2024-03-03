@@ -24,6 +24,7 @@ class Ns_NLP_Stanza:
         if model_dir is None:
             model_dir = str(STANZA_MODEL_DIR)
 
+        logging.debug("Loading Stanza processors...")
         cls.pipeline = stanza.Pipeline(
             lang=lang,
             dir=model_dir,

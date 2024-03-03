@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_sca.structure_counter import StructureCounter
+from neosca.ns_utils import Ns_Procedure_Result
 
 
 class Ns_SCA:
@@ -103,7 +104,10 @@ class Ns_SCA:
             return forest
 
     # }}}
-    def run_on_text(self, text: str, file_path: str = "cli_text") -> None:  # {{{
+    def run_on_text(self, text: str, *, file_path: str = "cli_text", clear: bool = True) -> None:  # {{{
+        if clear:
+            self.counters.clear()
+
         forest: str = self.get_forest_frm_text(text)
         counter = StructureCounter(
             file_path,
@@ -151,8 +155,11 @@ class Ns_SCA:
 
     # }}}
     def run_on_file_or_subfiles_list(  # {{{
-        self, file_or_subfiles_list: List[Union[str, List[str]]]
+        self, file_or_subfiles_list: List[Union[str, List[str]]], *, clear: bool = True
     ) -> None:
+        if clear:
+            self.counters.clear()
+
         for file_or_subfiles in file_or_subfiles_list:
             counter = self.run_on_file_or_subfiles(file_or_subfiles)
             self.counters.append(counter)
@@ -174,9 +181,6 @@ class Ns_SCA:
         if len(self.counters) == 0:
             raise ValueError("empty counter list")
 
-        oformat_freq = self.oformat_freq
-        if oformat_freq not in ("csv", "json"):
-            raise ValueError(f'oformat_freq {oformat_freq} not in ("csv", "json")')
 
         sname_value_maps: List[Dict[str, str]] = [
             counter.get_all_values(self.precision) for counter in self.counters
@@ -184,7 +188,7 @@ class Ns_SCA:
 
         handle = sys.stdout if self.is_stdout else open(self.ofile_freq, "w", encoding="utf-8", newline="")  # noqa: SIM115
 
-        if oformat_freq == "csv":
+        if self.oformat_freq == "csv":
             import csv
 
             fieldnames = sname_value_maps[0].keys()
@@ -193,10 +197,19 @@ class Ns_SCA:
             csv_writer.writeheader()
             csv_writer.writerows(sname_value_maps)
 
-        else:
+        elif self.oformat_freq == "json":
             import json
 
-            json.dump(sname_value_maps, handle)
+            json.dump(sname_value_maps, handle, ensure_ascii=False, indent=2)
+        else:
+            raise ValueError(f'oformat_freq {self.oformat_freq} not in ("csv", "json")')
 
         handle.close()
         # }}}
+
+    @classmethod
+    def list_fields(cls) -> Ns_Procedure_Result:
+        counter = StructureCounter()
+        for s_name in counter.selected_measures:
+            print(f"{s_name}: {counter.get_structure(s_name).description}")
+        return True, None

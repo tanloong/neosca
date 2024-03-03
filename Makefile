@@ -1,11 +1,8 @@
-.PHONY: build run clean install lint test
+.PHONY: build clean install lint run test
 
 build:
 	python -m build
 	pyinstaller ./utils/ns_packaging.spec --noconfirm --clean
-
-run:
-	./dist/neosca-gui/neosca-gui
 
 clean:
 	rm -rf __pycache__
@@ -28,6 +25,9 @@ lint:
 
 test:
 	python -m unittest
+
+run:
+	cd ./src && python -m neosca gui
 
 ACKNOWLEDGMENTS.md: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
 	python utils/ns_generate_acks.py
