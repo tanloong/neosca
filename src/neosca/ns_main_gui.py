@@ -611,7 +611,7 @@ class Ns_Main_Gui(QMainWindow):
         if file_paths_ok:
             self.model_file.remove_empty_rows()
             already_added_file_stems = list(self.model_file.yield_flat_file_names())
-            for file_path in file_paths_ok:
+            for file_path in sorted(file_paths_ok):
                 file_stem = Path(file_path).stem
                 file_stem = Ns_IO.ensure_unique_filestem(file_stem, already_added_file_stems)
                 already_added_file_stems.append(file_stem)
@@ -632,7 +632,7 @@ class Ns_Main_Gui(QMainWindow):
                 ("Unsupported file type", file_paths_unsupported),
                 ("Empty file", file_paths_empty),
             ):
-                for file_path in file_paths:
+                for file_path in sorted(file_paths):
                     model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
             tableview_err_files = Ns_TableView(self, model=model_err_files)
 
