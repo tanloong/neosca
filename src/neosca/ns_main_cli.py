@@ -20,6 +20,22 @@ class Ns_Main_Cli:
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
         self.options: argparse.Namespace = argparse.Namespace()
 
+    def __add_log_levels(self, parser: argparse.ArgumentParser) -> None:
+        parser.add_argument(
+            "--quiet",
+            dest="is_quiet",
+            action="store_true",
+            default=False,
+            help="disable all logging",
+        )
+        parser.add_argument(
+            "--verbose",
+            dest="is_verbose",
+            action="store_true",
+            default=False,
+            help="enable verbose logging",
+        )
+
     def create_args_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(prog="nsca", formatter_class=argparse.RawDescriptionHelpFormatter)
         parser.add_argument(
@@ -28,20 +44,7 @@ class Ns_Main_Cli:
             default=False,
             help="show version and exit",
         )
-        parser.add_argument(
-            "--quiet",
-            dest="is_quiet",
-            action="store_true",
-            default=False,
-            help=f"stop {__title__} from printing anything except for final results",
-        )
-        parser.add_argument(
-            "--verbose",
-            dest="is_verbose",
-            action="store_true",
-            default=False,
-            help="print detailed logging messages",
-        )
+        self.__add_log_levels(parser)
         subparsers: argparse._SubParsersAction = parser.add_subparsers(title="commands", dest="command")
         self.sca_parser = self.create_sca_parser(subparsers)
         self.lca_parser = self.create_lca_parser(subparsers)
@@ -166,6 +169,7 @@ class Ns_Main_Cli:
         #         " search or calculate."
         #     ),
         # )
+        self.__add_log_levels(sca_parser)
         sca_parser.set_defaults(func=self.parse_sca_args, analyzer_class=Ns_SCA)
         return sca_parser
 
@@ -256,11 +260,13 @@ class Ns_Main_Cli:
             action="store_true",
             help="Save the matched words.",
         )
+        self.__add_log_levels(lca_parser)
         lca_parser.set_defaults(func=self.parse_lca_args, analyzer_class=Ns_LCA)
         return lca_parser
 
     def create_gui_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
         gui_parser = subparsers.add_parser("gui", help="start the program with GUI")
+        self.__add_log_levels(gui_parser)
         gui_parser.set_defaults(is_gui=True)
         return gui_parser
 

@@ -73,6 +73,8 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
         else:
             new_paths = '"' + '":"'.join(paths) + '"'
             rcfile = os_path.expanduser(rcfile)
+            os.makedirs(os_path.realpath(os_path.dirname(rcfile)), exist_ok=True)
+
             if not os_path.isfile(rcfile):
                 configs = []
             else:
@@ -99,21 +101,21 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
                 f.write("\n".join(configs))
 
 
-def setenv(env_var: str, paths: List[str], is_override: bool = False, is_quiet: bool = False) -> None:
+def setenv(envar: str, paths: List[str], is_override: bool = False, is_quiet: bool = False) -> None:
     assert any((IS_WINDOWS, IS_MAC, IS_LINUX))
     if IS_WINDOWS:
-        _setenv_windows(env_var, paths, is_override)
+        _setenv_windows(envar, paths, is_override)
     else:
-        _setenv_unix(env_var, paths, is_override)
+        _setenv_unix(envar, paths, is_override)
     if not is_quiet:
         color_print(
             "OKGREEN",
-            env_var,
+            envar,
             prefix="Added the following path(s) to ",
             postfix=":\n" + "\n".join(paths),
         )
 
 
-def getenv(env_var: str) -> Optional[str]:
-    directory = os.getenv(env_var, "")
+def get_dir_frm_env(envar: str) -> Optional[str]:
+    directory = os.getenv(envar, "")
     return directory if os_path.isdir(directory) else None
