@@ -45,7 +45,6 @@ class Ns_Main_Cli:
         subparsers: argparse._SubParsersAction = parser.add_subparsers(title="commands", dest="command")
         self.sca_parser = self.create_sca_parser(subparsers)
         self.lca_parser = self.create_lca_parser(subparsers)
-        self.expand_parser = self.create_expand_parser(subparsers)
         self.gui_parser = self.create_gui_parser(subparsers)
         return parser
 
@@ -259,11 +258,6 @@ class Ns_Main_Cli:
         )
         lca_parser.set_defaults(func=self.parse_lca_args, analyzer_class=Ns_LCA)
         return lca_parser
-
-    def create_expand_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-        expand_parser = subparsers.add_parser("expand", help="expand wildcard pattern")
-        expand_parser.set_defaults(is_expand=True)
-        return expand_parser
 
     def create_gui_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
         gui_parser = subparsers.add_parser("gui", help="start the program with GUI")
@@ -493,31 +487,12 @@ class Ns_Main_Cli:
             or getattr(self.options, "text", None) is not None
         ):
             return self.run_on_input()
-        elif getattr(self.options, "is_expand", False):
-            return self.expand_wildcards()
         else:
             if (sub_parser := getattr(self, f"{self.options.command}_parser", None)) is not None:
                 sub_parser.print_help()
             else:
                 self.args_parser.print_help()
             return True, None
-
-    def expand_wildcards(self) -> Ns_Procedure_Result:
-        is_not_found = True
-        if ifiles := getattr(self, "verified_ifiles", []):
-            is_not_found = False
-            print("Input files:")
-            for i, ifile in enumerate(ifiles, 1):
-                print(f" {i}. {ifile}")
-        if subfiles_list := getattr(self, "verified_subfiles_list", []):
-            is_not_found = False
-            for i, subfiles in enumerate(subfiles_list, 1):
-                print(f"Input subfile list {i}:")
-                for j, subfile in enumerate(subfiles, 1):
-                    print(f" {j}. {subfile}")
-        if is_not_found:
-            print(f"No supported input files ({', '.join(Ns_IO.SUPPORTED_EXTENSIONS)}) were found.")
-        return True, None
 
     def show_version(self) -> Ns_Procedure_Result:
         print(__version__)
