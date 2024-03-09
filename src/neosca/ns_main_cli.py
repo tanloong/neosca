@@ -283,7 +283,7 @@ class Ns_Main_Cli:
         else:
             self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
 
-        self.odir_matched = "result_matches"
+        self.odir_matched = "neosca_sca_matches"
         if options.ofile_freq is not None:
             self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
             ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
@@ -298,7 +298,7 @@ class Ns_Main_Cli:
                 )
                 options.oformat_freq = ofile_freq_ext
         else:
-            options.ofile_freq = "result." + options.oformat_freq
+            options.ofile_freq = f"neosca_sca_results.{options.oformat_freq}"
 
         if options.selected_measures is not None:
             # Drop duplicates while retain order. Starting from Python 3.7, the
@@ -336,7 +336,7 @@ class Ns_Main_Cli:
         return True, None
 
     def parse_lca_args(self, options: argparse.Namespace) -> Ns_Procedure_Result:
-        self.odir_matched = "result_matches"
+        self.odir_matched = "neosca_lca_matches"
         if options.ofile_freq is not None:
             self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
             ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
@@ -351,7 +351,7 @@ class Ns_Main_Cli:
                 )
                 options.oformat_freq = ofile_freq_ext
         else:
-            options.ofile_freq = "result." + options.oformat_freq
+            options.ofile_freq = f"neosca_lca_results.{options.oformat_freq}"
 
         if options.text is not None:
             logging.debug(f"CLI text: {options.text}")

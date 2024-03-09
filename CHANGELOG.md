@@ -24,6 +24,7 @@
 ### Deprecated Features
 
 + `--no-querying`
++ `--expand`
 
 ### Bug fixes
 

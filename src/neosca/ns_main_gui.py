@@ -204,16 +204,16 @@ class Ns_Main_Gui(QMainWindow):
         self.add_file_paths(file_paths)
 
     def menu_file_open_file(self):
-        file_paths_to_add, _ = QFileDialog.getOpenFileNames(
+        file_paths, _ = QFileDialog.getOpenFileNames(
             parent=self,
             caption="Open Files",
             dir=Ns_Settings.value("Import/default-path"),
             filter=";;".join(available_import_types),
             selectedFilter=Ns_Settings.value("Import/default-type"),
         )
-        if not file_paths_to_add:
+        if not file_paths:
             return
-        self.add_file_paths(file_paths_to_add)
+        self.add_file_paths(file_paths)
 
     def menu_file_clear_cache(self):
         if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
@@ -482,7 +482,8 @@ class Ns_Main_Gui(QMainWindow):
             key=lambda tri: tri[0],
         )
         (rowno_retained, names_retained, paths_retained), *triples = rowno_name_path_triples
-        # name and path are both either str or list[str], does not check here and this should be manually guaranteed
+        # name and path are both either str or list[str], does not check here
+        # and this should be manually guaranteed
         if isinstance(names_retained, str):
             names_retained = [names_retained]
         if isinstance(paths_retained, str):

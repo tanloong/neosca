@@ -9,6 +9,7 @@ class TestSingleton(BaseTmpl):
     def test_singleton(self):
         class C(metaclass=QSingleton):
             pass
+
         c1 = C()
         c2 = C()
         self.assertEqual(id(c1), id(c2))

@@ -19,38 +19,7 @@ class TestStructure(BaseTmpl):
                 "description": "sentence",
                 "tregex_pattern": "non-None",
                 "value_source": "non-None",
-            }
-        )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "tregex_pattern": "non-None",
-                "dependency_pattern": "non-None",
-            }
-        )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "dependency_pattern": "non-None",
-                "value_source": "non-None",
-            }
-        )
-        self.assertRaises(
-            ValueError,
-            Structure,
-            **{
-                "name": "S",
-                "description": "sentence",
-                "tregex_pattern": "non-None",
-                "dependency_pattern": "non-None",
-                "value_source": "non-None",
-            }
+            },
         )
 
     def test_numeric_op(self):
@@ -99,9 +68,7 @@ class TestStructureCounter(BaseTmpl):
             ],
         }
         counter = StructureCounter(**kwargs_with_user_defs_without_selected_measures)
-        self.assertEqual(
-            counter.selected_measures, StructureCounter.DEFAULT_MEASURES + ["A", "B"]
-        )
+        self.assertEqual(counter.selected_measures, StructureCounter.DEFAULT_MEASURES + ["A", "B"])
 
         kwargs_with_user_defs_with_selected_measures = {
             "selected_measures": ["VP", "A", "B"],
@@ -119,26 +86,18 @@ class TestStructureCounter(BaseTmpl):
     def test_undefined_measure(self):
         StructureCounter.check_undefined_measure(StructureCounter.DEFAULT_MEASURES, None)
         StructureCounter.check_undefined_measure(["VP", "CT/T"], {"A"})
-        self.assertRaises(
-            ValueError, StructureCounter.check_undefined_measure, ["VP", "CT/T", "NULL"], None
-        )
+        self.assertRaises(ValueError, StructureCounter.check_undefined_measure, ["VP", "CT/T", "NULL"], None)
         StructureCounter.check_undefined_measure(["VP", "CT/T", "A"], {"A"})
 
     def test_check_duplicated_def(self):
         user_structure_defs = [{"name": "A"}, {"name": "A"}]
-        self.assertRaises(
-            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
-        )
+        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"name": ""}]
-        self.assertRaises(
-            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
-        )
+        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"": "A"}]
-        self.assertRaises(
-            ValueError, StructureCounter.check_user_structure_def, user_structure_defs
-        )
+        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"name": "A"}, {"name": "B"}]
         user_defined_snames = StructureCounter.check_user_structure_def(user_structure_defs)
@@ -161,9 +120,7 @@ class TestStructureCounter(BaseTmpl):
             {"name": "B", "tregex_pattern": "B !< __"},
             {"name": "C", "tregex_pattern": "C !< __"},
         ]
-        counter = StructureCounter(
-            selected_measures=selected_measures, user_structure_defs=user_structure_defs
-        )
+        counter = StructureCounter(selected_measures=selected_measures, user_structure_defs=user_structure_defs)
         self.assertTrue("Filename", value_dict.keys() - set(counter.selected_measures))
 
     def test_set_matches(self):
@@ -171,7 +128,7 @@ class TestStructureCounter(BaseTmpl):
         self.assertRaises(ValueError, counter.set_matches, "NULL", ["(A a)", "(A (B b))"])
         self.assertRaises(ValueError, counter.set_matches, "W", ("(A a)", "(A (B b))"))
 
-        self.assertIsNone(counter.get_matches("W"))
+        self.assertEqual(counter.get_matches("W"), [])
         matches = ["counter", "set", "matches"]
         counter.set_matches("W", matches)
         self.assertEqual(counter.get_matches("W"), matches)

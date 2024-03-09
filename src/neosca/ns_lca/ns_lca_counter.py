@@ -141,7 +141,7 @@ class Ns_LCA_Counter:
         filtered_lempos_tuples = tuple(
             filter(lambda lempos: not self.word_classifier.is_("misc", *lempos), lempos_tuples)
         )
-        self.count_table["word"] = tuple(zip(*filtered_lempos_tuples))[0]
+        self.count_table["word"] = list(next(zip(*filtered_lempos_tuples)))
 
         for lemma, pos in filtered_lempos_tuples:
             is_sophisticated = False

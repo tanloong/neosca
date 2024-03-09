@@ -279,6 +279,7 @@ class CN2(Abstract_Searcher):
     """
     SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]
     """
+
     @classmethod
     def conditionOneHelper(cls, t: Tree) -> Generator[Tree, None, None]:
         # Condition 1: SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S]

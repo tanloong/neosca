@@ -503,7 +503,7 @@ class IMMEDIATELY_PRECEDES(Relation):
         current: Optional["Tree"] = None
         parent_: Optional["Tree"] = t
         while True:
-            current = parent_ # type: ignore
+            current = parent_  # type: ignore
             parent_ = parent_.parent
             if parent_ is None:
                 return
@@ -555,7 +555,7 @@ class IMMEDIATELY_FOLLOWS(Relation):
         parent_: Optional["Tree"] = t
         while True:
             current = parent_
-            parent_ = parent_.parent # type: ignore
+            parent_ = parent_.parent  # type: ignore
             if parent_ is None:
                 return
             if parent_.firstChild() is not current:

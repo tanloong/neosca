@@ -5,11 +5,11 @@ import subprocess
 import sys
 from subprocess import CalledProcessError
 
-from neosca.ns_envar import STANFORD_TREGEX_HOME, getenv
+from neosca.ns_envar import STANFORD_TREGEX_HOME, get_dir_frm_env
 
 
 def tregex_cli():
-    stanford_tregex_home = getenv(STANFORD_TREGEX_HOME)
+    stanford_tregex_home = get_dir_frm_env(STANFORD_TREGEX_HOME)
     if stanford_tregex_home is None:
         print(
             f"Error: The environment variable {STANFORD_TREGEX_HOME} is not found or "

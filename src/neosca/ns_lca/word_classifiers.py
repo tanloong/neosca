@@ -62,7 +62,8 @@ class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
         # Don't have to filter auxiliary verbs, because the VERB tag covers
         # main verbs (content verbs) but it does not cover auxiliary verbs and
         # verbal copulas (in the narrow sense), for which there is the AUX tag.
-        #  https://universaldependencies.org/u/pos/VERB.html
+        # 
+        # https://universaldependencies.org/u/pos/VERB.html
         return pos == "VERB"
 
     def is_adj(self, lemma: str, pos: str) -> bool:

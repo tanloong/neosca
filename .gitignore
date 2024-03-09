@@ -9,7 +9,6 @@ dist/
 
 # data
 libs/
-tests/data/
 cache/
 
 # unit test / coverage report
@@ -34,7 +33,6 @@ note*
 test.py
 tmp
 examples/
-src/*.py
 src/*.txt
 tests/*.java
 src/neosca_gui/data/stanza_resources

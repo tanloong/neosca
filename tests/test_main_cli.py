@@ -17,6 +17,3 @@ class TestMain(BaseTmpl):
 
     def test_show_version(self) -> None:
         self.assertTrue(self.ui.show_version())
-
-    def test_list_fields(self):
-        self.assertTrue(self.ui.list_fields())

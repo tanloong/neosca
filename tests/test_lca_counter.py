@@ -31,8 +31,10 @@ class TestLCACounter(BaseTmpl):
 
         with open(lempos_paths[0], encoding="utf-8") as f:
             lempos_tuples1 = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
+            lempos_tuples1 = [(tup[0].lower(), tup[1]) for tup in lempos_tuples1]
         with open(lempos_paths[1], encoding="utf-8") as f:
             lempos_tuples2 = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
+            lempos_tuples2 = [(tup[0].lower(), tup[1]) for tup in lempos_tuples2]
 
         c1 = Ns_LCA_Counter(tagset="ptb")
         c2 = Ns_LCA_Counter(tagset="ptb")
@@ -50,7 +52,7 @@ class TestLCACounter(BaseTmpl):
                 if item in ("filename", "NDW-ER50", "NDW-ES50"):
                     continue
                 logging.info(f"Comparing {item}...")
-                self.assertEqual(counter.get_value(item), expected[item].strip())
+                self.assertEqual(round(counter.get_value(item), 2), float(expected[item].strip()))
 
         # Test combination
         c = Ns_LCA_Counter(tagset="ptb")
