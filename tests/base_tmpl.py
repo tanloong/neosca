@@ -27,15 +27,12 @@ class BaseTmpl(TestCase):
     def setUp(self):
         logging.info("=" * 60)
         logging.info(f"{self.id()} start")
-        self.stdout = io.StringIO()
-        self.stdout_orig, sys.stdout = sys.stdout, self.stdout
 
         self.testdir = os_path.dirname(os_path.abspath(__file__))
         self.testdir_data = os_path.join(self.testdir, "data", "")
         self.testdir_data_txt = os_path.join(self.testdir_data, "txt")
 
     def tearDown(self):
-        sys.stdout = self.stdout_orig
         logging.info(f"{self.id()} finish")
         gc.collect()
 
