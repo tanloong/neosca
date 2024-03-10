@@ -3,17 +3,17 @@
 import operator
 
 from neosca.ns_exceptions import StructureNotFoundError
-from neosca.ns_sca.structure_counter import Structure, StructureCounter
+from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter, Ns_SCA_Structure
 
 from .base_tmpl import BaseTmpl
 
 
 class TestStructure(BaseTmpl):
     def test_init(self):
-        self.assertRaises(ValueError, Structure, **{"name": "S", "description": "sentence"})
+        self.assertRaises(ValueError, Ns_SCA_Structure, **{"name": "S", "description": "sentence"})
         self.assertRaises(
             ValueError,
-            Structure,
+            Ns_SCA_Structure,
             **{
                 "name": "S",
                 "description": "sentence",
@@ -23,8 +23,8 @@ class TestStructure(BaseTmpl):
         )
 
     def test_numeric_op(self):
-        s1 = Structure("W")
-        s2 = Structure("W")
+        s1 = Ns_SCA_Structure("W")
+        s2 = Ns_SCA_Structure("W")
 
         s1.value = 20
         s2.value = 10
@@ -55,10 +55,10 @@ class TestStructure(BaseTmpl):
 class TestStructureCounter(BaseTmpl):
     def test_init(self):
         kwargs_duplicated_defs = {"user_structure_defs": [{"name": "A"}, {"name": "A"}]}
-        self.assertRaises(ValueError, StructureCounter, **kwargs_duplicated_defs)
+        self.assertRaises(ValueError, Ns_SCA_Counter, **kwargs_duplicated_defs)
 
         kwargs_undefined_measures = {"selected_measures": ["an_undefined_measure"]}
-        self.assertRaises(ValueError, StructureCounter, **kwargs_undefined_measures)
+        self.assertRaises(ValueError, Ns_SCA_Counter, **kwargs_undefined_measures)
 
         kwargs_with_user_defs_without_selected_measures = {
             "ifile": "",
@@ -67,8 +67,8 @@ class TestStructureCounter(BaseTmpl):
                 {"name": "B", "tregex_pattern": "B !< __"},
             ],
         }
-        counter = StructureCounter(**kwargs_with_user_defs_without_selected_measures)
-        self.assertEqual(counter.selected_measures, StructureCounter.DEFAULT_MEASURES + ["A", "B"])
+        counter = Ns_SCA_Counter(**kwargs_with_user_defs_without_selected_measures)
+        self.assertEqual(counter.selected_measures, Ns_SCA_Counter.DEFAULT_MEASURES + ["A", "B"])
 
         kwargs_with_user_defs_with_selected_measures = {
             "selected_measures": ["VP", "A", "B"],
@@ -77,40 +77,40 @@ class TestStructureCounter(BaseTmpl):
                 {"name": "B", "tregex_pattern": "B !< __"},
             ],
         }
-        counter = StructureCounter(**kwargs_with_user_defs_with_selected_measures)
+        counter = Ns_SCA_Counter(**kwargs_with_user_defs_with_selected_measures)
         self.assertEqual(
             counter.selected_measures,
             kwargs_with_user_defs_with_selected_measures["selected_measures"],
         )
 
     def test_undefined_measure(self):
-        StructureCounter.check_undefined_measure(StructureCounter.DEFAULT_MEASURES, None)
-        StructureCounter.check_undefined_measure(["VP", "CT/T"], {"A"})
-        self.assertRaises(ValueError, StructureCounter.check_undefined_measure, ["VP", "CT/T", "NULL"], None)
-        StructureCounter.check_undefined_measure(["VP", "CT/T", "A"], {"A"})
+        Ns_SCA_Counter.check_undefined_measure(Ns_SCA_Counter.DEFAULT_MEASURES, None)
+        Ns_SCA_Counter.check_undefined_measure(["VP", "CT/T"], {"A"})
+        self.assertRaises(ValueError, Ns_SCA_Counter.check_undefined_measure, ["VP", "CT/T", "NULL"], None)
+        Ns_SCA_Counter.check_undefined_measure(["VP", "CT/T", "A"], {"A"})
 
     def test_check_duplicated_def(self):
         user_structure_defs = [{"name": "A"}, {"name": "A"}]
-        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
+        self.assertRaises(ValueError, Ns_SCA_Counter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"name": ""}]
-        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
+        self.assertRaises(ValueError, Ns_SCA_Counter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"": "A"}]
-        self.assertRaises(ValueError, StructureCounter.check_user_structure_def, user_structure_defs)
+        self.assertRaises(ValueError, Ns_SCA_Counter.check_user_structure_def, user_structure_defs)
 
         user_structure_defs = [{"name": "A"}, {"name": "B"}]
-        user_defined_snames = StructureCounter.check_user_structure_def(user_structure_defs)
+        user_defined_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
         self.assertEqual(user_defined_snames, {"A", "B"})
 
     def test_get_structure(self):
-        counter = StructureCounter()
-        for sname in StructureCounter.DEFAULT_MEASURES:
+        counter = Ns_SCA_Counter()
+        for sname in Ns_SCA_Counter.DEFAULT_MEASURES:
             counter.get_structure(sname)
         self.assertRaises(StructureNotFoundError, counter.get_structure, "NULL")
 
     def test_get_all_values(self):
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         value_dict = counter.get_all_values()
         self.assertTrue("Filename", value_dict.keys() - set(counter.selected_measures))
 
@@ -120,11 +120,11 @@ class TestStructureCounter(BaseTmpl):
             {"name": "B", "tregex_pattern": "B !< __"},
             {"name": "C", "tregex_pattern": "C !< __"},
         ]
-        counter = StructureCounter(selected_measures=selected_measures, user_structure_defs=user_structure_defs)
+        counter = Ns_SCA_Counter(selected_measures=selected_measures, user_structure_defs=user_structure_defs)
         self.assertTrue("Filename", value_dict.keys() - set(counter.selected_measures))
 
     def test_set_matches(self):
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         self.assertRaises(ValueError, counter.set_matches, "NULL", ["(A a)", "(A (B b))"])
         self.assertRaises(ValueError, counter.set_matches, "W", ("(A a)", "(A (B b))"))
 
@@ -134,11 +134,11 @@ class TestStructureCounter(BaseTmpl):
         self.assertEqual(counter.get_matches("W"), matches)
 
     def test_get_matches(self):
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         self.assertRaises(StructureNotFoundError, counter.get_matches, "NULL")
 
     def test_get_value(self):
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         self.assertRaises(StructureNotFoundError, counter.get_value, "NULL")
 
         self.assertIsNone(counter.get_value("T"))
@@ -146,7 +146,7 @@ class TestStructureCounter(BaseTmpl):
         self.assertEqual(counter.get_value("T"), 300)
 
     def test_set_value(self):
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         self.assertRaises(ValueError, counter.set_value, "NULL", 97)
         self.assertRaises(ValueError, counter.set_value, "C", "97")
 
@@ -159,8 +159,8 @@ class TestStructureCounter(BaseTmpl):
     def test_add(self):
         selected_measures1 = ["VP", "T", "DC/C"]
         selected_measures2 = ["CP", "VP/T", "CN/C"]
-        counter1 = StructureCounter(selected_measures=selected_measures1)
-        counter2 = StructureCounter(selected_measures=selected_measures2)
+        counter1 = Ns_SCA_Counter(selected_measures=selected_measures1)
+        counter2 = Ns_SCA_Counter(selected_measures=selected_measures2)
 
         for s_name, value in (
             ("VP1", 5),

@@ -32,7 +32,7 @@ from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_platform_info import IS_MAC
 from neosca.ns_qss import Ns_QSS
-from neosca.ns_sca.structure_counter import StructureCounter
+from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
 from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
@@ -284,7 +284,7 @@ class Ns_Main_Gui(QMainWindow):
         self.button_pdb = QPushButton("Run Pdb")
         self.button_pdb.clicked.connect(self.run_pdb)
 
-        self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *StructureCounter.DEFAULT_MEASURES))
+        self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_SCA_Counter.DEFAULT_MEASURES))
         proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
         self.tableview_sca = Ns_TableView(self, model=proxy_model_sca)
         self.tableview_sca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
@@ -341,7 +341,7 @@ class Ns_Main_Gui(QMainWindow):
         # import gc
         # import time
         #
-        # from neosca.ns_sca.structure_counter import Structure, StructureCounter
+        # from neosca.ns_sca.ns_sca_counter import Structure, StructureCounter
         # counters =[]
         # ss = []
         # for o in gc.get_objects():

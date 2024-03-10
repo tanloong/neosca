@@ -21,7 +21,7 @@ from neosca.ns_tregex.tree import Tree
 from neosca.ns_utils import safe_div
 
 
-class Structure:
+class Ns_SCA_Structure:
     def __init__(
         self,
         name: str,
@@ -133,11 +133,11 @@ class Structure:
         raise NotImplementedError
 
 
-class StructureCounter:
+class Ns_SCA_Counter:
     BUILTIN_DATA = Ns_IO.load_json(DATA_DIR / "l2sca_structures.json")
-    BUILTIN_STRUCTURE_DEFS: Dict[str, Structure] = {}
+    BUILTIN_STRUCTURE_DEFS: Dict[str, Ns_SCA_Structure] = {}
     for kwargs in BUILTIN_DATA["structures"]:
-        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Structure(**kwargs)
+        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
 
     DEFAULT_MEASURES: List[str] = [
         "W",
@@ -190,25 +190,25 @@ class StructureCounter:
     ) -> None:
         self.ifile = ifile
 
-        user_sname_structure_map: Dict[str, Structure] = {}
+        user_sname_structure_map: Dict[str, Ns_SCA_Structure] = {}
         user_snames: Optional[Set[str]] = None
 
         if user_structure_defs is not None:
-            user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
+            user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
             logging.debug(f"User definded snames: {user_snames}")
 
             for kwargs in user_structure_defs:
-                user_sname_structure_map[kwargs["name"]] = Structure(**kwargs)
+                user_sname_structure_map[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
 
-        self.sname_structure_map: Dict[str, Structure] = deepcopy(StructureCounter.BUILTIN_STRUCTURE_DEFS)
+        self.sname_structure_map: Dict[str, Ns_SCA_Structure] = deepcopy(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS)
         self.sname_structure_map.update(user_sname_structure_map)
 
-        default_measures = StructureCounter.DEFAULT_MEASURES + [
-            sname for sname in user_sname_structure_map if sname not in StructureCounter.DEFAULT_MEASURES
+        default_measures = Ns_SCA_Counter.DEFAULT_MEASURES + [
+            sname for sname in user_sname_structure_map if sname not in Ns_SCA_Counter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
-            StructureCounter.check_undefined_measure(selected_measures, user_snames)
+            Ns_SCA_Counter.check_undefined_measure(selected_measures, user_snames)
         self.selected_measures: List[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
@@ -244,16 +244,16 @@ class StructureCounter:
     ) -> None:
         # check undefined selected_measure
         if user_defined_snames is not None:
-            all_measures = StructureCounter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
+            all_measures = Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
-            all_measures = set(StructureCounter.BUILTIN_STRUCTURE_DEFS.keys())
+            all_measures = set(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys())
         logging.debug(f"All measures: {all_measures}")
 
         for m in selected_measures:
             if m not in all_measures:
                 raise ValueError(f"{m} has not been defined.")
 
-    def get_structure(self, structure_name: str) -> Structure:
+    def get_structure(self, structure_name: str) -> Ns_SCA_Structure:
         try:
             structure = self.sname_structure_map[structure_name]
         except KeyError:
@@ -455,11 +455,11 @@ class StructureCounter:
             else:
                 sys.stdout.write(f"{matches_id}\n{meta_data}\n\n{res}\n")
 
-    def __add__(self, other: "StructureCounter") -> "StructureCounter":
+    def __add__(self, other: "Ns_SCA_Counter") -> "Ns_SCA_Counter":
         logging.debug("Combining counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
-        new = StructureCounter(new_ifile, selected_measures=new_selected_measures)
+        new = Ns_SCA_Counter(new_ifile, selected_measures=new_selected_measures)
         for sname, structure in new.sname_structure_map.items():
             # Structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern

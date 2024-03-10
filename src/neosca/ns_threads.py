@@ -8,7 +8,7 @@ from PySide6.QtGui import Qt
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_sca.ns_sca import Ns_SCA
-from neosca.ns_sca.structure_counter import StructureCounter
+from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
 
@@ -48,7 +48,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
             # TODO: add handling --no-parse, --no-query, ...
-            counter: Optional[StructureCounter] = sca_instance.run_on_file_or_subfiles(file_path)
+            counter: Optional[Ns_SCA_Counter] = sca_instance.run_on_file_or_subfiles(file_path)
             assert counter is not None
 
             if has_trailing_rows:

@@ -7,7 +7,7 @@ import sys
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_sca.structure_counter import StructureCounter
+from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
 from neosca.ns_utils import Ns_Procedure_Result
 
 
@@ -43,9 +43,9 @@ class Ns_SCA:
         logging.debug(f"User defined snames: {self.user_snames}")
 
         if selected_measures is not None:
-            StructureCounter.check_undefined_measure(selected_measures, self.user_snames)
+            Ns_SCA_Counter.check_undefined_measure(selected_measures, self.user_snames)
 
-        self.counters: List[StructureCounter] = []
+        self.counters: List[Ns_SCA_Counter] = []
 
     # }}}
     def load_user_config(self, config: Optional[str]) -> Tuple[dict, List[dict], Optional[Set[str]]]:  # {{{
@@ -56,7 +56,7 @@ class Ns_SCA:
         if config is not None:
             user_data = Ns_IO.load_json(config)
             user_structure_defs = user_data["structures"]
-            user_snames = StructureCounter.check_user_structure_def(user_structure_defs)
+            user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
 
         return user_data, user_structure_defs, user_snames
 
@@ -109,7 +109,7 @@ class Ns_SCA:
             self.counters.clear()
 
         forest: str = self.get_forest_frm_text(text)
-        counter = StructureCounter(
+        counter = Ns_SCA_Counter(
             file_path,
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
@@ -125,12 +125,12 @@ class Ns_SCA:
     # }}}
     def run_on_file_or_subfiles(  # {{{
         self, file_or_subfiles: Union[str, List[str]]
-    ) -> StructureCounter:
+    ) -> Ns_SCA_Counter:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
             # Parse
             forest = self.get_forest_frm_file(file_path)
-            counter = StructureCounter(
+            counter = Ns_SCA_Counter(
                 file_path,
                 selected_measures=self.selected_measures,
                 user_structure_defs=self.user_structure_defs,
@@ -140,7 +140,7 @@ class Ns_SCA:
         elif isinstance(file_or_subfiles, list):
             subfiles = file_or_subfiles
             total = len(subfiles)
-            counter = StructureCounter(
+            counter = Ns_SCA_Counter(
                 selected_measures=self.selected_measures,
                 user_structure_defs=self.user_structure_defs,
             )
@@ -209,7 +209,7 @@ class Ns_SCA:
 
     @classmethod
     def list_fields(cls) -> Ns_Procedure_Result:
-        counter = StructureCounter()
+        counter = Ns_SCA_Counter()
         for s_name in counter.selected_measures:
             print(f"{s_name}: {counter.get_structure(s_name).description}")
         return True, None
