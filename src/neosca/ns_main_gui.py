@@ -73,7 +73,7 @@ class Ns_Main_Gui(QMainWindow):
         self.setup_menu()
         self.setup_worker()
         self.setup_main_window()
-        self.restore_splitters()
+        self.restore_splitters(use_default=False)
         self.setup_tray()
 
         self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
@@ -83,20 +83,20 @@ class Ns_Main_Gui(QMainWindow):
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L421C3-L433C24
     def setup_tray(self) -> None:
-        menu_tray = QMenu(self)
+        self.menu_tray = QMenu(self)
 
-        action_toggle = menu_tray.addAction("Minimize to Tray")
-        action_toggle.triggered.connect(self.toggle_window)
-        menu_tray.aboutToShow.connect(
-            lambda: action_toggle.setText("Minimize to Tray" if self.isVisible() else f"Show {__title__}")
+        self.action_toggle = self.menu_tray.addAction("Minimize to Tray")
+        self.action_toggle.triggered.connect(self.toggle_window)
+        self.menu_tray.aboutToShow.connect(
+            lambda: self.action_toggle.setText("Minimize to Tray" if self.isVisible() else f"Show {__title__}")
         )
-        menu_tray.addSeparator()
+        self.menu_tray.addSeparator()
 
-        action_quit = menu_tray.addAction("Quit")
-        action_quit.triggered.connect(self.close)
+        self.action_quit = self.menu_tray.addAction("Quit")
+        self.action_quit.triggered.connect(self.close)
 
         self.trayicon = QSystemTrayIcon(QIcon(str(ICON_PATH)), self)
-        self.trayicon.setContextMenu(menu_tray)
+        self.trayicon.setContextMenu(self.menu_tray)
         self.trayicon.show()
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L447
@@ -411,7 +411,7 @@ class Ns_Main_Gui(QMainWindow):
             self.button_export_matches_lca.setEnabled(True)
         self.button_clear_table_lca.setEnabled(True)
 
-    def _restore_splitters(self, use_default: bool) -> None:
+    def restore_splitters(self, use_default: bool) -> None:
         for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
             if not use_default and Ns_Settings.contains(key):
@@ -424,11 +424,8 @@ class Ns_Main_Gui(QMainWindow):
                 section_size = Ns_Settings.value(f"default-{key}", type=int)
                 splitter.setSizes((total_size - section_size, section_size))
 
-    def restore_splitters(self) -> None:
-        self._restore_splitters(use_default=False)
-
     def menu_prefs_reset_layout(self) -> None:
-        self._restore_splitters(use_default=True)
+        self.restore_splitters(use_default=True)
         self.statusBar().showMessage("Layout reset")
 
     def enable_button_generate_table(self, enabled: bool) -> None:

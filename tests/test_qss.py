@@ -2,7 +2,7 @@
 
 from neosca import QSS_PATH
 from neosca.ns_qss import Ns_QSS
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QWidget
 
 from .base_tmpl import BaseTmpl
 
@@ -97,7 +97,6 @@ class TestQSS(BaseTmpl):
         self.assertEqual(Ns_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
 
     def test_set_value(self):
-        _ = QApplication()
         w = QWidget()
         qss = Ns_QSS.read_qss_file(QSS_PATH)
         w.setStyleSheet(qss)
