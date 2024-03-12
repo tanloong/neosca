@@ -5,5 +5,5 @@ pause >nul
 mklink /d C:\Users\tanlo\Desktop\neosca\src\neosca\ns_data\stanza_resources Z:\stanza_resources
 cd C:\Users\tanlo\Desktop\neosca\
 call %WORKON_HOME%\neosca\Scripts\activate
-pyinstaller .\utils\neosca.spec -y --clean
+pyinstaller .\utils\ns_packaging.spec -y --clean
 pause
