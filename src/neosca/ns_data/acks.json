@@ -1,5 +1,5 @@
 {
-    "acknowledgment": "NeoSCA is greatly indebted to the open source projects listed in the table below without which it could never have been possible. <br> <br> As the project is a fork of <a href='https://sites.psu.edu/xxl13/l2sca/'>L2SCA</a> and <a href='https://sites.psu.edu/xxl13/lca/'>LCA</a>, I want to express my sincere gratitude to the original author <a href='https://sites.psu.edu/xxl13/'>Xiaofei Lu (陆小飞)</a> for his expertise and efforts, and I am grateful for the opportunity to build upon his work. <br> <br> NeoSCA's GUI component is heavily inspired by <a href='https://github.com/BLKSerene/Wordless'>Wordless</a>. Massive thanks to <a href='https://github.com/BLKSerene'>Ye Lei (叶磊)</a> for the project to which I can refer for implementation details.",
+    "acknowledgment": "NeoSCA is greatly indebted to the open source projects listed in the table below without which it could never have been possible. <br> <br> As the project is a fork of <a href='https://sites.psu.edu/xxl13/l2sca/'>L2SCA</a> and <a href='https://sites.psu.edu/xxl13/lca/'>LCA</a>, I want to express my sincere gratitude to the original author <a href='https://sites.psu.edu/xxl13/'>Xiaofei Lu (陆小飞)</a> for his expertise and efforts, and I am grateful for the opportunity to build upon his work. <br> <br> NeoSCA's GUI component is heavily inspired by <a href='https://github.com/BLKSerene/Wordless'>Wordless</a>. Massive thanks to <a href='https://github.com/BLKSerene'>Ye Lei (叶磊)</a> for the project which I can refer to for implementation details.",
     "projects": [
         {
             "name": "L2SCA",
@@ -52,7 +52,7 @@
         {
             "name": "Stanza",
             "homepage": "https://github.com/stanfordnlp/stanza",
-            "version": "1.7.0",
+            "version": "1.8.1",
             "authors": "Peng Qi (齐鹏), Yuhao Zhang (张宇浩),<br>Yuhui Zhang (张钰晖), Jason Bolton,<br>Tim Dozat, John Bauer",
             "license": "Apache-2.0",
             "license_file": "https://github.com/stanfordnlp/stanza/blob/main/LICENSE"
