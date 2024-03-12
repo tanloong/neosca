@@ -27,7 +27,6 @@ from PySide6.QtWidgets import (
 
 from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
-from neosca.ns_buttons import Ns_PushButton
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_platform_info import IS_MAC
@@ -37,6 +36,7 @@ from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
+from neosca.ns_widgets.ns_buttons import Ns_PushButton
 from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_Matches
 from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_About,
