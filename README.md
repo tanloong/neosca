@@ -11,42 +11,23 @@
 [![downloads](https://static.pepy.tech/badge/neosca)](https://pepy.tech/project/neosca)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE)
 
-[简体中文](https://github.com/tanloong/neosca/blob/master/README_zh_cn.md)|
-[繁體中文](https://github.com/tanloong/neosca/blob/master/README_zh_tw.md)|
-English
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/), featuring cross-platform compatibility and a graphical interface.
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/) (LCA), with the cross-platform compatibility and a graphical interface.
+Starting from version 0.1.0, NeoSCA no longer requires Java installation. It has translated a portion of the Tregex code into Python and now favors Stanza over Stanford Parser.
 
 ## Download
 
-### Get binary builds
+### Download binary builds
 
-1. [Github Releases]()
-2. [Baidu Netdisk]()
+[Github Releases](https://github.com/tanloong/neosca/releases/tag/0.1.0)
 
-### From PyPI
+### Download from PyPI
+
+It is recommended to set up a virtual environment before proceeding with the installation.
 
 ```
 pip3 install neosca
-python3 -m neosca --gui
-```
-
-### Run from source
-
-```
-git clone https://github.com/tanloong/neosca
-cd neosca
-pip3 install -r ./requirements.txt
-cd src
-python3 -m neosca --gui
-```
-
-### Building
-
-```
-git clone https://github.com/tanloong/neosca
-cd neosca
-pyinstaller ./utils/ns_packaging.spec
+python3 -m neosca gui
 ```
 
 ## Citing
@@ -176,10 +157,6 @@ MLA (9th edition)
 <pre>Lu, Xiaofei. "The Relationship of Lexical Richness to the Quality of ESL Learners' Oral Narratives." <i>The Modern Language Journal</i>, vol. 96, no. 2, Wiley-Blackwell, 2012, pp. 190-208.</pre>
 
 </details>
-
-## License
-
-Distributed under the terms of the [GNU General Public License version 3](https://github.com/tanloong/neosca/blob/master/LICENSE) or later.
 
 ## Contact
 

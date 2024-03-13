@@ -1,11 +1,9 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.1.0](https://github.com/tanloong/neosca/releases/tag/0.1.0) (XXX)
+## [0.1.0](https://github.com/tanloong/neosca/releases/tag/0.1.0) (13 March 2024)
 
 ### Breaking Changes
 
-+ Remove `--max-length`
-+ Remove `--config`
 + Rename `--reserve-matched` to `--save-matches`
 + Rename `--reserve-parsed` to `--cache`
 
@@ -19,12 +17,14 @@
 
 ### New Features
 
-+ Add graphical user interface (`nsca --gui`). NeoSCA borrows tons of code and design ideas to its GUI component from [Wordless](https://github.com/BLKSerene/Wordless).
++ Add GUI (`nsca gui`). NeoSCA borrows tons of code and design ideas to its GUI component from [Wordless](https://github.com/BLKSerene/Wordless).
 
 ### Deprecated Features
 
 + `--no-querying`
 + `--expand`
++ `--max-length`
++ `--config`
 
 ### Bug fixes
 

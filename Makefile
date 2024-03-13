@@ -15,6 +15,7 @@ clean:
 	rm -rf src/neosca.egg-info
 
 install:
+	# avoid rm
 	echo > src/neosca/ns_data/settings.ini
 	pip install .
 
