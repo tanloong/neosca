@@ -21,7 +21,7 @@ install:
 
 lint:
 	ruff format src/ tests/
-	ruff check src/ tests/
+	ruff check src/ tests/ --fix
 	mypy --check-untyped-defs src/
 
 test:

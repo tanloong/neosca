@@ -3,7 +3,6 @@ from unittest import mock
 from neosca.ns_main_cli import Ns_Main_Cli
 
 from .base_tmpl import BaseTmpl
-from .cmdline_tmpl import text as cmdline_text
 
 
 class TestMain(BaseTmpl):

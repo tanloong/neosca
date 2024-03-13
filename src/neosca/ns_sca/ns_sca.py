@@ -72,9 +72,8 @@ class Ns_SCA:
 
     # }}}
     def get_forest_frm_file(self, file_path: str) -> str:  # {{{
-        from stanza import Document
-
         from neosca.ns_nlp import Ns_NLP_Stanza
+        from stanza import Document
 
         if self.is_skip_parsing:
             # Assume input as parse trees, e.g., (ROOT (S (NP) (VP)))
@@ -180,7 +179,6 @@ class Ns_SCA:
 
         if len(self.counters) == 0:
             raise ValueError("empty counter list")
-
 
         sname_value_maps: List[Dict[str, str]] = [
             counter.get_all_values(self.precision) for counter in self.counters

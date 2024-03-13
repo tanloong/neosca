@@ -1,8 +1,6 @@
 import gc
-import io
 import logging
 import os.path as os_path
-import sys
 import time
 from unittest import TestCase
 

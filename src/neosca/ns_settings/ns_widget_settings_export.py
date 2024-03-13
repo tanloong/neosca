@@ -5,7 +5,6 @@ import os.path as os_path
 
 from PySide6.QtWidgets import (
     QComboBox,
-    QFormLayout,
     QGridLayout,
     QGroupBox,
     QLabel,
