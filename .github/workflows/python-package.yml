@@ -33,6 +33,7 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m utils.ns_download_models
         export SHELL=bash
       shell: bash
     - name: Install dependencies on Windows
@@ -41,6 +42,7 @@ jobs:
         python -m pip install --upgrade pip
         if (Test-Path -Path '.\requirements-dev.txt' -PathType Leaf) {pip install --upgrade -r requirements-dev.txt}
         if (Test-Path -Path '.\requirements.txt' -PathType Leaf) {pip install --upgrade -r requirements.txt}
+        python -m utils.ns_download_models
       shell: pwsh
     - name: Build dist and test with unittest on macOS and Linux
       if: matrix.os != 'windows-latest'
