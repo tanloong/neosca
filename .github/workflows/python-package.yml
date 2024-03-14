@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-        os: [ubuntu-latest, macos-latest, macos-14, windows-latest]
+        os: [macos-latest, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -35,6 +35,11 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m utils.ns_download_models
         export SHELL=bash
+      shell: bash
+    - name: Install missing libs on Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install --reinstall libegl1 libxcb-cursor0
       shell: bash
     - name: Install dependencies on Windows
       if: matrix.os == 'windows-latest'
