@@ -4,7 +4,7 @@ from PySide6.QtCore import QObject
 
 
 # https://github.com/jazzycamel/PyQt5Singleton/issues/1#issuecomment-1429485569
-class QSingleton(type(QObject)):
+class QSingleton(type(QObject)):  # type: ignore
     """
     Usage:
         class Foo(QObject, metaclass=QSingleton):

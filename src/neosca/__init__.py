@@ -11,7 +11,7 @@ attr = "_MEIPASS"
 if hasattr(sys, attr):
     NEOSCA_DIR: Path = Path(getattr(sys, attr)).absolute()
 else:
-    NEOSCA_DIR: Path = PKG_DIR.parent.parent
+    NEOSCA_DIR = PKG_DIR.parent.parent
 
 DATA_DIR: Path = PKG_DIR / "ns_data"
 QSS_PATH: Path = DATA_DIR / "styles.qss"

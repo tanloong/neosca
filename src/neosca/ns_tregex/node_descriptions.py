@@ -36,7 +36,7 @@ class Node_Descriptions:
         self.is_negated = is_negated
         self.use_basic_cat = use_basic_cat
 
-        self.name = None
+        self.name: Optional[str] = None
         self.strins_repr = "".join(desc.value for desc in self.descriptions)
 
     def __iter__(self) -> Iterator[Node_Description]:

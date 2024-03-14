@@ -32,7 +32,7 @@ class Ns_IO_Meta(type):
 class Ns_IO(metaclass=Ns_IO_Meta):
     # Type checker does not detect definition in Ns_IO_Meta, so declare here to
     # silence the "access unknown member warning"
-    SUPPORTED_EXTENSIONS = tuple()
+    SUPPORTED_EXTENSIONS: Tuple[str, ...] = tuple()
 
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"

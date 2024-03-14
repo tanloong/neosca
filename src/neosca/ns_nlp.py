@@ -25,7 +25,7 @@ class Ns_NLP_Stanza:
             model_dir = str(STANZA_MODEL_DIR)
 
         logging.debug("Loading Stanza processors...")
-        cls.pipeline = stanza.Pipeline(
+        cls.pipeline = stanza.Pipeline(  # type: ignore
             lang=lang,
             dir=model_dir,
             processors=cls.processors,
@@ -39,13 +39,15 @@ class Ns_NLP_Stanza:
     def _nlp(cls, doc, processors: Optional[Sequence[str]] = None) -> Document:
         assert isinstance(doc, (str, Document))
 
-        if not hasattr(cls, "pipeline"):
+        attr = "pipeline"
+        if not hasattr(cls, attr):
             cls.initialize()
+        assert hasattr(cls, attr)
 
         if processors is None:
             processors = cls.processors
 
-        doc = cls.pipeline(doc, processors=processors)
+        doc = cls.pipeline(doc, processors=processors)  # type: ignore
         doc.processors = set(processors)
         return doc
 

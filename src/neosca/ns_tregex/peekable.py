@@ -54,7 +54,7 @@ class peekable:
 
     def __init__(self, iterable):
         self._it = iter(iterable)
-        self._cache = deque()
+        self._cache: deque = deque()
 
     def __iter__(self):
         return self

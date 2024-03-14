@@ -51,7 +51,7 @@ from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItem
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
 
 
-class Ns_Dialog_Meta(type(QDialog)):
+class Ns_Dialog_Meta(type(QDialog)):  # type: ignore
     def __call__(self, *args, **kwargs):
         obj = super().__call__(*args, **kwargs)
         # Set size after initialization, be it the Ns_Dialog itself or its subclasses

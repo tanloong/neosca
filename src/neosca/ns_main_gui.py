@@ -185,7 +185,7 @@ class Ns_Main_Gui(QMainWindow):
         if not folder_path:
             return
 
-        file_paths = []
+        file_paths: List[str] = []
 
         if Ns_Settings.value("Import/include-files-in-subfolders", type=bool):
             file_paths.extend(
@@ -651,7 +651,7 @@ class Ns_Main_Gui(QMainWindow):
         self.tabwidget = QTabWidget()
         self.tabwidget.addTab(self.widget_previewarea_sca, "Syntactic Complexity Analyzer")
         self.tabwidget.addTab(self.widget_previewarea_lca, "Lexical Complexity Analyzer")
-        self.splitter_central_widget = QSplitter(Qt.Orientation.Vertical)
+        self.splitter_central_widget: QSplitter = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
         self.splitter_central_widget.addWidget(self.tableview_file)

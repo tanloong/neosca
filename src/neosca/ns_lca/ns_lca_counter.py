@@ -102,7 +102,7 @@ class Ns_LCA_Counter:
         """NDW expected random 'section_size' words, 10 trials by default"""
         if len(lemma_sequence) < section_size:
             return len(set(lemma_sequence))
-        ndw_erz = 0
+        ndw_erz: int = 0
         for _ in range(trials):
             erz_lemma_lst = random.sample(lemma_sequence, section_size)
 
@@ -115,7 +115,7 @@ class Ns_LCA_Counter:
         """NDW expected random sequences of 'section_size' words, 10 trials by default"""
         if len(lemma_sequence) < section_size:
             return len(set(lemma_sequence))
-        ndw_esz = 0
+        ndw_esz: int = 0
         for _ in range(trials):
             start_word = random.randint(0, len(lemma_sequence) - section_size)
             esz_lemma_lst = lemma_sequence[start_word : start_word + section_size]
@@ -129,8 +129,8 @@ class Ns_LCA_Counter:
         """
         Mean Segmental TTR
         """
-        sample_no = 0
-        msttr = 0
+        sample_no: int = 0
+        msttr: Union[int, float] = 0
         for chunk in chunks(lemma_sequence, section_size):
             if len(chunk) == section_size:
                 sample_no += 1

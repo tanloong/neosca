@@ -90,33 +90,33 @@ class Ns_QSS:
         The returned dict will always has a trailing ";" across its values
         """
         # selector_declaration_mapping = {}
-        sel_dec_mapping = {}
-        cur_selector = None
-        cur_property = None
+        sel_dec_mapping: QSSMapping = {}
+        curr_selector = None
+        curr_property = None
         qss_str = qss_str.replace("{", " { ").replace("}", " } ")
         token_gen = iter(qss_str.split())
         while (token := next(token_gen, None)) is not None:
             if token == "{":  # }
                 pass
             elif token == "}":
-                cur_selector = None
+                curr_selector = None
             elif token.endswith(":"):
-                cur_property = token.rstrip(":")
-            elif cur_property is not None:
-                if cur_selector is None:
-                    value_prev = sel_dec_mapping.get(cur_property, "")
-                    value = f"{value_prev} {token}" if not value_prev.endswith(";") else token
-                    sel_dec_mapping[cur_property] = value.lstrip()
+                curr_property = token.rstrip(":")
+            elif curr_property is not None:
+                if curr_selector is None:
+                    value_prev = sel_dec_mapping.get(curr_property, "")
+                    value = f"{value_prev} {token}" if not value_prev.endswith(";") else token  # type: ignore
+                    sel_dec_mapping[curr_property] = value.lstrip()
                 else:
-                    if cur_selector not in sel_dec_mapping:
-                        sel_dec_mapping[cur_selector] = {}
-                    value_prev = sel_dec_mapping[cur_selector].get(cur_property, "")
+                    if curr_selector not in sel_dec_mapping:
+                        sel_dec_mapping[curr_selector] = {}
+                    value_prev = sel_dec_mapping[curr_selector].get(curr_property, "")  # type: ignore
                     value = f"{value_prev} {token}" if not value_prev.endswith(";") else token
-                    sel_dec_mapping[cur_selector][cur_property] = value.lstrip()
+                    sel_dec_mapping[curr_selector][curr_property] = value.lstrip()  # type: ignore
                 if token.endswith(";"):
-                    cur_property = None
+                    curr_property = None
             else:
-                cur_selector = f"{cur_selector} {token}" if cur_selector is not None else token
+                curr_selector = f"{curr_selector} {token}" if curr_selector is not None else token
         return sel_dec_mapping
 
     @classmethod

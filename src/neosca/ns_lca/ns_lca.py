@@ -73,7 +73,7 @@ class Ns_LCA:
         text = Ns_IO.load_file(file_path)
 
         if not self.is_cache:
-            cache_path = None
+            cache_path: Optional[str] = None  # type: ignore
 
         try:
             return self.get_lempos_frm_text(text)

@@ -90,7 +90,7 @@ class Ns_SCA:
         text = Ns_IO.load_file(file_path)
 
         if not self.is_cache:
-            cache_path = None
+            cache_path = None  # type: ignore
 
         try:
             forest = self.get_forest_frm_text(text, cache_path)
