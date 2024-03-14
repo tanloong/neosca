@@ -29,35 +29,43 @@ class TestLCACounter(BaseTmpl):
         lempos_paths = glob.glob(f"{self.testdir_data_lempos}/*.lempos")
         assert len(lempos_paths) == 2
 
-        with open(lempos_paths[0], encoding="utf-8") as f:
-            lempos_tuples1 = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
-            lempos_tuples1 = [(tup[0].lower(), tup[1]) for tup in lempos_tuples1]
-        with open(lempos_paths[1], encoding="utf-8") as f:
-            lempos_tuples2 = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
-            lempos_tuples2 = [(tup[0].lower(), tup[1]) for tup in lempos_tuples2]
-
-        c1 = Ns_LCA_Counter(tagset="ptb")
-        c2 = Ns_LCA_Counter(tagset="ptb")
-
-        c1.determine_all_values(lempos_tuples1)  # type: ignore
-        c2.determine_all_values(lempos_tuples2)  # type: ignore
+        counters = []
+        lempos_tuples_list = []
+        for lempos_path in lempos_paths:
+            with open(lempos_path, encoding="utf-8") as f:
+                lempos_tuples = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
+                lempos_tuples = [(tup[0].lower(), tup[1]) for tup in lempos_tuples]
+                c = Ns_LCA_Counter(file_path=lempos_path, tagset="ptb")
+                c.determine_all_values(lempos_tuples)  # type: ignore
+                counters.append(c)
+                lempos_tuples_list.append(lempos_tuples)
 
         with open(os_path.join(self.testdir_data_lempos, "lca_results.csv")) as f:
             csv_reader = csv.DictReader(f)
             expected_results: List[dict] = [row for row in csv_reader]
+        assert len(expected_results) == len(counters)
 
         # Compare results with original LCA implementation
-        for counter, expected in zip((c1, c2), expected_results):
-            for item in expected:
-                if item in ("filename", "NDW-ER50", "NDW-ES50"):
-                    continue
-                logging.info(f"Comparing {item}...")
-                self.assertEqual(round(counter.get_value(item), 2), float(expected[item].strip()))
+        for counter in counters:
+            for expected in expected_results:
+                if os_path.basename(counter.file_path) == expected["filename"]:
+                    for item in expected:
+                        if item in ("filename", "NDW-ER50", "NDW-ES50"):
+                            continue
+                        logging.info(f"Comparing {item}...")
+                        self.assertEqual(round(counter.get_value(item), 2), float(expected[item].strip()))
+                    break
+            else:
+                assert False, "Found no corresponding expected result"
 
         # Test combination
         c = Ns_LCA_Counter(tagset="ptb")
-        c.determine_all_values(lempos_tuples=tuple(lempos_tuples1 + lempos_tuples2))  # type: ignore
-        c_parent = c1 + c2
+        c.determine_all_values(
+            lempos_tuples=tuple(t for lempos_tuples in lempos_tuples_list for t in lempos_tuples)  # type: ignore
+        )
+        c_parent = Ns_LCA_Counter()
+        for counter in counters:
+            c_parent = c_parent + counter
 
         for item in Ns_LCA_Counter.DEFAULT_MEASURES:
             if item in ("NDW-ER50", "NDW-ES50"):
