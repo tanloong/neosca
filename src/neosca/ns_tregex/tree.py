@@ -4,12 +4,18 @@
 
 import re
 from collections import deque
-from typing import TYPE_CHECKING, Deque, Generator, List, Optional, Tuple
+from io import StringIO
+from itertools import chain as _chain
+from typing import TYPE_CHECKING, Deque, Generator, Iterator, List, Optional, Tuple, Union
 
 from neosca.ns_tregex.peekable import peekable
 
 if TYPE_CHECKING:
     from .head_finder import HeadFinder
+
+CLOSE_PAREN = ")"
+SPACE_SEPARATOR = " "
+OPEN_PAREN = "("
 
 
 class Tree:
@@ -30,11 +36,30 @@ class Tree:
         self.parent = parent
 
     def __repr__(self):
-        if not self.children:  # is leaf
-            s = self.label if self.label is not None else ""
-        else:
-            s = f"{self.label} {' '.join(repr(child) for child in self.children)}"
-        return s
+        # https://github.com/stanfordnlp/stanza/blob/c2d72bd14cf8cc28bd4e41a620692bbce5f43835/stanza/models/constituency/parse_tree.py#L118
+        with StringIO() as buf:
+            stack: deque[Union["Tree", str]] = deque()
+            stack.append(self)
+            while len(stack) > 0:
+                node = stack.pop()
+                if isinstance(node, str):
+                    buf.write(node)
+                    continue
+                if len(node.children) == 0:
+                    if node.label is not None:
+                        buf.write(self.normalize(node.label))
+                    continue
+
+                buf.write(OPEN_PAREN)
+                if node.label is not None:
+                    buf.write(self.normalize(node.label))
+                stack.append(CLOSE_PAREN)
+
+                for child in reversed(node.children):
+                    stack.append(child)
+                    stack.append(SPACE_SEPARATOR)
+            buf.seek(0)
+            return buf.read()
 
     def __eq__(self, other) -> bool:
         """
@@ -84,7 +109,6 @@ class Tree:
     def __len__(self) -> int:
         return len(self.children)
 
-    @property
     def basic_category(self) -> Optional[str]:
         if self.label is None:
             return None
@@ -96,7 +120,6 @@ class Tree:
     def numChildren(self) -> int:
         return len(self.children)
 
-    @property
     def is_unary_rewrite(self) -> bool:
         """
         Says whether the current node has only one child. Can be used on an
@@ -106,15 +129,13 @@ class Tree:
         """
         return self.numChildren() == 1
 
-    @property
-    def is_pre_terminal(self) -> bool:
+    def is_preterminal(self) -> bool:
         """
         A preterminal is defined to be a node with one child which is itself a leaf.
         """
         return self.numChildren() == 1 and self.children[0].isLeaf()
 
-    @property
-    def is_pre_pre_terminal(self) -> bool:
+    def is_prepreterminal(self) -> bool:
         """
         Return whether all the children of this node are preterminals or not.
         A preterminal is
@@ -125,9 +146,8 @@ class Tree:
         """
         if self.numChildren() == 0:
             return False
-        return all(child.is_pre_terminal for child in self.children)
+        return all(child.is_preterminal() for child in self.children)
 
-    @property
     def is_phrasal(self) -> bool:
         """
         Return whether this node is a phrasal node or not.  A phrasal node
@@ -140,19 +160,18 @@ class Tree:
         kids = self.children
         return not (kids is None or len(kids) == 0 or (len(kids) == 1 and kids[0].isLeaf()))
 
-    @property
     def is_binary(self) -> bool:
         """
         Returns whether this node is the root of a possibly binary tree. This
         happens if the tree and all of its descendants are either nodes with
         exactly two children, or are preterminals or leaves.
         """
-        if self.isLeaf() or self.is_pre_terminal:
+        if self.isLeaf() or self.is_preterminal():
             return True
         kids = self.children
         if len(kids) != 2:
             return False
-        return kids[0].is_binary and kids[1].is_binary
+        return kids[0].is_binary() and kids[1].is_binary()
 
     def firstChild(self) -> Optional["Tree"]:
         """
@@ -176,7 +195,6 @@ class Tree:
             return None
         return kids[-1]
 
-    @property
     def height(self) -> int:
         """
         The height of this tree.  The height of a tree containing no children
@@ -185,10 +203,15 @@ class Tree:
         """
         if self.isLeaf():
             return 1
-        max_height = 0
-        for child in self.children:
-            max_height = max(max_height, child.height)
-        return max_height + 1
+
+        stack, ret = [self], 0
+        while stack:
+            ret += 1
+            tmp = []
+            for node in stack:
+                tmp.extend(node.children)
+            stack = tmp
+        return ret
 
     def head_terminal(self, hf: "HeadFinder") -> Optional["Tree"]:
         """
@@ -207,25 +230,19 @@ class Tree:
 
         return None
 
-    def yield_(self) -> List[Optional[str]]:
+    def get_terminal_labels(self) -> List[Optional[str]]:
         """
-        Gets the yield of the tree.  The Label of all leaf nodes is returned as
-        a list ordered by the natural left to right order of the leaves.  Null
-        values, if any, are inserted into the list like any other value.
+        Gets labels of terminal nodes. The Label of all leaf nodes is returned
+        as a list ordered by the natural left to right order of the leaves.
+        Null values, if any, are inserted into the list like any other value.
 
         return a List of the data in the tree's leaves.
         """
-        leaves = []
-        if self.isLeaf():
-            leaves.append(self.label)
-        else:
-            for child in self.children:
-                leaves.extend(child.yield_())
-        return leaves
+        return [leaf.label for leaf in self.getLeaves()]
 
-    def tagged_yield_(self, divider: str = "/") -> List[str]:
+    def get_tagged_terminal_labels(self, divider: str = "/") -> List[str]:
         """
-        Gets the tagged yield of the tree -- that is, get the preterminals as
+        Gets the tagged labels of the tree -- that is, get the preterminals as
         well as the terminals.  The Label of all leaf nodes is returned as a
         list ordered by the natural left to right order of the leaves.  Null
         values, if any, are inserted into the list like any other value. This
@@ -236,13 +253,11 @@ class Tree:
         the new yield is added to the end of the list.
         return a List of the data in the tree's leaves.
         """
-        tagged_leaves = []
-        if self.is_pre_terminal:
-            tagged_leaves.append(f"{self.firstChild().label}{divider}{self.label}")  # type:ignore
-        else:
-            for child in self.children:
-                tagged_leaves.extend(child.tagged_yield_())
-        return tagged_leaves
+        ret = []
+        for node in self.preorder_iter():
+            if node.is_preterminal():
+                ret.append(f"{node.firstChild().label}{divider}{node.label}")  # type: ignore
+        return ret
 
     def leftEdge(self) -> int:
         """
@@ -255,7 +270,7 @@ class Tree:
             if t is t1:
                 return True
             elif t1.isLeaf():
-                j = len(t1.yield_())
+                j = len(t1.get_terminal_labels())
                 i += j
                 return False
             else:
@@ -270,14 +285,14 @@ class Tree:
         """
         note: return 1 for the leftmost node
         """
-        i = len(self.getRoot().yield_())
+        i = len(self.getRoot().get_terminal_labels())
 
         def right_edge_helper(t: "Tree", t1: "Tree") -> bool:
             nonlocal i
             if t is t1:
                 return True
             elif t1.isLeaf():
-                j = len(t1.yield_())
+                j = len(t1.get_terminal_labels())
                 i -= j
                 return False
             else:
@@ -289,6 +304,7 @@ class Tree:
             raise RuntimeError("Tree is not a descendant of root.")
 
     def get_sister_index(self) -> int:
+        """Return -1 for root"""
         if self.parent is None:
             return -1
         for i, child in enumerate(self.parent.children):
@@ -298,7 +314,9 @@ class Tree:
 
     def set_label(self, label: Optional[str]) -> None:
         if isinstance(label, str):
-            self.label = self.normalize(label)
+            self.label: Optional[str] = self.normalize(label)
+        elif label is None:
+            self.label = None
         else:
             raise TypeError(f"label must be str, not {type(label).__name__}")
 
@@ -310,32 +328,21 @@ class Tree:
         self.children.append(node)
 
     @classmethod
-    def normalize(cls, text):
-        return text.replace("-LRB-", "(").replace("-RRB-", ")")
+    def normalize(cls, text: str) -> str:
+        return text.replace("-LRB-", OPEN_PAREN).replace("-RRB-", CLOSE_PAREN)
 
     @classmethod
-    def fromstring(cls, string: str, brackets: str = "()") -> Generator["Tree", None, None]:
+    def fromstring(cls, string: str) -> Generator["Tree", None, None]:
         # TODO need more logging msg to indicate whether "a b c d" or "(a b c d)" is parsed correctly
         # translated from CoreNLP's PennTreeReader
         # https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/PennTreeReader.java#L144
 
-        # this code block about `brackets` is borrowed from nltk
-        # https://github.com/nltk/nltk/blob/develop/nltk/tree/tree.py#L641
-        if not isinstance(brackets, str) or len(brackets) != 2:
-            raise TypeError("brackets must be a length-2 string")
-        if re.search(r"\s", brackets):
-            raise TypeError("whitespace brackets not allowed")
-
-        open_b: str = brackets[0]
-        close_b: str = brackets[1]
-        open_pattern = re.escape(open_b)
-        close_pattern = re.escape(close_b)
+        open_pattern = re.escape(OPEN_PAREN)
+        close_pattern = re.escape(CLOSE_PAREN)
 
         # store `token_re` to avoid repeated regex compiling
         attr = "token_re"
-        try:
-            token_re = getattr(cls, attr)
-        except AttributeError:
+        if (token_re := getattr(cls, attr, None)) is None:
             token_re = re.compile(
                 rf"(?x) [{open_pattern}{close_pattern}] | [^\s{open_pattern}{close_pattern}]+"
             )
@@ -344,12 +351,12 @@ class Tree:
         stack_parent: Deque["Tree"] = deque()
         current_tree = None
 
-        tokens = peekable(token_re.findall(string))
-        while (token := next(tokens, None)) is not None:
-            if token == open_b:
-                label = None if tokens.peek() == open_b else next(tokens, None)
+        token_g = peekable(token_re.findall(string))
+        while (token := next(token_g, None)) is not None:
+            if token == OPEN_PAREN:
+                label = None if token_g.peek() == OPEN_PAREN else next(token_g, None)
 
-                if label == close_b:
+                if label == CLOSE_PAREN:
                     continue
 
                 new_tree = cls(label)
@@ -361,10 +368,10 @@ class Tree:
                     stack_parent.append(current_tree)
 
                 current_tree = new_tree
-            elif token == close_b:
+            elif token == CLOSE_PAREN:
                 if len(stack_parent) == 0:
                     raise ValueError(
-                        "failed to build tree from string with extra non-matching right" " parentheses"
+                        "failed to build tree from string with extra non-matching right parentheses"
                     )
                 else:
                     current_tree = stack_parent.pop()
@@ -459,7 +466,6 @@ class Tree:
             down: Tuple["Tree"] = path_end[len_common:]  # type:ignore
         return upwards, common[-1], down
 
-    @property
     def left_sisters(self) -> Optional[list]:
         sister_index_ = self.get_sister_index()
         is_not_the_first = sister_index_ is not None and sister_index_ > 0
@@ -467,7 +473,6 @@ class Tree:
             return self.parent.children[:sister_index_]  # type:ignore
         return None
 
-    @property
     def right_sisters(self) -> Optional[list]:
         sister_index_ = self.get_sister_index()
         is_not_the_last = sister_index_ is not None and sister_index_ < (
@@ -481,12 +486,17 @@ class Tree:
         return repr(self)
 
     def preorder_iter(self) -> Generator["Tree", None, None]:
-        if self:
-            yield self
-            for child in self.children:
-                yield from child.preorder_iter()
+        if not self:
+            raise ValueError("Trying to iterate an empty tree")
 
-    def getLeaves(self) -> List["Tree"]:
+        yield self
+        iterator: Iterator = iter(self.children)
+        while (node := next(iterator, None)) is not None:
+            yield node
+            if not node.isLeaf():
+                iterator = _chain(node.children, iterator)
+
+    def getLeaves(self, lst: Optional[list] = None) -> List["Tree"]:
         """
         Gets the leaves of the tree.  All leaves nodes are returned as a list
         ordered by the natural left to right order of the tree.  None values,
@@ -494,13 +504,7 @@ class Tree:
 
         return a list of the leaves.
         """
-        leaves = []
-        if self.isLeaf():
-            leaves.append(self)
-        else:
-            for kid in self.children:
-                leaves.extend(kid.getLeaves())
-        return leaves
+        return [node for node in self.preorder_iter() if node.isLeaf()]
 
     def span_string(self) -> str:
         """

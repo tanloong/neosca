@@ -411,7 +411,7 @@ class Ns_Main_Cli:
                 False,
                 (
                     f"Error: Python {v_info.major}.{v_info.minor} is too old."
-                    f" {__title__} only supports Python 3.8 or higher."
+                    f" {__title__} only supports Python 3.10 or higher."
                 ),
             )
 
