@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generator, List, Optional
+from itertools import chain as _chain
+from typing import TYPE_CHECKING, Generator, Iterator, List, Optional
 
 from neosca.ns_tregex.collins_head_finder import CollinsHeadFinder
 
@@ -44,9 +45,11 @@ class DOMINATES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        for child in t.children:
-            yield child
-            yield from cls.searchNodeIterator(child)
+        iterator = iter(t.children)
+        while (node := next(iterator, None)) is not None:
+            yield node
+            if not node.isLeaf():
+                iterator = _chain(node.children, iterator)
 
 
 class DOMINATED_BY(Relation):
@@ -384,7 +387,7 @@ class HEADS(Relation):
     def satisfies(cls, t1: "Tree", t2: "Tree", headFinder: Optional["HeadFinder"] = None) -> bool:
         if t2.isLeaf():
             return False
-        elif t2.is_pre_terminal:
+        elif t2.is_preterminal():
             return t2.firstChild() is t1
         else:
             if headFinder is None:
@@ -579,12 +582,12 @@ class ANCESTOR_OF_LEAF(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        for kid in t.children:
-            if kid.isLeaf():
-                yield kid
-                continue
-            # If t is leaf, then t.children would be an empty list
-            yield from cls.searchNodeIterator(kid)
+        iterator = iter(t.children)
+        while (node := next(iterator, None)) is not None:
+            if node.isLeaf():
+                yield node
+            else:
+                iterator = _chain(node.children, iterator)
 
 
 class UNBROKEN_CATEGORY_DOMINATES(Relation):
@@ -603,12 +606,13 @@ class UNBROKEN_CATEGORY_DOMINATES(Relation):
     def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
         # TODO might need to implement a TregexMatcher class like java tregex
         # https://github.com/stanfordnlp/CoreNLP/blob/f8838d2639589f684cbaa58964cb29db5f23df7f/src/edu/stanford/nlp/trees/tregex/Relation.java#L1525
-        for kid in t.children:
+        iterator = iter(t.children)
+        while (node := next(iterator, None)) is not None:
             # chain of length zero
-            yield kid
+            yield node
             # chain of length longer than 0
-            if descs.satisfy(kid):
-                yield from cls.searchNodeIterator(kid, descs)
+            if descs.satisfy(node):
+                iterator = _chain(node.children, iterator)
 
 
 class UNBROKEN_CATEGORY_IS_DOMINATED_BY(Relation):
@@ -657,10 +661,11 @@ class UNBROKEN_CATEGORY_PRECEDES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
-        for immediate_follower in IMMEDIATELY_PRECEDES.searchNodeIterator(t):
-            yield immediate_follower
-            if descs.satisfy(immediate_follower):
-                yield from cls.searchNodeIterator(immediate_follower, descs)
+        iterator: Iterator = IMMEDIATELY_PRECEDES.searchNodeIterator(t)
+        while (node := next(iterator, None)) is not None:
+            yield node
+            if descs.satisfy(node):
+                iterator = _chain(IMMEDIATELY_PRECEDES.searchNodeIterator(node), iterator)
 
 
 class UNBROKEN_CATEGORY_FOLLOWS(Relation):
@@ -670,10 +675,11 @@ class UNBROKEN_CATEGORY_FOLLOWS(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
-        for immediate_precedent in IMMEDIATELY_FOLLOWS.searchNodeIterator(t):
-            yield immediate_precedent
-            if descs.satisfy(immediate_precedent):
-                yield from cls.searchNodeIterator(immediate_precedent, descs)
+        iterator: Iterator = IMMEDIATELY_FOLLOWS.searchNodeIterator(t)
+        while (node := next(iterator, None)) is not None:
+            yield node
+            if descs.satisfy(node):
+                iterator = _chain(IMMEDIATELY_FOLLOWS.searchNodeIterator(node), iterator)
 
 
 class PATTERN_SPLITTER(Relation):
