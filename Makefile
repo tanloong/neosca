@@ -1,7 +1,7 @@
 .PHONY: build package clean install lint run test
 
 build: clean ACKNOWLEDGMENTS.md
-	python -m build
+	python3 -m build
 
 package: clean ACKNOWLEDGMENTS.md
 	pyinstaller ./utils/ns_packaging.spec --noconfirm --clean
@@ -16,7 +16,7 @@ clean:
 	rm -rf dist/
 	rm -rf src/neosca.egg-info
 	# delete macos metadata
-	rm -rf src/neosca/ns_data/.*
+	find src/neosca/ns_data/ -name "._*" -type f -delete
 
 install:
 	# avoid rm
@@ -29,10 +29,10 @@ lint:
 	mypy --check-untyped-defs src/
 
 test:
-	python -m unittest
+	python3 -m unittest
 
 run:
-	cd ./src && python -m neosca gui
+	cd ./src && python3 -m neosca gui
 
 ACKNOWLEDGMENTS.md: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
-	python utils/ns_generate_acks.py
+	python3 utils/ns_generate_acks.py
