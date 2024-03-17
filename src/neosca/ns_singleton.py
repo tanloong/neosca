@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtCore import QObject
+from PyQt5.QtCore import QObject
 
 
 # https://github.com/jazzycamel/PyQt5Singleton/issues/1#issuecomment-1429485569

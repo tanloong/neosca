@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 from typing import List, Set, Tuple, Union
 
-from PySide6.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
-from PySide6.QtGui import QCursor, QIcon, QStandardItem
-from PySide6.QtWidgets import (
+from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
+from PyQt5.QtGui import QCursor, QIcon, QStandardItem
+from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
     QFileDialog,
@@ -180,7 +180,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def menu_file_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
-            parent=self, caption="Open Folder", dir=Ns_Settings.value("Import/default-path")
+            parent=self, caption="Open Folder", directory=Ns_Settings.value("Import/default-path")
         )
         if not folder_path:
             return
@@ -207,9 +207,9 @@ class Ns_Main_Gui(QMainWindow):
         file_paths, _ = QFileDialog.getOpenFileNames(
             parent=self,
             caption="Open Files",
-            dir=Ns_Settings.value("Import/default-path"),
+            directory=Ns_Settings.value("Import/default-path"),
             filter=";;".join(available_import_types),
-            selectedFilter=Ns_Settings.value("Import/default-type"),
+            initialFilter=Ns_Settings.value("Import/default-type"),
         )
         if not file_paths:
             return
@@ -638,6 +638,8 @@ class Ns_Main_Gui(QMainWindow):
                 self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",
+                width=580,
+                height=260,
                 tableview=tableview_err_files,
                 export_filename="neosca_error_files.xlsx",
             )
@@ -691,7 +693,7 @@ class Ns_Main_Gui(QMainWindow):
                 QMessageBox.Icon.Warning,
                 checkbox_exit,
             )
-            if not messagebox.exec():
+            if messagebox.exec() == QMessageBox.StandardButton.No:
                 return False
 
         for splitter in (self.splitter_central_widget,):

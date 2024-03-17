@@ -2,7 +2,7 @@
 
 from typing import Any, List
 
-from PySide6.QtCore import QSettings
+from PyQt5.QtCore import QSettings
 
 from neosca import SETTING_PATH
 from neosca.ns_settings.ns_settings_default import settings_default

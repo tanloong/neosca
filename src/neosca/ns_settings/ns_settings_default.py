@@ -50,8 +50,8 @@ settings_default = {
     "Miscellaneous/dont-warn-on-cache-deletion": False,
     "Miscellaneous/cache": True,
     "Miscellaneous/use-cache": True,
-    "default-splitter-sca": 200,
-    "default-splitter-lca": 200,
-    "default-splitter-file": 150,
+    "default-splitter-sca": 300,
+    "default-splitter-lca": 300,
+    "default-splitter-file": 210,
     "show-statusbar": True,
 }

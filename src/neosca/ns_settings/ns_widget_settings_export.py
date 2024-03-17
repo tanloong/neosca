@@ -3,14 +3,12 @@
 import os
 import os.path as os_path
 
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QComboBox,
     QGridLayout,
     QGroupBox,
     QLabel,
     QMessageBox,
-    QSizePolicy,
-    QSpacerItem,
 )
 
 from neosca.ns_settings.ns_settings import Ns_Settings
@@ -27,7 +25,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
         self.setup_tables()
 
         self.gridlayout.addWidget(self.groupbox_tables, 0, 0)
-        self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_tables(self) -> None:
         self.lineedit_path = Ns_LineEdit_Path()
@@ -69,7 +67,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
                 f'The specified directory "{path}" could not be found. Do you want to create the directory?',
                 QMessageBox.Icon.Warning,
             )
-            if messagebox.exec():
+            if messagebox.exec() == QMessageBox.StandardButton.Yes:
                 os.makedirs(path)
                 return True
             else:

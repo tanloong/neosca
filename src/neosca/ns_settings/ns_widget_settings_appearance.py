@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import (
+from PyQt5.QtGui import QFontDatabase
+from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
@@ -10,8 +10,6 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QLabel,
     QMessageBox,
-    QSizePolicy,
-    QSpacerItem,
     QSpinBox,
 )
 
@@ -33,7 +31,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.gridlayout.addLayout(self.formlayout_scaling, 0, 0)
         self.gridlayout.addWidget(self.groupbox_font, 1, 0)
         self.gridlayout.addWidget(self.groupbox_table, 2, 0)
-        self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_scaling(self) -> None:
         label_scaling = QLabel("Scaling (requires restart):")
@@ -44,6 +42,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.formlayout_scaling.addRow(label_scaling, self.combobox_scaling)
 
     def setup_font(self) -> None:
+        self.database = QFontDatabase()
         self.combobox_family = Ns_Combobox_Font()
         self.spinbox_point_size = QSpinBox()
         self.spinbox_point_size.setSuffix(" pt")
@@ -64,7 +63,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
         self.groupbox_font.setLayout(formlayout_font)
 
     def set_italic_bold_enabled(self, family: str) -> None:
-        available_styles = QFontDatabase.styles(family)
+        available_styles = self.database.styles(family)
         if "Italic" in available_styles:
             self.checkbox_italic.setEnabled(True)
         else:
@@ -136,7 +135,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
                 self,
             ).open()
             return False
-        if font_family not in QFontDatabase.families():
+        if font_family not in self.database.families():
             self.combobox_family.lineEdit().setFocus()
             self.combobox_family.lineEdit().selectAll()
             QMessageBox(

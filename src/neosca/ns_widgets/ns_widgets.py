@@ -2,16 +2,9 @@
 
 from typing import Optional
 
-from PySide6.QtCore import (
-    QDir,
-    Signal,
-)
-from PySide6.QtGui import (
-    QFocusEvent,
-    QPalette,
-    Qt,
-)
-from PySide6.QtWidgets import (
+from PyQt5.QtCore import QDir, Qt, pyqtSignal
+from PyQt5.QtGui import QFocusEvent, QPalette
+from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
     QCompleter,
@@ -61,7 +54,7 @@ class Ns_LineEdit(QLineEdit):
     ignored. We prefer the custom "focused" signal over the built-in
     "textEdited" because it has much less frequent emits."""
 
-    focused = Signal()
+    focused = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -132,6 +125,7 @@ class Ns_Combobox_Font(QFontComboBox):
 
 
 class Ns_MessageBox_Question(QMessageBox):
+    """Use Ns_MessageBox_Question.exec() == QMessageBox.StandardButton.Yes"""
     def __init__(
         self,
         parent=None,
@@ -147,12 +141,6 @@ class Ns_MessageBox_Question(QMessageBox):
         self.setIcon(icon)
         if checkbox is not None:
             self.setCheckBox(checkbox)
-
-    # Override
-    def exec(self) -> bool:
-        ret = super().exec()
-        return ret == QMessageBox.StandardButton.Yes.value
-
 
 class Ns_TextEdit_ReadOnly(QTextEdit):
     def __init__(self, *, text: str = "", parent=None):

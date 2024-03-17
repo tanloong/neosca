@@ -5,7 +5,7 @@ import re
 from os import PathLike
 from typing import Any, Dict, Optional, Union
 
-from PySide6.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget
 
 QSSMapping = Dict[str, Union[str, Dict[str, str]]]
 

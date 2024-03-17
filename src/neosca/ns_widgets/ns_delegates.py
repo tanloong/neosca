@@ -2,9 +2,9 @@
 
 from typing import Dict, Tuple
 
-from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QPoint
-from PySide6.QtGui import QBrush, QColor, QPainter, Qt
-from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
+from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QPointF, Qt
+from PyQt5.QtGui import QBrush, QColor, QPainter
+from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets import ns_dialogs
@@ -21,16 +21,16 @@ class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
         super().paint(painter, option, index)
         if index.data(Qt.ItemDataRole.UserRole):
             painter.save()
-            painter.setBrush(QBrush(QColor.fromString(self.triangle_rgb)))
+            painter.setBrush(QBrush(QColor(self.triangle_rgb)))
             triangle_leg_length = option.rect.height() * Ns_Settings.value(
                 "Appearance/triangle-height-ratio", type=float
             )
             painter.drawPolygon(
                 (
-                    QPoint(option.rect.x() + triangle_leg_length, option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y()),
-                    QPoint(option.rect.x(), option.rect.y() + triangle_leg_length),
-                )
+                    QPointF(option.rect.x() + triangle_leg_length, option.rect.y()),
+                    QPointF(option.rect.x(), option.rect.y()),
+                    QPointF(option.rect.x(), option.rect.y() + triangle_leg_length),
+                ),
             )
             painter.restore()
 

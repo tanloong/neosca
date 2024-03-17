@@ -7,22 +7,22 @@ import traceback
 from enum import Enum
 from typing import List, Optional, Sequence
 
-from PySide6.QtCore import (
+from PyQt5.QtCore import (
     QElapsedTimer,
     QModelIndex,
     QSize,
     QSortFilterProxyModel,
+    Qt,
     QTime,
     QTimer,
-    Signal,
+    pyqtSignal,
 )
-from PySide6.QtGui import (
+from PyQt5.QtGui import (
     QIcon,
-    Qt,
     QTextBlockFormat,
     QTextCursor,
 )
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
@@ -142,7 +142,7 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
 
 
 class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
-    started = Signal()
+    started = pyqtSignal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
 
@@ -150,7 +150,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         self,
         main,
         title: str = "Please Wait",
-        width: int = 500,
+        width: int = 600,
         height: int = 0,
         time_format: str = "h:mm:ss",
         interval: int = 1000,
@@ -274,7 +274,7 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
 
 class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
     def __init__(self, main, index, **kwargs):
-        super().__init__(main, title="Matches", width=500, height=300, **kwargs)
+        super().__init__(main, title="Matches", width=600, height=600, **kwargs)
 
         model = index.model()
         if isinstance(model, (Ns_SortFilterProxyModel, QSortFilterProxyModel)):
@@ -293,7 +293,7 @@ class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
 
 class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
     def __init__(self, main, **kwargs):
-        super().__init__(main, title="Citing", width=420, height=420, **kwargs)
+        super().__init__(main, title="Citing", width=600, height=600, **kwargs)
         self.style_citation_mapping = Ns_IO.load_json(CITING_PATH)
         self.label_citing = Ns_Label_WordWrapped(
             f"If you use {__title__} in your research, please cite as follows."
@@ -314,7 +314,7 @@ class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
 
 class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
     def __init__(self, main, ex: Exception, **kwargs) -> None:
-        super().__init__(main, title="Error", width=500, height=300, **kwargs)
+        super().__init__(main, title="Error", width=800, height=600, **kwargs)
         # https://stackoverflow.com/a/35712784/20732031
         trace_back = "".join(traceback.TracebackException.from_exception(ex).format())
         meta_data = "\n".join(
@@ -336,8 +336,8 @@ class Ns_Dialog_Table(Ns_Dialog):
         tableview: Ns_TableView,
         text: Optional[str] = None,
         html: Optional[str] = None,
-        width: int = 500,
-        height: int = 300,
+        width: int = 600,
+        height: int = 600,
         export_filename: Optional[str] = None,
         disable_default_botright_buttons: bool = False,
     ) -> None:
@@ -387,7 +387,7 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
             for colno, label in enumerate(cols):
                 tableview_ack.setIndexWidget(model_ack.index(rowno, colno), label)
         super().__init__(
-            main, title="Acknowledgments", tableview=tableview_ack, html=acknowledgment, width=500, height=500
+            main, title="Acknowledgments", tableview=tableview_ack, html=acknowledgment, width=600, height=600
         )
 
 
@@ -395,10 +395,10 @@ class Ns_Dialog_About(Ns_Dialog):
     def __init__(self, main) -> None:
         import textwrap
 
-        super().__init__(main, title=f"About {__title__}", width=420, height=420, resizable=True)
+        super().__init__(main, title=f"About {__title__}", width=600, height=600, resizable=True)
         text = textwrap.dedent(
             f"""\
-        <strong>A fork of <a href="https://sites.psu.edu/xxl13/l2sca/">L2SCA</a> and <a href="https://sites.psu.edu/xxl13/lca/">LCA</a></strong>
+        <strong><a href="https://sites.psu.edu/xxl13/l2sca/">L2SCA</a> &amp; <a href="https://sites.psu.edu/xxl13/lca/">LCA</a> fork: cross-platform, GUI, without Java dependency</strong>
         <br><br>
         Copyright © Tan, Long, 2022-{__year__}.
         <br>
@@ -500,7 +500,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
                 f"Are you sure you want to delete the selected {len_cache_paths} cache files?",
                 checkbox=checkbox,
             )
-            if not messagebox.exec():
+            if messagebox.exec() == QMessageBox.StandardButton.No:
                 return
 
         for cache_path in cache_paths:
@@ -535,5 +535,7 @@ class Ns_Dialog_Table_Subfiles(Ns_Dialog_Table):
             title="Subfiles",
             tableview=self.tableview_subfiles,
             text=f'Combined result of these files will be under "{name_display}" in the output.',
+            width=800,
+            height=600,
             export_filename="neosca_subfiles.xlsx",
         )

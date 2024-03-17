@@ -42,12 +42,12 @@
             "license_file": "https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt"
         },
         {
-            "name": "PySide",
-            "homepage": "https://www.qt.io/qt-for-python",
-            "version": "6.6.1",
-            "authors": "The QT Company",
-            "license": "LGPL-3.0-only/GPL-3.0-only/Commercial-License",
-            "license_file": "https://doc.qt.io/qtforpython-6/#project"
+            "name": "PyQt",
+            "homepage": "https://riverbankcomputing.com/software/pyqt/",
+            "version": "5.15.10",
+            "authors": "Riverbank Computing",
+            "license": "Commercial-License/GPL-3.0-only",
+            "license_file": "https://www.riverbankcomputing.com/static/Docs/PyQt5/introduction.html#license"
         },
         {
             "name": "Stanza",
