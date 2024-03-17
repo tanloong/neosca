@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import QCheckBox, QGridLayout, QGroupBox, QSizePolicy, QSpacerItem
+from PyQt5.QtWidgets import QCheckBox, QGridLayout, QGroupBox
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
@@ -16,7 +16,7 @@ class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):
 
         self.gridlayout.addWidget(self.groupbox_cache, 0, 0)
         self.gridlayout.addWidget(self.groupbox_warning, 1, 0)
-        self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_cache(self) -> None:
         self.checkbox_cache = QCheckBox("Cache uncached files for faster future runs")

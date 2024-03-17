@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import QGridLayout, QWidget
+from PyQt5.QtWidgets import QGridLayout, QWidget
 
 
 class Ns_Widget_Settings_Abstract(QWidget):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QPushButton
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QPushButton
 
 
 class Ns_PushButton(QPushButton):

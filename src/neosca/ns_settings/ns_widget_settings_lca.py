@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import (
-    QGridLayout,
-    QGroupBox,
-    QRadioButton,
-    QSizePolicy,
-    QSpacerItem,
-)
+from PyQt5.QtWidgets import QGridLayout, QGroupBox, QRadioButton
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
@@ -22,7 +16,7 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
 
         self.gridlayout.addWidget(self.groupbox_wordlist, 0, 0)
         self.gridlayout.addWidget(self.groupbox_tagset, 1, 0)
-        self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_wordlist(self) -> None:
         self.radiobutton_wordlist_bnc = QRadioButton("British National Corpus (BNC) wordlist")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QLabel
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QLabel
 
 
 class Ns_Label_WordWrapped(QLabel):

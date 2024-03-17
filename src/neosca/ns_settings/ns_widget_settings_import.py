@@ -2,15 +2,13 @@
 
 import os.path as os_path
 
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
     QGridLayout,
     QGroupBox,
     QLabel,
     QMessageBox,
-    QSizePolicy,
-    QSpacerItem,
 )
 
 from neosca.ns_settings.ns_settings import Ns_Settings
@@ -27,7 +25,7 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         self.setup_files()
 
         self.gridlayout.addWidget(self.groupbox_files, 0, 0)
-        self.gridlayout.addItem(QSpacerItem(0, 0, vData=QSizePolicy.Policy.Expanding))
+        self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_files(self) -> None:
         self.lineedit_path = Ns_LineEdit_Path()

@@ -2,7 +2,7 @@
 
 from neosca import QSS_PATH
 from neosca.ns_qss import Ns_QSS
-from PySide6.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget
 
 from .base_tmpl import BaseTmpl
 

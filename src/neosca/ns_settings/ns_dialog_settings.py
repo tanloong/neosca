@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PySide6.QtWidgets import QDialogButtonBox, QListWidget, QStackedWidget
+from PyQt5.QtWidgets import QDialogButtonBox, QListWidget, QMessageBox, QStackedWidget
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
@@ -15,7 +15,7 @@ from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_ScrollArea
 
 class Ns_Dialog_Settings(Ns_Dialog):
     def __init__(self, main):
-        super().__init__(main, title="Settings", width=768, height=576, resizable=True)
+        super().__init__(main, title="Settings", width=1024, height=768, resizable=True)
 
         self.sections = (
             Ns_Widget_Settings_Appearance(main),
@@ -107,7 +107,7 @@ class Ns_Dialog_Settings(Ns_Dialog):
         messagebox = Ns_MessageBox_Question(
             self, "Reset All Settings", "Settings across <b>all pages</b> will be reset. Continue?"
         )
-        if messagebox.exec():
+        if messagebox.exec() == QMessageBox.StandardButton.Yes:
             Ns_Settings.reset()
             self.load_settings()
 

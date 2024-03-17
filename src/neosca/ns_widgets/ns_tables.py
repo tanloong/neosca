@@ -3,13 +3,12 @@
 import os.path as os_path
 from typing import Any, Generator, Iterable, List, Literal, Optional, Sequence, Union
 
-from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Signal
-from PySide6.QtGui import (
+from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt, pyqtSignal
+from PyQt5.QtGui import (
     QStandardItem,
     QStandardItemModel,
-    Qt,
 )
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QFileDialog,
@@ -27,9 +26,9 @@ from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
 class Ns_StandardItemModel(QStandardItemModel):
-    data_cleared = Signal()
-    row_added = Signal()
-    data_exported = Signal()
+    data_cleared = pyqtSignal()
+    row_added = pyqtSignal()
+    data_exported = pyqtSignal()
 
     def __init__(
         self,
@@ -129,7 +128,7 @@ class Ns_StandardItemModel(QStandardItemModel):
                 "Clear Table",
                 "The table has not been exported yet and all the data will be lost. Continue?",
             )
-            if messagebox.exec():
+            if messagebox.exec() == QMessageBox.StandardButton.Yes:
                 self._clear_data()
 
     def is_row_empty(self, rowno: int) -> bool:
@@ -288,7 +287,7 @@ class Ns_TableView(QTableView):
             self.setEnabled(False)
 
     def on_data_cleared(self) -> None:
-        self.horizontalHeader().resizeSections()
+        self.horizontalHeader().resizeSections(QHeaderView.ResizeMode.ResizeToContents)
         self.setEnabled(False)
 
     def on_row_added(self) -> None:
@@ -362,9 +361,9 @@ class Ns_TableView(QTableView):
         file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
             caption="Export Table",
-            dir=str(DESKTOP_PATH / filename),
+            directory=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
-            selectedFilter=Ns_Settings.value("Export/default-type"),
+            initialFilter=Ns_Settings.value("Export/default-type"),
         )
         if not file_path:
             return
@@ -546,9 +545,9 @@ class Ns_TableView(QTableView):
         file_path, file_type = QFileDialog.getSaveFileName(
             parent=self,
             caption="Export Table",
-            dir=str(DESKTOP_PATH / filename),
+            directory=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
-            selectedFilter=Ns_Settings.value("Export/default-type"),
+            initialFilter=Ns_Settings.value("Export/default-type"),
         )
         if not file_path:
             return
@@ -585,6 +584,8 @@ class Ns_TableView(QTableView):
                         filename = model.headerData(rowno, Qt.Orientation.Vertical)
                     else:
                         filename = model.index(rowno, 0).data()
+
+                    colno = 0
                     for colno in range(col_count):
                         index = model.index(rowno, colno)
                         if not index.data(Qt.ItemDataRole.UserRole):
@@ -610,7 +611,6 @@ class Ns_TableView(QTableView):
                             cell_match.value = match
                             cell_match.alignment = Alignment(horizontal="left", vertical="center")
                             cell_match.font = Font(size=font_size)
-
                     horizon_header_colwith = max(
                         horizon_header_colwith, self.horizontalHeader().sectionSize(colno)
                     )

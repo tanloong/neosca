@@ -2,8 +2,7 @@
 
 from typing import Generator, List, Optional, Union
 
-from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtGui import Qt
+from PyQt5.QtCore import QObject, Qt, QThread, pyqtSignal
 
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
@@ -14,7 +13,7 @@ from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
 
 
 class Ns_Worker(QObject):
-    worker_done = Signal()
+    worker_done = pyqtSignal()
 
     def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -105,7 +104,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
 
 
 class Ns_Thread(QThread):
-    err_occurs = Signal(Exception)
+    err_occurs = pyqtSignal(Exception)
 
     def __init__(self, worker: Ns_Worker):
         super().__init__()
