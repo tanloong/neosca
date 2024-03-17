@@ -28,7 +28,7 @@ dependencies = [
     "charset_normalizer>=3.3.2",
     "openpyxl>=3.1.2",
     "pyinstaller>=6.1.0",
-    "pyside6-essentials>=6.6.1",
+    "pyside6-essentials>=6.5.2",
     "stanza>=1.8.1",
 ]
 
@@ -91,3 +91,6 @@ line-ending = "auto"
 [tool.mypy]
 # https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-library-stubs-or-py-typed-marker
 ignore_missing_imports = true
+
+[tool.pyright]
+reportIncompatibleMethodOverride = false
