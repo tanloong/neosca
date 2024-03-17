@@ -9,19 +9,17 @@
 [![downloads](https://static.pepy.tech/badge/neosca)](https://pepy.tech/project/neosca)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE)
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/), featuring cross-platform compatibility and a graphical interface.
-
-Starting from version 0.1.0, NeoSCA no longer requires Java installation. It has translated a portion of the Tregex code into Python and now favors Stanza over Stanford Parser.
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/), featuring cross-platform compatibility and a graphical interface. Starting from version 0.1.0, NeoSCA no longer requires Java installation, it has translated a portion of the Tregex code into Python and favors Stanza over Stanford Parser.
 
 ## Download
 
 |Release|Remarks|
 |-|-|
-|[Latest Release for Windows]()|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
-|[Latest Release for macOS]()|1. Extract all files<br>2. Double-click **NeoSCA.app** to run|
-|[Latest Release for Linux]()|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
+|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
+|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
+|[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
 |[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
-|[Baidu Netdisk](https://pan.baidu.com/s/1--ZzABrDQBZlZagWlVQMbg?pwd=wdls#list/path=%2FWordless%2FWordless%203.4.0)|For users with unstable connections to Github|
+|[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to Github|
 
 <!-- ### Download from source -->
 <!---->
