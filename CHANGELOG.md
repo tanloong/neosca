@@ -1,5 +1,17 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.1.1](https://github.com/tanloong/neosca/releases/tag/0.1.1) (17 March 2024)
+
+### Improvements
+
+**Able to query long sentences**: Now query constituency trees non-recursively to prevent reaching the maximum recursion depth limit (default 1000 in Python).
+
+If any, trees for sentences that have hundreds of words can be queried normally.
+
++ **Support macOS 10**: Migrate from PySide6 to PyQt5 for earlier macOS version support.
+
+The testing macOS 10 complains that "Qt requires macOS 11.0.0 or later" when importing PySide6/PyQt6. Fallback to Qt5.
+
 ## [0.1.0](https://github.com/tanloong/neosca/releases/tag/0.1.0) (13 March 2024)
 
 ### Breaking Changes
@@ -30,7 +42,7 @@
 
 + Fix including Windows temporary files (`~$\*`) as input files
 
-### License
+### License change
 
 Change the license from GPLv2-or-later to GPLv3. According to the [license compatibility matrix](https://www.gnu.org/licenses/gpl-faq.html#AllCompatibility), the combination of code under GPLv2-or-later, which is the current license, and code under LGPLv3, which is the license of the recently added dependency PySide6, should be licensed under GPLv3.
 

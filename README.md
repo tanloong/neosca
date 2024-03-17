@@ -15,9 +15,22 @@ Starting from version 0.1.0, NeoSCA no longer requires Java installation. It has
 
 ## Download
 
-### Download binary builds
+|Release|Remarks|
+|-|-|
+|[Latest Release for Windows]()|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
+|[Latest Release for macOS]()|1. Extract all files<br>2. Double-click **NeoSCA.app** to run|
+|[Latest Release for Linux]()|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
+|[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
+|[Baidu Netdisk](https://pan.baidu.com/s/1--ZzABrDQBZlZagWlVQMbg?pwd=wdls#list/path=%2FWordless%2FWordless%203.4.0)|For users with unstable connections to Github|
 
-[Github Releases](https://github.com/tanloong/neosca/releases/tag/0.1.0)
+<!-- ### Download from source -->
+<!---->
+<!-- ```sh -->
+<!-- git clone https://github.com/tanloong/neosca -->
+<!-- cd neosca -->
+<!-- pip3 install . -->
+<!-- python -m neosca gui -->
+<!-- ``` -->
 
 ## Citing
 
@@ -31,7 +44,7 @@ BibTeX
 
 ```BibTeX
 @misc{long2024neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.0},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.1},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2024}
@@ -46,7 +59,7 @@ year         = {2024}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.0) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.1) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -56,7 +69,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.0, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.1, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

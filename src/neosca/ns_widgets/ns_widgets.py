@@ -126,6 +126,7 @@ class Ns_Combobox_Font(QFontComboBox):
 
 class Ns_MessageBox_Question(QMessageBox):
     """Use Ns_MessageBox_Question.exec() == QMessageBox.StandardButton.Yes"""
+
     def __init__(
         self,
         parent=None,
@@ -141,6 +142,7 @@ class Ns_MessageBox_Question(QMessageBox):
         self.setIcon(icon)
         if checkbox is not None:
             self.setCheckBox(checkbox)
+
 
 class Ns_TextEdit_ReadOnly(QTextEdit):
     def __init__(self, *, text: str = "", parent=None):

@@ -1,7 +1,9 @@
-.PHONY: build clean install lint run test
+.PHONY: build package clean install lint run test
 
-build:
+build: clean ACKNOWLEDGMENTS.md
 	python -m build
+
+package: clean ACKNOWLEDGMENTS.md
 	pyinstaller ./utils/ns_packaging.spec --noconfirm --clean
 
 clean:
@@ -13,6 +15,8 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf src/neosca.egg-info
+	# delete macos metadata
+	rm -rf src/neosca/ns_data/.*
 
 install:
 	# avoid rm
