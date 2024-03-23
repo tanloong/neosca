@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import Optional
 
 from PyQt5.QtCore import QDir, Qt, pyqtSignal
 from PyQt5.QtGui import QFocusEvent, QPalette
@@ -133,7 +132,7 @@ class Ns_MessageBox_Question(QMessageBox):
         title: str = "",
         text: str = "",
         icon: QMessageBox.Icon = QMessageBox.Icon.Question,
-        checkbox: Optional[QCheckBox] = None,
+        checkbox: QCheckBox | None = None,
     ):
         super().__init__(parent)
         self.setWindowTitle(title)

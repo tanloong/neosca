@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Tuple
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QPointF, Qt
 from PyQt5.QtGui import QBrush, QColor, QPainter
@@ -39,7 +38,7 @@ class Ns_StyledItemDelegate_Matches(Ns_StyledItemDelegate_Triangle):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.position_dialog_mappings: Dict[Tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_Matches] = {}
+        self.position_dialog_mappings: dict[tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_Matches] = {}
 
     # Override
     def createEditor(self, parent, option, index):  # type: ignore

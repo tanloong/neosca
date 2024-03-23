@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Generator, List, Optional, Union
+from collections.abc import Generator
 
 from PyQt5.QtCore import QObject, Qt, QThread, pyqtSignal
 
@@ -29,7 +29,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
 
     def run(self) -> None:
         file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        file_paths: Generator[Union[str, List[str]], None, None] = self.main.model_file.yield_file_paths()
+        file_paths: Generator[str | list[str], None, None] = self.main.model_file.yield_file_paths()
 
         init_kwargs = {
             "selected_measures": None,
@@ -45,9 +45,9 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         sca_instance = Ns_SCA(**init_kwargs)
         model: Ns_StandardItemModel = self.main.model_sca
         has_trailing_rows: bool = True
-        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
+        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths, strict=False)):
             # TODO: add handling --no-parse, --no-query, ...
-            counter: Optional[Ns_SCA_Counter] = sca_instance.run_on_file_or_subfiles(file_path)
+            counter: Ns_SCA_Counter | None = sca_instance.run_on_file_or_subfiles(file_path)
             assert counter is not None
 
             if has_trailing_rows:
@@ -85,7 +85,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         lca_instance = Ns_LCA(**init_kwargs)
         model: Ns_StandardItemModel = self.main.model_lca
         has_trailing_rows: bool = True
-        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths)):
+        for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths, strict=False)):
             counter: Ns_LCA_Counter = lca_instance.run_on_file_or_subfiles(file_path)
 
             if has_trailing_rows:

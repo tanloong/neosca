@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import List
 
 from neosca.ns_tregex import relation as rel
 from neosca.ns_tregex.tree import Tree
@@ -31,7 +30,7 @@ class TestRelation(BaseTmpl):
         # fmt: on
         self.assertListEqual(observed, expected)
 
-    def compare_search_with_satisfies(self, t: Tree, cls_) -> List[Tree]:
+    def compare_search_with_satisfies(self, t: Tree, cls_) -> list[Tree]:
         nodes = list(cls_.searchNodeIterator(t))
         for node in nodes:
             self.assertTrue(cls_.satisfies(t, node))

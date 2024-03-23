@@ -3,7 +3,8 @@
 import logging
 import lzma
 import pickle
-from typing import Any, Dict, Literal, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from stanza import Document
 
@@ -16,7 +17,7 @@ class Ns_NLP_Stanza:
     processors: tuple = ("tokenize", "mwt", "pos", "lemma", "constituency")
 
     @classmethod
-    def initialize(cls, lang: Optional[str] = None, model_dir: Optional[str] = None) -> None:
+    def initialize(cls, lang: str | None = None, model_dir: str | None = None) -> None:
         import stanza
 
         if lang is None:
@@ -36,7 +37,7 @@ class Ns_NLP_Stanza:
         )
 
     @classmethod
-    def _nlp(cls, doc, processors: Optional[Sequence[str]] = None) -> Document:
+    def _nlp(cls, doc, processors: Sequence[str] | None = None) -> Document:
         assert isinstance(doc, (str, Document))
 
         attr = "pipeline"
@@ -54,9 +55,9 @@ class Ns_NLP_Stanza:
     @classmethod
     def nlp(
         cls,
-        doc: Union[str, Document],
-        processors: Optional[tuple] = None,
-        cache_path: Optional[str] = None,
+        doc: str | Document,
+        processors: tuple | None = None,
+        cache_path: str | None = None,
     ) -> Document:
         has_just_processed: bool = False
 
@@ -96,9 +97,9 @@ class Ns_NLP_Stanza:
     @classmethod
     def get_constituency_forest(
         cls,
-        doc: Union[str, Document],
+        doc: str | Document,
         *,
-        cache_path: Optional[str] = None,
+        cache_path: str | None = None,
     ) -> str:
         doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
         return cls.doc2tree(doc)
@@ -106,11 +107,11 @@ class Ns_NLP_Stanza:
     @classmethod
     def get_lemma_and_pos(
         cls,
-        doc: Union[str, Document],
+        doc: str | Document,
         *,
         tagset: Literal["ud", "ptb"],
-        cache_path: Optional[str] = None,
-    ) -> Tuple[Tuple[str, str], ...]:
+        cache_path: str | None = None,
+    ) -> tuple[tuple[str, str], ...]:
         if tagset == "ud":
             pos_attr = "upos"
         elif tagset == "ptb":
@@ -128,7 +129,7 @@ class Ns_NLP_Stanza:
 
     @classmethod
     def doc2serialized(cls, doc: Document) -> bytes:
-        doc_dict: Dict[str, Any] = {"meta_data": {}, "serialized": None}
+        doc_dict: dict[str, Any] = {"meta_data": {}, "serialized": None}
         doc_dict["serialized"] = doc.to_serialized()
 
         attr = "processors"

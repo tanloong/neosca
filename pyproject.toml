@@ -75,7 +75,11 @@ select = [
     "SIM", # flake8-simplify
     "I", # isort
 ]
-ignore = ["E501", "B011"]
+ignore = [
+    "E501",
+    "B011",
+    "UP038", # 'isinstance(x, int | float)' causes slower code
+]
 
 [tool.ruff.lint.flake8-type-checking]
 # Add quotes around type annotations, if doing so would allow

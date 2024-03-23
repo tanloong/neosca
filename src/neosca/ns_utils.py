@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
+from collections.abc import Iterable, Iterator
 from itertools import islice
-from typing import Iterable, Iterator, Optional, Tuple, Union
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
 # The second element is the error message if it fails.
-Ns_Procedure_Result = Tuple[bool, Optional[str]]
+Ns_Procedure_Result = tuple[bool, str | None]
 
 
 def chunks(it: Iterable, size: int) -> Iterator:
@@ -24,7 +24,7 @@ def chunks(it: Iterable, size: int) -> Iterator:
     return iter(lambda: tuple(islice(it, size)), ())
 
 
-def safe_div(n1: Union[int, float], n2: Union[int, float]) -> Union[int, float]:
+def safe_div(n1: int | float, n2: int | float) -> int | float:
     """
     Safely divides two numbers.
 

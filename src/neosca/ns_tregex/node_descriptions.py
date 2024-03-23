@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 
 import re
-from typing import Generator, Iterable, Iterator, List, NamedTuple, Optional
+from collections.abc import Generator, Iterable, Iterator
+from typing import NamedTuple
 
 from neosca.ns_tregex.tree import Tree
 
 
 class Named_Nodes:
-    def __init__(self, name: Optional[str], nodes: Optional[List[Tree]], strins_repr: str = "") -> None:
+    def __init__(self, name: str | None, nodes: list[Tree] | None, strins_repr: str = "") -> None:
         self.name = name
         self.nodes = nodes
         self.strins_repr = strins_repr
 
-    def set_name(self, new_name: Optional[str]) -> None:
+    def set_name(self, new_name: str | None) -> None:
         self.name = new_name
 
-    def set_nodes(self, new_nodes: List[Tree]) -> None:
+    def set_nodes(self, new_nodes: list[Tree]) -> None:
         self.nodes = new_nodes
 
 
@@ -27,7 +28,7 @@ class Node_Description(NamedTuple):
 class Node_Descriptions:
     def __init__(
         self,
-        node_descriptions: List[Node_Description],
+        node_descriptions: list[Node_Description],
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -36,7 +37,7 @@ class Node_Descriptions:
         self.is_negated = is_negated
         self.use_basic_cat = use_basic_cat
 
-        self.name: Optional[str] = None
+        self.name: str | None = None
         self.strins_repr = "".join(desc.value for desc in self.descriptions)
 
     def __iter__(self) -> Iterator[Node_Description]:

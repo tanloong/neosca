@@ -5,7 +5,6 @@ import os.path as os_path
 import re
 import sys
 from pathlib import Path
-from typing import List, Set, Tuple, Union
 
 from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
 from PyQt5.QtGui import QCursor, QIcon, QStandardItem
@@ -185,7 +184,7 @@ class Ns_Main_Gui(QMainWindow):
         if not folder_path:
             return
 
-        file_paths: List[str] = []
+        file_paths: list[str] = []
 
         if Ns_Settings.value("Import/include-files-in-subfolders", type=bool):
             file_paths.extend(
@@ -455,7 +454,7 @@ class Ns_Main_Gui(QMainWindow):
         self.tableview_file.customContextMenuRequested.connect(self.show_menu_tableview_file)
 
     def on_menu_tableview_file_about_to_show(self) -> None:
-        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
+        indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
         len_selected_rows = len(indexes)
         if len_selected_rows == 1:
             self.action_tableview_file_combine.setEnabled(False)
@@ -468,13 +467,14 @@ class Ns_Main_Gui(QMainWindow):
             self.action_tableview_file_show_subfiles.setEnabled(False)
 
     def combine_file_paths(self) -> None:
-        name_indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=0)
-        path_indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=1)
-        rowno_name_path_triples: List[Tuple[int, Union[str, List[str]], Union[str, List[str]]]] = sorted(
+        name_indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=0)
+        path_indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=1)
+        rowno_name_path_triples: list[tuple[int, str | list[str], str | list[str]]] = sorted(
             zip(
                 (index.row() for index in name_indexes),
                 map(self.model_file.user_or_display_data, name_indexes),
                 map(self.model_file.user_or_display_data, path_indexes),
+                strict=False,
             ),
             key=lambda tri: tri[0],
         )
@@ -540,7 +540,9 @@ class Ns_Main_Gui(QMainWindow):
         self.model_file.insertRows(top_rowno + 1, len(names_retained) - 1)
 
         bot_rowno = 0
-        for bot_rowno, row in enumerate(zip(names_retained[1:], paths_retained[1:]), start=top_rowno + 1):
+        for bot_rowno, row in enumerate(
+            zip(names_retained[1:], paths_retained[1:], strict=False), start=top_rowno + 1
+        ):
             self.model_file.set_row_left_shifted(bot_rowno, row)
             self.tableview_file.selectRow(bot_rowno)
 
@@ -565,7 +567,7 @@ class Ns_Main_Gui(QMainWindow):
 
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
-        indexes: List[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
+        indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
         # Need to count num before takeRow
         num = sum(
             map(
@@ -593,13 +595,13 @@ class Ns_Main_Gui(QMainWindow):
             self.action_tableview_file_remove.setEnabled(True)
         self.menu_tableview_file.exec(QCursor.pos())
 
-    def add_file_paths(self, file_paths_to_add: List[str]) -> None:
-        unique_file_paths_to_add: Set[str] = set(file_paths_to_add)
-        already_added_file_paths: Set[str] = set(self.model_file.yield_flat_file_paths())
-        file_paths_dup: Set[str] = unique_file_paths_to_add & already_added_file_paths
-        file_paths_unsupported: Set[str] = set(filter(Ns_IO.not_supports, unique_file_paths_to_add))
-        file_paths_empty: Set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
-        file_paths_ok: Set[str] = (
+    def add_file_paths(self, file_paths_to_add: list[str]) -> None:
+        unique_file_paths_to_add: set[str] = set(file_paths_to_add)
+        already_added_file_paths: set[str] = set(self.model_file.yield_flat_file_paths())
+        file_paths_dup: set[str] = unique_file_paths_to_add & already_added_file_paths
+        file_paths_unsupported: set[str] = set(filter(Ns_IO.not_supports, unique_file_paths_to_add))
+        file_paths_empty: set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
+        file_paths_ok: set[str] = (
             unique_file_paths_to_add
             - already_added_file_paths
             - file_paths_dup

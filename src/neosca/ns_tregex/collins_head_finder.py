@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from neosca.ns_tregex.abstract_collins_head_finder import AbstractCollinsHeadFinder
 
@@ -162,7 +162,7 @@ class CollinsHeadFinder(AbstractCollinsHeadFinder):
             "XS": [["right", "IN"]],  # rule for new structure in QP
         }  # }}}
 
-    def postOperationFix(self, headIdx: int, daughterTrees: List["Tree"]) -> int:
+    def postOperationFix(self, headIdx: int, daughterTrees: list["Tree"]) -> int:
         if headIdx >= 2:
             prevLab = daughterTrees[headIdx - 1].label
             if prevLab == "CC" or prevLab == "CONJP":

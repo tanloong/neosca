@@ -3,7 +3,7 @@ import logging
 import os
 import os.path as os_path
 import sys
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 from neosca import CACHE_DIR
 from neosca.ns_about import __title__, __version__
@@ -279,7 +279,7 @@ class Ns_Main_Cli:
             logging.debug(f"CLI text: {options.text}")
 
         if options.subfiles_list is None:
-            self.verified_subfiles_list: List[List[str]] = []
+            self.verified_subfiles_list: list[list[str]] = []
         else:
             self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
 
@@ -375,8 +375,8 @@ class Ns_Main_Cli:
         self.options = options
         return True, None
 
-    def parse_args(self, argv: List[str]) -> Ns_Procedure_Result:
-        idx: Optional[int] = None
+    def parse_args(self, argv: list[str]) -> Ns_Procedure_Result:
+        idx: int | None = None
         if "--" in argv[1:]:
             idx = argv.index("--")
         if idx is not None:
@@ -464,7 +464,7 @@ class Ns_Main_Cli:
         if self.options.text is not None:
             analyzer.run_on_text(self.options.text)
 
-        files: List[str] = []
+        files: list[str] = []
         if verified_ifiles := getattr(self, "verified_ifiles", []):
             files.extend(verified_ifiles)
         if verified_subfiles_list := getattr(self, "verified_subfiles_list", []):

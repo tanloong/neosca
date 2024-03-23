@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from typing import Any, Generator, Iterable, List, Literal, Optional, Sequence, Union
+from collections.abc import Generator, Iterable, Sequence
+from typing import Any, Literal
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt, pyqtSignal
 from PyQt5.QtGui import (
@@ -33,8 +34,8 @@ class Ns_StandardItemModel(QStandardItemModel):
     def __init__(
         self,
         main,
-        hor_labels: Optional[Sequence[str]] = None,
-        ver_labels: Optional[Sequence[str]] = None,
+        hor_labels: Sequence[str] | None = None,
+        ver_labels: Sequence[str] | None = None,
         orientation: Literal["hor", "ver"] = "hor",
         show_empty_row: bool = True,
         **kwargs,
@@ -62,7 +63,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.row_added.connect(lambda: self.set_has_been_exported(False))
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
 
-    def set_item_left_shifted(self, rowno: int, colno: int, value: Union[QStandardItem, str]) -> QStandardItem:
+    def set_item_left_shifted(self, rowno: int, colno: int, value: QStandardItem | str) -> QStandardItem:
         if isinstance(value, QStandardItem):
             item = value
         elif isinstance(value, str):
@@ -75,14 +76,12 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.setItem(rowno, colno, item)
         return item
 
-    def set_row_left_shifted(
-        self, rowno: int, values: Iterable[Union[QStandardItem, str]], start: int = 0
-    ) -> None:
+    def set_row_left_shifted(self, rowno: int, values: Iterable[QStandardItem | str], start: int = 0) -> None:
         for colno, value in enumerate(values, start=start):
             self.set_item_left_shifted(rowno, colno, value)
 
     def set_item_right_shifted(
-        self, rowno: int, colno: int, value: Union[QStandardItem, str, int, float]
+        self, rowno: int, colno: int, value: QStandardItem | str | int | float
     ) -> QStandardItem:
         if isinstance(value, QStandardItem):
             item = value
@@ -97,7 +96,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         return item
 
     def set_row_right_shifted(
-        self, rowno: int, values: Iterable[Union[QStandardItem, str, int, float]], start: int = 0
+        self, rowno: int, values: Iterable[QStandardItem | str | int | float], start: int = 0
     ) -> None:
         for colno, value in enumerate(values, start=start):
             self.set_item_right_shifted(rowno, colno, value)
@@ -181,7 +180,7 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
         self.data_cleared.connect(lambda: self.main.enable_button_generate_table(False))
         self.row_added.connect(lambda: self.main.enable_button_generate_table(True))
 
-    def user_or_display_data(self, index_or_rowno: Union[QModelIndex, int], colno: Optional[int] = None) -> Any:
+    def user_or_display_data(self, index_or_rowno: QModelIndex | int, colno: int | None = None) -> Any:
         if isinstance(index_or_rowno, QModelIndex):
             user_data = index_or_rowno.data(Qt.ItemDataRole.UserRole)
             return user_data if user_data else index_or_rowno.data(Qt.ItemDataRole.DisplayRole)
@@ -210,7 +209,7 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
         """
         return self._yield_flat_file_column(1)
 
-    def _yield_file_column(self, colno) -> Generator[Union[str, List[str]], None, None]:
+    def _yield_file_column(self, colno) -> Generator[str | list[str], None, None]:
         for rowno in range(self.rowCount()):
             data = self.user_or_display_data(rowno, colno)
             if isinstance(data, (str, list)):
@@ -222,7 +221,7 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
         """
         return self.yield_column(0)
 
-    def yield_file_paths(self) -> Generator[Union[str, List[str]], None, None]:
+    def yield_file_paths(self) -> Generator[str | list[str], None, None]:
         """
         For simple row, yield file path displayed (str); for combined row, yield the list of subfile paths (list[str])
         """
@@ -255,7 +254,7 @@ class Ns_TableView(QTableView):
     def __init__(
         self,
         main,
-        model: Union[Ns_StandardItemModel, Ns_SortFilterProxyModel],
+        model: Ns_StandardItemModel | Ns_SortFilterProxyModel,
         has_hor_header: bool = True,
         has_ver_header: bool = False,
         **kwargs,
@@ -406,10 +405,10 @@ class Ns_TableView(QTableView):
 
                 # 3. Both header background and font
                 # 3.0.1 Get header background
-                horizon_bacolor: Optional[str] = Ns_QSS.get_value(
+                horizon_bacolor: str | None = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
                 )
-                vertical_bacolor: Optional[str] = Ns_QSS.get_value(
+                vertical_bacolor: str | None = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
                 )
                 # 3.0.2 Get header font, currently only consider color and boldness
@@ -515,7 +514,7 @@ class Ns_TableView(QTableView):
                 with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
                     # Horizontal header
-                    hor_header: List[str] = [""]
+                    hor_header: list[str] = [""]
                     hor_header.extend(
                         model.headerData(colno, Qt.Orientation.Horizontal) for colno in range(col_count)
                     )
@@ -523,7 +522,7 @@ class Ns_TableView(QTableView):
                     # Vertical header + cells
                     if self.has_ver_header:
                         for rowno in range(row_count):
-                            row: List[str] = [model.headerData(rowno, Qt.Orientation.Vertical)]
+                            row: list[str] = [model.headerData(rowno, Qt.Orientation.Vertical)]
                             row.extend(model.index(rowno, colno).data() for colno in range(col_count))
                             csv_writer.writerow(row)
                     else:
@@ -601,7 +600,7 @@ class Ns_TableView(QTableView):
 
                         ws_cell = ws.cell
                         ws_start_rowno = ws.max_row + ws_max_row_offset
-                        matches: List[str] = index.data(Qt.ItemDataRole.UserRole)
+                        matches: list[str] = index.data(Qt.ItemDataRole.UserRole)
                         for i, match in enumerate(matches):
                             cell_structure = ws_cell(ws_start_rowno + i, 1)
                             cell_structure.value = sname
@@ -633,7 +632,7 @@ class Ns_TableView(QTableView):
                 #     for ws in workbook.worksheets:
                 #         for cell in ws[get_column_letter(1)]:
                 #             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
-                vertical_bacolor: Optional[str] = Ns_QSS.get_value(
+                vertical_bacolor: str | None = Ns_QSS.get_value(
                     self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
                 )
                 if vertical_bacolor is not None:
@@ -658,7 +657,7 @@ class Ns_TableView(QTableView):
                 dialect = csv.excel if ".csv" in file_type else csv.excel_tab
                 with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
-                    header: List[str] = ["Filename", "Structure", "Match"]
+                    header: list[str] = ["Filename", "Structure", "Match"]
                     # instance of "Structure" is stored in "sname"
                     csv_writer.writerow(header)
                     for rowno in range(row_count):

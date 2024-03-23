@@ -9,9 +9,10 @@ import os.path as os_path
 import pickle
 import sys
 import zipfile
+from collections.abc import Generator, Iterable, Sequence
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Sequence, Tuple, Union
+from typing import Any
 from xml.etree.ElementTree import XML, fromstring
 
 from charset_normalizer import detect
@@ -32,7 +33,7 @@ class Ns_IO_Meta(type):
 class Ns_IO(metaclass=Ns_IO_Meta):
     # Type checker does not detect definition in Ns_IO_Meta, so declare here to
     # silence the "access unknown member warning"
-    SUPPORTED_EXTENSIONS: Tuple[str, ...] = tuple()
+    SUPPORTED_EXTENSIONS: tuple[str, ...] = tuple()
 
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"
@@ -95,7 +96,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return "\n".join("".join(node.itertext()) for node in paragraphs)
 
     @classmethod
-    def suffix(cls, file_path: Union[str, PathLike], *, strip_dot: bool = False) -> str:
+    def suffix(cls, file_path: str | PathLike, *, strip_dot: bool = False) -> str:
         """
         >>> suffix('my/library/setup.py')
         .py
@@ -112,14 +113,14 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return extension
 
     @classmethod
-    def supports(cls, file_path: Union[str, PathLike]) -> bool:
+    def supports(cls, file_path: str | PathLike) -> bool:
         # Can instead use hasattr(f"read_{extension}").
         # The SUPPORTED_EXTENSIONS is required by ns_main_cli:74 to list
         #  supported extensions to users.
         return cls.suffix(file_path, strip_dot=True) in cls.SUPPORTED_EXTENSIONS
 
     @classmethod
-    def not_supports(cls, file_path: Union[str, PathLike]) -> bool:
+    def not_supports(cls, file_path: str | PathLike) -> bool:
         return not cls.supports(file_path)
 
     @classmethod
@@ -152,16 +153,14 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             return True, None
 
     @classmethod
-    def _check_file_extension(
-        cls, file_path: Union[str, PathLike], valid_extensions: Union[str, Tuple[str, ...]]
-    ):
+    def _check_file_extension(cls, file_path: str | PathLike, valid_extensions: str | tuple[str, ...]):
         if not os_path.isfile(file_path):
             raise FileNotFoundError(f"File {file_path} does not exist")
         if not str(file_path).endswith(valid_extensions):
             raise ValueError(f"{file_path} does not have a valid extension")
 
     @classmethod
-    def load_pickle_lzma(cls, file_path: Union[str, PathLike]) -> Any:
+    def load_pickle_lzma(cls, file_path: str | PathLike) -> Any:
         cls._check_file_extension(file_path, (".pickle.lzma", ".pkl.lzma"))
 
         with open(file_path, "rb") as f:
@@ -171,7 +170,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return pickle.loads(data_pickle)
 
     @classmethod
-    def load_pickle(cls, file_path: Union[str, PathLike]) -> Any:
+    def load_pickle(cls, file_path: str | PathLike) -> Any:
         cls._check_file_extension(file_path, (".pickle", ".pkl"))
 
         with open(file_path, "rb") as f:
@@ -179,7 +178,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return pickle.loads(data_pickle)
 
     @classmethod
-    def load_lzma(cls, file_path: Union[str, PathLike]) -> bytes:
+    def load_lzma(cls, file_path: str | PathLike) -> bytes:
         cls._check_file_extension(file_path, ".lzma")
 
         with open(file_path, "rb") as f:
@@ -187,14 +186,14 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return lzma.decompress(data_lzma)
 
     @classmethod
-    def load_json(cls, file_path: Union[str, PathLike]) -> Any:
+    def load_json(cls, file_path: str | PathLike) -> Any:
         cls._check_file_extension(file_path, ".json")
 
         with open(file_path, "rb") as f:
             return json.load(f)
 
     @classmethod
-    def dump_json(cls, data: Any, path: Union[str, PathLike]) -> None:
+    def dump_json(cls, data: Any, path: str | PathLike) -> None:
         try:
             with open(path, "w") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
@@ -203,7 +202,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             cls.dump_json(data, path)
 
     @classmethod
-    def dump_bytes(cls, data: bytes, path: Union[str, PathLike]) -> None:
+    def dump_bytes(cls, data: bytes, path: str | PathLike) -> None:
         try:
             with open(path, "wb") as f:
                 f.write(data)
@@ -212,7 +211,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             cls.dump_bytes(data, path)
 
     @classmethod
-    def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> List[str]:
+    def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> list[str]:
         verified_ifile_list = []
         for path in ifile_list:
             # File path
@@ -245,10 +244,10 @@ class Ns_IO(metaclass=Ns_IO_Meta):
         return verified_ifile_list
 
     @classmethod
-    def get_verified_subfiles_list(cls, subfiles_list: List[List[str]]) -> List[List[str]]:
+    def get_verified_subfiles_list(cls, subfiles_list: list[list[str]]) -> list[list[str]]:
         verified_subfiles_list = []
         for subfiles in subfiles_list:
-            verified_subfiles: List[str] = cls.get_verified_ifile_list(subfiles)
+            verified_subfiles: list[str] = cls.get_verified_ifile_list(subfiles)
             if len(verified_subfiles) == 1:
                 logging.critical(
                     f"Only 1 subfile provided: ({verified_subfiles.pop()}). There should be 2"
@@ -271,7 +270,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
 class Ns_Cache:
     CACHE_EXTENSION = ".pickle.lzma"
     # fpath_cname: { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
-    fpath_cname: Dict[str, str] = (
+    fpath_cname: dict[str, str] = (
         Ns_IO.load_json(CACHE_INFO_PATH)
         if CACHE_INFO_PATH.exists() and os_path.getsize(CACHE_INFO_PATH) > 0
         else {}
@@ -279,7 +278,7 @@ class Ns_Cache:
     info_changed: bool = False
 
     @classmethod
-    def get_cache_path(cls, file_path: str) -> Tuple[str, bool]:
+    def get_cache_path(cls, file_path: str) -> tuple[str, bool]:
         """
         return (cache_path, available: whether the cache is usable)
         """
@@ -306,7 +305,7 @@ class Ns_Cache:
         return cache_path, True
 
     @classmethod
-    def _size_fmt(cls, filesize: Union[int, float], suffix: str = "B") -> str:
+    def _size_fmt(cls, filesize: int | float, suffix: str = "B") -> str:
         # https://github.com/gaogaotiantian/viztracer/blob/3ecd46aa0e70df7dd78f720a2660d6da211c4a51/src/viztracer/util.py#L12
         for unit in ("", "Ki", "Mi", "Gi"):
             if abs(filesize) < 1024.0:
@@ -315,7 +314,7 @@ class Ns_Cache:
         return f"{filesize:.1f} {'Ti'}{suffix}"
 
     @classmethod
-    def yield_cname_cpath_csize_fpath(cls) -> Generator[Tuple[str, str, str, str], None, None]:
+    def yield_cname_cpath_csize_fpath(cls) -> Generator[tuple[str, str, str, str], None, None]:
         for file_path, cache_name in Ns_Cache.fpath_cname.items():
             cache_path = Ns_Cache._name2path(cache_name)
             if not os_path.exists(cache_path):

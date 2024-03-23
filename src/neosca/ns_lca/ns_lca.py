@@ -4,7 +4,7 @@ import logging
 import os
 import os.path as os_path
 import sys
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Literal
 
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
@@ -50,16 +50,14 @@ class Ns_LCA:
         self.is_save_matches = is_save_matches
         self.is_save_values = is_save_values
 
-        self.counters: List[Ns_LCA_Counter] = []
+        self.counters: list[Ns_LCA_Counter] = []
 
-    def get_lempos_frm_text(
-        self, text: str, /, cache_path: Optional[str] = None
-    ) -> Tuple[Tuple[str, str], ...]:
+    def get_lempos_frm_text(self, text: str, /, cache_path: str | None = None) -> tuple[tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
 
-    def get_lempos_frm_file(self, file_path: str, /) -> Tuple[Tuple[str, str], ...]:
+    def get_lempos_frm_file(self, file_path: str, /) -> tuple[tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
 
         cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
@@ -73,7 +71,7 @@ class Ns_LCA:
         text = Ns_IO.load_file(file_path)
 
         if not self.is_cache:
-            cache_path: Optional[str] = None  # type: ignore
+            cache_path: str | None = None  # type: ignore
 
         try:
             return self.get_lempos_frm_text(text)
@@ -107,7 +105,7 @@ class Ns_LCA:
         if self.is_save_values:
             self.dump_values()
 
-    def run_on_file_or_subfiles(self, file_or_subfiles: Union[str, List[str]]) -> Ns_LCA_Counter:
+    def run_on_file_or_subfiles(self, file_or_subfiles: str | list[str]) -> Ns_LCA_Counter:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
             lempos_tuples = self.get_lempos_frm_file(file_path)
@@ -126,7 +124,7 @@ class Ns_LCA:
         return counter
 
     def run_on_file_or_subfiles_list(
-        self, file_or_subfiles_list: List[Union[str, List[str]]], *, clear: bool = True
+        self, file_or_subfiles_list: list[str | list[str]], *, clear: bool = True
     ) -> None:
         if clear:
             self.counters.clear()
@@ -146,7 +144,7 @@ class Ns_LCA:
         if len(self.counters) == 0:
             raise ValueError("empty counter list")
 
-        value_tables: List[Dict[str, str]] = [
+        value_tables: list[dict[str, str]] = [
             counter.get_all_values(self.precision) for counter in self.counters
         ]
 

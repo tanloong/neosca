@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Any, List
+from typing import Any
 
 from PyQt5.QtCore import QSettings
 
@@ -26,7 +26,7 @@ class Ns_Settings:
             cls.settings.setValue(k, v)
 
     @classmethod
-    def allKeys(cls) -> List[str]:
+    def allKeys(cls) -> list[str]:
         return cls.settings.allKeys()
 
     @classmethod

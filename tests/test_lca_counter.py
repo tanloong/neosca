@@ -4,7 +4,6 @@ import csv
 import glob
 import logging
 import os.path as os_path
-from typing import List
 
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 
@@ -42,7 +41,7 @@ class TestLCACounter(BaseTmpl):
 
         with open(os_path.join(self.testdir_data_lempos, "lca_results.csv")) as f:
             csv_reader = csv.DictReader(f)
-            expected_results: List[dict] = [row for row in csv_reader]
+            expected_results: list[dict] = [row for row in csv_reader]
         assert len(expected_results) == len(counters)
 
         # Compare results with original LCA implementation
