@@ -15,9 +15,9 @@ NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2
 
 |Release|Remarks|
 |-|-|
-|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
-|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
-|[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.1/NeoSCA-0.1.1-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
+|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.2/NeoSCA-0.1.2-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
+|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.2/NeoSCA-0.1.2-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
+|[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.2/NeoSCA-0.1.2-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
 |[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
 |[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to Github|
 
@@ -42,7 +42,7 @@ BibTeX
 
 ```BibTeX
 @misc{long2024neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.1},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.2},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2024}
@@ -57,7 +57,7 @@ year         = {2024}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.1) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.2) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -67,7 +67,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.1, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.2, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

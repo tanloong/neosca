@@ -12,7 +12,7 @@ license = {text = "GNU GPLv3"}
 authors = [{"name" = "Tan, Long", "email" = "tanloong@foxmail.com"},]
 description = "Fork of L2SCA and LCA"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 keywords = ["L2SCA", "Syntactic Complexity", "LCA", "Lexical Complexity", "Constituency Parsing", "Tregex", "Corpus Linguistics"]
 classifiers=[
         "Programming Language :: Python :: 3.12",
