@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.1.2](https://github.com/tanloong/neosca/releases/tag/0.1.2) (24 March 2024)
+
+### Bug fixes
+
++ Fix crash on exporting table
+
 ## [0.1.1](https://github.com/tanloong/neosca/releases/tag/0.1.1) (17 March 2024)
 
 ### Improvements
