@@ -4,7 +4,6 @@ import os
 import os.path as os_path
 import shutil
 import subprocess
-from typing import Optional, Union
 
 from . import SRC_DIR
 from .base_tmpl import BaseTmpl
@@ -24,7 +23,7 @@ class CmdlineTmpl(BaseTmpl):
 
     def cleanup(
         self,
-        output_file: Union[str, list, None] = "result.csv",
+        output_file: str | list | None = "result.csv",
         ifile_name="sample.txt",
     ):
         if os_path.exists(ifile_name):
@@ -49,9 +48,9 @@ class CmdlineTmpl(BaseTmpl):
     def template(
         self,
         cmd,
-        expected_output_file: Union[str, list, None] = "result.csv",
+        expected_output_file: str | list | None = "result.csv",
         success=True,
-        text: Optional[str] = text,
+        text: str | None = text,
         ifile_name="sample.txt",
         expected_stdout=None,
         expected_stderr=None,

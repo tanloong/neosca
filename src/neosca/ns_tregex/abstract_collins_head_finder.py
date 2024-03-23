@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Set
+from typing import TYPE_CHECKING, Optional
 
 from neosca.ns_tregex.head_finder import HeadFinder
 
@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 class AbstractCollinsHeadFinder(HeadFinder):
     def __init__(self, *categoriesToAvoid) -> None:
-        self.nonTerminalInfo: Optional[dict] = None
-        self.pennPunctTags: Set[str] = {"''``", "-LRB-", "-RRB-", ".", ":", ","}
-        self.defaultRule: Optional[list] = None
+        self.nonTerminalInfo: dict | None = None
+        self.pennPunctTags: set[str] = {"''``", "-LRB-", "-RRB-", ".", ":", ","}
+        self.defaultRule: list | None = None
 
         # automatically build defaultLeftRule, defaultRightRule
         if categoriesToAvoid:
@@ -74,14 +74,14 @@ class AbstractCollinsHeadFinder(HeadFinder):
         param t The tre to determine the head daughter of param parent The parent of t (or may be None)
         return The head daughter of t
         """
-        theHead: Optional["Tree"] = None
+        theHead: "Tree" | None = None
         motherCat = t.label
         if motherCat.startswith("@"):
             motherCat = motherCat[1:]
         if self.nonTerminalInfo is not None and motherCat not in self.nonTerminalInfo:
             return None
 
-        hows: List[List[str]] = self.nonTerminalInfo.get(motherCat, None)  # type:ignore
+        hows: list[list[str]] = self.nonTerminalInfo.get(motherCat, None)  # type:ignore
         kids = t.children
         if hows is None:
             if self.defaultRule is not None:
@@ -96,7 +96,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                 break
         return theHead
 
-    def traverseLocate(self, daughterTrees: List["Tree"], how: List[str], lastResort: bool) -> Optional["Tree"]:
+    def traverseLocate(self, daughterTrees: list["Tree"], how: list[str], lastResort: bool) -> Optional["Tree"]:
         """
         Attempt to locate head daughter tree from among daughters. Go through
         daughterTrees looking for things from or not in a set given by the
@@ -132,7 +132,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         headIdx = self.postOperationFix(headIdx, daughterTrees)
         return daughterTrees[headIdx]
 
-    def findLeftHead(self, daughterTrees: List["Tree"], how: List[str]):  # {{{
+    def findLeftHead(self, daughterTrees: list["Tree"], how: list[str]):  # {{{
         for i in range(1, len(how)):
             for headIdx in range(len(daughterTrees)):
                 childCat = daughterTrees[headIdx].label
@@ -140,7 +140,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                     return headIdx
         return -1
 
-    def findLeftDisHead(self, daughterTrees: List["Tree"], how: List[str]):
+    def findLeftDisHead(self, daughterTrees: list["Tree"], how: list[str]):
         for headIdx in range(len(daughterTrees)):
             childCat = daughterTrees[headIdx].label
             for i in range(1, len(how)):
@@ -148,7 +148,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                     return headIdx
         return -1
 
-    def findLeftExceptHead(self, daughterTrees: List["Tree"], how: List[str]):
+    def findLeftExceptHead(self, daughterTrees: list["Tree"], how: list[str]):
         for headIdx in range(len(daughterTrees)):
             childCat = daughterTrees[headIdx].label
             found = True
@@ -159,7 +159,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                 return headIdx
         return -1
 
-    def findRightHead(self, daughterTrees: List["Tree"], how: List[str]):
+    def findRightHead(self, daughterTrees: list["Tree"], how: list[str]):
         for i in range(1, len(how)):
             for headIdx in range(len(daughterTrees) - 1, -1, -1):
                 childCat = daughterTrees[headIdx].label
@@ -168,7 +168,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         return -1
 
     # from right, but search for any of the categories, not by category in turn
-    def findRightDisHead(self, daughterTrees: List["Tree"], how: List[str]):
+    def findRightDisHead(self, daughterTrees: list["Tree"], how: list[str]):
         for headIdx in range(len(daughterTrees) - 1, -1, -1):
             childCat = daughterTrees[headIdx].label
             for i in range(1, len(how)):
@@ -176,7 +176,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
                     return headIdx
         return -1
 
-    def findRightExceptHead(self, daughterTrees: List["Tree"], how: List[str]):
+    def findRightExceptHead(self, daughterTrees: list["Tree"], how: list[str]):
         for headIdx in range(len(daughterTrees) - 1, -1, -1):
             childCat = daughterTrees[headIdx].label
             found = True
@@ -188,5 +188,5 @@ class AbstractCollinsHeadFinder(HeadFinder):
         return -1
 
     # }}}
-    def postOperationFix(self, headIdx: int, daughterTrees: List["Tree"]) -> int:
+    def postOperationFix(self, headIdx: int, daughterTrees: list["Tree"]) -> int:
         return headIdx

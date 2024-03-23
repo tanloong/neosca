@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 from abc import ABC, abstractmethod
+from collections.abc import Generator, Iterator
 from itertools import chain as _chain
-from typing import TYPE_CHECKING, Generator, Iterator, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from neosca.ns_tregex.collins_head_finder import CollinsHeadFinder
 
@@ -180,7 +181,7 @@ class HAS_LEFTMOST_DESCENDANT(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid: Optional["Tree"] = t.firstChild()
+        kid: "Tree" | None = t.firstChild()
         while kid is not None:
             yield kid
             kid = kid.firstChild()
@@ -480,9 +481,9 @@ class PRECEDES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        searchStack: List["Tree"] = []
-        current: Optional["Tree"] = t
-        parent_: Optional["Tree"] = t.parent
+        searchStack: list["Tree"] = []
+        current: "Tree" | None = t
+        parent_: "Tree" | None = t.parent
         while parent_ is not None:
             for kid in reversed(parent_.children):
                 if kid is current:
@@ -503,8 +504,8 @@ class IMMEDIATELY_PRECEDES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        current: Optional["Tree"] = None
-        parent_: Optional["Tree"] = t
+        current: "Tree" | None = None
+        parent_: "Tree" | None = t
         while True:
             current = parent_  # type: ignore
             parent_ = parent_.parent  # type: ignore
@@ -531,9 +532,9 @@ class FOLLOWS(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        searchStack: List["Tree"] = []
-        current: Optional["Tree"] = t
-        parent_: Optional["Tree"] = t.parent
+        searchStack: list["Tree"] = []
+        current: "Tree" | None = t
+        parent_: "Tree" | None = t.parent
         while parent_ is not None:
             for kid in parent_.children:
                 if kid is current:
@@ -554,8 +555,8 @@ class IMMEDIATELY_FOLLOWS(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        current: Optional["Tree"] = None
-        parent_: Optional["Tree"] = t
+        current: "Tree" | None = None
+        parent_: "Tree" | None = t
         while True:
             current = parent_
             parent_ = parent_.parent  # type: ignore

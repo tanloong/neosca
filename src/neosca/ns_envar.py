@@ -3,7 +3,6 @@
 import logging
 import os
 import os.path as os_path
-from typing import List, Optional
 
 from neosca.ns_platform_info import IS_LINUX, IS_MAC, IS_WINDOWS
 from neosca.ns_print import color_print
@@ -13,7 +12,7 @@ from neosca.ns_print import color_print
 STANFORD_TREGEX_HOME = "STANFORD_TREGEX_HOME"
 
 
-def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
+def _setenv_windows(env_var: str, paths: list[str], is_refresh: bool = False) -> None:
     import ctypes  # Allows interface with low-level C API's
     import winreg  # Allows access to the windows registry
 
@@ -47,7 +46,7 @@ def _setenv_windows(env_var: str, paths: List[str], is_refresh: bool = False) ->
         )
 
 
-def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> None:
+def _setenv_unix(env_var: str, paths: list[str], is_refresh: bool = False) -> None:
     shell = os.environ.get("SHELL")
     if shell is None:
         logging.warning(
@@ -101,7 +100,7 @@ def _setenv_unix(env_var: str, paths: List[str], is_refresh: bool = False) -> No
                 f.write("\n".join(configs))
 
 
-def setenv(envar: str, paths: List[str], is_override: bool = False, is_quiet: bool = False) -> None:
+def setenv(envar: str, paths: list[str], is_override: bool = False, is_quiet: bool = False) -> None:
     assert any((IS_WINDOWS, IS_MAC, IS_LINUX))
     if IS_WINDOWS:
         _setenv_windows(envar, paths, is_override)
@@ -116,6 +115,6 @@ def setenv(envar: str, paths: List[str], is_override: bool = False, is_quiet: bo
         )
 
 
-def get_dir_frm_env(envar: str) -> Optional[str]:
+def get_dir_frm_env(envar: str) -> str | None:
     directory = os.getenv(envar, "")
     return directory if os_path.isdir(directory) else None

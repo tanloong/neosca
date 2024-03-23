@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Generator
+from collections.abc import Generator
 
 from neosca.ns_tregex.node_descriptions import Node_Any, Node_Text
 from neosca.ns_tregex.relation import (

@@ -10,7 +10,6 @@ import sys
 import tokenize
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca import DATA_DIR
 from neosca.ns_about import __title__
@@ -26,9 +25,9 @@ class Ns_SCA_Structure:
         self,
         name: str,
         *,
-        tregex_pattern: Optional[str] = None,
-        value_source: Optional[str] = None,
-        description: Optional[str] = None,
+        tregex_pattern: str | None = None,
+        value_source: str | None = None,
+        description: str | None = None,
     ) -> None:
         """
         :param name: name of the structure
@@ -50,8 +49,8 @@ class Ns_SCA_Structure:
         self.tregex_pattern = tregex_pattern
         self.value_source = value_source
 
-        self.value: Optional[Union[float, int]] = None
-        self.matches: List[str] = []
+        self.value: float | int | None = None
+        self.matches: list[str] = []
 
     def definition(self) -> str:
         if self.tregex_pattern is not None:
@@ -76,7 +75,7 @@ class Ns_SCA_Structure:
     def __repr__(self) -> str:  # pragma: no cover
         return f"name: {self.name}\ndescription: {self.description}\n{self.definition()}\nvalue: {self.value}"
 
-    def __add__(self, other) -> Union[int, float]:
+    def __add__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return self.value + other
@@ -84,13 +83,13 @@ class Ns_SCA_Structure:
         assert other.value is not None
         return self.value + other.value
 
-    def __radd__(self, other) -> Union[int, float]:
+    def __radd__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other + self.value
         raise NotImplementedError
 
-    def __sub__(self, other) -> Union[int, float]:
+    def __sub__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return self.value - other
@@ -98,13 +97,13 @@ class Ns_SCA_Structure:
         assert other.value is not None
         return self.value - other.value
 
-    def __rsub__(self, other) -> Union[int, float]:
+    def __rsub__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other - self.value
         raise NotImplementedError
 
-    def __mul__(self, other) -> Union[int, float]:
+    def __mul__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return self.value * other
@@ -112,7 +111,7 @@ class Ns_SCA_Structure:
         assert other.value is not None
         return self.value * other.value
 
-    def __rmul__(self, other) -> Union[int, float]:
+    def __rmul__(self, other) -> int | float:
         assert self.value is not None
         if isinstance(other, (float, int)):
             return other * self.value
@@ -135,11 +134,11 @@ class Ns_SCA_Structure:
 
 class Ns_SCA_Counter:
     BUILTIN_DATA = Ns_IO.load_json(DATA_DIR / "l2sca_structures.json")
-    BUILTIN_STRUCTURE_DEFS: Dict[str, Ns_SCA_Structure] = {}
+    BUILTIN_STRUCTURE_DEFS: dict[str, Ns_SCA_Structure] = {}
     for kwargs in BUILTIN_DATA["structures"]:
         BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
 
-    DEFAULT_MEASURES: List[str] = [
+    DEFAULT_MEASURES: list[str] = [
         "W",
         "S",
         "VP",
@@ -185,13 +184,13 @@ class Ns_SCA_Counter:
         self,
         ifile="",
         *,
-        selected_measures: Optional[List[str]] = None,
-        user_structure_defs: Optional[List[Dict[str, str]]] = None,
+        selected_measures: list[str] | None = None,
+        user_structure_defs: list[dict[str, str]] | None = None,
     ) -> None:
         self.ifile = ifile
 
-        user_sname_structure_map: Dict[str, Ns_SCA_Structure] = {}
-        user_snames: Optional[Set[str]] = None
+        user_sname_structure_map: dict[str, Ns_SCA_Structure] = {}
+        user_snames: set[str] | None = None
 
         if user_structure_defs is not None:
             user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
@@ -200,7 +199,7 @@ class Ns_SCA_Counter:
             for kwargs in user_structure_defs:
                 user_sname_structure_map[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
 
-        self.sname_structure_map: Dict[str, Ns_SCA_Structure] = deepcopy(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS)
+        self.sname_structure_map: dict[str, Ns_SCA_Structure] = deepcopy(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS)
         self.sname_structure_map.update(user_sname_structure_map)
 
         default_measures = Ns_SCA_Counter.DEFAULT_MEASURES + [
@@ -209,13 +208,13 @@ class Ns_SCA_Counter:
 
         if selected_measures is not None:
             Ns_SCA_Counter.check_undefined_measure(selected_measures, user_snames)
-        self.selected_measures: List[str] = (
+        self.selected_measures: list[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
         logging.debug(f"Selected measures: {self.selected_measures}")
 
     @classmethod
-    def check_user_structure_def(cls, user_structure_defs: List[Dict[str, str]]) -> Set[str]:
+    def check_user_structure_def(cls, user_structure_defs: list[dict[str, str]]) -> set[str]:
         """
         check duplicated definition
             e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
@@ -240,7 +239,7 @@ class Ns_SCA_Counter:
 
     @classmethod
     def check_undefined_measure(
-        cls, selected_measures: List[str], user_defined_snames: Optional[Set[str]]
+        cls, selected_measures: list[str], user_defined_snames: set[str] | None
     ) -> None:
         # check undefined selected_measure
         if user_defined_snames is not None:
@@ -261,24 +260,24 @@ class Ns_SCA_Counter:
         else:
             return structure
 
-    def _check_matches(self, structure_name: str, matches: List[str]) -> None:
+    def _check_matches(self, structure_name: str, matches: list[str]) -> None:
         if structure_name not in self.sname_structure_map:
             raise StructureNotFoundError(f"{structure_name} not found")
         elif not isinstance(matches, list):
             raise ValueError("matches should be a list object")
 
-    def set_matches(self, structure_name: str, matches: List[str]) -> None:
+    def set_matches(self, structure_name: str, matches: list[str]) -> None:
         self._check_matches(structure_name, matches)
         self.sname_structure_map[structure_name].matches = matches
 
-    def extend_matches(self, structure_name: str, matches: List[str]) -> None:
+    def extend_matches(self, structure_name: str, matches: list[str]) -> None:
         self._check_matches(structure_name, matches)
         self.sname_structure_map[structure_name].matches.extend(matches)
 
-    def get_matches(self, sname: str) -> List[str]:
+    def get_matches(self, sname: str) -> list[str]:
         return self.get_structure(sname).matches
 
-    def set_value(self, sname: str, value: Union[int, float]) -> None:
+    def set_value(self, sname: str, value: int | float) -> None:
         if sname not in self.sname_structure_map:
             raise ValueError(f"{sname} not counted")
         elif not isinstance(value, (float, int)):
@@ -286,7 +285,7 @@ class Ns_SCA_Counter:
         else:
             self.sname_structure_map[sname].value = value
 
-    def get_value(self, sname: str, precision: int = 4) -> Optional[Union[float, int]]:
+    def get_value(self, sname: str, precision: int = 4) -> float | int | None:
         value = self.get_structure(sname).value
         return round(value, precision) if value is not None else value
 
@@ -306,7 +305,7 @@ class Ns_SCA_Counter:
     def sname_is_terminal(self, sname: str) -> bool:
         return self.get_structure(sname).is_terminal()
 
-    def check_circular_def(self, descendant_sname: str, ancestor_snames: List[str]) -> None:
+    def check_circular_def(self, descendant_sname: str, ancestor_snames: list[str]) -> None:
         if descendant_sname in ancestor_snames:
             circular_definition = ", ".join(
                 f"{ancestor_sname} = {self.get_structure(ancestor_sname).value_source}"
@@ -320,7 +319,7 @@ class Ns_SCA_Counter:
             )
 
     @classmethod
-    def search_sname(cls, sname: str, forest: str) -> List[str]:
+    def search_sname(cls, sname: str, forest: str) -> list[str]:
         if sname not in cls.SNAME_SEARCHER_MAPPING:
             raise ValueError(f"{sname} is not yet supported in {__title__}.")
 
@@ -342,10 +341,10 @@ class Ns_SCA_Counter:
         value_source: str,
         sname: str,
         forest: str,
-        ancestor_snames: List[str],
-    ) -> Tuple[Union[float, int], List[str]]:
+        ancestor_snames: list[str],
+    ) -> tuple[float | int, list[str]]:
         tokens = []
-        matches: List[str] = []
+        matches: list[str] = []
         is_addition_only: bool = True
         for t in tokenize.generate_tokens(io.StringIO(value_source).readline):
             token_type, token_string, *_ = t
@@ -388,7 +387,7 @@ class Ns_SCA_Counter:
         self.set_value(sname, len(matched_subtrees))
         self.set_matches(sname, matched_subtrees)
 
-    def determine_value_from_value_source(self, sname: str, forest: str, ancestor_snames: List[str]) -> None:
+    def determine_value_from_value_source(self, sname: str, forest: str, ancestor_snames: list[str]) -> None:
         structure = self.get_structure(sname)
         value_source = structure.value_source
         assert value_source is not None, f"value_source for {sname} is None."
@@ -406,7 +405,7 @@ class Ns_SCA_Counter:
         self,
         sname: str,
         forest: str,
-        ancestor_snames: Optional[List[str]] = None,
+        ancestor_snames: list[str] | None = None,
     ) -> None:
         value = self.get_value(sname)
         if value is not None:
@@ -473,7 +472,7 @@ class Ns_SCA_Counter:
             new.set_value(sname, value)
             logging.debug(f"Combined {sname}: {this_value} + {that_value} = {value}")
 
-            matches: List[str] = self.get_matches(sname) + other.get_matches(sname)
+            matches: list[str] = self.get_matches(sname) + other.get_matches(sname)
             new.set_matches(sname, matches)
 
         # Re-calc measures defined by value_source

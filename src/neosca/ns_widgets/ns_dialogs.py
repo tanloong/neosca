@@ -4,8 +4,8 @@ import os
 import re
 import sys
 import traceback
+from collections.abc import Sequence
 from enum import Enum
-from typing import List, Optional, Sequence
 
 from PyQt5.QtCore import (
     QElapsedTimer,
@@ -282,7 +282,7 @@ class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
 
         self.file_name = index.model().index(index.row(), 0).data()
         self.sname = index.model().headerData(index.column(), Qt.Orientation.Horizontal)
-        self.matched_subtrees: List[str] = index.data(Qt.ItemDataRole.UserRole)
+        self.matched_subtrees: list[str] = index.data(Qt.ItemDataRole.UserRole)
         self.setText("\n".join(self.matched_subtrees))
 
         self.label_summary = Ns_Label_WordWrapped(
@@ -334,11 +334,11 @@ class Ns_Dialog_Table(Ns_Dialog):
         main,
         title: str,
         tableview: Ns_TableView,
-        text: Optional[str] = None,
-        html: Optional[str] = None,
+        text: str | None = None,
+        html: str | None = None,
         width: int = 600,
         height: int = 600,
-        export_filename: Optional[str] = None,
+        export_filename: str | None = None,
         disable_default_botright_buttons: bool = False,
     ) -> None:
         super().__init__(main, title=title, width=width, height=height, resizable=True)
@@ -480,7 +480,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
         self.delete_cache(cache_paths)
 
     def on_delete_selected(self) -> None:
-        indexes: List[QModelIndex] = self.tableview_cache.selectionModel().selectedRows(column=0)
+        indexes: list[QModelIndex] = self.tableview_cache.selectionModel().selectedRows(column=0)
         cache_paths = tuple(index.data(Qt.ItemDataRole.UserRole) for index in indexes)
         self.delete_cache(cache_paths)
 
@@ -522,7 +522,7 @@ class Ns_Dialog_Table_Subfiles(Ns_Dialog_Table):
 
         names_retained = name_index.data(Qt.ItemDataRole.UserRole)
         paths_retained = path_index.data(Qt.ItemDataRole.UserRole)
-        for rowno, row in enumerate(zip(names_retained, paths_retained)):
+        for rowno, row in enumerate(zip(names_retained, paths_retained, strict=False)):
             self.model_subfiles.set_row_left_shifted(rowno, row)
 
         self.tableview_subfiles = Ns_TableView(main, model=self.model_subfiles)

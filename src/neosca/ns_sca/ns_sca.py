@@ -4,7 +4,6 @@ import logging
 import os
 import os.path as os_path
 import sys
-from typing import Dict, List, Optional, Set, Tuple, Union
 
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
@@ -17,7 +16,7 @@ class Ns_SCA:
         ofile_freq: str = "result.csv",
         oformat_freq: str = "csv",
         odir_matched: str = "",
-        selected_measures: Optional[List[str]] = None,
+        selected_measures: list[str] | None = None,
         precision: int = 4,
         is_cache: bool = True,
         is_use_cache: bool = True,
@@ -25,7 +24,7 @@ class Ns_SCA:
         is_skip_parsing: bool = False,
         is_save_matches: bool = False,
         is_save_values: bool = True,
-        config: Optional[str] = None,
+        config: str | None = None,
     ) -> None:
         self.ofile_freq = ofile_freq
         self.oformat_freq = oformat_freq
@@ -45,13 +44,13 @@ class Ns_SCA:
         if selected_measures is not None:
             Ns_SCA_Counter.check_undefined_measure(selected_measures, self.user_snames)
 
-        self.counters: List[Ns_SCA_Counter] = []
+        self.counters: list[Ns_SCA_Counter] = []
 
     # }}}
-    def load_user_config(self, config: Optional[str]) -> Tuple[dict, List[dict], Optional[Set[str]]]:  # {{{
+    def load_user_config(self, config: str | None) -> tuple[dict, list[dict], set[str] | None]:  # {{{
         user_data: dict = {}
-        user_structure_defs: List[Dict[str, str]] = []
-        user_snames: Optional[Set[str]] = None
+        user_structure_defs: list[dict[str, str]] = []
+        user_snames: set[str] | None = None
 
         if config is not None:
             user_data = Ns_IO.load_json(config)
@@ -61,7 +60,7 @@ class Ns_SCA:
         return user_data, user_structure_defs, user_snames
 
     # }}}
-    def get_forest_frm_text(self, text: str, cache_path: Optional[str] = None) -> str:  # {{{
+    def get_forest_frm_text(self, text: str, cache_path: str | None = None) -> str:  # {{{
         if self.is_skip_parsing:  # Assume input as parse trees
             return text
 
@@ -123,7 +122,7 @@ class Ns_SCA:
 
     # }}}
     def run_on_file_or_subfiles(  # {{{
-        self, file_or_subfiles: Union[str, List[str]]
+        self, file_or_subfiles: str | list[str]
     ) -> Ns_SCA_Counter:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
@@ -154,7 +153,7 @@ class Ns_SCA:
 
     # }}}
     def run_on_file_or_subfiles_list(  # {{{
-        self, file_or_subfiles_list: List[Union[str, List[str]]], *, clear: bool = True
+        self, file_or_subfiles_list: list[str | list[str]], *, clear: bool = True
     ) -> None:
         if clear:
             self.counters.clear()
@@ -180,7 +179,7 @@ class Ns_SCA:
         if len(self.counters) == 0:
             raise ValueError("empty counter list")
 
-        sname_value_maps: List[Dict[str, str]] = [
+        sname_value_maps: list[dict[str, str]] = [
             counter.get_all_values(self.precision) for counter in self.counters
         ]
 

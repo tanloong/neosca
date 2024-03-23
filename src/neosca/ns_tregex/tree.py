@@ -4,9 +4,10 @@
 
 import re
 from collections import deque
+from collections.abc import Generator, Iterator
 from io import StringIO
 from itertools import chain as _chain
-from typing import TYPE_CHECKING, Deque, Generator, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional
 
 from neosca.ns_tregex.peekable import peekable
 
@@ -21,8 +22,8 @@ OPEN_PAREN = "("
 class Tree:
     def __init__(
         self,
-        label: Optional[str] = None,
-        children: Optional[List["Tree"]] = None,
+        label: str | None = None,
+        children: list["Tree"] | None = None,
         parent: Optional["Tree"] = None,
     ):
         self.set_label(label)
@@ -38,7 +39,7 @@ class Tree:
     def __repr__(self):
         # https://github.com/stanfordnlp/stanza/blob/c2d72bd14cf8cc28bd4e41a620692bbce5f43835/stanza/models/constituency/parse_tree.py#L118
         with StringIO() as buf:
-            stack: deque[Union["Tree", str]] = deque()
+            stack: deque["Tree" | str] = deque()
             stack.append(self)
             while len(stack) > 0:
                 node = stack.pop()
@@ -109,7 +110,7 @@ class Tree:
     def __len__(self) -> int:
         return len(self.children)
 
-    def basic_category(self) -> Optional[str]:
+    def basic_category(self) -> str | None:
         if self.label is None:
             return None
         return self.label.split("-")[0]
@@ -224,13 +225,13 @@ class Tree:
         if self.isLeaf():
             return self
 
-        head: Optional["Tree"] = hf.determineHead(self)
+        head: "Tree" | None = hf.determineHead(self)
         if head is not None:
             return head.head_terminal(hf)
 
         return None
 
-    def get_terminal_labels(self) -> List[Optional[str]]:
+    def get_terminal_labels(self) -> list[str | None]:
         """
         Gets labels of terminal nodes. The Label of all leaf nodes is returned
         as a list ordered by the natural left to right order of the leaves.
@@ -240,7 +241,7 @@ class Tree:
         """
         return [leaf.label for leaf in self.getLeaves()]
 
-    def get_tagged_terminal_labels(self, divider: str = "/") -> List[str]:
+    def get_tagged_terminal_labels(self, divider: str = "/") -> list[str]:
         """
         Gets the tagged labels of the tree -- that is, get the preterminals as
         well as the terminals.  The Label of all leaf nodes is returned as a
@@ -312,9 +313,9 @@ class Tree:
                 return i
         return -1
 
-    def set_label(self, label: Optional[str]) -> None:
+    def set_label(self, label: str | None) -> None:
         if isinstance(label, str):
-            self.label: Optional[str] = self.normalize(label)
+            self.label: str | None = self.normalize(label)
         elif label is None:
             self.label = None
         else:
@@ -348,7 +349,7 @@ class Tree:
             )
             setattr(cls, attr, token_re)
 
-        stack_parent: Deque["Tree"] = deque()
+        stack_parent: deque["Tree"] = deque()
         current_tree = None
 
         token_g = peekable(token_re.findall(string))
@@ -430,7 +431,7 @@ class Tree:
         # convert to tuple to ensure unchangabel hereafter
         return tuple(reversed(list(self.iter_upto_root())))
 
-    def walk_to(self, other: "Tree") -> Tuple[Tuple["Tree"], "Tree", Tuple["Tree"]]:
+    def walk_to(self, other: "Tree") -> tuple[tuple["Tree"], "Tree", tuple["Tree"]]:
         """
         walk from `start` node to `end` node.
 
@@ -449,31 +450,33 @@ class Tree:
 
         # common
         common = tuple(
-            node_start for node_start, node_end in zip(path_start, path_end) if node_start is node_end
+            node_start
+            for node_start, node_end in zip(path_start, path_end, strict=False)
+            if node_start is node_end
         )
         assert common[0] is self.getRoot()
         len_common = len(common)
 
         # upwards
         if self is common[-1]:
-            upwards: Tuple["Tree"] = tuple()  # type:ignore
+            upwards: tuple["Tree"] = tuple()  # type:ignore
         else:
-            upwards: Tuple["Tree"] = tuple(reversed(path_start[len_common:]))  # type:ignore
+            upwards: tuple["Tree"] = tuple(reversed(path_start[len_common:]))  # type:ignore
         # down
         if other is common[-1]:
-            down: Tuple["Tree"] = tuple()  # type:ignore
+            down: tuple["Tree"] = tuple()  # type:ignore
         else:
-            down: Tuple["Tree"] = path_end[len_common:]  # type:ignore
+            down: tuple["Tree"] = path_end[len_common:]  # type:ignore
         return upwards, common[-1], down
 
-    def left_sisters(self) -> Optional[list]:
+    def left_sisters(self) -> list | None:
         sister_index_ = self.get_sister_index()
         is_not_the_first = sister_index_ is not None and sister_index_ > 0
         if is_not_the_first:
             return self.parent.children[:sister_index_]  # type:ignore
         return None
 
-    def right_sisters(self) -> Optional[list]:
+    def right_sisters(self) -> list | None:
         sister_index_ = self.get_sister_index()
         is_not_the_last = sister_index_ is not None and sister_index_ < (
             len(self.parent.children) - 1  # type:ignore
@@ -496,7 +499,7 @@ class Tree:
             if not node.isLeaf():
                 iterator = _chain(node.children, iterator)
 
-    def getLeaves(self, lst: Optional[list] = None) -> List["Tree"]:
+    def getLeaves(self, lst: list | None = None) -> list["Tree"]:
         """
         Gets the leaves of the tree.  All leaves nodes are returned as a list
         ordered by the natural left to right order of the tree.  None values,
@@ -520,7 +523,7 @@ class Tree:
             # print(f"{self.label=}\t1\t1")
             return 1, 1
 
-        ns, weights = zip(*(kid.get_num_edges() for kid in self.children))
+        ns, weights = zip(*(kid.get_num_edges() for kid in self.children), strict=False)
         descendant_n = sum(ns)
         descendant_weight = max(weights)
 

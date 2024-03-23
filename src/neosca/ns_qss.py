@@ -3,11 +3,11 @@
 import os.path as os_path
 import re
 from os import PathLike
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from PyQt5.QtWidgets import QWidget
 
-QSSMapping = Dict[str, Union[str, Dict[str, str]]]
+QSSMapping = dict[str, str | dict[str, str]]
 
 
 class Ns_QSS:
@@ -15,7 +15,7 @@ class Ns_QSS:
         pass
 
     @staticmethod
-    def read_qss_file(qss_file_path: Union[str, PathLike], default: Any = ""):
+    def read_qss_file(qss_file_path: str | PathLike, default: Any = ""):
         if os_path.isfile(qss_file_path) and os_path.getsize(qss_file_path) > 0:
             with open(qss_file_path, encoding="utf-8") as file:
                 return file.read()
@@ -23,7 +23,7 @@ class Ns_QSS:
             return default
 
     @staticmethod
-    def get_value(qss: str, selector: str, property: str) -> Optional[str]:
+    def get_value(qss: str, selector: str, property: str) -> str | None:
         """Requires that every value ends with ";".
         >>> qss = "QHeaderView::section:horizontal { background-color: #5C88C5; }"
         >>> get_value(qss, "QHeaderView::section:horizontal", "background-color")
@@ -120,7 +120,7 @@ class Ns_QSS:
         return sel_dec_mapping
 
     @classmethod
-    def update(cls, widget: QWidget, new_qss_mapping: Dict[str, Dict[str, str]]) -> None:
+    def update(cls, widget: QWidget, new_qss_mapping: dict[str, dict[str, str]]) -> None:
         qss_str = widget.styleSheet()
         selector_declaration_mapping: QSSMapping = cls.str_to_mapping(qss_str)
         selector_declaration_mapping.update(new_qss_mapping)

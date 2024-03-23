@@ -6,9 +6,11 @@ import os.path as os_path
 import random
 import shutil
 import sys
+from collections import OrderedDict
+from collections.abc import Sequence
 from math import log as _log
 from math import sqrt as _sqrt
-from typing import Dict, List, Literal, Optional, OrderedDict, Sequence, Tuple, Union
+from typing import Literal
 
 from neosca import DATA_DIR
 from neosca.ns_io import Ns_IO
@@ -59,7 +61,7 @@ class Ns_LCA_Counter:
         "AdvV": "adverb variation",
         "ModV": "modifier variation",
     }
-    DEFAULT_MEASURES: List[str] = [
+    DEFAULT_MEASURES: list[str] = [
         *(item + suffix for item in COUNT_ITEMS for suffix in ("types", "tokens")),
         *FREQ_ITEMS,
     ]
@@ -76,8 +78,8 @@ class Ns_LCA_Counter:
     ) -> None:
         self.file_path = file_path
 
-        self.count_table: Dict[str, List[str]] = {item: [] for item in self.COUNT_ITEMS}
-        self.freq_table: Dict[str, Optional[Union[int, float]]] = {item: None for item in self.FREQ_ITEMS}
+        self.count_table: dict[str, list[str]] = {item: [] for item in self.COUNT_ITEMS}
+        self.freq_table: dict[str, int | float | None] = {item: None for item in self.FREQ_ITEMS}
 
         word_data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug(f"Loading {word_data_path}...")
@@ -130,18 +132,18 @@ class Ns_LCA_Counter:
         Mean Segmental TTR
         """
         sample_no: int = 0
-        msttr: Union[int, float] = 0
+        msttr: int | float = 0
         for chunk in chunks(lemma_sequence, section_size):
             if len(chunk) == section_size:
                 sample_no += 1
                 msttr += safe_div(len(set(chunk)), section_size)
         return safe_div(msttr, sample_no)
 
-    def determine_counts(self, lempos_tuples: Tuple[Tuple[str, str], ...]):
+    def determine_counts(self, lempos_tuples: tuple[tuple[str, str], ...]):
         filtered_lempos_tuples = tuple(
             filter(lambda lempos: not self.word_classifier.is_("misc", *lempos), lempos_tuples)
         )
-        self.count_table["word"] = list(next(zip(*filtered_lempos_tuples)))
+        self.count_table["word"] = list(next(zip(*filtered_lempos_tuples, strict=False)))
 
         for lemma, pos in filtered_lempos_tuples:
             is_sophisticated = False
@@ -198,7 +200,7 @@ class Ns_LCA_Counter:
                     self.count_table["sverb"].append(lemma)
                     logging.debug(f'Counted "{lemma}" as a sophisticated verb')
 
-    def determine_freqs(self, *, section_size: Optional[int] = None) -> None:
+    def determine_freqs(self, *, section_size: int | None = None) -> None:
         if section_size is None:
             section_size = self.section_size
 
@@ -269,11 +271,11 @@ class Ns_LCA_Counter:
         self.freq_table["AdvV"] = safe_div(adv_type_no, lex_token_no)
         self.freq_table["ModV"] = safe_div((adv_type_no + adj_type_no), lex_token_no)
 
-    def determine_all_values(self, lempos_tuples: Tuple[Tuple[str, str], ...]) -> None:
+    def determine_all_values(self, lempos_tuples: tuple[tuple[str, str], ...]) -> None:
         self.determine_counts(lempos_tuples)
         self.determine_freqs()
 
-    def get_value(self, key: str, /, precision: int = 4) -> Union[int, float]:
+    def get_value(self, key: str, /, precision: int = 4) -> int | float:
         if (trimmed_key := key.removesuffix("types").removesuffix("tokens")) in self.COUNT_ITEMS:
             if key.endswith("types"):
                 return len(set(self.count_table[trimmed_key]))
@@ -287,7 +289,7 @@ class Ns_LCA_Counter:
         else:
             raise ValueError(f"Unknown key: {key}")
 
-    def get_matches(self, key: str, /) -> List[str]:
+    def get_matches(self, key: str, /) -> list[str]:
         if (trimmed_key := key.removesuffix("types").removesuffix("tokens")) in self.COUNT_ITEMS:
             if key.endswith("types"):
                 return list(dict.fromkeys(self.count_table[trimmed_key]))
