@@ -341,14 +341,14 @@ class Ns_TableView(QTableView):
             alignment_cell_horizontal = "left"
 
         # Vertical
-        if Qt.AlignmentFlag.AlignTop in alignment_item:
+        if Qt.AlignmentFlag.AlignTop & alignment_item:
             alignment_cell_vertical = "top"
-        elif Qt.AlignmentFlag.AlignBottom in alignment_item:
+        elif Qt.AlignmentFlag.AlignBottom & alignment_item:
             alignment_cell_vertical = "bottom"
-        elif Qt.AlignmentFlag.AlignVCenter in alignment_item:
+        elif Qt.AlignmentFlag.AlignVCenter & alignment_item:
             alignment_cell_vertical = "center"
         # > Wordless: Not sure
-        elif Qt.AlignmentFlag.AlignBaseline in alignment_item:
+        elif Qt.AlignmentFlag.AlignBaseline & alignment_item:
             alignment_cell_vertical = "justify"
         else:
             alignment_cell_vertical = "center"
