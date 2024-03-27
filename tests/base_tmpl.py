@@ -1,7 +1,10 @@
 import gc
 import logging
 import os.path as os_path
+import tempfile
 import time
+from collections.abc import Generator, Iterable
+from contextlib import contextmanager
 from unittest import TestCase
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -64,3 +67,21 @@ class BaseTmpl(TestCase):
             except AssertionError as e:
                 if time.time() - start > timeout:
                     raise e
+
+
+@contextmanager
+def temp_files(affixes: Iterable[tuple[str, str] | str]) -> Generator[tempfile.TemporaryDirectory, None, None]:
+    temp_dir = tempfile.TemporaryDirectory()
+    logging.info(f"Created temporary directory: {temp_dir.name}")
+    for affix in affixes:
+        if isinstance(affix, tuple):
+            prefix, suffix = affix
+        elif isinstance(affix, str):
+            prefix, suffix = "", affix
+        else:
+            assert False, "affix must be tuple or str"
+        tempfile.NamedTemporaryFile(dir=temp_dir.name, mode="w", delete=False, prefix=prefix, suffix=suffix)
+    try:
+        yield temp_dir
+    finally:
+        temp_dir.cleanup()
