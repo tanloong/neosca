@@ -185,16 +185,18 @@ class Ns_Main_Gui(QMainWindow):
             return
 
         file_paths: list[str] = []
-
         if Ns_Settings.value("Import/include-files-in-subfolders", type=bool):
             file_paths.extend(
                 os_path.join(dir_path, file_name)
                 for dir_path, _, file_names in os.walk(folder_path)
                 for file_name in file_names
+                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
             )
         else:
             file_paths.extend(
-                os_path.join(folder_path, file_name) for file_name in next(os.walk(folder_path))[2]
+                os_path.join(folder_path, file_name)
+                for file_name in next(os.walk(folder_path))[2]
+                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
             )
 
         if len(file_paths) == 0:

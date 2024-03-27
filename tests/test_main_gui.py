@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
-from unittest.mock import Mock
+import os.path as os_path
+from itertools import product
+from unittest.mock import Mock, patch
 
 from neosca.ns_about import __title__
+from neosca.ns_io import Ns_IO
 from neosca.ns_main_gui import Ns_Main_Gui
+from PyQt5.QtWidgets import QFileDialog
 
-from .base_tmpl import BaseTmpl
+from .base_tmpl import BaseTmpl, temp_files
 
 
 class TestMain(BaseTmpl):
@@ -50,3 +54,18 @@ class TestMain(BaseTmpl):
     def test_previewarea_lca(self):
         # test how many buttons
         ...
+
+    def test_menu_file_open_folder(self):
+        affixes: tuple[tuple[str, str]] = tuple(
+            product(("", *Ns_IO.HIDDEN_PREFIXES), map(lambda s: f".{s}", Ns_IO.SUPPORTED_EXTENSIONS))
+        )
+        with (
+            temp_files(affixes) as temp_dir,
+            patch.object(QFileDialog, "getExistingDirectory", return_value=temp_dir.name) as _,
+            patch.object(self.gui, "add_file_paths", return_value=None) as mock_add_file_paths,
+        ):
+            self.gui.menu_file_open_folder()
+            file_paths = mock_add_file_paths.call_args.args[0]
+        # Test hidden files are excluded
+        self.assertTrue(all(not os_path.basename(p).startswith(Ns_IO.HIDDEN_PREFIXES) for p in file_paths))
+        self.assertTrue(file_paths)
