@@ -18,7 +18,6 @@ from xml.etree.ElementTree import XML, fromstring
 from charset_normalizer import detect
 
 from neosca import CACHE_DIR, CACHE_INFO_PATH
-from neosca.ns_platform_info import IS_WINDOWS
 from neosca.ns_utils import Ns_Procedure_Result
 
 
@@ -34,6 +33,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
     # Type checker does not detect definition in Ns_IO_Meta, so declare here to
     # silence the "access unknown member warning"
     SUPPORTED_EXTENSIONS: tuple[str, ...] = tuple()
+    HIDDEN_PREFIXES: tuple[str, ...] = (".", "~$")
 
     DOCX_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     DOCX_PARA = DOCX_NAMESPACE + "p"
@@ -224,10 +224,9 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             # Dir path
             elif os_path.isdir(path):
                 verified_ifile_list.extend(
-                    filter(
-                        cls.supports,
-                        map(lambda file_name: os_path.join(path, file_name), next(os.walk(path))[2]),
-                    )
+                    os_path.join(path, file_name)
+                    for file_name in next(os.walk(path))[2]
+                    if cls.supports(file_name)
                 )
             # Glob pattern
             elif glob.glob(path):
@@ -235,12 +234,9 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             else:
                 logging.critical(f"No such file as\n\n{path}")
                 sys.exit(1)
-        if IS_WINDOWS:
-            verified_ifile_list = [
-                path
-                for path in verified_ifile_list
-                if not (path.endswith(".docx") and os_path.basename(path).startswith("~"))
-            ]
+        verified_ifile_list = [
+            path for path in verified_ifile_list if not os_path.basename(path).startswith(cls.HIDDEN_PREFIXES)
+        ]
         return verified_ifile_list
 
     @classmethod
