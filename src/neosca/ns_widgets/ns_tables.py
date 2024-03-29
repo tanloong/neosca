@@ -514,7 +514,7 @@ class Ns_TableView(QTableView):
                 with open(os_path.normpath(file_path), "w", newline="", encoding="utf-8") as fh:
                     csv_writer = csv.writer(fh, dialect=dialect, lineterminator="\n")
                     # Horizontal header
-                    hor_header: list[str] = [""]
+                    hor_header: list[str] = [""] if self.has_ver_header else []
                     hor_header.extend(
                         model.headerData(colno, Qt.Orientation.Horizontal) for colno in range(col_count)
                     )
