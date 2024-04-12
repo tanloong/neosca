@@ -26,14 +26,14 @@ class Ns_Main_Cli:
             dest="is_quiet",
             action="store_true",
             default=False,
-            help="disable all logging",
+            help="disable all loggings",
         )
         parser.add_argument(
             "--verbose",
             dest="is_verbose",
             action="store_true",
             default=False,
-            help="enable verbose logging",
+            help="enable verbose loggings",
         )
 
     def create_args_parser(self) -> argparse.ArgumentParser:
@@ -464,13 +464,13 @@ class Ns_Main_Cli:
         if self.options.text is not None:
             analyzer.run_on_text(self.options.text)
 
-        files: list[str] = []
-        if verified_ifiles := getattr(self, "verified_ifiles", []):
-            files.extend(verified_ifiles)
-        if verified_subfiles_list := getattr(self, "verified_subfiles_list", []):
-            files.extend(verified_subfiles_list)
-        if files:
-            analyzer.run_on_file_or_subfiles_list(files)
+        file_paths: list[str] = []
+        for attr in ("verified_ifiles", "verified_subfiles_list"):
+            if (paths := getattr(self, attr, None)) is not None:
+                file_paths.extend(paths)
+
+        if file_paths:
+            analyzer.run_on_file_or_subfiles_list(file_paths)
 
         return True, None
 
@@ -494,8 +494,8 @@ class Ns_Main_Cli:
         ):
             return self.run_on_input()
         else:
-            if (sub_parser := getattr(self, f"{self.options.command}_parser", None)) is not None:
-                sub_parser.print_help()
+            if (subparser := getattr(self, f"{self.options.command}_parser", None)) is not None:
+                subparser.print_help()
             else:
                 self.args_parser.print_help()
             return True, None
