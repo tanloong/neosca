@@ -36,7 +36,7 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         gridlayout_files = QGridLayout()
         gridlayout_files.addWidget(QLabel("Default path:"), 0, 0)
         gridlayout_files.addWidget(self.lineedit_path, 0, 1)
-        gridlayout_files.addWidget(QLabel("Default typee:"), 1, 0)
+        gridlayout_files.addWidget(QLabel("Default type:"), 1, 0)
         gridlayout_files.addWidget(self.combobox_type, 1, 1)
         gridlayout_files.addWidget(self.checkbox_include_files_in_subfolders, 2, 0, 1, 2)
         self.groupbox_files = QGroupBox("Files")
