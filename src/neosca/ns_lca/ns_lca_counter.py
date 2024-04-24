@@ -8,14 +8,13 @@ import shutil
 import sys
 from collections import OrderedDict
 from collections.abc import Sequence
-from math import log as _log
 from math import sqrt as _sqrt
 from typing import Literal
 
 from neosca import DATA_DIR
 from neosca.ns_io import Ns_IO
 from neosca.ns_lca import word_classifiers
-from neosca.ns_utils import chunks, safe_div
+from neosca.ns_utils import chunks, safe_div, safe_log
 
 
 class Ns_LCA_Counter:
@@ -143,7 +142,10 @@ class Ns_LCA_Counter:
         filtered_lempos_tuples = tuple(
             filter(lambda lempos: not self.word_classifier.is_("misc", *lempos), lempos_tuples)
         )
-        self.count_table["word"] = list(next(zip(*filtered_lempos_tuples, strict=False)))
+        try:
+            self.count_table["word"] = list(next(zip(*filtered_lempos_tuples, strict=False)))
+        except StopIteration:
+            self.count_table["word"] = []
 
         for lemma, pos in filtered_lempos_tuples:
             is_sophisticated = False
@@ -252,10 +254,10 @@ class Ns_LCA_Counter:
         )
         self.freq_table["CTTR"] = safe_div(word_type_no, _sqrt(2 * word_token_no))
         self.freq_table["RTTR"] = safe_div(word_type_no, _sqrt(word_token_no))
-        self.freq_table["LogTTR"] = safe_div(_log(word_type_no), _log(word_token_no))
+        self.freq_table["LogTTR"] = safe_div(safe_log(word_type_no), safe_log(word_token_no))
         self.freq_table["Uber"] = safe_div(
-            _log(word_token_no, 10) * _log(word_token_no, 10),
-            _log(safe_div(word_token_no, word_type_no), 10),
+            safe_log(word_token_no, 10) * safe_log(word_token_no, 10),
+            safe_log(safe_div(word_token_no, word_type_no), 10),
         )
 
         # 3.3 Verb diversity

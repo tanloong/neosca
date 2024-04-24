@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable, Iterator
 from itertools import islice
+from math import log as _log
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -34,3 +35,19 @@ def safe_div(n1: int | float, n2: int | float) -> int | float:
     0
     """
     return n1 / n2 if n2 else 0
+
+
+def safe_log(n: float, base: int | None = None) -> float:
+    """
+    >>> safe_log(10, 10)
+    1.0
+    >>> safe_log(10)
+    2.302585092994046
+    >>> safe_log(0)
+    0
+    """
+    if n <= 0:
+        return 0
+    if base is not None:
+        return _log(n, base)
+    return _log(n)
