@@ -60,7 +60,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
                 item = model.set_item_right_shifted(rowno, colno, value)
                 if matches := counter.get_matches(sname):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
-            model.row_added.emit()
+        model.rows_added.emit()
 
         self.worker_done.emit()
 
@@ -98,7 +98,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
                 item = model.set_item_right_shifted(rowno, colno, value)
                 if matches := counter.get_matches(item_name):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
-            model.row_added.emit()
+        model.rows_added.emit()
 
         self.worker_done.emit()
 
