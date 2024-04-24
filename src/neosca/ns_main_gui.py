@@ -300,7 +300,7 @@ class Ns_Main_Gui(QMainWindow):
         )
         self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
         self.model_sca.data_cleared.connect(self.on_model_sca_data_cleared)
-        self.model_sca.row_added.connect(self.on_model_sca_row_added)
+        self.model_sca.rows_added.connect(self.on_model_sca_row_added)
 
         self.widget_previewarea_sca = QWidget()
         self.layout_previewarea_sca = QGridLayout()
@@ -377,7 +377,7 @@ class Ns_Main_Gui(QMainWindow):
         )
         self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
         self.model_lca.data_cleared.connect(self.on_model_lca_data_cleared)
-        self.model_lca.row_added.connect(self.on_model_lca_row_added)
+        self.model_lca.rows_added.connect(self.on_model_lca_row_added)
 
         self.widget_previewarea_lca = QWidget()
         self.layout_previewarea_lca = QGridLayout()
@@ -619,7 +619,7 @@ class Ns_Main_Gui(QMainWindow):
                 already_added_file_stems.append(file_stem)
                 rowno = self.model_file.rowCount()
                 self.model_file.set_row_left_shifted(rowno, (file_stem, file_path))
-                self.model_file.row_added.emit()
+            self.model_file.rows_added.emit()
 
             num = len(file_paths_ok)
             noun = "file" if num == 1 else "files"

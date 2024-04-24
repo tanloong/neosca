@@ -28,7 +28,7 @@ from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 class Ns_StandardItemModel(QStandardItemModel):
     data_cleared = pyqtSignal()
-    row_added = pyqtSignal()
+    rows_added = pyqtSignal()
     data_exported = pyqtSignal()
 
     def __init__(
@@ -60,7 +60,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.show_empty_row = show_empty_row
 
         self.has_been_exported: bool = False
-        self.row_added.connect(lambda: self.set_has_been_exported(False))
+        self.rows_added.connect(lambda: self.set_has_been_exported(False))
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
 
     def set_item_left_shifted(self, rowno: int, colno: int, value: QStandardItem | str) -> QStandardItem:
@@ -178,7 +178,7 @@ class Ns_StandardItemModel_File(Ns_StandardItemModel):
     def __init__(self, main) -> None:
         super().__init__(main, hor_labels=("Name", "Path"), show_empty_row=True)
         self.data_cleared.connect(lambda: self.main.enable_button_generate_table(False))
-        self.row_added.connect(lambda: self.main.enable_button_generate_table(True))
+        self.rows_added.connect(lambda: self.main.enable_button_generate_table(True))
 
     def user_or_display_data(self, index_or_rowno: QModelIndex | int, colno: int | None = None) -> Any:
         if isinstance(index_or_rowno, QModelIndex):
@@ -270,7 +270,7 @@ class Ns_TableView(QTableView):
         else:
             assert False, f"Invalid model type: {model.__class__.__name__}"
         self.source_model.data_cleared.connect(self.on_data_cleared)
-        self.source_model.row_added.connect(self.on_row_added)
+        self.source_model.rows_added.connect(self.on_rows_added)
         self.has_hor_header = has_hor_header
         self.has_ver_header = has_ver_header
 
@@ -289,7 +289,7 @@ class Ns_TableView(QTableView):
         self.horizontalHeader().resizeSections(QHeaderView.ResizeMode.ResizeToContents)
         self.setEnabled(False)
 
-    def on_row_added(self) -> None:
+    def on_rows_added(self) -> None:
         if not self.isEnabled():
             self.setEnabled(True)
         self.resizeRowsToContents()
