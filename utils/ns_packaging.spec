@@ -78,6 +78,7 @@ a = Analysis(
               "wheel",
               "twine",
               "ruff",
+              "viztracer", "objprint",
               "mypy", "mypy-extensions"],
     noarchive=False,
 )
