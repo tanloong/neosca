@@ -3,8 +3,10 @@
 # pyproject.toml (https://github.com/pypa/pip/issues/11584), so we need this
 # duplicated dependency announcement.
 
-charset_normalizer>=3.3.2
-openpyxl>=3.1.2
-pyinstaller>=6.1.0
-pyqt5>=5.15
-stanza>=1.8.2
+charset_normalizer==3.3.2
+openpyxl==3.1.2
+pyinstaller==6.1.0
+pyqt5==5.15
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.3.1+cpu
+stanza==1.8.2

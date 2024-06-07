@@ -9,7 +9,7 @@
 ![downloads](https://img.shields.io/github/downloads/tanloong/neosca/total?label=Downloads)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE)
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/), featuring cross-platform compatibility and a graphical interface. Starting from version 0.1.0, NeoSCA no longer requires Java installation, it has translated a portion of the Tregex code into Python and favors Stanza over Stanford Parser.
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/) (LCA). Starting from version 0.1.0, NeoSCA has a graphical interface and no longer requires Java installation, it has translated a portion of the Tregex code into Python and favors Stanza over Stanford Parser.
 
 ## Download
 
@@ -19,7 +19,7 @@ NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2
 |[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.2/NeoSCA-0.1.2-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
 |[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.2/NeoSCA-0.1.2-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
 |[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
-|[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to Github|
+|[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to GitHub|
 
 <!-- ### Download from source -->
 <!---->
@@ -57,7 +57,7 @@ year         = {2024}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.2) [Computer software]. Github. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.2) [Computer software]. GitHub. https://github.com/tanloong/neosca</pre>
 
 </details>
 
