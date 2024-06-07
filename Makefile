@@ -1,4 +1,4 @@
-.PHONY: build package clean install lint run test bump_version
+.PHONY: build package clean install lint run test bump
 
 build: clean acks
 	python3 -m build
@@ -42,8 +42,9 @@ acks: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
 	python3 ./utils/ns_generate_acks.py
 
 component="patch"
-bump_version:
-	# make bump_version
-	# make bump_version component=minor
-	# make bump_version component=major
+bump:
+	# make bump
+	# make bump component=patch
+	# make bump component=minor
+	# make bump component=major
 	bash ./utils/ns_bump_version.sh $(component)
