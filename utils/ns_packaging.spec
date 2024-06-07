@@ -1,5 +1,6 @@
 # vim:ft=python
 
+import platform
 import sys
 from pathlib import Path
 
@@ -9,6 +10,8 @@ sys.path.insert(0, str(Path(".").parent.absolute() / "src"))
 from neosca.ns_platform_info import IS_MAC, IS_LINUX, IS_WINDOWS  # noqa: I001, E402
 from neosca.ns_about import __title__, __version__  # noqa: I001, E402
 from neosca import ICON_PATH, ICON_MAC_PATH  # noqa: I001, E402
+
+# https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
 
 binaries = []
 datas = []
@@ -111,7 +114,7 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name=f"{__title__}-{__version__}",
+    name=f"{__title__}-{__version__}{'-' + "macos" if platform.system() == "Darwin" else platform.system().lower()}",
 )
 # https://github.com/BLKSerene/Wordless/blob/1c319ce54be60aa948c89d6d3cdd327cccfc7c15/utils/wl_packaging.spec#L163
 # > Bundle application on macOS

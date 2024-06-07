@@ -1,10 +1,13 @@
 .PHONY: build package clean install lint run test bump_version
 
-build: clean ACKNOWLEDGMENTS.md
+build: clean acks
 	python3 -m build
 
-package: clean ACKNOWLEDGMENTS.md
-	pyinstaller ./utils/ns_packaging.spec --noconfirm --clean
+package: clean acks model
+	python3 ./utils/ns_packaging.py
+
+model: requirements.txt
+	python3 -m utils.ns_download_models
 
 clean:
 	rm -rf __pycache__
@@ -35,8 +38,8 @@ test:
 run:
 	cd ./src && python3 -m neosca gui
 
-ACKNOWLEDGMENTS.md: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
-	python3 utils/ns_generate_acks.py
+acks: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
+	python3 ./utils/ns_generate_acks.py
 
 component="patch"
 bump_version:
