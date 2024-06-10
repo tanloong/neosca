@@ -10,8 +10,8 @@ from neosca.ns_settings.ns_settings_default import settings_default
 
 class Ns_Settings:
     # Although QSettings can auto synchronize changes across all instances,
-    #  we use this class to keep a single instance in the whole application.
-    # Don't have to instanciate this class, just use its classmethods.
+    #  we use this class to keep a single object in the whole application.
+    # Don't instanciate this class, just use its classmethods.
 
     # Use IniFormat to avoid Windows system registry limitations on subkey lengths
     # https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSettings.html#platform-limitations

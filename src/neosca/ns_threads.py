@@ -113,7 +113,6 @@ class Ns_Thread(QThread):
         self.worker.moveToThread(self)
 
     def run(self):
-        self.start()
         try:
             self.worker.run()
         except BaseException as ex:
