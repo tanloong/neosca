@@ -145,6 +145,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
     started = pyqtSignal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
+    str_time_elapsed_tmpl = "Elapsed time: %s"
 
     def __init__(
         self,
@@ -164,8 +165,8 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
 
         # TODO: this label should be exposed
         self.label_status = QLabel("Processing...")
-        self.text_time_elapsed_zero = f"Elapsed time: {self.time_format_re.sub('0', time_format)}"
-        self.label_time_elapsed = QLabel(self.text_time_elapsed_zero)
+        self.str_time_elapsed_zero = self.str_time_elapsed_tmpl % self.time_format_re.sub("0", time_format)
+        self.label_time_elapsed = QLabel(self.str_time_elapsed_zero)
         self.label_please_wait = Ns_Label_WordWrapped("The process can take some time, please be patient.")
 
         self.addWidget(self.label_status, 0, 0)
@@ -185,12 +186,12 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         self.finished.connect(self.timer.stop)
 
     def reset_time_elapsed(self) -> None:
-        self.label_time_elapsed.setText(self.text_time_elapsed_zero)
+        self.label_time_elapsed.setText(self.str_time_elapsed_zero)
 
     def update_time_elapsed(self) -> None:
         time_elapsed: int = self.elapsedtimer.elapsed()
         qtime: QTime = QTime.fromMSecsSinceStartOfDay(time_elapsed)
-        self.label_time_elapsed.setText(f"Elapsed time: {qtime.toString(self.time_format)}")
+        self.label_time_elapsed.setText(self.str_time_elapsed_tmpl % qtime.toString(self.time_format))
 
     def update_statusbar(self) -> None:
         time_elapsed: int = self.elapsedtimer.elapsed()
