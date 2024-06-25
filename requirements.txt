@@ -8,6 +8,7 @@ openpyxl>=3.1.2
 pyinstaller>=6.1.0
 pyqt5>=5.15
 numpy==1.26.4
---find-links https://download.pytorch.org/whl/torch_stable.html
-torch==2.3.1+cpu
+--index-url=https://download.pytorch.org/whl/cpu
+--extra-index-url=https://pypi.org/simple
+torch
 stanza>=1.8.2
