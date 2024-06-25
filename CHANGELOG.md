@@ -1,5 +1,18 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.1.3](https://github.com/tanloong/neosca/releases/tag/0.1.3) (25 June 2024)
+
+### Bug fixes
+
++ Fix including '.DS_Store' and '._*' on macOS and '~$*' on Windows when opening a folder
++ Fix extra empty cell in the first column of CSV output
++ Fix throwing error for files containing only punctuation marks
++ Fix performance issue with file opening (#41)
+
+### Dependency Changes
+
++ Update Stanza to 1.8.2
+
 ## [0.1.2](https://github.com/tanloong/neosca/releases/tag/0.1.2) (24 March 2024)
 
 ### Bug fixes
