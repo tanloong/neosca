@@ -114,7 +114,7 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name=f"{__title__}-{__version__}{'-' + "macos" if platform.system() == "Darwin" else platform.system().lower()}",
+    name=f"{__title__}-{__version__}-{'macos' if platform.system() == 'Darwin' else platform.system().lower()}",
 )
 # https://github.com/BLKSerene/Wordless/blob/1c319ce54be60aa948c89d6d3cdd327cccfc7c15/utils/wl_packaging.spec#L163
 # > Bundle application on macOS

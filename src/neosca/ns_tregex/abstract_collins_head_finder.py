@@ -74,7 +74,7 @@ class AbstractCollinsHeadFinder(HeadFinder):
         param t The tre to determine the head daughter of param parent The parent of t (or may be None)
         return The head daughter of t
         """
-        theHead: "Tree" | None = None
+        theHead: Tree | None = None
         motherCat = t.label
         if motherCat.startswith("@"):
             motherCat = motherCat[1:]

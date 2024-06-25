@@ -181,7 +181,7 @@ class HAS_LEFTMOST_DESCENDANT(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid: "Tree" | None = t.firstChild()
+        kid: Tree | None = t.firstChild()
         while kid is not None:
             yield kid
             kid = kid.firstChild()
@@ -481,9 +481,9 @@ class PRECEDES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        searchStack: list["Tree"] = []
-        current: "Tree" | None = t
-        parent_: "Tree" | None = t.parent
+        searchStack: list[Tree] = []
+        current: Tree | None = t
+        parent_: Tree | None = t.parent
         while parent_ is not None:
             for kid in reversed(parent_.children):
                 if kid is current:
@@ -504,8 +504,8 @@ class IMMEDIATELY_PRECEDES(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        current: "Tree" | None = None
-        parent_: "Tree" | None = t
+        current: Tree | None = None
+        parent_: Tree | None = t
         while True:
             current = parent_  # type: ignore
             parent_ = parent_.parent  # type: ignore
@@ -532,9 +532,9 @@ class FOLLOWS(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        searchStack: list["Tree"] = []
-        current: "Tree" | None = t
-        parent_: "Tree" | None = t.parent
+        searchStack: list[Tree] = []
+        current: Tree | None = t
+        parent_: Tree | None = t.parent
         while parent_ is not None:
             for kid in parent_.children:
                 if kid is current:
@@ -555,8 +555,8 @@ class IMMEDIATELY_FOLLOWS(Relation):
 
     @classmethod
     def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        current: "Tree" | None = None
-        parent_: "Tree" | None = t
+        current: Tree | None = None
+        parent_: Tree | None = t
         while True:
             current = parent_
             parent_ = parent_.parent  # type: ignore
