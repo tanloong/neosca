@@ -56,7 +56,7 @@ class TestMain(BaseTmpl):
         ...
 
     def test_menu_file_open_folder(self):
-        affixes: tuple[tuple[str, str]] = tuple(
+        affixes: tuple[tuple[str, str], ...] = tuple(
             product(("", *Ns_IO.HIDDEN_PREFIXES), map(lambda s: f".{s}", Ns_IO.SUPPORTED_EXTENSIONS))
         )
         with (
