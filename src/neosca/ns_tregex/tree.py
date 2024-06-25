@@ -39,7 +39,7 @@ class Tree:
     def __repr__(self):
         # https://github.com/stanfordnlp/stanza/blob/c2d72bd14cf8cc28bd4e41a620692bbce5f43835/stanza/models/constituency/parse_tree.py#L118
         with StringIO() as buf:
-            stack: deque["Tree" | str] = deque()
+            stack: deque[Tree | str] = deque()
             stack.append(self)
             while len(stack) > 0:
                 node = stack.pop()
@@ -225,7 +225,7 @@ class Tree:
         if self.isLeaf():
             return self
 
-        head: "Tree" | None = hf.determineHead(self)
+        head: Tree | None = hf.determineHead(self)
         if head is not None:
             return head.head_terminal(hf)
 
@@ -349,7 +349,7 @@ class Tree:
             )
             setattr(cls, attr, token_re)
 
-        stack_parent: deque["Tree"] = deque()
+        stack_parent: deque[Tree] = deque()
         current_tree = None
 
         token_g = peekable(token_re.findall(string))
@@ -459,14 +459,14 @@ class Tree:
 
         # upwards
         if self is common[-1]:
-            upwards: tuple["Tree"] = tuple()  # type:ignore
+            upwards: tuple[Tree] = tuple()  # type:ignore
         else:
-            upwards: tuple["Tree"] = tuple(reversed(path_start[len_common:]))  # type:ignore
+            upwards: tuple[Tree] = tuple(reversed(path_start[len_common:]))  # type:ignore
         # down
         if other is common[-1]:
-            down: tuple["Tree"] = tuple()  # type:ignore
+            down: tuple[Tree] = tuple()  # type:ignore
         else:
-            down: tuple["Tree"] = path_end[len_common:]  # type:ignore
+            down: tuple[Tree] = path_end[len_common:]  # type:ignore
         return upwards, common[-1], down
 
     def left_sisters(self) -> list | None:

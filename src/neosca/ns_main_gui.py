@@ -129,7 +129,7 @@ class Ns_Main_Gui(QMainWindow):
     def setup_menu(self):
         # File
         self.menu_file = self.menuBar().addMenu("&File")
-        self.action_open_file = self.menu_file.addAction("&Open File...")
+        self.action_open_file = self.menu_file.addAction("&Open Files...")
         self.action_open_file.setShortcut("CTRL+O")
         self.action_open_file.triggered.connect(self.menu_file_open_file)
         self.action_open_folder = self.menu_file.addAction("Open &Folder...")
