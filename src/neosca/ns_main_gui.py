@@ -96,6 +96,8 @@ class Ns_Main_Gui(QMainWindow):
 
         self.trayicon = QSystemTrayIcon(QIcon(str(ICON_PATH)), self)
         self.trayicon.setContextMenu(self.menu_tray)
+        self.trayicon.setToolTip(__title__)
+        self.trayicon.activated.connect(self.on_tray_activated)
         self.trayicon.show()
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L447
@@ -106,6 +108,11 @@ class Ns_Main_Gui(QMainWindow):
         )
         self.raise_()
         self.activateWindow()
+
+    def on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason != QSystemTrayIcon.ActivationReason.Trigger:
+            return
+        self.toggle_window()
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L529
     def toggle_window(self) -> None:
@@ -127,7 +134,7 @@ class Ns_Main_Gui(QMainWindow):
                     widget.setAttribute(Qt.WidgetAttribute.WA_LayoutUsesWidgetRect)
 
     def setup_menu(self):
-        # File
+        # Files
         self.menu_file = self.menuBar().addMenu("&File")
         self.action_open_file = self.menu_file.addAction("&Open Files...")
         self.action_open_file.setShortcut("CTRL+O")
@@ -140,6 +147,8 @@ class Ns_Main_Gui(QMainWindow):
         self.action_clear_cache.triggered.connect(self.menu_file_clear_cache)
         self.menu_file.addSeparator()
 
+        self.action_minimize = self.menu_file.addAction("&Minimize to Tray")
+        self.action_minimize.triggered.connect(self.toggle_window)
         self.action_quit = self.menu_file.addAction("&Quit")
         self.action_quit.setShortcut("CTRL+Q")
         self.action_quit.triggered.connect(self.close)
