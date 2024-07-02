@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
-from PyQt5.QtGui import QCursor, QIcon, QStandardItem
+from PyQt5.QtGui import QCloseEvent, QCursor, QIcon, QStandardItem
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -148,6 +148,7 @@ class Ns_Main_Gui(QMainWindow):
         self.menu_file.addSeparator()
 
         self.action_minimize = self.menu_file.addAction("&Minimize to Tray")
+        self.action_minimize.setShortcut("CTRL+M")
         self.action_minimize.triggered.connect(self.toggle_window)
         self.action_quit = self.menu_file.addAction("&Quit")
         self.action_quit.setShortcut("CTRL+Q")
@@ -694,7 +695,7 @@ class Ns_Main_Gui(QMainWindow):
         )
 
     # Override
-    def close(self) -> bool:
+    def closeEvent(self, event: QCloseEvent | None) -> None:
         key = "Miscellaneous/dont-warn-on-exit"
         if not Ns_Settings.value(key, type=bool):
             checkbox_exit = QCheckBox("Don't warn on exit")
@@ -707,14 +708,14 @@ class Ns_Main_Gui(QMainWindow):
                 checkbox_exit,
             )
             if messagebox.exec() == QMessageBox.StandardButton.No:
-                return False
+                return event.ignore()
 
         for splitter in (self.splitter_central_widget,):
             Ns_Settings.setValue(splitter.objectName(), splitter.saveState())
         Ns_Settings.sync()
         Ns_Cache.save_cache_info()
 
-        return super().close()
+        return super().closeEvent(event)
 
 
 def main_gui():
