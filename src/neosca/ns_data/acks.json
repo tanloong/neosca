@@ -28,7 +28,7 @@
         {
             "name": "OpenPyXl",
             "homepage": "https://foss.heptapod.net/openpyxl/openpyxl",
-            "version": "3.1.2",
+            "version": "3.1.3",
             "authors": "Eric Gazoni, Charlie Clark",
             "license": "MIT",
             "license_file": "https://foss.heptapod.net/openpyxl/openpyxl/-/blob/branch/3.1/LICENCE.rst"
@@ -36,7 +36,7 @@
         {
             "name": "PyInstaller",
             "homepage": "http://www.pyinstaller.org/",
-            "version": "6.1.0",
+            "version": "6.7.0",
             "authors": "Hartmut Goebel, Jasper Harrison,<br>Bryan A. Jones, Brénainn Woodsend,<br>Rok Mandeljc",
             "license": "Bootloader-exception",
             "license_file": "https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt"
@@ -52,7 +52,7 @@
         {
             "name": "Stanza",
             "homepage": "https://github.com/stanfordnlp/stanza",
-            "version": "1.8.1",
+            "version": "1.8.2",
             "authors": "Peng Qi (齐鹏), Yuhao Zhang (张宇浩),<br>Yuhui Zhang (张钰晖), Jason Bolton,<br>Tim Dozat, John Bauer",
             "license": "Apache-2.0",
             "license_file": "https://github.com/stanfordnlp/stanza/blob/main/LICENSE"
@@ -60,7 +60,7 @@
         {
             "name": "Wordless",
             "homepage": "https://github.com/BLKSerene/Wordless",
-            "version": "3.4.0",
+            "version": "3.5.0",
             "authors": "Ye Lei (叶磊)",
             "license": "GPL-3.0-or-later",
             "license_file": "https://github.com/BLKSerene/Wordless/blob/main/LICENSE.txt"
