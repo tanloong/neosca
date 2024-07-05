@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from abc import ABC, abstractmethod
 from collections.abc import Generator
 
 from neosca.ns_tregex.node_descriptions import Node_Any, Node_Text
@@ -17,8 +18,9 @@ from neosca.ns_tregex.relation import (
 from neosca.ns_tregex.tree import Tree
 
 
-class Abstract_Searcher:
+class Abstract_Searcher(ABC):
     @classmethod
+    @abstractmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
         # The same node can be yieleded multiple times in two cases:
         #  echo '(A (a) (a))' | tregex.sh 'A < a'       # 'A' is matched twice
@@ -276,10 +278,6 @@ class CN1(Abstract_Searcher):
 
 
 class CN2(Abstract_Searcher):
-    """
-    SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]
-    """
-
     @classmethod
     def conditionOneHelper(cls, t: Tree) -> Generator[Tree, None, None]:
         # Condition 1: SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S]
@@ -305,6 +303,9 @@ class CN2(Abstract_Searcher):
 
     @classmethod
     def searchNodeIterator(cls, t: Tree) -> Generator[Tree, None, None]:
+        """
+        SBAR [<# WHNP | <# (IN < That|that|For|for) | <, S] & [$+ VP | > VP]
+        """
         for candidate in t.preorder_iter():
             if not Node_Text.satisfies(candidate, "SBAR"):
                 continue
