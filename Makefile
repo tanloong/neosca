@@ -28,8 +28,8 @@ install:
 	pip install .
 
 lint:
-	ruff format src/ tests/
 	ruff check src/ tests/ --fix
+	ruff format src/ tests/
 	mypy --check-untyped-defs src/
 
 test:
