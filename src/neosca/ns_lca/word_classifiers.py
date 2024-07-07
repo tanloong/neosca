@@ -47,7 +47,7 @@ class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
         if all(not str.isalnum(char) for char in lemma):
             return True
         # https://universaldependencies.org/u/pos/X.html
-        if pos == "X" and not lemma.isalpha():
+        if pos == "X" and not lemma.isalpha():  # noqa: SIM103
             return True
         return False
 
@@ -74,7 +74,7 @@ class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
             return False
         if lemma in self.adj_dict:
             return True
-        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
+        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:  # noqa: SIM103
             return True
         return False
 
@@ -91,7 +91,7 @@ class Ns_PTB_Word_Classifier(Ns_Abstract_Word_Classifier):
             return True
         if pos in ("SENT", "SYM", "HYPH"):
             return True
-        if all(not str.isalnum(char) for char in lemma):
+        if all(not str.isalnum(char) for char in lemma):  # noqa: SIM103
             return True
         return False
 
@@ -101,7 +101,7 @@ class Ns_PTB_Word_Classifier(Ns_Abstract_Word_Classifier):
     def is_verb(self, lemma: str, pos: str) -> bool:
         if not pos.startswith("V"):
             return False
-        if lemma in ("be", "have"):
+        if lemma in ("be", "have"):  # noqa: SIM103
             return False
         return True
 
@@ -113,7 +113,7 @@ class Ns_PTB_Word_Classifier(Ns_Abstract_Word_Classifier):
             return False
         if lemma in self.adj_dict:
             return True
-        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:
+        if lemma.endswith("ly") and lemma[:-2] in self.adj_dict:  # noqa: SIM103
             return True
         return False
 
