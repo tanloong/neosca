@@ -705,7 +705,7 @@ class ITH_CHILD_OF(Relation):
             return False
         if child_num > 0 and kids[child_num - 1] is t1:
             return True
-        if child_num < 0 and kids[len(kids) + child_num] is t1:
+        if child_num < 0 and kids[len(kids) + child_num] is t1:  # noqa: SIM103
             return True
 
         return False

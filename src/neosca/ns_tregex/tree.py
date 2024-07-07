@@ -103,9 +103,7 @@ class Tree:
             raise TypeError(f"{type(self).__name__} indices must be integers, not {type(index).__name__}")
 
     def __bool__(self) -> bool:
-        if self.label is None and not self.children:
-            return False
-        return True
+        return not (self.label is None and not self.children)
 
     def __len__(self) -> int:
         return len(self.children)

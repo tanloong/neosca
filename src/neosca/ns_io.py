@@ -55,11 +55,10 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             with open(path, encoding=cls.previous_encoding) as f:
                 content = f.read()
         except UnicodeDecodeError:
-            logging.info(f"Attempt failed. Reading {path} in binary mode...")
+            logging.info(f"Attempt failed. Guessing the encoding of {path}...")
             with open(path, "rb") as f:
                 bytes_ = f.read()
 
-            logging.info("Guessing the encoding of the byte string...")
             encoding = detect(bytes_)["encoding"]
             assert isinstance(encoding, str), f"Got invalid encoding for {path}: {encoding}"
 

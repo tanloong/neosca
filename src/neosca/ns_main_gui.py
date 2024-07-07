@@ -695,7 +695,7 @@ class Ns_Main_Gui(QMainWindow):
         )
 
     # Override
-    def closeEvent(self, event: QCloseEvent | None) -> None:
+    def closeEvent(self, event: QCloseEvent) -> None:
         key = "Miscellaneous/dont-warn-on-exit"
         if not Ns_Settings.value(key, type=bool):
             checkbox_exit = QCheckBox("Don't warn on exit")
