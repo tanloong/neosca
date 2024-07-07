@@ -19,6 +19,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import (
     QIcon,
+    QStandardItem,
     QTextBlockFormat,
     QTextCursor,
 )
@@ -435,8 +436,10 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
         )
         for cache_name, cache_path, cache_size, file_path in Ns_Cache.yield_cname_cpath_csize_fpath():
             rowno = self.model_cache.rowCount()
-            item = self.model_cache.set_item_left_shifted(rowno, 0, cache_name)
+            item = QStandardItem()
+            item.setData(cache_name, Qt.ItemDataRole.DisplayRole)
             item.setData(cache_path, Qt.ItemDataRole.UserRole)
+            self.model_cache.set_item_left_shifted(rowno, 0, item)
             self.model_cache.set_item_right_shifted(rowno, 1, cache_size)
             self.model_cache.set_item_left_shifted(rowno, 2, file_path)
         self.tableview_cache = Ns_TableView(main, model=self.model_cache)

@@ -3,6 +3,7 @@
 from collections.abc import Generator
 
 from PyQt5.QtCore import QObject, Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QStandardItem
 
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
@@ -46,20 +47,23 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         model: Ns_StandardItemModel = self.main.model_sca
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths, strict=False)):
-            # TODO: add handling --no-parse, --no-query, ...
-            counter: Ns_SCA_Counter | None = sca_instance.run_on_file_or_subfiles(file_path)
-            assert counter is not None
+            # TODO: add handling of --no-parse, --no-query, ...
+            counter: Ns_SCA_Counter = sca_instance.run_on_file_or_subfiles(file_path)
 
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
 
-            model.set_item_left_shifted(rowno, 0, file_name)
+            model.item_left_shifted.emit((rowno, 0, file_name))
             for colno in range(1, model.columnCount()):
                 sname = model.horizontalHeaderItem(colno).text()
                 assert (value := counter.get_value(sname)) is not None
-                item = model.set_item_right_shifted(rowno, colno, value)
+
+                item = QStandardItem()
+                # https://stackoverflow.com/a/20469423/20732031
+                item.setData(value, Qt.ItemDataRole.DisplayRole)
                 if matches := counter.get_matches(sname):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
+                model.item_right_shifted.emit((rowno, colno, item))
         model.rows_added.emit()
 
         self.worker_done.emit()
@@ -91,13 +95,17 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
             if has_trailing_rows:
                 has_trailing_rows = model.removeRows(rowno, model.rowCount() - rowno)
 
-            model.set_item_left_shifted(rowno, 0, file_name)
+            # model.set_item_left_shifted(rowno, 0, file_name)
+            model.item_left_shifted.emit((rowno, 0, file_name))
             for colno in range(1, model.columnCount()):
                 item_name = model.horizontalHeaderItem(colno).text()
                 value = counter.get_value(item_name)
-                item = model.set_item_right_shifted(rowno, colno, value)
+
+                item = QStandardItem()
+                item.setData(value, Qt.ItemDataRole.DisplayRole)
                 if matches := counter.get_matches(item_name):
                     item.setData(matches, Qt.ItemDataRole.UserRole)
+                model.item_right_shifted.emit((rowno, colno, item))
         model.rows_added.emit()
 
         self.worker_done.emit()

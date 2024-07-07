@@ -30,6 +30,8 @@ class Ns_StandardItemModel(QStandardItemModel):
     data_cleared = pyqtSignal()
     rows_added = pyqtSignal()
     data_exported = pyqtSignal()
+    item_left_shifted = pyqtSignal(tuple)
+    item_right_shifted = pyqtSignal(tuple)
 
     def __init__(
         self,
@@ -62,8 +64,10 @@ class Ns_StandardItemModel(QStandardItemModel):
         self.has_been_exported: bool = False
         self.rows_added.connect(lambda: self.set_has_been_exported(False))
         self.data_exported.connect(lambda: self.set_has_been_exported(True))
+        self.item_left_shifted.connect(lambda args: self.set_item_left_shifted(*args))
+        self.item_right_shifted.connect(lambda args: self.set_item_right_shifted(*args))
 
-    def set_item_left_shifted(self, rowno: int, colno: int, value: QStandardItem | str) -> QStandardItem:
+    def set_item_left_shifted(self, rowno: int, colno: int, value: QStandardItem | str):
         if isinstance(value, QStandardItem):
             item = value
         elif isinstance(value, str):
@@ -74,15 +78,12 @@ class Ns_StandardItemModel(QStandardItemModel):
             assert False, f"Invalid value type: {type(value)}"
         item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
-        return item
 
     def set_row_left_shifted(self, rowno: int, values: Iterable[QStandardItem | str], start: int = 0) -> None:
         for colno, value in enumerate(values, start=start):
             self.set_item_left_shifted(rowno, colno, value)
 
-    def set_item_right_shifted(
-        self, rowno: int, colno: int, value: QStandardItem | str | int | float
-    ) -> QStandardItem:
+    def set_item_right_shifted(self, rowno: int, colno: int, value: QStandardItem | str | int | float):
         if isinstance(value, QStandardItem):
             item = value
         elif isinstance(value, (str, int, float)):
@@ -93,7 +94,6 @@ class Ns_StandardItemModel(QStandardItemModel):
             assert False, f"Invalid value type: {type(value)}"
         item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(rowno, colno, item)
-        return item
 
     def set_row_right_shifted(
         self, rowno: int, values: Iterable[QStandardItem | str | int | float], start: int = 0
