@@ -7,7 +7,14 @@
 + Fix including '.DS_Store' and '._*' on macOS and '~$*' on Windows when opening a folder
 + Fix extra empty cell in the first column of CSV output
 + Fix throwing error for files containing only punctuation marks
-+ Fix performance issue with file opening (#41)
++ Fix [performance issue](https://github.com/tanloong/neosca/issues/41) with file opening
++ Fix cache_info.json not saving when quitting via the upper right X button
+
+### Improvements
+
++ Data changes of QStandardItemModel is now strictly managed within the main thread [for stability and reliability](https://forum.qt.io/topic/32732/multi-threading-with-model-view-framework/4?_=1720380212407)
++ Add "Minimize to Tray" action to the "Files" menu
++ Toggle the main window by single clicking the system tray icon
 
 ### Dependency Changes
 
