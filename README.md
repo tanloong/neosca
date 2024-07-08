@@ -164,9 +164,3 @@ You can send bug reports, feature requests, or any questions via:
 
 + [GitHub Issues](https://github.com/tanloong/neosca/issues)
 + tanloong@foxmail.com
-
-## Acknowledgments
-
-See [here](/ACKNOWLEDGMENTS.md) for details. A special thanks to JetBrains for the Open Source development licenses.
-
-[<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png" alt="JetBrains logo." width="150">](https://jb.gg/OpenSourceSupport)
