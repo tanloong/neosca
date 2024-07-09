@@ -17,7 +17,7 @@ from xml.etree.ElementTree import XML, fromstring
 
 from charset_normalizer import detect
 
-from neosca import CACHE_DIR, CACHE_INFO_PATH
+from neosca.ns_consts import CACHE_DIR, CACHE_INFO_PATH
 from neosca.ns_utils import Ns_Procedure_Result
 
 

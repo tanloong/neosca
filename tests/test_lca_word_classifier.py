@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from neosca import DATA_DIR
+from neosca.ns_consts import DATA_DIR
 from neosca.ns_io import Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_lca.word_classifiers import Ns_PTB_Word_Classifier, Ns_UD_Word_Classifier

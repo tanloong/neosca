@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from neosca import QSS_PATH
+from neosca.ns_consts import QSS_PATH
 from neosca.ns_qss import Ns_QSS
 from PyQt5.QtWidgets import QWidget
 

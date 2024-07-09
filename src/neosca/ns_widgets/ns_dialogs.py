@@ -36,8 +36,8 @@ from PyQt5.QtWidgets import (
     QTextBrowser,
 )
 
-from neosca import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
 from neosca.ns_about import __email__, __title__, __version__, __year__
+from neosca.ns_consts import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets.ns_labels import (

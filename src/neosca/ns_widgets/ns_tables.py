@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from neosca import DESKTOP_PATH
+from neosca.ns_consts import DESKTOP_PATH
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types

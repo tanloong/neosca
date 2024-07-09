@@ -5,8 +5,8 @@ import os.path as os_path
 import sys
 from collections.abc import Callable
 
-from neosca import CACHE_DIR
 from neosca.ns_about import __title__, __version__
+from neosca.ns_consts import CACHE_DIR
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca import Ns_LCA
 from neosca.ns_print import color_print
