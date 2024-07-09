@@ -4,10 +4,10 @@ build: clean acks
 	python3 -m build
 
 package: clean acks model
-	python3 ./utils/ns_packaging.py
+	python3 ./scripts/ns_packaging.py
 
 model: requirements.txt
-	python3 -m utils.ns_download_models
+	python3 -m scripts.ns_download_models
 
 clean:
 	rm -rf __pycache__
@@ -38,8 +38,8 @@ test:
 run:
 	cd ./src && python3 -m neosca gui
 
-acks: src/neosca/ns_data/acks.json utils/ns_generate_acks.py
-	python3 ./utils/ns_generate_acks.py
+acks: src/neosca/ns_data/acks.json scripts/ns_generate_acks.py
+	python3 ./scripts/ns_generate_acks.py
 
 component="patch"
 bump:
@@ -47,4 +47,4 @@ bump:
 	# make bump component=patch
 	# make bump component=minor
 	# make bump component=major
-	bash ./utils/ns_bump_version.sh $(component)
+	bash ./scripts/ns_bump_version.sh $(component)
