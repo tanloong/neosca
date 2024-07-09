@@ -24,8 +24,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from neosca import ICON_PATH, QSS_PATH
 from neosca.ns_about import __title__, __version__
+from neosca.ns_consts import ICON_PATH, QSS_PATH
 from neosca.ns_io import Ns_Cache, Ns_IO
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_platform_info import IS_MAC

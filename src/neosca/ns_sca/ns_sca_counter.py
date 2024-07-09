@@ -11,8 +11,8 @@ import tokenize
 from collections import OrderedDict
 from copy import deepcopy
 
-from neosca import DATA_DIR
 from neosca.ns_about import __title__
+from neosca.ns_consts import DATA_DIR
 from neosca.ns_exceptions import CircularDefinitionError, InvalidSourceError, StructureNotFoundError
 from neosca.ns_io import Ns_IO
 from neosca.ns_sca import l2sca
