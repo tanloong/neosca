@@ -2,8 +2,9 @@
 
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QPointF, Qt
-from PyQt5.QtGui import QBrush, QColor, QPainter
+from PyQt5.QtGui import QBrush, QColor, QPainter, QPolygon
 from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
+from typing_extensions import override
 
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_widgets import ns_dialogs
@@ -24,13 +25,14 @@ class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
             triangle_leg_length = option.rect.height() * Ns_Settings.value(
                 "Appearance/triangle-height-ratio", type=float
             )
-            painter.drawPolygon(
+            points = QPolygon(
                 (
                     QPointF(option.rect.x() + triangle_leg_length, option.rect.y()),
                     QPointF(option.rect.x(), option.rect.y()),
                     QPointF(option.rect.x(), option.rect.y() + triangle_leg_length),
-                ),
+                )
             )
+            painter.drawPolygon(points)
             painter.restore()
 
 
@@ -40,7 +42,7 @@ class Ns_StyledItemDelegate_Matches(Ns_StyledItemDelegate_Triangle):
 
         self.position_dialog_mappings: dict[tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_Matches] = {}
 
-    # Override
+    @override
     def createEditor(self, parent, option, index):  # type: ignore
         if not index.data(Qt.ItemDataRole.UserRole):
             return None
@@ -58,7 +60,7 @@ class Ns_StyledItemDelegate_File(Ns_StyledItemDelegate_Triangle):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    # Override
+    @override
     def createEditor(self, parent, option, index):  # type: ignore
         if index.column() != 0:
             return None

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import re
+from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from typing import NamedTuple
 
 from neosca.ns_tregex.tree import Tree
+from typing_extensions import override
 
 
 class Named_Nodes:
@@ -76,8 +78,9 @@ class Node_Descriptions:
                 yield node
 
 
-class Node_Op:
+class Node_Op(ABC):
     @classmethod
+    @abstractmethod
     def satisfies(
         cls,
         node: Tree,
@@ -105,6 +108,7 @@ class Node_Op:
 
 class Node_Text(Node_Op):
     @classmethod
+    @override
     def satisfies(
         cls, node: Tree, expect: str, *, is_negated: bool = False, use_basic_cat: bool = False
     ) -> bool:
@@ -119,6 +123,7 @@ class Node_Text(Node_Op):
 
 class Node_Regex(Node_Op):
     @classmethod
+    @override
     def satisfies(
         cls, node: Tree, expect: str, *, is_negated: bool = False, use_basic_cat: bool = False
     ) -> bool:
@@ -154,6 +159,7 @@ class Node_Regex(Node_Op):
 
 class Node_Any(Node_Op):
     @classmethod
+    @override
     def satisfies(
         cls,
         node: Tree,
@@ -167,6 +173,7 @@ class Node_Any(Node_Op):
 
 class Node_Root(Node_Op):
     @classmethod
+    @override
     def satisfies(
         cls,
         node: Tree,
