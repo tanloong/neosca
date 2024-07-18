@@ -194,7 +194,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
     @classmethod
     def dump_json(cls, data: Any, path: str | PathLike) -> None:
         try:
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except FileNotFoundError:
             Path(path).parent.mkdir(parents=True)
