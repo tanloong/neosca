@@ -198,7 +198,8 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except FileNotFoundError:
             Path(path).parent.mkdir(parents=True)
-            cls.dump_json(data, path)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
 
     @classmethod
     def dump_bytes(cls, data: bytes, path: str | PathLike) -> None:
@@ -207,7 +208,8 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 f.write(data)
         except FileNotFoundError:
             Path(path).parent.mkdir(parents=True)
-            cls.dump_bytes(data, path)
+            with open(path, "wb") as f:
+                f.write(data)
 
     @classmethod
     def get_verified_ifile_list(cls, ifile_list: Iterable[str]) -> list[str]:
