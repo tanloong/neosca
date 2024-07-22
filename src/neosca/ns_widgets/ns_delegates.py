@@ -2,7 +2,7 @@
 
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QPointF, Qt
-from PyQt5.QtGui import QBrush, QColor, QPainter, QPolygon
+from PyQt5.QtGui import QBrush, QColor, QPainter, QPolygonF
 from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 from typing_extensions import override
 
@@ -25,7 +25,7 @@ class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
             triangle_leg_length = option.rect.height() * Ns_Settings.value(
                 "Appearance/triangle-height-ratio", type=float
             )
-            points = QPolygon(
+            points = QPolygonF(
                 (
                     QPointF(option.rect.x() + triangle_leg_length, option.rect.y()),
                     QPointF(option.rect.x(), option.rect.y()),
