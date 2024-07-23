@@ -9,16 +9,21 @@
 + Fix throwing error for files containing only punctuation marks
 + Fix [performance issue](https://github.com/tanloong/neosca/issues/41) with file opening
 + Fix cache_info.json not saving when quitting via the upper right X button
++ Fix decode error when loading cache_info.json on startup
++ Fix memory leak on thread management
 
 ### Improvements
 
-+ Data changes of QStandardItemModel is now strictly managed within the main thread [for stability and reliability](https://forum.qt.io/topic/32732/multi-threading-with-model-view-framework/4?_=1720380212407)
++ Changes of QStandardItemModel is now strictly managed within the main thread [for stability and reliability](https://forum.qt.io/topic/32732/multi-threading-with-model-view-framework/4?_=1720380212407)
 + Add "Minimize to Tray" action to the "Files" menu
-+ Toggle the main window by single clicking the system tray icon
++ The main window can now be toggled by single clicking the system tray icon
 
 ### Dependency Changes
 
 + Update Stanza to 1.8.2
++ Update OpenPyXl to 3.1.5
++ Update PyInstaller to 6.9.0
++ Update PyQt to 5.15.11
 
 ## [0.1.2](https://github.com/tanloong/neosca/releases/tag/0.1.2) (24 March 2024)
 
