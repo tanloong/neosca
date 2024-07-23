@@ -28,7 +28,7 @@
         {
             "name": "OpenPyXl",
             "homepage": "https://foss.heptapod.net/openpyxl/openpyxl",
-            "version": "3.1.3",
+            "version": "3.1.5",
             "authors": "Eric Gazoni, Charlie Clark",
             "license": "MIT",
             "license_file": "https://foss.heptapod.net/openpyxl/openpyxl/-/blob/branch/3.1/LICENCE.rst"
@@ -36,7 +36,7 @@
         {
             "name": "PyInstaller",
             "homepage": "http://www.pyinstaller.org/",
-            "version": "6.7.0",
+            "version": "6.9.0",
             "authors": "Hartmut Goebel, Jasper Harrison,<br>Bryan A. Jones, Brénainn Woodsend,<br>Rok Mandeljc",
             "license": "Bootloader-exception",
             "license_file": "https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt"
