@@ -14,7 +14,7 @@ from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
 
 
 class Ns_Worker(QObject):
-    worker_done = pyqtSignal()
+    finished = pyqtSignal()
 
     def __init__(self, *args, main, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -66,7 +66,7 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
                 model.item_right_shifted.emit((rowno, colno, item))
         model.rows_added.emit()
 
-        self.worker_done.emit()
+        self.finished.emit()
 
 
 class Ns_Worker_LCA_Generate_Table(Ns_Worker):
@@ -108,7 +108,7 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
                 model.item_right_shifted.emit((rowno, colno, item))
         model.rows_added.emit()
 
-        self.worker_done.emit()
+        self.finished.emit()
 
 
 class Ns_Thread(QThread):
@@ -119,6 +119,10 @@ class Ns_Thread(QThread):
         self.worker = worker
         # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         self.worker.moveToThread(self)
+
+        worker.finished.connect(worker.deleteLater)
+        worker.destroyed.connect(self.quit)
+        self.finished.connect(self.deleteLater)
 
     def run(self):
         try:
