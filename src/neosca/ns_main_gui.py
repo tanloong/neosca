@@ -70,7 +70,6 @@ class Ns_Main_Gui(QMainWindow):
          }}"""
         self.setStyleSheet(qss)
         self.setup_menu()
-        self.setup_worker()
         self.setup_main_window()
         self.restore_splitters(use_default=False)
         self.setup_tray()
@@ -301,7 +300,7 @@ class Ns_Main_Gui(QMainWindow):
         self.tableview_sca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
 
         # Bind
-        self.button_generate_table_sca.clicked.connect(self.ns_thread_sca_generate_table.start)
+        self.button_generate_table_sca.clicked.connect(self.on_generate_table_sca)
         self.button_export_table_sca.clicked.connect(
             lambda: self.tableview_sca.export_table("neosca_sca_results.xlsx")
         )
@@ -378,7 +377,7 @@ class Ns_Main_Gui(QMainWindow):
         self.tableview_lca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
 
         # Bind
-        self.button_generate_table_lca.clicked.connect(self.ns_thread_lca_generate_table.start)
+        self.button_generate_table_lca.clicked.connect(self.on_generate_table_lca)
         self.button_export_table_lca.clicked.connect(
             lambda: self.tableview_lca.export_table("neosca_lca_results.xlsx")
         )
@@ -675,24 +674,24 @@ class Ns_Main_Gui(QMainWindow):
         self.splitter_central_widget.setObjectName("splitter-file")
         self.setCentralWidget(self.splitter_central_widget)
 
-    def setup_worker(self) -> None:
-        self.dialog_processing = Ns_Dialog_Processing_With_Elapsed_Time(self)
+    def create_thread(self, worker_class, **kwargs) -> Ns_Thread:
+        dialog = Ns_Dialog_Processing_With_Elapsed_Time(self)
+        worker = worker_class(**kwargs)
 
-        self.ns_worker_sca_generate_table = Ns_Worker_SCA_Generate_Table(main=self)
-        self.ns_thread_sca_generate_table = Ns_Thread(self.ns_worker_sca_generate_table)
-        self.ns_thread_sca_generate_table.started.connect(self.dialog_processing.open)
-        self.ns_thread_sca_generate_table.finished.connect(self.dialog_processing.accept)
-        self.ns_thread_sca_generate_table.err_occurs.connect(
-            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open()
-        )
+        thread = Ns_Thread(worker)
+        thread.started.connect(dialog.open)
+        thread.finished.connect(dialog.accept)
+        thread.err_occurs.connect(lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open())
 
-        self.ns_worker_lca_generate_table = Ns_Worker_LCA_Generate_Table(main=self)
-        self.ns_thread_lca_generate_table = Ns_Thread(self.ns_worker_lca_generate_table)
-        self.ns_thread_lca_generate_table.started.connect(self.dialog_processing.open)
-        self.ns_thread_lca_generate_table.finished.connect(self.dialog_processing.accept)
-        self.ns_thread_lca_generate_table.err_occurs.connect(
-            lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open()
-        )
+        return thread
+
+    def on_generate_table_sca(self) -> None:
+        self.thread_generate_table_sca = self.create_thread(Ns_Worker_SCA_Generate_Table, main=self)
+        self.thread_generate_table_sca.start()
+
+    def on_generate_table_lca(self) -> None:
+        self.thread_generate_table_lca = self.create_thread(Ns_Worker_LCA_Generate_Table, main=self)
+        self.thread_generate_table_lca.start()
 
     # Override
     def closeEvent(self, event: QCloseEvent) -> None:
