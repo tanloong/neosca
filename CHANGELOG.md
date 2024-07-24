@@ -1,5 +1,11 @@
 <div align="center"><h1>Changelog</h1></div>
 
+## [0.1.4](https://github.com/tanloong/neosca/releases/tag/0.1.4) ()
+
+### Improvements
+
++ Add support for dropping files/folders into the file area
+
 ## [0.1.3](https://github.com/tanloong/neosca/releases/tag/0.1.3) (25 June 2024)
 
 ### Bug fixes

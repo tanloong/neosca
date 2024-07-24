@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 
 import os.path as os_path
-from collections.abc import Generator, Iterable, Sequence
-from typing import Any, Literal
 
-from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt, pyqtSignal
-from PyQt5.QtGui import (
-    QStandardItem,
-    QStandardItemModel,
-)
+from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt
+from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -23,231 +18,8 @@ from neosca.ns_consts import DESKTOP_PATH
 from neosca.ns_qss import Ns_QSS
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
-
-
-class Ns_StandardItemModel(QStandardItemModel):
-    data_cleared = pyqtSignal()
-    rows_added = pyqtSignal()
-    data_exported = pyqtSignal()
-    item_left_shifted = pyqtSignal(tuple)
-    item_right_shifted = pyqtSignal(tuple)
-
-    def __init__(
-        self,
-        main,
-        hor_labels: Sequence[str] | None = None,
-        ver_labels: Sequence[str] | None = None,
-        orientation: Literal["hor", "ver"] = "hor",
-        show_empty_row: bool = True,
-        **kwargs,
-    ) -> None:
-        super().__init__(main, **kwargs)
-        self.main = main
-        if hor_labels is not None:
-            self.setColumnCount(len(hor_labels))
-            self.setHorizontalHeaderLabels(hor_labels)
-        if ver_labels is not None:
-            self.setRowCount(len(ver_labels))
-            self.setVerticalHeaderLabels(ver_labels)
-
-        self.orientation = orientation
-        if show_empty_row:
-            if orientation == "hor":
-                self.setRowCount(1)
-            elif orientation == "ver":
-                self.setColumnCount(1)
-            else:
-                assert False, f"Invalid orientation: {orientation}"
-        self.show_empty_row = show_empty_row
-
-        self.has_been_exported: bool = False
-        self.rows_added.connect(lambda: self.set_has_been_exported(False))
-        self.data_exported.connect(lambda: self.set_has_been_exported(True))
-        self.item_left_shifted.connect(lambda args: self.set_item_left_shifted(*args))
-        self.item_right_shifted.connect(lambda args: self.set_item_right_shifted(*args))
-
-    def set_item_left_shifted(self, rowno: int, colno: int, value: QStandardItem | str):
-        if isinstance(value, QStandardItem):
-            item = value
-        elif isinstance(value, str):
-            item = QStandardItem()
-            # https://stackoverflow.com/a/20469423/20732031
-            item.setData(value, Qt.ItemDataRole.DisplayRole)
-        else:
-            assert False, f"Invalid value type: {type(value)}"
-        item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.setItem(rowno, colno, item)
-
-    def set_row_left_shifted(self, rowno: int, values: Iterable[QStandardItem | str], start: int = 0) -> None:
-        for colno, value in enumerate(values, start=start):
-            self.set_item_left_shifted(rowno, colno, value)
-
-    def set_item_right_shifted(self, rowno: int, colno: int, value: QStandardItem | str | int | float):
-        if isinstance(value, QStandardItem):
-            item = value
-        elif isinstance(value, (str, int, float)):
-            item = QStandardItem()
-            # https://stackoverflow.com/a/20469423/20732031
-            item.setData(value, Qt.ItemDataRole.DisplayRole)
-        else:
-            assert False, f"Invalid value type: {type(value)}"
-        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.setItem(rowno, colno, item)
-
-    def set_row_right_shifted(
-        self, rowno: int, values: Iterable[QStandardItem | str | int | float], start: int = 0
-    ) -> None:
-        for colno, value in enumerate(values, start=start):
-            self.set_item_right_shifted(rowno, colno, value)
-
-    def set_has_been_exported(self, exported: bool) -> None:
-        self.has_been_exported = exported
-
-    def _clear_data(self) -> None:
-        if self.orientation == "hor":
-            self.removeRows(0, self.rowCount())
-            if self.show_empty_row:
-                self.setRowCount(1)
-        elif self.orientation == "ver":
-            self.setColumnCount(0)
-            if self.show_empty_row:
-                self.setColumnCount(1)
-        self.data_cleared.emit()
-
-    def clear_data(self, confirm=False) -> None:
-        """
-        Clear data, reserve headers
-        """
-        if not confirm or self.has_been_exported:
-            return self._clear_data()
-        else:
-            messagebox = Ns_MessageBox_Question(
-                self.main,
-                "Clear Table",
-                "The table has not been exported yet and all the data will be lost. Continue?",
-            )
-            if messagebox.exec() == QMessageBox.StandardButton.Yes:
-                self._clear_data()
-
-    def is_row_empty(self, rowno: int) -> bool:
-        for colno in range(self.columnCount()):
-            item = self.item(rowno, colno)
-            if item is not None and item.text() != "":
-                return False
-        return True
-
-    def is_empty(self) -> bool:
-        return all(self.is_row_empty(rowno) for rowno in range(self.rowCount()))
-
-    def has_user_data(self) -> bool:
-        for rowno in range(self.rowCount()):
-            for colno in range(self.columnCount()):
-                if self.item(rowno, colno).data(Qt.ItemDataRole.UserRole):
-                    return True
-        return False
-
-    def remove_empty_rows(self) -> None:
-        for rowno in reversed(range(self.rowCount())):
-            if self.is_row_empty(rowno):
-                self.removeRow(rowno)
-
-    # Type hint for generator: https://docs.python.org/3.12/library/typing.html#typing.Generator
-    def yield_column(
-        self, colno: int, role: Qt.ItemDataRole = Qt.ItemDataRole.DisplayRole
-    ) -> Generator[Any, None, None]:
-        items = (self.item(rowno, colno) for rowno in range(self.rowCount()))
-        return (item.data(role) for item in items if item is not None)
-
-    def yield_checked_item_data(self, colno: int, role: Qt.ItemDataRole) -> Generator[Any, None, None]:
-        for rowno in range(self.rowCount()):
-            item = self.item(rowno, colno)
-            if item is None:
-                continue
-            if item.checkState() == Qt.CheckState.Checked:
-                yield item.data(role)
-
-    # https://stackoverflow.com/questions/75038194/qt6-how-to-disable-selection-for-empty-cells-in-qtableview
-    # def flags(self, index) -> Qt.ItemFlag:
-    #     if index.data() is None:
-    #         return Qt.ItemFlag.NoItemFlags
-    #     return super().flags(index)
-
-
-class Ns_StandardItemModel_File(Ns_StandardItemModel):
-    def __init__(self, main) -> None:
-        super().__init__(main, hor_labels=("Name", "Path"), show_empty_row=True)
-        self.data_cleared.connect(lambda: self.main.enable_button_generate_table(False))
-        self.rows_added.connect(lambda: self.main.enable_button_generate_table(True))
-
-    def user_or_display_data(self, index_or_rowno: QModelIndex | int, colno: int | None = None) -> Any:
-        if isinstance(index_or_rowno, QModelIndex):
-            user_data = index_or_rowno.data(Qt.ItemDataRole.UserRole)
-            return user_data if user_data else index_or_rowno.data(Qt.ItemDataRole.DisplayRole)
-        elif colno is not None:
-            return self.user_or_display_data(self.index(index_or_rowno, colno))
-        else:
-            assert False, f"Invalid index_or_rowno type: {type(index_or_rowno)}"
-
-    def _yield_flat_file_column(self, colno: int) -> Generator[str, None, None]:
-        for rowno in range(self.rowCount()):
-            data = self.user_or_display_data(rowno, colno)
-            if isinstance(data, str):
-                yield data
-            elif isinstance(data, list):
-                yield from data
-
-    def yield_flat_file_names(self) -> Generator[str, None, None]:
-        """
-        For simple row, yield file name displayed (str); for combined row, yield each combined subfile name (str)
-        """
-        return self._yield_flat_file_column(0)
-
-    def yield_flat_file_paths(self) -> Generator[str, None, None]:
-        """
-        For simple row, yield file path displayed (str); for combined row, yield each combined subfile path (str)
-        """
-        return self._yield_flat_file_column(1)
-
-    def _yield_file_column(self, colno) -> Generator[str | list[str], None, None]:
-        for rowno in range(self.rowCount()):
-            data = self.user_or_display_data(rowno, colno)
-            if isinstance(data, (str, list)):
-                yield data
-
-    def yield_file_names(self) -> Generator[str, None, None]:
-        """
-        For either simple or combined row, yield file name displayed (str)
-        """
-        return self.yield_column(0)
-
-    def yield_file_paths(self) -> Generator[str | list[str], None, None]:
-        """
-        For simple row, yield file path displayed (str); for combined row, yield the list of subfile paths (list[str])
-        """
-        return self._yield_file_column(1)
-
-
-class Ns_SortFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, main, source_model: Ns_StandardItemModel):
-        super().__init__(main)
-        self.main = main
-        self.source_model = source_model
-        self.setSourceModel(source_model)
-
-        self.setDynamicSortFilter(False)
-
-    # Override to sepcify the return type
-    def sourceModel(self) -> Ns_StandardItemModel:
-        return self.source_model
-
-    # Override
-    # https://www.qtcentre.org/threads/22120-No-Sort-Vertical-Header?p=107720#post107720
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole):
-        if orientation != Qt.Orientation.Vertical or role != Qt.ItemDataRole.DisplayRole:
-            return super().headerData(section, orientation, role)
-        else:
-            return section + 1
+from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_TableView(QTableView):
@@ -255,8 +27,10 @@ class Ns_TableView(QTableView):
         self,
         main,
         model: Ns_StandardItemModel | Ns_SortFilterProxyModel,
+        *,
         has_hor_header: bool = True,
         has_ver_header: bool = False,
+        disable_on_empty: bool = True,
         **kwargs,
     ) -> None:
         super().__init__(main, **kwargs)
@@ -273,6 +47,7 @@ class Ns_TableView(QTableView):
         self.source_model.rows_added.connect(self.on_rows_added)
         self.has_hor_header = has_hor_header
         self.has_ver_header = has_ver_header
+        self.disable_on_empty = disable_on_empty
 
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -282,12 +57,13 @@ class Ns_TableView(QTableView):
         self.verticalHeader().setHighlightSections(False)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
-        if self.source_model.is_empty():
+        if disable_on_empty and self.source_model.is_empty():
             self.setEnabled(False)
 
     def on_data_cleared(self) -> None:
         self.horizontalHeader().resizeSections(QHeaderView.ResizeMode.ResizeToContents)
-        self.setEnabled(False)
+        if self.disable_on_empty:
+            self.setEnabled(False)
 
     def on_rows_added(self) -> None:
         if not self.isEnabled():
@@ -562,7 +338,7 @@ class Ns_TableView(QTableView):
 
                 workbook = openpyxl.Workbook()
                 for sheetname in workbook.sheetnames:
-                    workbook.remove(workbook.get_sheet_by_name(sheetname))
+                    workbook.remove(workbook[sheetname])
 
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L628C3-L629C82
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()

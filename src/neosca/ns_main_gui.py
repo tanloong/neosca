@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import os.path as os_path
 import re
 import sys
-from pathlib import Path
 
-from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
-from PyQt5.QtGui import QCloseEvent, QCursor, QIcon, QStandardItem
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCloseEvent, QIcon
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -19,7 +17,6 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSplitter,
     QSystemTrayIcon,
-    QTableView,
     QTabWidget,
     QWidget,
 )
@@ -37,23 +34,19 @@ from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
 from neosca.ns_utils import bring_to_front, pt2px
 from neosca.ns_widgets.ns_buttons import Ns_PushButton
-from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_Matches
+from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_Matches
 from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_About,
     Ns_Dialog_Processing_With_Elapsed_Time,
-    Ns_Dialog_Table,
     Ns_Dialog_Table_Acknowledgments,
     Ns_Dialog_Table_Cache,
-    Ns_Dialog_Table_Subfiles,
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
-from neosca.ns_widgets.ns_tables import (
-    Ns_SortFilterProxyModel,
-    Ns_StandardItemModel,
-    Ns_StandardItemModel_File,
-    Ns_TableView,
-)
+from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from neosca.ns_widgets.ns_table_file import Ns_Table_File
+from neosca.ns_widgets.ns_tableview import Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
@@ -134,13 +127,13 @@ class Ns_Main_Gui(QMainWindow):
         self.menu_file = self.menuBar().addMenu("&File")
         self.action_open_file = self.menu_file.addAction("&Open Files...")
         self.action_open_file.setShortcut("CTRL+O")
-        self.action_open_file.triggered.connect(self.menu_file_open_file)
+        self.action_open_file.triggered.connect(self.menu_files_open_file)
         self.action_open_folder = self.menu_file.addAction("Open &Folder...")
-        self.action_open_folder.triggered.connect(self.menu_file_open_folder)
+        self.action_open_folder.triggered.connect(self.menu_files_open_folder)
         self.menu_file.addSeparator()
 
         self.action_clear_cache = self.menu_file.addAction("&Clear Cache...")
-        self.action_clear_cache.triggered.connect(self.menu_file_clear_cache)
+        self.action_clear_cache.triggered.connect(self.menu_files_clear_cache)
         self.menu_file.addSeparator()
 
         self.action_minimize = self.menu_file.addAction("&Minimize to Tray")
@@ -150,7 +143,7 @@ class Ns_Main_Gui(QMainWindow):
         self.action_quit.setShortcut("CTRL+Q")
         self.action_quit.triggered.connect(self.close)
 
-        self.menu_file.aboutToShow.connect(self.menu_file_about_to_show)
+        self.menu_file.aboutToShow.connect(self.menu_files_about_to_show)
 
         # Preferences
         self.menu_prefs = self.menuBar().addMenu("&Preferences")
@@ -183,34 +176,18 @@ class Ns_Main_Gui(QMainWindow):
         self.action_about = self.menu_help.addAction("A&bout")
         self.action_about.triggered.connect(self.menu_help_about)
 
-    def menu_file_open_folder(self):
+    def menu_files_open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
             parent=self, caption="Open Folder", directory=Ns_Settings.value("Import/default-path")
         )
         if not folder_path:
             return
 
-        file_paths: list[str] = []
-        if Ns_Settings.value("Import/include-files-in-subfolders", type=bool):
-            file_paths.extend(
-                os_path.join(dir_path, file_name)
-                for dir_path, _, file_names in os.walk(folder_path)
-                for file_name in file_names
-                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
-            )
-        else:
-            file_paths.extend(
-                os_path.join(folder_path, file_name)
-                for file_name in next(os.walk(folder_path))[2]
-                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
-            )
+        is_recursive = Ns_Settings.value("Import/include-files-in-subfolders", type=bool)
+        file_paths = Ns_IO.find_files(folder_path, is_recursive)
+        self.table_file.add_file_paths(file_paths)
 
-        if len(file_paths) == 0:
-            self.statusBar().showMessage("No files found")
-
-        self.add_file_paths(file_paths)
-
-    def menu_file_open_file(self):
+    def menu_files_open_file(self):
         file_paths, _ = QFileDialog.getOpenFileNames(
             parent=self,
             caption="Open Files",
@@ -220,15 +197,15 @@ class Ns_Main_Gui(QMainWindow):
         )
         if not file_paths:
             return
-        self.add_file_paths(file_paths)
+        self.table_file.add_file_paths(file_paths)
 
-    def menu_file_clear_cache(self):
+    def menu_files_clear_cache(self):
         if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
             Ns_Dialog_Table_Cache(self).open()
         else:
             QMessageBox.information(self, "No Caches", "There are no caches to clear.")
 
-    def menu_file_about_to_show(self):
+    def menu_files_about_to_show(self):
         if any(Ns_Cache.yield_cname_cpath_csize_fpath()):
             self.action_clear_cache.setEnabled(True)
         else:
@@ -334,8 +311,6 @@ class Ns_Main_Gui(QMainWindow):
         self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
 
     def on_model_sca_data_cleared(self) -> None:
-        if not self.model_file.is_empty():
-            self.button_generate_table_sca.setEnabled(True)
         self.button_export_table_sca.setEnabled(False)
         self.button_export_matches_sca.setEnabled(False)
         self.button_clear_table_sca.setEnabled(False)
@@ -408,8 +383,6 @@ class Ns_Main_Gui(QMainWindow):
         self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
 
     def on_model_lca_data_cleared(self) -> None:
-        if not self.model_file.is_empty():
-            self.button_generate_table_lca.setEnabled(True)
         self.button_export_table_lca.setEnabled(False)
         self.button_export_matches_lca.setEnabled(False)
         self.button_clear_table_lca.setEnabled(False)
@@ -442,226 +415,10 @@ class Ns_Main_Gui(QMainWindow):
         self.button_generate_table_sca.setEnabled(enabled)
         self.button_generate_table_lca.setEnabled(enabled)
 
-    def setup_tableview_file(self) -> None:
-        self.model_file = Ns_StandardItemModel_File(self)
-        self.tableview_file = Ns_TableView(self, model=self.model_file)
-        self.tableview_file.setItemDelegate(Ns_StyledItemDelegate_File(self))
-        self.tableview_file.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.tableview_file.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.tableview_file.setCornerButtonEnabled(True)
-        # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.PySide6.QtWidgets.QWidget.customContextMenuRequested
-        self.menu_tableview_file = QMenu(self)
-        self.action_tableview_file_combine = self.menu_tableview_file.addAction("Combine")
-        self.action_tableview_file_combine.triggered.connect(self.combine_file_paths)
-        self.action_tableview_file_split = self.menu_tableview_file.addAction("Split")
-        self.action_tableview_file_split.triggered.connect(self.split_file_paths)
-        self.action_tableview_file_show_subfiles = self.menu_tableview_file.addAction("Show Subfiles...")
-        self.action_tableview_file_show_subfiles.triggered.connect(self.show_subfiles)
-
-        self.menu_tableview_file.addSeparator()
-        self.action_tableview_file_remove = self.menu_tableview_file.addAction("Remove")
-        self.action_tableview_file_remove.triggered.connect(self.remove_file_paths)
-        self.menu_tableview_file.aboutToShow.connect(self.on_menu_tableview_file_about_to_show)
-        self.tableview_file.customContextMenuRequested.connect(self.show_menu_tableview_file)
-
-    def on_menu_tableview_file_about_to_show(self) -> None:
-        indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        len_selected_rows = len(indexes)
-        if len_selected_rows == 1:
-            self.action_tableview_file_combine.setEnabled(False)
-            is_combined = bool(indexes[0].data(Qt.ItemDataRole.UserRole))
-            self.action_tableview_file_split.setEnabled(is_combined)
-            self.action_tableview_file_show_subfiles.setEnabled(is_combined)
-        else:
-            self.action_tableview_file_combine.setEnabled(True)
-            self.action_tableview_file_split.setEnabled(False)
-            self.action_tableview_file_show_subfiles.setEnabled(False)
-
-    def combine_file_paths(self) -> None:
-        name_indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=0)
-        path_indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows(column=1)
-        rowno_name_path_triples: list[tuple[int, str | list[str], str | list[str]]] = sorted(
-            zip(
-                (index.row() for index in name_indexes),
-                map(self.model_file.user_or_display_data, name_indexes),
-                map(self.model_file.user_or_display_data, path_indexes),
-                strict=False,
-            ),
-            key=lambda tri: tri[0],
-        )
-        (rowno_retained, names_retained, paths_retained), *triples = rowno_name_path_triples
-        # name and path are both either str or list[str], does not check here
-        # and this should be manually guaranteed
-        if isinstance(names_retained, str):
-            names_retained = [names_retained]
-        if isinstance(paths_retained, str):
-            paths_retained = [paths_retained]
-        # Remove rows from bottom up, or otherwise lower row indexes will
-        # change as upper rows are removed
-        for rowno, name, path in reversed(triples):
-            if isinstance(name, str):
-                names_retained.append(name)
-            elif isinstance(name, list):
-                names_retained.extend(name)
-            else:
-                assert False, f"Invalid name type: {type(name)}"
-            if isinstance(path, str):
-                paths_retained.append(path)
-            elif isinstance(path, list):
-                paths_retained.extend(path)
-            else:
-                assert False, f"Invalid path type: {type(path)}"
-            self.model_file.takeRow(rowno)
-
-        first_name, *_, last_name = names_retained
-        if len(names_retained) == 2:
-            name_display = f"{first_name},{last_name}"
-        else:
-            name_display = f"{first_name},...,{last_name}"
-        common_path = os_path.commonpath(paths_retained)
-        first_path, *_, last_path = paths_retained
-        first_path = first_path.removeprefix(common_path).lstrip(os_path.sep)
-        last_path = last_path.removeprefix(common_path).lstrip(os_path.sep)
-        if len(paths_retained) == 2:
-            path_display = f"{common_path}{os_path.sep}{{{first_path},{last_path}}}"
-        else:
-            path_display = f"{common_path}{os_path.sep}{{{first_path},...,{last_path}}}"
-
-        self.model_file.set_item_left_shifted(rowno_retained, 0, name_display)
-        self.model_file.set_item_left_shifted(rowno_retained, 1, path_display)
-
-        self.model_file.item(rowno_retained, 0).setData(names_retained, Qt.ItemDataRole.UserRole)
-        self.model_file.item(rowno_retained, 1).setData(paths_retained, Qt.ItemDataRole.UserRole)
-
-        self.tableview_file.edit(self.model_file.index(rowno_retained, 0))
-        self.statusBar().showMessage(f"Marked {len(names_retained)} files for combination")
-
-    def split_file_paths(self) -> None:
-        name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
-        path_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=1)[0]
-        top_rowno = name_index.row()
-
-        names_retained = name_index.data(Qt.ItemDataRole.UserRole)
-        paths_retained = path_index.data(Qt.ItemDataRole.UserRole)
-
-        self.model_file.setData(name_index, names_retained[0])
-        self.model_file.setData(path_index, paths_retained[0])
-        self.tableview_file.selectRow(top_rowno)
-
-        self.model_file.insertRows(top_rowno + 1, len(names_retained) - 1)
-
-        bot_rowno = 0
-        for bot_rowno, row in enumerate(
-            zip(names_retained[1:], paths_retained[1:], strict=False), start=top_rowno + 1
-        ):
-            self.model_file.set_row_left_shifted(bot_rowno, row)
-            self.tableview_file.selectRow(bot_rowno)
-
-        # Select rows split off
-        # https://forum.pythonguis.com/t/programmatically-select-multiple-rows-in-qtableview/510
-        selection = QItemSelection()
-        selection.select(self.model_file.index(top_rowno, 0), self.model_file.index(bot_rowno, 1))
-        mode = QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows
-        self.tableview_file.selectionModel().select(selection, mode)
-
-        # Clear subfile list
-        self.model_file.setData(name_index, None, Qt.ItemDataRole.UserRole)
-        self.model_file.setData(path_index, None, Qt.ItemDataRole.UserRole)
-
-        self.statusBar().showMessage(f"Demarked {len(names_retained)} files from combination")
-
-    def show_subfiles(self) -> None:
-        name_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=0)[0]
-        path_index: QModelIndex = self.tableview_file.selectionModel().selectedRows(column=1)[0]
-
-        Ns_Dialog_Table_Subfiles(self, name_index, path_index).open()
-
-    def remove_file_paths(self) -> None:
-        # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
-        indexes: list[QModelIndex] = self.tableview_file.selectionModel().selectedRows()
-        # Need to count num before takeRow
-        num = sum(
-            map(
-                lambda index: 1
-                if isinstance((data := self.model_file.user_or_display_data(index)), str)
-                else len(data),
-                indexes,
-            )
-        )
-        # Remove rows from bottom up, or otherwise lower row indexes will
-        # change as upper rows are removed
-        rownos = sorted((index.row() for index in indexes), reverse=True)
-        for rowno in rownos:
-            self.model_file.takeRow(rowno)
-        if self.model_file.rowCount() == 0:
-            self.model_file.clear_data()
-
-        noun = "file" if num == 1 else "files"
-        self.statusBar().showMessage(f"Removed {num} {noun}")
-
-    def show_menu_tableview_file(self) -> None:
-        if not self.tableview_file.selectionModel().selectedRows():
-            self.action_tableview_file_remove.setEnabled(False)
-        else:
-            self.action_tableview_file_remove.setEnabled(True)
-        self.menu_tableview_file.exec(QCursor.pos())
-
-    def add_file_paths(self, file_paths_to_add: list[str]) -> None:
-        unique_file_paths_to_add: set[str] = set(file_paths_to_add)
-        already_added_file_paths: set[str] = set(self.model_file.yield_flat_file_paths())
-        file_paths_dup: set[str] = unique_file_paths_to_add & already_added_file_paths
-        file_paths_unsupported: set[str] = set(filter(Ns_IO.not_supports, unique_file_paths_to_add))
-        file_paths_empty: set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
-        file_paths_ok: set[str] = (
-            unique_file_paths_to_add
-            - already_added_file_paths
-            - file_paths_dup
-            - file_paths_unsupported
-            - file_paths_empty
-        )
-        if file_paths_ok:
-            self.model_file.remove_empty_rows()
-            already_added_file_stems = list(self.model_file.yield_flat_file_names())
-            for file_path in sorted(file_paths_ok):
-                file_stem = Path(file_path).stem
-                file_stem = Ns_IO.ensure_unique_filestem(file_stem, already_added_file_stems)
-                already_added_file_stems.append(file_stem)
-                rowno = self.model_file.rowCount()
-                self.model_file.set_row_left_shifted(rowno, (file_stem, file_path))
-            self.model_file.rows_added.emit()
-
-            num = len(file_paths_ok)
-            noun = "file" if num == 1 else "files"
-            self.statusBar().showMessage(f"Added {num} {noun}")
-
-        if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ns_StandardItemModel(
-                self, hor_labels=("Error Type", "File Path"), show_empty_row=False
-            )
-            for reason, file_paths in (
-                ("Duplicate file", file_paths_dup),
-                ("Unsupported file type", file_paths_unsupported),
-                ("Empty file", file_paths_empty),
-            ):
-                for file_path in sorted(file_paths):
-                    model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ns_TableView(self, model=model_err_files)
-
-            dialog = Ns_Dialog_Table(
-                self,
-                title="Error Adding Files",
-                text="Failed to add the following files.",
-                width=580,
-                height=260,
-                tableview=tableview_err_files,
-                export_filename="neosca_error_files.xlsx",
-            )
-            dialog.open()
-
     def setup_main_window(self):
         self.setup_tab_sca()
         self.setup_tab_lca()
-        self.setup_tableview_file()
+        self.table_file = Ns_Table_File(self)
 
         self.tabwidget = QTabWidget()
         self.tabwidget.addTab(self.widget_previewarea_sca, "Syntactic Complexity Analyzer")
@@ -669,7 +426,7 @@ class Ns_Main_Gui(QMainWindow):
         self.splitter_central_widget: QSplitter = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
-        self.splitter_central_widget.addWidget(self.tableview_file)
+        self.splitter_central_widget.addWidget(self.table_file)
         self.splitter_central_widget.setStretchFactor(0, 1)
         self.splitter_central_widget.setObjectName("splitter-file")
         self.setCentralWidget(self.splitter_central_widget)

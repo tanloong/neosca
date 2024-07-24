@@ -10,7 +10,7 @@ from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 from neosca.ns_sca.ns_sca import Ns_SCA
 from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
 from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_widgets.ns_tables import Ns_StandardItemModel
+from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_Worker(QObject):
@@ -29,8 +29,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        file_paths: Generator[str | list[str], None, None] = self.main.model_file.yield_file_paths()
+        file_names: Generator[str, None, None] = self.main.table_file.yield_file_names()
+        file_paths: Generator[str | list[str], None, None] = self.main.table_file.yield_file_paths()
 
         init_kwargs = {
             "selected_measures": None,
@@ -74,8 +74,8 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         super().__init__(*args, main=main, **kwargs)
 
     def run(self) -> None:
-        file_names: Generator[str, None, None] = self.main.model_file.yield_file_names()
-        file_paths: Generator[str, None, None] = self.main.model_file.yield_file_paths()
+        file_names: Generator[str, None, None] = self.main.table_file.yield_file_names()
+        file_paths: Generator[str, None, None] = self.main.table_file.yield_file_paths()
 
         init_kwargs = {
             "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),

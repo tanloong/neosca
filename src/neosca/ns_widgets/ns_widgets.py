@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from PyQt5.QtCore import QDir, Qt, pyqtSignal
 from PyQt5.QtGui import QFocusEvent, QPalette
 from PyQt5.QtWidgets import (
