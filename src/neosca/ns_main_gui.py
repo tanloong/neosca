@@ -35,6 +35,7 @@ from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from neosca.ns_settings.ns_settings import Ns_Settings
 from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
 from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
+from neosca.ns_utils import bring_to_front, pt2px
 from neosca.ns_widgets.ns_buttons import Ns_PushButton
 from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File, Ns_StyledItemDelegate_Matches
 from neosca.ns_widgets.ns_dialogs import (
@@ -73,11 +74,16 @@ class Ns_Main_Gui(QMainWindow):
         self.setup_main_window()
         self.restore_splitters(use_default=False)
         self.setup_tray()
+        self.fix_macos_layout(self)
+        self.setup_statusbar()
+
+    def setup_statusbar(self) -> None:
+        height_pt = Ns_Settings.value("Appearance/font-size", type=int)
+        height_px = int(pt2px(height_pt, offset=2))
+        self.statusBar().setFixedHeight(height_px)
 
         self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
         self.statusBar().showMessage("Ready!")
-
-        self.fix_macos_layout(self)
 
     # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L421C3-L433C24
     def setup_tray(self) -> None:
@@ -99,15 +105,6 @@ class Ns_Main_Gui(QMainWindow):
         self.trayicon.activated.connect(self.on_tray_activated)
         self.trayicon.show()
 
-    # https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L447
-    def bring_to_front(self) -> None:
-        self.show()
-        self.setWindowState(
-            (self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
-        )
-        self.raise_()
-        self.activateWindow()
-
     def on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         if reason != QSystemTrayIcon.ActivationReason.Trigger:
             return
@@ -118,7 +115,7 @@ class Ns_Main_Gui(QMainWindow):
         if self.isVisible():
             self.hide()
         else:
-            self.bring_to_front()
+            bring_to_front(self)
 
     # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_main.py#L266
     def fix_macos_layout(self, parent):
@@ -172,7 +169,7 @@ class Ns_Main_Gui(QMainWindow):
         self.action_default_font_size.triggered.connect(self.menu_prefs_default_font_size)
 
         self.menu_prefs.addSeparator()
-        self.action_reset_layout = self.menu_prefs.addAction("&Reset Layouts")
+        self.action_reset_layout = self.menu_prefs.addAction("&Reset Layout")
         self.action_reset_layout.triggered.connect(self.menu_prefs_reset_layout)
         self.action_toggle_status_bar = self.menu_prefs.addAction("&Toggle Status Bar")
         self.action_toggle_status_bar.triggered.connect(self.menu_prefs_toggle_status_bar)
@@ -247,6 +244,7 @@ class Ns_Main_Gui(QMainWindow):
         if point_size <= max_size:
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
+            self.statusBar().setFixedHeight(int(pt2px(point_size, offset=2)))
             self.statusBar().showMessage(f"Enlarged font to {point_size}pt")
         else:
             self.statusBar().showMessage(f"Reached maximum font size ({max_size}pt)")
@@ -258,6 +256,7 @@ class Ns_Main_Gui(QMainWindow):
         if point_size >= min_size:
             Ns_QSS.update(self, {"*": {"font-size": f"{point_size}pt"}})
             Ns_Settings.setValue(key, point_size)
+            self.statusBar().setFixedHeight(int(pt2px(point_size, offset=2)))
             self.statusBar().showMessage(f"Shrunk font to {point_size}pt")
         else:
             self.statusBar().showMessage(f"Reached minimum font size ({min_size}pt)")
@@ -268,6 +267,7 @@ class Ns_Main_Gui(QMainWindow):
         if curr_size != DEFAULT_FONT_SIZE:
             Ns_QSS.update(self, {"*": {"font-size": f"{DEFAULT_FONT_SIZE}pt"}})
             Ns_Settings.setValue(key, DEFAULT_FONT_SIZE)
+            self.statusBar().setFixedHeight(int(pt2px(DEFAULT_FONT_SIZE, offset=2)))
             self.statusBar().showMessage(f"Reset font size to {DEFAULT_FONT_SIZE}pt")
         else:
             self.statusBar().showMessage(f"Already default font size ({DEFAULT_FONT_SIZE}pt)")
