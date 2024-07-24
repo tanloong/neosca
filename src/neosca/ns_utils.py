@@ -4,6 +4,10 @@ from collections.abc import Iterable, Iterator
 from itertools import islice
 from math import log as _log
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtWidgets import QWidget
+
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
 # The second element is the error message if it fails.
@@ -51,3 +55,18 @@ def safe_log(n: float, base: int | None = None) -> float:
     if base is not None:
         return _log(n, base)
     return _log(n)
+
+
+def pt2px(pt: int | float, offset: int | float = 0) -> float:
+    dpi = QGuiApplication.primaryScreen().physicalDotsPerInch()
+    return (pt * dpi) / 72 + offset
+
+
+# https://github.com/zealdocs/zeal/blob/9630cc94c155d87295e51b41fbab2bd5798f8229/src/libs/ui/mainwindow.cpp#L447
+def bring_to_front(widget: QWidget) -> None:
+    widget.show()
+    widget.setWindowState(
+        (widget.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+    )
+    widget.raise_()
+    widget.activateWindow()

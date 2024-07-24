@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 from typing_extensions import override
 
 from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_utils import bring_to_front
 from neosca.ns_widgets import ns_dialogs
 
 
@@ -48,7 +49,7 @@ class Ns_StyledItemDelegate_Matches(Ns_StyledItemDelegate_Triangle):
             return None
         position = (index.row(), index.column())
         if position in self.position_dialog_mappings:
-            self.position_dialog_mappings[position].bring_to_front()
+            bring_to_front(self.position_dialog_mappings[position])
         else:
             dialog = ns_dialogs.Ns_Dialog_TextEdit_Matches(parent, index=index)
             self.position_dialog_mappings[position] = dialog

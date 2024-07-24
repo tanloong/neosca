@@ -29,7 +29,5 @@ QHeaderView::section:vertical:pressed {
     background-color: #606060;
 }
 QStatusBar {
-    min-height: 30px;
-    max-height: 30px;
     background-color: #D0D0D0;
 }
