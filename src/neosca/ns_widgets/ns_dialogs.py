@@ -7,22 +7,8 @@ import traceback
 from collections.abc import Sequence
 from enum import Enum
 
-from PyQt5.QtCore import (
-    QElapsedTimer,
-    QModelIndex,
-    QSize,
-    QSortFilterProxyModel,
-    Qt,
-    QTime,
-    QTimer,
-    pyqtSignal,
-)
-from PyQt5.QtGui import (
-    QIcon,
-    QStandardItem,
-    QTextBlockFormat,
-    QTextCursor,
-)
+from PyQt5.QtCore import QElapsedTimer, QModelIndex, QSize, QSortFilterProxyModel, Qt, QTime, QTimer, pyqtSignal
+from PyQt5.QtGui import QIcon, QStandardItem, QTextBlockFormat, QTextCursor
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -48,7 +34,9 @@ from neosca.ns_widgets.ns_labels import (
     Ns_Label_Html_WordWrapped,
     Ns_Label_WordWrapped,
 )
-from neosca.ns_widgets.ns_tables import Ns_SortFilterProxyModel, Ns_StandardItemModel, Ns_TableView
+from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from neosca.ns_widgets.ns_tableview import Ns_TableView
 from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
 
 
