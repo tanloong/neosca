@@ -30,6 +30,27 @@ NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2
 <!-- python -m neosca gui -->
 <!-- ``` -->
 
+## Basic Usage
+
+### Command Line
+
+You can run SCA or LCA on a file/text by
+
+```
+python -m neosca sca filepath.txt
+python -m neosca sca --text 'This is a test.'
+python -m neosca lca filepath.txt
+python -m neosca lca --text 'This is a test.'
+```
+
+For other command line options please use
+
+```
+python -m neosca --help
+python -m neosca sca --help
+python -m neosca lca --help
+```
+
 ## Citing
 
 If you use NeoSCA in your research, please cite as follows.
