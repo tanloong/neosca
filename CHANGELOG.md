@@ -1,6 +1,14 @@
 <div align="center"><h1>Changelog</h1></div>
 
-## [0.1.4](https://github.com/tanloong/neosca/releases/tag/0.1.4) ()
+## [0.1.4](https://github.com/tanloong/neosca/releases/tag/0.1.4) (3 August 2024)
+
+### Bug fixes
+
++ Packaging: fix crash of v0.1.3 on Windows 11 when loading torch
+
+### Improvements
+
++ File Area: support drag and drop
 
 ### Improvements
 
