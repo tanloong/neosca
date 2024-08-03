@@ -22,8 +22,9 @@ requests==2.32.3
 stanza==1.8.2
 sympy==1.12.1
 toml==0.10.2
---find-links https://download.pytorch.org/whl/torch_stable.html
-torch==2.2.2+cpu
+--index-url=https://download.pytorch.org/whl/cpu
+--extra-index-url=https://pypi.org/simple
+torch==2.2.2
 tqdm==4.66.4
 typing-extensions==4.12.1
 urllib3==2.2.1
