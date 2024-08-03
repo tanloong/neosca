@@ -10,5 +10,5 @@ pyqt5==5.15.10
 numpy==1.26.4
 --index-url=https://download.pytorch.org/whl/cpu
 --extra-index-url=https://pypi.org/simple
-torch
+torch==2.2.2
 stanza>=1.8.2
