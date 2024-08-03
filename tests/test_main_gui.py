@@ -4,9 +4,9 @@ import os.path as os_path
 from itertools import product
 from unittest.mock import Mock, patch
 
+from neosca import ns_main_gui
 from neosca.ns_about import __title__
 from neosca.ns_io import Ns_IO
-from neosca.ns_main_gui import Ns_Main_Gui
 from PyQt5.QtWidgets import QFileDialog
 
 from .base_tmpl import BaseTmpl, temp_files
@@ -15,7 +15,7 @@ from .base_tmpl import BaseTmpl, temp_files
 class TestMain(BaseTmpl):
     @classmethod
     def setUpClass(cls):
-        cls.gui = Ns_Main_Gui()
+        cls.gui = ns_main_gui.Ns_Main_Gui()
 
     def test_tabbar(self):
         self.assertEqual(self.gui.tabwidget.count(), 2)
@@ -29,9 +29,10 @@ class TestMain(BaseTmpl):
         self.assertEqual(tray_actions[-1].text(), "Quit")
 
         # Attach mock
-        self.hide_orig, self.bring_to_front_orig = self.gui.hide, self.gui.bring_to_front
+        hide_orig, bring_to_front_orig = self.gui.hide, ns_main_gui.bring_to_front
+
         self.gui.hide = Mock()
-        self.gui.bring_to_front = Mock()
+        ns_main_gui.bring_to_front = Mock()
 
         self.gui.action_toggle.trigger()
         self.gui.hide.assert_called_once()
@@ -42,10 +43,10 @@ class TestMain(BaseTmpl):
         self.assertEqual(tray_actions[-1].text(), "Quit")
 
         self.gui.action_toggle.trigger()
-        self.gui.bring_to_front.assert_called_once()
+        ns_main_gui.bring_to_front.assert_called_once()
 
         # Detach mock
-        self.gui.hide, self.gui.bring_to_front = self.hide_orig, self.bring_to_front_orig
+        self.gui.hide, ns_main_gui.bring_to_front = hide_orig, bring_to_front_orig
 
     def test_previewarea_sca(self):
         ...
@@ -62,9 +63,9 @@ class TestMain(BaseTmpl):
         with (
             temp_files(affixes) as temp_dir,
             patch.object(QFileDialog, "getExistingDirectory", return_value=temp_dir.name) as _,
-            patch.object(self.gui, "add_file_paths", return_value=None) as mock_add_file_paths,
+            patch.object(self.gui.table_file, "add_file_paths", return_value=None) as mock_add_file_paths,
         ):
-            self.gui.menu_file_open_folder()
+            self.gui.menu_files_open_folder()
             file_paths = mock_add_file_paths.call_args.args[0]
         # Test hidden files are excluded
         self.assertTrue(all(not os_path.basename(p).startswith(Ns_IO.HIDDEN_PREFIXES) for p in file_paths))
