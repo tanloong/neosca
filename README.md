@@ -11,16 +11,6 @@
 
 NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/) (LCA). Starting from version 0.1.0, NeoSCA has a graphical interface and no longer requires Java installation, it has translated a portion of the Tregex code into Python and favors Stanza over Stanford Parser.
 
-## Download
-
-|Release|Remarks|
-|-|-|
-|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.3/NeoSCA-0.1.3-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
-|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.3/NeoSCA-0.1.3-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
-|[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.3/NeoSCA-0.1.3-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
-|[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
-|[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to GitHub|
-
 <!-- ### Download from source -->
 <!---->
 <!-- ```sh -->
@@ -32,9 +22,28 @@ NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2
 
 ## Basic Usage
 
+### GUI
+
+Download and run the packaged application
+
+|Release|Remarks|
+|-|-|
+|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
+|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
+|[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-archlinux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
+|[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
+|[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to GitHub|
+
+
 ### Command Line
 
-You can run SCA or LCA on a file/text by
+Install NeoSCA from the source code
+
+```
+pip install git+https://github.com/tanloong/neosca
+```
+
+Run SCA or LCA by
 
 ```
 python -m neosca sca filepath.txt
@@ -43,7 +52,7 @@ python -m neosca lca filepath.txt
 python -m neosca lca --text 'This is a test.'
 ```
 
-For other command line options please use
+To see other command line options please use
 
 ```
 python -m neosca --help
@@ -63,7 +72,7 @@ BibTeX
 
 ```BibTeX
 @misc{long2024neosca,
-title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.3},
+title        = {NeoSCA: A Fork of L2 Syntactic Complexity Analyzer, version 0.1.4},
 author       = {Long Tan},
 howpublished = {\url{https://github.com/tanloong/neosca}},
 year         = {2024}
@@ -78,7 +87,7 @@ year         = {2024}
 APA (7th edition)
 </summary>
 
-<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.3) [Computer software]. GitHub. https://github.com/tanloong/neosca</pre>
+<pre>Tan, L. (2024). <i>NeoSCA</i> (version 0.1.4) [Computer software]. GitHub. https://github.com/tanloong/neosca</pre>
 
 </details>
 
@@ -88,7 +97,7 @@ APA (7th edition)
 MLA (9th edition)
 </summary>
 
-<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.3, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
+<pre>Tan, Long. <i>NeoSCA</i>. version 0.1.4, GitHub, 2024, https://github.com/tanloong/neosca.</pre>
 
 </details>
 

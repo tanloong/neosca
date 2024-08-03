@@ -1,13 +1,13 @@
 .PHONY: build package clean install lint run test bump freeze
 
 build: clean acks
-	python3 -m build
+	python -m build
 
 package: clean acks model
-	python3 ./scripts/ns_packaging.py
+	python ./scripts/ns_packaging.py
 
 model: requirements.txt
-	python3 -m scripts.ns_download_models
+	python -m scripts.ns_download_models
 
 clean:
 	rm -rf __pycache__
@@ -33,13 +33,13 @@ lint:
 	mypy --check-untyped-defs src/
 
 test:
-	python3 -m unittest
+	python -m unittest
 
 run:
-	cd ./src && python3 -m neosca gui
+	cd ./src && python -m neosca gui
 
 acks: src/neosca/ns_data/acks.json scripts/ns_generate_acks.py
-	python3 ./scripts/ns_generate_acks.py
+	python ./scripts/ns_generate_acks.py
 
 component="patch"
 bump:
@@ -51,3 +51,9 @@ bump:
 
 freeze:
 	bash ./scripts/ns_freeze.sh
+
+sync:
+	# unlisted packages will be removed
+	uv pip sync ./requirements.txt
+	# install missing intermediate dependencies
+	uv pip install -r ./requirements.txt
