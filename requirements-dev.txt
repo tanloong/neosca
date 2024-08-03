@@ -5,6 +5,6 @@ wheel
 twine
 
 # Lint & Coverage
-ruff==0.1.11
-mypy==1.7.1
+ruff
+mypy
 coverage
