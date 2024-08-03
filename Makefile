@@ -1,4 +1,4 @@
-.PHONY: build package clean install lint run test bump
+.PHONY: build package clean install lint run test bump freeze
 
 build: clean acks
 	python3 -m build
@@ -48,3 +48,6 @@ bump:
 	# make bump component=minor
 	# make bump component=major
 	bash ./scripts/ns_bump_version.sh $(component)
+
+freeze:
+	bash ./scripts/ns_freeze.sh
