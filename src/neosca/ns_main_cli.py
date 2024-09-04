@@ -372,7 +372,6 @@ class Ns_Main_Cli:
             "is_use_cache": options.is_use_cache,
             "is_save_matches": options.is_save_matches,
         }
-        self.options = options
         return True, None
 
     def parse_args(self, argv: list[str]) -> Ns_Procedure_Result:

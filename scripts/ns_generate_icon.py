@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from neosca.ns_consts import ICON_MAC_PATH, ICON_PATH
 from PIL import Image, ImageDraw, ImageFont
+
+from neosca.ns_consts import ICON_MAC_PATH, ICON_PATH
 
 w = 1024
 h = 1024
