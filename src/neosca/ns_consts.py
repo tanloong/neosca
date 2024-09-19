@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import tempfile
 from pathlib import Path
 
 PKG_DIR: Path = Path(__file__).parent.absolute()
@@ -19,8 +20,9 @@ ACKS_PATH: Path = DATA_DIR / "acks.json"
 ICON_PATH: Path = DATA_DIR / "ns_icon.ico"
 ICON_MAC_PATH: Path = DATA_DIR / "ns_icon.icns"
 SETTING_PATH: Path = DATA_DIR / "settings.ini"
-CACHE_DIR: Path = DATA_DIR / "cache" / "cache"
+
+CACHE_DIR: Path = Path(tempfile.gettempdir()) / "neosca" / "cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
-CACHE_INFO_PATH: Path = DATA_DIR / "cache" / "cache_info.json"
+CACHE_INFO_PATH: Path = CACHE_DIR.parent / "cache_info.json"
 
 DESKTOP_PATH: Path = Path.home().absolute() / "Desktop"
