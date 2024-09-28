@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from neosca.ns_tregex.abstract_collins_head_finder import AbstractCollinsHeadFinder
+from ..ns_tregex.abstract_collins_head_finder import AbstractCollinsHeadFinder
 
 if TYPE_CHECKING:
     from .tree import Tree

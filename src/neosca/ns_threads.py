@@ -5,12 +5,12 @@ from collections.abc import Generator
 from PyQt5.QtCore import QObject, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QStandardItem
 
-from neosca.ns_lca.ns_lca import Ns_LCA
-from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
-from neosca.ns_sca.ns_sca import Ns_SCA
-from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from .ns_lca.ns_lca import Ns_LCA
+from .ns_lca.ns_lca_counter import Ns_LCA_Counter
+from .ns_sca.ns_sca import Ns_SCA
+from .ns_sca.ns_sca_counter import Ns_SCA_Counter
+from .ns_settings.ns_settings import Ns_Settings
+from .ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_Worker(QObject):

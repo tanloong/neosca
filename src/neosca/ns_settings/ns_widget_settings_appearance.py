@@ -13,10 +13,10 @@ from PyQt5.QtWidgets import (
     QSpinBox,
 )
 
-from neosca.ns_qss import Ns_QSS
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from neosca.ns_widgets.ns_widgets import Ns_Combobox_Font
+from ..ns_qss import Ns_QSS
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_widgets.ns_widgets import Ns_Combobox_Font
 
 
 class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):

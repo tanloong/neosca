@@ -2,8 +2,8 @@
 
 from PyQt5.QtWidgets import QCheckBox, QGridLayout, QGroupBox
 
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
 
 
 class Ns_Widget_Settings_Misc(Ns_Widget_Settings_Abstract):

@@ -6,9 +6,9 @@ import os.path as os_path
 import sys
 from typing import Literal
 
-from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
-from neosca.ns_utils import Ns_Procedure_Result
+from ..ns_io import Ns_Cache, Ns_IO
+from ..ns_lca.ns_lca_counter import Ns_LCA_Counter
+from ..ns_utils import Ns_Procedure_Result
 
 
 class Ns_LCA:
@@ -53,12 +53,12 @@ class Ns_LCA:
         self.counters: list[Ns_LCA_Counter] = []
 
     def get_lempos_frm_text(self, text: str, /, cache_path: str | None = None) -> tuple[tuple[str, str], ...]:
-        from neosca.ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import Ns_NLP_Stanza
 
         return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
 
     def get_lempos_frm_file(self, file_path: str, /) -> tuple[tuple[str, str], ...]:
-        from neosca.ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import Ns_NLP_Stanza
 
         cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
         # Use cache

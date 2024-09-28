@@ -5,7 +5,7 @@ import subprocess
 import sys
 from subprocess import CalledProcessError
 
-from neosca.ns_envar import STANFORD_TREGEX_HOME, get_dir_frm_env
+from ..ns_envar import STANFORD_TREGEX_HOME, get_dir_frm_env
 
 
 def tregex_cli():

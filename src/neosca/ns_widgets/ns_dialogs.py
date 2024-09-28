@@ -22,11 +22,11 @@ from PyQt5.QtWidgets import (
     QTextBrowser,
 )
 
-from neosca.ns_about import __email__, __title__, __version__, __year__
-from neosca.ns_consts import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
-from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_widgets.ns_labels import (
+from ..ns_about import __email__, __title__, __version__, __year__
+from ..ns_consts import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
+from ..ns_io import Ns_Cache, Ns_IO
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_widgets.ns_labels import (
     Ns_Label_Html,
     Ns_Label_Html_Centered,
     Ns_Label_Html_VBottom,
@@ -34,10 +34,10 @@ from neosca.ns_widgets.ns_labels import (
     Ns_Label_Html_WordWrapped,
     Ns_Label_WordWrapped,
 )
-from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
-from neosca.ns_widgets.ns_tableview import Ns_TableView
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
+from ..ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_tableview import Ns_TableView
+from ..ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
 
 
 class Ns_Dialog_Meta(type(QDialog)):  # type: ignore

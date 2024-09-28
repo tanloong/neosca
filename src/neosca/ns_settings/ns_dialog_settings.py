@@ -2,15 +2,15 @@
 
 from PyQt5.QtWidgets import QDialogButtonBox, QListWidget, QMessageBox, QStackedWidget
 
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from neosca.ns_settings.ns_widget_settings_appearance import Ns_Widget_Settings_Appearance
-from neosca.ns_settings.ns_widget_settings_export import Ns_Widget_Settings_Export
-from neosca.ns_settings.ns_widget_settings_import import Ns_Widget_Settings_Import
-from neosca.ns_settings.ns_widget_settings_lca import Ns_Widget_Settings_LCA
-from neosca.ns_settings.ns_widget_settings_misc import Ns_Widget_Settings_Misc
-from neosca.ns_widgets.ns_dialogs import Ns_Dialog
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_ScrollArea
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_settings.ns_widget_settings_appearance import Ns_Widget_Settings_Appearance
+from ..ns_settings.ns_widget_settings_export import Ns_Widget_Settings_Export
+from ..ns_settings.ns_widget_settings_import import Ns_Widget_Settings_Import
+from ..ns_settings.ns_widget_settings_lca import Ns_Widget_Settings_LCA
+from ..ns_settings.ns_widget_settings_misc import Ns_Widget_Settings_Misc
+from ..ns_widgets.ns_dialogs import Ns_Dialog
+from ..ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_ScrollArea
 
 
 class Ns_Dialog_Settings(Ns_Dialog):

@@ -11,13 +11,13 @@ import tokenize
 from collections import OrderedDict
 from copy import deepcopy
 
-from neosca.ns_about import __title__
-from neosca.ns_consts import DATA_DIR
-from neosca.ns_exceptions import CircularDefinitionError, InvalidSourceError, StructureNotFoundError
-from neosca.ns_io import Ns_IO
-from neosca.ns_sca import l2sca
-from neosca.ns_tregex.tree import Tree
-from neosca.ns_utils import safe_div
+from ..ns_about import __title__
+from ..ns_consts import DATA_DIR
+from ..ns_exceptions import CircularDefinitionError, InvalidSourceError, StructureNotFoundError
+from ..ns_io import Ns_IO
+from ..ns_sca import l2sca
+from ..ns_tregex.tree import Tree
+from ..ns_utils import safe_div
 
 
 class Ns_SCA_Structure:

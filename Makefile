@@ -39,7 +39,7 @@ run:
 	cd ./src && python -m neosca gui
 
 acks: src/neosca/ns_data/acks.json scripts/ns_generate_acks.py
-	python ./scripts/ns_generate_acks.py
+	python -m scripts.ns_generate_acks
 
 component="patch"
 bump:

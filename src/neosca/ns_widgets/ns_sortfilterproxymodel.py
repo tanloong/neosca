@@ -2,7 +2,7 @@
 
 from PyQt5.QtCore import QSortFilterProxyModel, Qt
 
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_SortFilterProxyModel(QSortFilterProxyModel):

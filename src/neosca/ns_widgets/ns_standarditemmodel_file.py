@@ -5,7 +5,7 @@ from typing import Any
 
 from PyQt5.QtCore import QModelIndex, Qt
 
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_StandardItemModel_File(Ns_StandardItemModel):

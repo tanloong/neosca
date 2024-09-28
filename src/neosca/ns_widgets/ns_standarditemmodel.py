@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QMessageBox
 
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
+from ..ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
 class Ns_StandardItemModel(QStandardItemModel):

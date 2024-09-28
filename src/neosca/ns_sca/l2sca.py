@@ -3,8 +3,8 @@
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 
-from neosca.ns_tregex.node_descriptions import Node_Any, Node_Text
-from neosca.ns_tregex.relation import (
+from ..ns_tregex.node_descriptions import Node_Any, Node_Text
+from ..ns_tregex.relation import (
     CHILD_OF,
     DOMINATED_BY,
     DOMINATES,
@@ -15,7 +15,7 @@ from neosca.ns_tregex.relation import (
     PARENT_OF,
     RIGHT_SISTER_OF,
 )
-from neosca.ns_tregex.tree import Tree
+from ..ns_tregex.tree import Tree
 
 
 class Abstract_Searcher(ABC):

@@ -5,13 +5,13 @@ import os.path as os_path
 import sys
 from collections.abc import Callable
 
-from neosca.ns_about import __title__, __version__
-from neosca.ns_consts import CACHE_DIR
-from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_lca.ns_lca import Ns_LCA
-from neosca.ns_print import color_print
-from neosca.ns_sca.ns_sca import Ns_SCA
-from neosca.ns_utils import Ns_Procedure_Result
+from .ns_about import __title__, __version__
+from .ns_consts import CACHE_DIR
+from .ns_io import Ns_Cache, Ns_IO
+from .ns_lca.ns_lca import Ns_LCA
+from .ns_print import color_print
+from .ns_sca.ns_sca import Ns_SCA
+from .ns_utils import Ns_Procedure_Result
 
 
 class Ns_Main_Cli:
@@ -474,7 +474,7 @@ class Ns_Main_Cli:
         return True, None
 
     def run_gui(self) -> Ns_Procedure_Result:
-        from neosca.ns_main_gui import main_gui
+        from .ns_main_gui import main_gui
 
         main_gui()
         return True, None

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from typing import NamedTuple
 
-from neosca.ns_tregex.tree import Tree
+from ..ns_tregex.tree import Tree
 from typing_extensions import override
 
 

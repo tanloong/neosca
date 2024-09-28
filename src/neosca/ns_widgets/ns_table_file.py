@@ -8,13 +8,13 @@ from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
 from PyQt5.QtGui import QCursor, QDragEnterEvent, QDropEvent, QStandardItem
 from PyQt5.QtWidgets import QAbstractItemView, QMenu, QTableView
 
-from neosca.ns_io import Ns_IO
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_File
-from neosca.ns_widgets.ns_dialogs import Ns_Dialog_Table, Ns_Dialog_Table_Subfiles
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
-from neosca.ns_widgets.ns_standarditemmodel_file import Ns_StandardItemModel_File
-from neosca.ns_widgets.ns_tableview import Ns_TableView
+from ..ns_io import Ns_IO
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_widgets.ns_delegates import Ns_StyledItemDelegate_File
+from ..ns_widgets.ns_dialogs import Ns_Dialog_Table, Ns_Dialog_Table_Subfiles
+from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_standarditemmodel_file import Ns_StandardItemModel_File
+from ..ns_widgets.ns_tableview import Ns_TableView
 
 
 class Ns_Table_File(Ns_TableView):

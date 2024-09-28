@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from neosca.ns_consts import DESKTOP_PATH
-from neosca.ns_platform_info import IS_MAC, IS_WINDOWS, get_linux_distro
+from ..ns_consts import DESKTOP_PATH
+from ..ns_platform_info import IS_MAC, IS_WINDOWS, get_linux_distro
 
 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_settings/wl_settings_default.py
 

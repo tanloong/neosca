@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
-from neosca.ns_tregex.head_finder import HeadFinder
+from ..ns_tregex.head_finder import HeadFinder
 
 # translated from https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/AbstractCollinsHeadFinder.java
 # last modified at Oct 1, 2021 (https://github.com/stanfordnlp/CoreNLP/commits/main/src/edu/stanford/nlp/trees/AbstractCollinsHeadFinder.java)
