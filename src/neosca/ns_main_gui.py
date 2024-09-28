@@ -164,7 +164,10 @@ class Ns_Main_Gui(QMainWindow):
         self.menu_prefs.addSeparator()
         self.action_reset_layout = self.menu_prefs.addAction("&Reset Layout")
         self.action_reset_layout.triggered.connect(self.menu_prefs_reset_layout)
-        self.action_toggle_status_bar = self.menu_prefs.addAction("&Toggle Status Bar")
+        self.action_toggle_status_bar = self.menu_prefs.addAction("Show S&tatus Bar")
+        self.action_toggle_status_bar.setCheckable(True)
+        self.action_toggle_status_bar.setChecked(Ns_Settings.value("show-statusbar", type=bool))
+        self.statusBar().setVisible(Ns_Settings.value("show-statusbar", type=bool))
         self.action_toggle_status_bar.triggered.connect(self.menu_prefs_toggle_status_bar)
 
         # Help
@@ -249,9 +252,9 @@ class Ns_Main_Gui(QMainWindow):
         else:
             self.statusBar().showMessage(f"Already default font size ({DEFAULT_FONT_SIZE}pt)")
 
-    def menu_prefs_toggle_status_bar(self) -> None:
-        self.statusBar().setVisible(not self.statusBar().isVisible())
-        Ns_Settings.setValue("show-statusbar", self.statusBar().isVisible())
+    def menu_prefs_toggle_status_bar(self, checked: bool) -> None:
+        self.statusBar().setVisible(checked)
+        Ns_Settings.setValue("show-statusbar", checked)
 
     def menu_help_citing(self) -> None:
         Ns_Dialog_TextEdit_Citing(self).open()
