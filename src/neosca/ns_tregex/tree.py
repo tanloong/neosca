@@ -9,7 +9,7 @@ from io import StringIO
 from itertools import chain as _chain
 from typing import TYPE_CHECKING, Optional
 
-from neosca.ns_tregex.peekable import peekable
+from ..ns_tregex.peekable import peekable
 
 if TYPE_CHECKING:
     from .head_finder import HeadFinder

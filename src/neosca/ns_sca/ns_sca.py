@@ -5,9 +5,9 @@ import os
 import os.path as os_path
 import sys
 
-from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
-from neosca.ns_utils import Ns_Procedure_Result
+from ..ns_io import Ns_Cache, Ns_IO
+from ..ns_sca.ns_sca_counter import Ns_SCA_Counter
+from ..ns_utils import Ns_Procedure_Result
 
 
 class Ns_SCA:
@@ -64,14 +64,14 @@ class Ns_SCA:
         if self.is_skip_parsing:  # Assume input as parse trees
             return text
 
-        from neosca.ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import Ns_NLP_Stanza
 
         forest = Ns_NLP_Stanza.get_constituency_forest(text, cache_path=cache_path)
         return forest
 
     # }}}
     def get_forest_frm_file(self, file_path: str) -> str:  # {{{
-        from neosca.ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import Ns_NLP_Stanza
         from stanza import Document
 
         if self.is_skip_parsing:

@@ -4,8 +4,8 @@ import logging
 import os
 import os.path as os_path
 
-from neosca.ns_platform_info import IS_LINUX, IS_MAC, IS_WINDOWS
-from neosca.ns_print import color_print
+from .ns_platform_info import IS_LINUX, IS_MAC, IS_WINDOWS
+from .ns_print import color_print
 
 # JAVA_HOME = "JAVA_HOME"
 # STANFORD_PARSER_HOME = "STANFORD_PARSER_HOME"

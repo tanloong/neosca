@@ -11,10 +11,10 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_settings_default import available_import_types
-from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from neosca.ns_widgets.ns_widgets import Ns_LineEdit_Path
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_settings_default import available_import_types
+from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_widgets.ns_widgets import Ns_LineEdit_Path
 
 
 class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):

@@ -2,8 +2,8 @@
 
 from PyQt5.QtWidgets import QGridLayout, QGroupBox, QRadioButton
 
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
 
 
 class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):

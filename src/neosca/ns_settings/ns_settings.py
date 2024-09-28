@@ -4,8 +4,8 @@ from typing import Any
 
 from PyQt5.QtCore import QSettings
 
-from neosca.ns_consts import SETTING_PATH
-from neosca.ns_settings.ns_settings_default import settings_default
+from ..ns_consts import SETTING_PATH
+from ..ns_settings.ns_settings_default import settings_default
 
 
 class Ns_Settings:

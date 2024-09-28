@@ -14,12 +14,12 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from neosca.ns_consts import DESKTOP_PATH
-from neosca.ns_qss import Ns_QSS
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_settings_default import available_export_types
-from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_consts import DESKTOP_PATH
+from ..ns_qss import Ns_QSS
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_settings_default import available_export_types
+from ..ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 
 
 class Ns_TableView(QTableView):

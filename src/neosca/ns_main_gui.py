@@ -21,21 +21,21 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from neosca.ns_about import __title__, __version__
-from neosca.ns_consts import ICON_PATH, QSS_PATH
-from neosca.ns_io import Ns_Cache, Ns_IO
-from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
-from neosca.ns_platform_info import IS_MAC
-from neosca.ns_qss import Ns_QSS
-from neosca.ns_sca.ns_sca_counter import Ns_SCA_Counter
-from neosca.ns_settings.ns_dialog_settings import Ns_Dialog_Settings
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
-from neosca.ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
-from neosca.ns_utils import bring_to_front, pt2px
-from neosca.ns_widgets.ns_buttons import Ns_PushButton
-from neosca.ns_widgets.ns_delegates import Ns_StyledItemDelegate_Matches
-from neosca.ns_widgets.ns_dialogs import (
+from .ns_about import __title__, __version__
+from .ns_consts import ICON_PATH, QSS_PATH
+from .ns_io import Ns_Cache, Ns_IO
+from .ns_lca.ns_lca_counter import Ns_LCA_Counter
+from .ns_platform_info import IS_MAC
+from .ns_qss import Ns_QSS
+from .ns_sca.ns_sca_counter import Ns_SCA_Counter
+from .ns_settings.ns_dialog_settings import Ns_Dialog_Settings
+from .ns_settings.ns_settings import Ns_Settings
+from .ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
+from .ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
+from .ns_utils import bring_to_front, pt2px
+from .ns_widgets.ns_buttons import Ns_PushButton
+from .ns_widgets.ns_delegates import Ns_StyledItemDelegate_Matches
+from .ns_widgets.ns_dialogs import (
     Ns_Dialog_About,
     Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table_Acknowledgments,
@@ -43,11 +43,11 @@ from neosca.ns_widgets.ns_dialogs import (
     Ns_Dialog_TextEdit_Citing,
     Ns_Dialog_TextEdit_Err,
 )
-from neosca.ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from neosca.ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
-from neosca.ns_widgets.ns_table_file import Ns_Table_File
-from neosca.ns_widgets.ns_tableview import Ns_TableView
-from neosca.ns_widgets.ns_widgets import Ns_MessageBox_Question
+from .ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
+from .ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from .ns_widgets.ns_table_file import Ns_Table_File
+from .ns_widgets.ns_tableview import Ns_TableView
+from .ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
 class Ns_Main_Gui(QMainWindow):
@@ -329,7 +329,7 @@ class Ns_Main_Gui(QMainWindow):
         # import gc
         # import time
         #
-        # from neosca.ns_sca.ns_sca_counter import Structure, StructureCounter
+        # from .ns_sca.ns_sca_counter import Structure, StructureCounter
         # counters =[]
         # ss = []
         # for o in gc.get_objects():

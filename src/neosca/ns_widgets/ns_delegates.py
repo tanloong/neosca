@@ -6,9 +6,9 @@ from PyQt5.QtGui import QBrush, QColor, QPainter, QPolygonF
 from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 from typing_extensions import override
 
-from neosca.ns_settings.ns_settings import Ns_Settings
-from neosca.ns_utils import bring_to_front
-from neosca.ns_widgets import ns_dialogs
+from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_utils import bring_to_front
+from ..ns_widgets import ns_dialogs
 
 
 class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):

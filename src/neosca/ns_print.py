@@ -2,7 +2,7 @@
 
 import sys
 
-from neosca.ns_platform_info import IS_WINDOWS
+from .ns_platform_info import IS_WINDOWS
 
 
 # https://github.com/gaogaotiantian/viztracer/blob/c83323b9656605c25ca31727530d633262a8eb5f/src/viztracer/util.py#L20

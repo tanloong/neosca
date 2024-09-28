@@ -5,13 +5,13 @@ from collections.abc import Generator, Iterator
 from itertools import chain as _chain
 from typing import TYPE_CHECKING, Optional
 
-from neosca.ns_tregex.collins_head_finder import CollinsHeadFinder
+from ..ns_tregex.collins_head_finder import CollinsHeadFinder
 from typing_extensions import override
 
 if TYPE_CHECKING:
-    from neosca.ns_tregex.head_finder import HeadFinder
-    from neosca.ns_tregex.node_descriptions import Node_Descriptions
-    from neosca.ns_tregex.tree import Tree
+    from ..ns_tregex.head_finder import HeadFinder
+    from ..ns_tregex.node_descriptions import Node_Descriptions
+    from ..ns_tregex.tree import Tree
 
 # reference: https://nlp.stanford.edu/nlp/javadoc/javanlp-3.5.0/edu/stanford/nlp/trees/tregex/TregexPattern.html
 # translated from https://github.com/stanfordnlp/CoreNLP/blob/main/src/edu/stanford/nlp/trees/tregex/Relation.java

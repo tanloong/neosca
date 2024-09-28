@@ -8,8 +8,8 @@ from typing import Any, Literal
 
 from stanza import Document
 
-from neosca.ns_consts import STANZA_MODEL_DIR
-from neosca.ns_io import Ns_IO
+from .ns_consts import STANZA_MODEL_DIR
+from .ns_io import Ns_IO
 
 
 class Ns_NLP_Stanza:

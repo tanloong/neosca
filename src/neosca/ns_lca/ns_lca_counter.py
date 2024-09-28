@@ -11,10 +11,10 @@ from collections.abc import Sequence
 from math import sqrt as _sqrt
 from typing import Literal
 
-from neosca.ns_consts import DATA_DIR
-from neosca.ns_io import Ns_IO
-from neosca.ns_lca import word_classifiers
-from neosca.ns_utils import chunks, safe_div, safe_log
+from ..ns_consts import DATA_DIR
+from ..ns_io import Ns_IO
+from ..ns_lca import word_classifiers
+from ..ns_utils import chunks, safe_div, safe_log
 
 
 class Ns_LCA_Counter:
