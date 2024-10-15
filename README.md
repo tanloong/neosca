@@ -19,12 +19,14 @@ Download and run the packaged application
 
 |Release|Remarks|
 |-|-|
-|[Latest Release for Windows](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
-|[Latest Release for macOS](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
+|[Latest Release for Windows 10/11](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-windows.zip)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA.exe** to run|
+|[Latest Release for macOS>=10.15.7](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-macos.zip)|1. Extract all files<br>2. Search and open **Terminal** in Launchpad, then type `xattr -rc ` (note the trailing whitespace), drag the whole **NeoSCA** directory to the **Terminal**, and press `Enter` <br>3. Double-click **NeoSCA.app** to run|
 |[Latest Release for Arch Linux](https://github.com/tanloong/neosca/releases/download/0.1.4/NeoSCA-0.1.4-linux.tar.gz)|1. Extract all files<br>2. Double-click **NeoSCA/NeoSCA** to run<br>|
 |[Past Releases](https://github.com/tanloong/neosca/releases)|Not recommended|
 |[Baidu Netdisk](https://pan.baidu.com/s/1okMY3Dw20jQJtQfS6KtlYw?pwd=nsca)|For users with unstable connections to GitHub|
 
+> [!NOTE]
+> On macOS if NeoSCA pops up an error saying **OSError: [Errno 30] Read-only file system**, please open the **Preferences** - **Settings** - **Miscellaneous** setting page and uncheck the **Cache uncached files for faster future runs** box. The caching fails without the write permission for the hardcoded cache path. This issue will be fixed in the next release.
 
 ### Command Line
 
