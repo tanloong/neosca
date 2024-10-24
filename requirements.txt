@@ -1,6 +1,6 @@
 altgraph==0.17.4
 certifi==2024.6.2
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
 emoji==2.12.1
 et-xmlfile==1.1.0
 filelock==3.14.0
@@ -17,6 +17,7 @@ protobuf==5.27.1
 pyinstaller==6.9.0
 pyinstaller-hooks-contrib==2024.7
 pyqt5==5.15.10
+pyqt5-qt5==5.15.15
 pyqt5-sip==12.15.0
 requests==2.32.3
 stanza==1.8.2

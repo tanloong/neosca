@@ -20,7 +20,7 @@
         {
             "name": "Charset Normalizer",
             "homepage": "https://github.com/Ousret/charset_normalizer",
-            "version": "3.3.2",
+            "version": "3.4.0",
             "authors": "TAHRI Ahmed R.",
             "license": "MIT",
             "license_file": "https://github.com/Ousret/charset_normalizer/blob/master/LICENSE"

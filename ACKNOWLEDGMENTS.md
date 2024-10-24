@@ -6,7 +6,7 @@ NeoSCA is greatly indebted to the open source projects listed in the table below
 |-|-|:-:|-|:-:|
 |1|<a href='https://sites.psu.edu/xxl13/l2sca/'>L2SCA</a>|4.2.2|Xiaofei Lu (陆小飞)|GPL-2.0-or-later|
 |2|<a href='https://sites.psu.edu/xxl13/lca/'>LCA</a>|2.0|Xiaofei Lu (陆小飞)|GPL-2.0-or-later|
-|3|<a href='https://github.com/Ousret/charset_normalizer'>Charset Normalizer</a>|3.3.2|TAHRI Ahmed R.|<a href='https://github.com/Ousret/charset_normalizer/blob/master/LICENSE'>MIT</a>|
+|3|<a href='https://github.com/Ousret/charset_normalizer'>Charset Normalizer</a>|3.4.0|TAHRI Ahmed R.|<a href='https://github.com/Ousret/charset_normalizer/blob/master/LICENSE'>MIT</a>|
 |4|<a href='https://foss.heptapod.net/openpyxl/openpyxl'>OpenPyXl</a>|3.1.5|Eric Gazoni, Charlie Clark|<a href='https://foss.heptapod.net/openpyxl/openpyxl/-/blob/branch/3.1/LICENCE.rst'>MIT</a>|
 |5|<a href='http://www.pyinstaller.org/'>PyInstaller</a>|6.9.0|Hartmut Goebel, Jasper Harrison,<br>Bryan A. Jones, Brénainn Woodsend,<br>Rok Mandeljc|<a href='https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt'>Bootloader-exception</a>|
 |6|<a href='https://riverbankcomputing.com/software/pyqt/'>PyQt</a>|5.15.10|Riverbank Computing|<a href='https://www.riverbankcomputing.com/static/Docs/PyQt5/introduction.html#license'>Commercial-License/GPL-3.0-only</a>|
