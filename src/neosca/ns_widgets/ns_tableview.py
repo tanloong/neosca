@@ -349,9 +349,9 @@ class Ns_TableView(QTableView):
                 # Number of matches is much more than that of files. There are
                 # 2000 matches across different structures for a 19KB test
                 # file. Excel has the max row limit 1,048,576 on a worksheet,
-                # which can hold matches of ~524 19KB test files. Here split
-                # the matches into different worksheets in case users' corpus
-                # is larger than that.
+                # which can hold matches of ~524 19KB test files. In case
+                # users' corpus is larger than that, store the matches for each
+                # file in their own worksheets.
                 # https://support.microsoft.com/en-us/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3
                 horizon_header_colwith = 0
                 for rowno in range(row_count):

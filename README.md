@@ -9,7 +9,7 @@
 ![downloads](https://img.shields.io/github/downloads/tanloong/neosca/total?label=Downloads)
 [![license](https://img.shields.io/github/license/tanloong/neosca)](https://github.com/tanloong/neosca/blob/master/LICENSE)
 
-NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/) (LCA). Starting from version 0.1.0, NeoSCA has a graphical interface and no longer requires Java installation, it has translated a portion of the Tregex code into Python and favors Stanza over Stanford Parser.
+NeoSCA is a fork of [Xiaofei Lu](http://personal.psu.edu/xxl13/index.html)'s [L2 Syntactic Complexity Analyzer](http://personal.psu.edu/xxl13/downloads/l2sca.html) (L2SCA) and [Lexical Complexity Analyzer](https://sites.psu.edu/xxl13/lca/) (LCA). Starting from version 0.1.0, NeoSCA has a graphical interface and no longer requires Java installation, it has translated a portion of the Tregex code into Python and uses Stanza as the replacement for Stanford Parser.
 
 ## Usage
 

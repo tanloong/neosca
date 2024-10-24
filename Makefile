@@ -36,7 +36,7 @@ test:
 	python -m unittest
 
 run:
-	cd ./src && python -m neosca gui
+	python -m src.neosca gui
 
 acks: src/neosca/ns_data/acks.json scripts/ns_generate_acks.py
 	python -m scripts.ns_generate_acks
