@@ -2,6 +2,8 @@
 
 import logging
 import lzma
+import os
+import os.path as os_path
 import pickle
 from collections.abc import Sequence
 from typing import Any, Literal
@@ -9,7 +11,7 @@ from typing import Any, Literal
 from stanza import Document
 
 from .ns_consts import STANZA_MODEL_DIR
-from .ns_io import Ns_IO
+from .ns_io import Ns_Cache, Ns_IO
 
 
 class Ns_NLP_Stanza:
@@ -37,7 +39,7 @@ class Ns_NLP_Stanza:
         )
 
     @classmethod
-    def _nlp(cls, doc, processors: Sequence[str] | None = None) -> Document:
+    def _text2doc(cls, doc: str | Document, processors: Sequence[str] | set[str] | None = None) -> Document:
         assert isinstance(doc, (str, Document))
 
         attr = "pipeline"
@@ -53,37 +55,65 @@ class Ns_NLP_Stanza:
         return doc
 
     @classmethod
-    def nlp(
+    def text2doc(
         cls,
         doc: str | Document,
-        processors: tuple | None = None,
+        processors: Sequence[str] | set[str] | None = None,
         cache_path: str | None = None,
     ) -> Document:
-        has_just_processed: bool = False
-
         if processors is None:
             processors = cls.processors
 
         if isinstance(doc, str):
             logging.debug("Processing bare text...")
-            doc = cls._nlp(doc, processors=processors)
-            has_just_processed = True
+            doc = cls._text2doc(doc, processors=processors)
         else:
             attr = "processors"
             existing_processors = set(getattr(doc, attr)) if hasattr(doc, attr) else set()
             filtered_processors = set(processors) - existing_processors
-            if filtered_processors:
-                logging.debug(
-                    f"Processing partially parsed document with additional processors {filtered_processors}"
-                )
-                doc = cls._nlp(doc, processors=tuple(filtered_processors))
-                setattr(doc, attr, existing_processors | filtered_processors)
-                has_just_processed = True
+            if not filtered_processors:
+                return doc
 
-        if has_just_processed and cache_path is not None:
+            logging.debug(
+                f"Processing partially parsed document with additional processors {filtered_processors}"
+            )
+            doc = cls._text2doc(doc, processors=filtered_processors)
+            setattr(doc, attr, existing_processors | filtered_processors)
+
+        if cache_path is not None:
             logging.debug(f"Caching document to {cache_path}...")
             Ns_IO.dump_bytes(lzma.compress(cls.doc2serialized(doc)), cache_path)
 
+        return doc
+
+    @classmethod
+    def file2doc(
+        cls,
+        file_path: str,
+        *,
+        processors: Sequence[str] | set[str] | None = None,
+        is_cache: bool = True,
+        is_use_cache: bool = True,
+    ) -> Document:
+        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
+
+        # Use cache
+        if is_use_cache and is_cache_available:
+            logging.info(f"Loading cache: {cache_path}.")
+            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+            return doc
+
+        # Use raw text
+        text = Ns_IO.load_file(file_path)
+        if not is_cache:
+            cache_path = None
+        try:
+            doc: Document = Ns_NLP_Stanza.text2doc(text, processors, cache_path)
+        except BaseException:
+            # If cache is generated at current run, remove it as it is potentially broken
+            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
+                os.remove(cache_path)
+            raise
         return doc
 
     @classmethod
@@ -101,7 +131,7 @@ class Ns_NLP_Stanza:
         *,
         cache_path: str | None = None,
     ) -> str:
-        doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
+        doc = cls.text2doc(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
         return cls.doc2tree(doc)
 
     @classmethod
@@ -112,6 +142,9 @@ class Ns_NLP_Stanza:
         tagset: Literal["ud", "ptb"],
         cache_path: str | None = None,
     ) -> tuple[tuple[str, str], ...]:
+        """
+        For LCA
+        """
         if tagset == "ud":
             pos_attr = "upos"
         elif tagset == "ptb":
@@ -119,7 +152,7 @@ class Ns_NLP_Stanza:
         else:
             assert False, "Invalid tagset"
 
-        doc = cls.nlp(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path)
+        doc = cls.text2doc(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path)
         return tuple(
             # Foreign words could have word.lemma as None
             (word.lemma.lower() if word.lemma is not None else word.text.lower(), getattr(word, pos_attr))

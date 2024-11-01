@@ -80,7 +80,7 @@ def temp_files(affixes: Iterable[tuple[str, str] | str]) -> Generator[tempfile.T
             prefix, suffix = "", affix
         else:
             assert False, "affix must be tuple or str"
-        tempfile.NamedTemporaryFile(dir=temp_dir.name, mode="w", delete=False, prefix=prefix, suffix=suffix)
+        tempfile.NamedTemporaryFile(dir=temp_dir.name, mode="w", delete=False, prefix=prefix, suffix=suffix)  # noqa: SIM115
     try:
         yield temp_dir
     finally:

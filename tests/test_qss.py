@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+from PyQt5.QtWidgets import QWidget
+
 from neosca.ns_consts import QSS_PATH
 from neosca.ns_qss import Ns_QSS
-from PyQt5.QtWidgets import QWidget
 
 from .base_tmpl import BaseTmpl
 

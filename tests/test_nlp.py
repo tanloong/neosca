@@ -15,27 +15,27 @@ class TestNLPStanza(BaseTmpl):
 
     def test_private_nlp(self):
         processors = ("tokenize",)
-        doc = Ns_NLP_Stanza._nlp(cli_text, processors=processors)
+        doc = Ns_NLP_Stanza._text2doc(cli_text, processors=processors)
         self.assertSetEqual(doc.processors, set(processors))
 
-        doc2 = Ns_NLP_Stanza._nlp(doc)
+        doc2 = Ns_NLP_Stanza._text2doc(doc)
         self.assertSetEqual(doc2.processors, set(self.processors))
 
     def test_nlp(self):
         default_cache_path = "cli_text.pickle.lzma"
         self.assertFileNotExist(default_cache_path)
         processors = ("tokenize",)
-        doc = Ns_NLP_Stanza.nlp(cli_text, processors=processors, cache_path=default_cache_path)
+        doc = Ns_NLP_Stanza.text2doc(cli_text, processors=processors, cache_path=default_cache_path)
         self.assertSetEqual(doc.processors, set(processors))
         self.assertFileExists(default_cache_path)
         os.remove(default_cache_path)
 
-        doc2 = Ns_NLP_Stanza.nlp(doc, processors=self.processors)
+        doc2 = Ns_NLP_Stanza.text2doc(doc, processors=self.processors)
         self.assertSetEqual(doc2.processors, set(self.processors))
         self.assertFileNotExist(default_cache_path)
 
     def test_doc_serialized_conversion(self):
-        doc = Ns_NLP_Stanza.nlp(cli_text)
+        doc = Ns_NLP_Stanza.text2doc(cli_text)
         serialized = Ns_NLP_Stanza.doc2serialized(doc)
         doc2 = Ns_NLP_Stanza.serialized2doc(serialized)
         self.assertSetEqual(doc.processors, doc2.processors)

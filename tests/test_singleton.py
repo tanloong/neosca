@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from neosca.ns_singleton import QSingleton
-
 from tests.base_tmpl import BaseTmpl
 
 

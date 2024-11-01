@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
-import os
-import os.path as os_path
 import sys
 from typing import Literal
 
-from ..ns_io import Ns_Cache, Ns_IO
 from ..ns_lca.ns_lca_counter import Ns_LCA_Counter
 from ..ns_utils import Ns_Procedure_Result
 
@@ -55,31 +52,23 @@ class Ns_LCA:
     def get_lempos_frm_text(self, text: str, /, cache_path: str | None = None) -> tuple[tuple[str, str], ...]:
         from ..ns_nlp import Ns_NLP_Stanza
 
-        return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
+        return Ns_NLP_Stanza.get_lemma_and_pos(
+            Ns_NLP_Stanza.text2doc(text, processors=("tokenize", "pos", "lemma"), cache_path=cache_path),
+            tagset=self.tagset,
+        )
 
     def get_lempos_frm_file(self, file_path: str, /) -> tuple[tuple[str, str], ...]:
         from ..ns_nlp import Ns_NLP_Stanza
 
-        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
-        # Use cache
-        if self.is_use_cache and is_cache_available:
-            logging.info(f"Loading cache: {cache_path}.")
-            doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            return Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
-
-        # Use raw text
-        text = Ns_IO.load_file(file_path)
-
-        if not self.is_cache:
-            cache_path: str | None = None  # type: ignore
-
-        try:
-            return self.get_lempos_frm_text(text)
-        except BaseException as e:
-            # If cache is generated at current run, remove it as it is potentially broken
-            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
-                os.remove(cache_path)
-            raise e
+        return Ns_NLP_Stanza.get_lemma_and_pos(
+            Ns_NLP_Stanza.file2doc(
+                file_path,
+                processors=("tokenize", "pos", "lemma"),
+                is_cache=self.is_cache,
+                is_use_cache=self.is_use_cache,
+            ),
+            tagset=self.tagset,
+        )
 
     def init_new_counter(self, file_path: str = "") -> Ns_LCA_Counter:
         return Ns_LCA_Counter(

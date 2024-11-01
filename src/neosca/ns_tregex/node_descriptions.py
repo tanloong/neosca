@@ -5,8 +5,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from typing import NamedTuple
 
-from ..ns_tregex.tree import Tree
 from typing_extensions import override
+
+from ..ns_tregex.tree import Tree
 
 
 class Named_Nodes:

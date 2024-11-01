@@ -4,10 +4,11 @@ import os.path as os_path
 from itertools import product
 from unittest.mock import Mock, patch
 
+from PyQt5.QtWidgets import QFileDialog
+
 from neosca import ns_main_gui
 from neosca.ns_about import __title__
 from neosca.ns_io import Ns_IO
-from PyQt5.QtWidgets import QFileDialog
 
 from .base_tmpl import BaseTmpl, temp_files
 

@@ -5,8 +5,9 @@ from collections.abc import Generator, Iterator
 from itertools import chain as _chain
 from typing import TYPE_CHECKING, Optional
 
-from ..ns_tregex.collins_head_finder import CollinsHeadFinder
 from typing_extensions import override
+
+from ..ns_tregex.collins_head_finder import CollinsHeadFinder
 
 if TYPE_CHECKING:
     from ..ns_tregex.head_finder import HeadFinder

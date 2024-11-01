@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
-import os
-import os.path as os_path
 import sys
 
-from ..ns_io import Ns_Cache, Ns_IO
+from ..ns_io import Ns_IO
 from ..ns_sca.ns_sca_counter import Ns_SCA_Counter
 from ..ns_utils import Ns_Procedure_Result
 
@@ -66,40 +64,27 @@ class Ns_SCA:
 
         from ..ns_nlp import Ns_NLP_Stanza
 
-        forest = Ns_NLP_Stanza.get_constituency_forest(text, cache_path=cache_path)
+        forest = Ns_NLP_Stanza.get_constituency_forest(
+            Ns_NLP_Stanza.text2doc(text, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
+        )
         return forest
 
     # }}}
     def get_forest_frm_file(self, file_path: str) -> str:  # {{{
-        from ..ns_nlp import Ns_NLP_Stanza
-        from stanza import Document
-
         if self.is_skip_parsing:
             # Assume input as parse trees, e.g., (ROOT (S (NP) (VP)))
             return Ns_IO.load_file(file_path)
 
-        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
-        # Use cache
-        if self.is_use_cache and is_cache_available:
-            logging.info(f"Loading cache: {cache_path}.")
-            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            return Ns_NLP_Stanza.get_constituency_forest(doc, cache_path=cache_path)
+        from ..ns_nlp import Ns_NLP_Stanza
 
-        # Use raw text
-        text = Ns_IO.load_file(file_path)
-
-        if not self.is_cache:
-            cache_path = None  # type: ignore
-
-        try:
-            forest = self.get_forest_frm_text(text, cache_path)
-        except BaseException as e:
-            # If cache is generated at current run, remove it as it is potentially broken
-            if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:
-                os.remove(cache_path)
-            raise e
-        else:
-            return forest
+        return Ns_NLP_Stanza.get_constituency_forest(
+            Ns_NLP_Stanza.file2doc(
+                file_path,
+                processors=("tokenize", "pos", "constituency"),
+                is_cache=self.is_cache,
+                is_use_cache=self.is_use_cache,
+            )
+        )
 
     # }}}
     def run_on_text(self, text: str, *, file_path: str = "cli_text", clear: bool = True) -> None:  # {{{

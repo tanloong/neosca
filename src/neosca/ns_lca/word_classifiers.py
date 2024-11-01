@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import string
+from abc import ABC, abstractmethod
 
 
-class Ns_Abstract_Word_Classifier:
+class Ns_Abstract_Word_Classifier(ABC):
     def __init__(self, *, word_data: dict, easy_word_threshold: int = 2000) -> None:
         self.word_dict = word_data["word_dict"]
         self.adj_dict = word_data["adj_dict"]
@@ -18,21 +19,27 @@ class Ns_Abstract_Word_Classifier:
         else:
             raise ValueError(f"Invalid class: {class_}")
 
+    @abstractmethod
     def is_misc(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
     def is_noun(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
     def is_verb(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
     def is_adj(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
     def is_adv(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
     def is_sword(self, lemma: str, pos: str) -> bool:
         raise NotImplementedError
 
