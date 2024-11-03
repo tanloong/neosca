@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
     QFileDialog,
-    QGridLayout,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -24,29 +23,21 @@ from PyQt5.QtWidgets import (
 from .ns_about import __title__, __version__
 from .ns_consts import ICON_PATH, QSS_PATH
 from .ns_io import Ns_Cache, Ns_IO
-from .ns_lca.ns_lca_counter import Ns_LCA_Counter
 from .ns_platform_info import IS_MAC
 from .ns_qss import Ns_QSS
-from .ns_sca.ns_sca_counter import Ns_SCA_Counter
 from .ns_settings.ns_dialog_settings import Ns_Dialog_Settings
 from .ns_settings.ns_settings import Ns_Settings
 from .ns_settings.ns_settings_default import DEFAULT_FONT_SIZE, available_import_types
-from .ns_threads import Ns_Thread, Ns_Worker_LCA_Generate_Table, Ns_Worker_SCA_Generate_Table
 from .ns_utils import bring_to_front, pt2px
-from .ns_widgets.ns_buttons import Ns_PushButton
-from .ns_widgets.ns_delegates import Ns_StyledItemDelegate_Matches
 from .ns_widgets.ns_dialogs import (
     Ns_Dialog_About,
-    Ns_Dialog_Processing_With_Elapsed_Time,
     Ns_Dialog_Table_Acknowledgments,
     Ns_Dialog_Table_Cache,
     Ns_Dialog_TextEdit_Citing,
-    Ns_Dialog_TextEdit_Err,
 )
-from .ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from .ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
 from .ns_widgets.ns_table_file import Ns_Table_File
-from .ns_widgets.ns_tableview import Ns_TableView
+from .ns_widgets.ns_widget_lca import Ns_Widget_LCA
+from .ns_widgets.ns_widget_sca import Ns_Widget_SCA
 from .ns_widgets.ns_widgets import Ns_MessageBox_Question
 
 
@@ -265,138 +256,6 @@ class Ns_Main_Gui(QMainWindow):
     def menu_help_about(self) -> None:
         Ns_Dialog_About(self).open()
 
-    def setup_tab_sca(self):
-        self.button_generate_table_sca = Ns_PushButton("Generate table", False)
-        self.button_export_table_sca = Ns_PushButton("Export table...", False)
-        self.button_export_matches_sca = Ns_PushButton("Export matches...", False)
-        self.button_clear_table_sca = Ns_PushButton("Clear table", False)
-
-        self.button_pdb = QPushButton("Run Pdb")
-        self.button_pdb.clicked.connect(self.run_pdb)
-
-        self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_SCA_Counter.DEFAULT_MEASURES))
-        proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
-        self.tableview_sca = Ns_TableView(self, model=proxy_model_sca)
-        self.tableview_sca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
-
-        # Bind
-        self.button_generate_table_sca.clicked.connect(self.on_generate_table_sca)
-        self.button_export_table_sca.clicked.connect(
-            lambda: self.tableview_sca.export_table("neosca_sca_results.xlsx")
-        )
-        self.button_export_matches_sca.clicked.connect(
-            lambda: self.tableview_sca.export_matches("neosca_sca_matches.xlsx")
-        )
-        self.button_clear_table_sca.clicked.connect(lambda: self.model_sca.clear_data(confirm=True))
-        self.model_sca.data_cleared.connect(self.on_model_sca_data_cleared)
-        self.model_sca.rows_added.connect(self.on_model_sca_row_added)
-
-        self.widget_previewarea_sca = QWidget()
-        self.layout_previewarea_sca = QGridLayout()
-        self.widget_previewarea_sca.setLayout(self.layout_previewarea_sca)
-
-        btn_no = 0
-        for btn_no, btn in enumerate(
-            (
-                self.button_generate_table_sca,
-                self.button_export_table_sca,
-                self.button_export_matches_sca,
-                self.button_clear_table_sca,
-            ),
-            start=1,
-        ):
-            self.layout_previewarea_sca.addWidget(btn, 1, btn_no - 1)
-        if self.with_button_pdb:
-            self.layout_previewarea_sca.addWidget(self.button_pdb, 1, btn_no)
-            btn_no += 1
-        self.layout_previewarea_sca.addWidget(self.tableview_sca, 0, 0, 1, btn_no)
-
-        self.layout_previewarea_sca.setContentsMargins(0, 0, 0, 0)
-
-    def on_model_sca_data_cleared(self) -> None:
-        self.button_export_table_sca.setEnabled(False)
-        self.button_export_matches_sca.setEnabled(False)
-        self.button_clear_table_sca.setEnabled(False)
-
-    def on_model_sca_row_added(self) -> None:
-        if not self.model_sca.is_empty():
-            self.button_export_table_sca.setEnabled(True)
-        if self.model_sca.has_user_data():
-            self.button_export_matches_sca.setEnabled(True)
-        self.button_clear_table_sca.setEnabled(True)
-
-    def run_pdb(self):
-        # import gc
-        # import time
-        #
-        # from .ns_sca.ns_sca_counter import Structure, StructureCounter
-        # counters =[]
-        # ss = []
-        # for o in gc.get_objects():
-        #     if isinstance(o, StructureCounter):
-        #         counters.append(o)
-        #     elif isinstance(o, Structure):
-        #         ss.append(o)
-        # gc.collect()
-        # filename = "{}.txt".format(time.strftime("%H-%M-%S"))
-        # with open(filename, "w") as f:
-        #     f.write("\n".join(str(o) for o in gc.get_objects()))
-        breakpoint()
-
-    def setup_tab_lca(self):
-        self.button_generate_table_lca = Ns_PushButton("Generate table", False)
-        self.button_export_table_lca = Ns_PushButton("Export table...", False)
-        self.button_export_matches_lca = Ns_PushButton("Export matches...", False)
-        self.button_clear_table_lca = Ns_PushButton("Clear table", False)
-
-        self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA_Counter.DEFAULT_MEASURES))
-        proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
-        self.tableview_lca = Ns_TableView(self, model=proxy_model_lca)
-        self.tableview_lca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
-
-        # Bind
-        self.button_generate_table_lca.clicked.connect(self.on_generate_table_lca)
-        self.button_export_table_lca.clicked.connect(
-            lambda: self.tableview_lca.export_table("neosca_lca_results.xlsx")
-        )
-        self.button_export_matches_lca.clicked.connect(
-            lambda: self.tableview_lca.export_matches("neosca_lca_matches.xlsx")
-        )
-        self.button_clear_table_lca.clicked.connect(lambda: self.model_lca.clear_data(confirm=True))
-        self.model_lca.data_cleared.connect(self.on_model_lca_data_cleared)
-        self.model_lca.rows_added.connect(self.on_model_lca_row_added)
-
-        self.widget_previewarea_lca = QWidget()
-        self.layout_previewarea_lca = QGridLayout()
-        self.widget_previewarea_lca.setLayout(self.layout_previewarea_lca)
-
-        btn_no = 0
-        for btn_no, btn in enumerate(
-            (
-                self.button_generate_table_lca,
-                self.button_export_table_lca,
-                self.button_export_matches_lca,
-                self.button_clear_table_lca,
-            ),
-            start=1,
-        ):
-            self.layout_previewarea_lca.addWidget(btn, 1, btn_no - 1)
-        self.layout_previewarea_lca.addWidget(self.tableview_lca, 0, 0, 1, btn_no)
-
-        self.layout_previewarea_lca.setContentsMargins(0, 0, 0, 0)
-
-    def on_model_lca_data_cleared(self) -> None:
-        self.button_export_table_lca.setEnabled(False)
-        self.button_export_matches_lca.setEnabled(False)
-        self.button_clear_table_lca.setEnabled(False)
-
-    def on_model_lca_row_added(self) -> None:
-        if not self.model_lca.is_empty():
-            self.button_export_table_lca.setEnabled(True)
-        if self.model_lca.has_user_data():
-            self.button_export_matches_lca.setEnabled(True)
-        self.button_clear_table_lca.setEnabled(True)
-
     def restore_splitters(self, use_default: bool) -> None:
         for splitter in (self.splitter_central_widget,):
             key = splitter.objectName()
@@ -415,17 +274,17 @@ class Ns_Main_Gui(QMainWindow):
         self.statusBar().showMessage("Layout reset")
 
     def enable_button_generate_table(self, enabled: bool) -> None:
-        self.button_generate_table_sca.setEnabled(enabled)
-        self.button_generate_table_lca.setEnabled(enabled)
+        self.widget_sca.button_generate_table_sca.setEnabled(enabled)
+        self.widget_lca.button_generate_table_lca.setEnabled(enabled)
 
     def setup_main_window(self):
-        self.setup_tab_sca()
-        self.setup_tab_lca()
+        self.widget_sca = Ns_Widget_SCA(with_button_pdb=self.with_button_pdb)
+        self.widget_lca = Ns_Widget_LCA()
         self.table_file = Ns_Table_File(self)
 
         self.tabwidget = QTabWidget()
-        self.tabwidget.addTab(self.widget_previewarea_sca, "Syntactic Complexity Analyzer")
-        self.tabwidget.addTab(self.widget_previewarea_lca, "Lexical Complexity Analyzer")
+        self.tabwidget.addTab(self.widget_sca, "Syntactic Complexity Analyzer")
+        self.tabwidget.addTab(self.widget_lca, "Lexical Complexity Analyzer")
         self.splitter_central_widget: QSplitter = QSplitter(Qt.Orientation.Vertical)
         self.splitter_central_widget.setChildrenCollapsible(False)
         self.splitter_central_widget.addWidget(self.tabwidget)
@@ -433,25 +292,6 @@ class Ns_Main_Gui(QMainWindow):
         self.splitter_central_widget.setStretchFactor(0, 1)
         self.splitter_central_widget.setObjectName("splitter-file")
         self.setCentralWidget(self.splitter_central_widget)
-
-    def create_thread(self, worker_class, **kwargs) -> Ns_Thread:
-        dialog = Ns_Dialog_Processing_With_Elapsed_Time(self)
-        worker = worker_class(**kwargs)
-
-        thread = Ns_Thread(worker)
-        thread.started.connect(dialog.open)
-        thread.finished.connect(dialog.accept)
-        thread.err_occurs.connect(lambda ex: Ns_Dialog_TextEdit_Err(self, ex=ex).open())
-
-        return thread
-
-    def on_generate_table_sca(self) -> None:
-        self.thread_generate_table_sca = self.create_thread(Ns_Worker_SCA_Generate_Table, main=self)
-        self.thread_generate_table_sca.start()
-
-    def on_generate_table_lca(self) -> None:
-        self.thread_generate_table_lca = self.create_thread(Ns_Worker_LCA_Generate_Table, main=self)
-        self.thread_generate_table_lca.start()
 
     # Override
     def closeEvent(self, event: QCloseEvent) -> None:

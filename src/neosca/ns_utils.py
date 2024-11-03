@@ -6,7 +6,7 @@ from math import log as _log
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QMainWindow, QWidget
 
 # For all the procedures in SCAUI, return a tuple as the result
 # The first element bool indicates whether the procedure succeeds
@@ -70,3 +70,12 @@ def bring_to_front(widget: QWidget) -> None:
     )
     widget.raise_()
     widget.activateWindow()
+
+
+def ns_find_main(widget: QWidget) -> QMainWindow:
+    current = widget
+    while current is not None:
+        if isinstance(current, QMainWindow):
+            return current
+        current = current.parent()
+    raise ValueError("Failed to find main window")

@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from ..ns_consts import DESKTOP_PATH
+from ..ns_consts import DESKTOP_PATH, QSS_PATH
 from ..ns_qss import Ns_QSS
 from ..ns_settings.ns_settings import Ns_Settings
 from ..ns_settings.ns_settings_default import available_export_types
@@ -146,6 +146,7 @@ class Ns_TableView(QTableView):
         model = self.model()
         col_count = model.columnCount()
         row_count = model.rowCount()
+        stylesheet = QSS_PATH.read_text("utf-8")
         try:
             if ".xlsx" in file_type:
                 # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_widgets/wl_tables.py#L701C1-L716C54
@@ -182,19 +183,17 @@ class Ns_TableView(QTableView):
                 # 3. Both header background and font
                 # 3.0.1 Get header background
                 horizon_bacolor: str | None = Ns_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
+                    stylesheet, "QHeaderView::section:horizontal", "background-color"
                 )
                 vertical_bacolor: str | None = Ns_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
+                    stylesheet, "QHeaderView::section:vertical", "background-color"
                 )
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                header_font_color = Ns_QSS.get_value(self.main.styleSheet(), "QHeaderView::section", "color")
-                header_font_color = header_font_color.lstrip("#") if header_font_color is not None else "000"
-                header_font_weight = Ns_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section", "font-weight"
-                )
+                header_font_color = Ns_QSS.get_value(stylesheet, "QHeaderView::section", "color")
+                header_font_color = header_font_color.lstrip("#") if header_font_color is not None else "000000"
+                header_font_weight = Ns_QSS.get_value(stylesheet, "QHeaderView::section", "font-weight")
                 header_is_bold = (header_font_weight == "bold") if header_font_weight is not None else False
                 # 3.1 Horizontal header background and font
                 if self.has_hor_header:
@@ -330,6 +329,7 @@ class Ns_TableView(QTableView):
         model = self.model()
         col_count = model.columnCount()
         row_count = model.rowCount()
+        stylesheet = QSS_PATH.read_text("utf-8")
         try:
             if ".xlsx" in file_type:
                 import openpyxl
@@ -401,7 +401,7 @@ class Ns_TableView(QTableView):
 
                 # Header background color
                 # horizon_bacolor: Optional[str] = Ns_QSS.get_value(
-                #     self.main.styleSheet(), "QHeaderView::section:horizontal", "background-color"
+                #     stylesheet, "QHeaderView::section:horizontal", "background-color"
                 # )
                 # if horizon_bacolor is not None:
                 #     horizon_bacolor = horizon_bacolor.lstrip("#")
@@ -409,7 +409,7 @@ class Ns_TableView(QTableView):
                 #         for cell in ws[get_column_letter(1)]:
                 #             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
                 vertical_bacolor: str | None = Ns_QSS.get_value(
-                    self.main.styleSheet(), "QHeaderView::section:vertical", "background-color"
+                    stylesheet, "QHeaderView::section:vertical", "background-color"
                 )
                 if vertical_bacolor is not None:
                     vertical_bacolor = vertical_bacolor.lstrip("#")
