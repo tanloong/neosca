@@ -4,6 +4,8 @@ import csv
 import glob
 import logging
 import os.path as os_path
+import random
+import string
 
 from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
 
@@ -23,6 +25,42 @@ class TestLCACounter(BaseTmpl):
                 self.assertIn(f"{item}{suffix}", c.DEFAULT_MEASURES)
         for item in c.FREQ_ITEMS:
             self.assertIn(item, c.DEFAULT_MEASURES)
+
+    def test_msttr(self):
+        # fake words
+        words = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(1000))
+        msttr = Ns_LCA_Counter.get_msttr(words, section_size=50)
+        self.assertGreater(msttr, 0)
+        self.assertLessEqual(msttr, 1)
+
+        msttr = Ns_LCA_Counter.get_msttr([], section_size=50)
+        self.assertEqual(msttr, 0)
+
+        msttr = Ns_LCA_Counter.get_msttr(words, section_size=len(words))
+        self.assertEqual(msttr, len(set(words)) / len(words))
+        msttr = Ns_LCA_Counter.get_msttr(words, section_size=len(words) + 1)
+        self.assertEqual(msttr, len(set(words)) / len(words))
+
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=0)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=-1)
+
+    def test_mattr(self):
+        # fake words
+        words = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(1000))
+        mattr = Ns_LCA_Counter.get_mattr(words, window_size=50)
+        self.assertGreater(mattr, 0)
+        self.assertLessEqual(mattr, 1)
+
+        mattr = Ns_LCA_Counter.get_mattr([], window_size=50)
+        self.assertEqual(mattr, 0)
+
+        mattr = Ns_LCA_Counter.get_mattr(words, window_size=len(words))
+        self.assertEqual(mattr, len(set(words)) / len(words))
+        mattr = Ns_LCA_Counter.get_mattr(words, window_size=len(words) + 1)
+        self.assertEqual(mattr, len(set(words)) / len(words))
+
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_mattr, words, window_size=0)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_mattr, words, window_size=-1)
 
     def test_results(self):
         lempos_paths = glob.glob(f"{self.testdir_data_lempos}/*.lempos")

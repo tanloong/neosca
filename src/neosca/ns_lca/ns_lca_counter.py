@@ -46,6 +46,7 @@ class Ns_LCA_Counter:
         "NDW-ES50": "mean NDW of 10 random 50-word sequences",
         "TTR": "type-token ratio",
         "MSTTR": "mean segmental TTR",
+        "MATTR": "moving average TTR",
         "CTTR": "corrected TTR",
         "RTTR": "root TTR",
         "LogTTR": "bilogarithmic TTR",
@@ -72,7 +73,11 @@ class Ns_LCA_Counter:
         wordlist: str = "bnc",
         tagset: Literal["ud", "ptb"] = "ud",
         easy_word_threshold: int = 2000,
+        # NDW & Mean Segmental TTR
+        # TODO: should store separate values for the two
         section_size: int = 50,
+        # Moving Average TTR
+        window_size: int = 50,
         ndw_trials: int = 10,
     ) -> None:
         self.file_path = file_path
@@ -89,6 +94,7 @@ class Ns_LCA_Counter:
         }[tagset](word_data=word_data, easy_word_threshold=easy_word_threshold)
 
         self.section_size = section_size
+        self.window_size = window_size
         self.ndw_trials = ndw_trials
 
     @classmethod
@@ -130,13 +136,35 @@ class Ns_LCA_Counter:
         """
         Mean Segmental TTR
         """
-        sample_no: int = 0
-        msttr: int | float = 0
+        if section_size < 1:
+            raise ValueError("Segment size must be a positive integer")
+        if section_size > len(lemma_sequence):
+            return safe_div(len(set(lemma_sequence)), len(lemma_sequence))
+
+        segment_n: int = 0
+        sum_ttr: int | float = 0
         for chunk in chunks(lemma_sequence, section_size):
             if len(chunk) == section_size:
-                sample_no += 1
-                msttr += safe_div(len(set(chunk)), section_size)
-        return safe_div(msttr, sample_no)
+                segment_n += 1
+                sum_ttr += len(set(chunk)) / section_size
+        return safe_div(sum_ttr, segment_n)
+
+    @classmethod
+    def get_mattr(cls, lemma_sequence: Sequence[str], *, window_size: int):
+        """
+        Moving Average TTR
+        """
+        if window_size < 1:
+            raise ValueError("Window size must be a positive integer")
+        if window_size > len(lemma_sequence):
+            return safe_div(len(set(lemma_sequence)), len(lemma_sequence))
+
+        window_ttrs: list[float | int] = []
+
+        for i in range(window_size - 1, len(lemma_sequence)):
+            window = lemma_sequence[i - window_size + 1 : i + 1]
+            window_ttrs.append(len(set(window)) / window_size)
+        return safe_div(sum(window_ttrs), len(window_ttrs))
 
     def determine_counts(self, lempos_tuples: tuple[tuple[str, str], ...]):
         filtered_lempos_tuples = tuple(
@@ -250,6 +278,11 @@ class Ns_LCA_Counter:
         self.freq_table["MSTTR"] = (
             self.get_msttr(self.count_table["word"], section_size=self.section_size)
             if word_token_no >= self.section_size
+            else self.freq_table["TTR"]
+        )
+        self.freq_table["MATTR"] = (
+            self.get_mattr(self.count_table["word"], window_size=self.window_size)
+            if word_token_no >= self.window_size
             else self.freq_table["TTR"]
         )
         self.freq_table["CTTR"] = safe_div(word_type_no, _sqrt(2 * word_token_no))

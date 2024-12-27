@@ -130,7 +130,7 @@ class TestCommandLine(CmdlineTmpl):
             self.assertEqual(self.ui.odir_matched, "result_matches")
 
     def test_list_fields(self):
-        for subcommand, lineno in (("sca", 23), ("lca", 43)):
+        for subcommand, lineno in (("sca", 23), ("lca", 44)):
             result = self.template(
                 ["python", "-m", "neosca", subcommand, "--list"], text=None, expected_output_file=None
             )
