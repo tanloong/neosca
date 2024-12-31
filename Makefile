@@ -18,6 +18,7 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf src/neosca.egg-info
+	rm -rf neosca_*_matches neosca_*_results*
 	# delete macos metadata
 	find src/neosca/ns_data/ -name "._*" -type f -delete
 	find src/neosca/ns_data/ -name ".DS_Store" -type f -delete
