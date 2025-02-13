@@ -37,7 +37,7 @@ class Ns_SCA:
         self.is_save_values = is_save_values
 
         self.user_data, self.user_structure_defs, self.user_snames = self.load_user_config(config)
-        logging.debug(f"User defined snames: {self.user_snames}")
+        logging.debug("User defined snames: %s", self.user_snames)
 
         if selected_measures is not None:
             Ns_SCA_Counter.check_undefined_measure(selected_measures, self.user_snames)
@@ -129,7 +129,7 @@ class Ns_SCA:
             )
             # Merge measures defined by tregex_pattern
             for i, subfile in enumerate(subfiles, 1):
-                logging.info(f'Processing "{subfile}" ({i}/{total})...')
+                logging.info('Processing "%s" (%d/%d)...', subfile, i, total)
                 child_counter = self.run_on_file_or_subfiles(subfile)
                 counter += child_counter
         else:

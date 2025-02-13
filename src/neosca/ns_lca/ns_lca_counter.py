@@ -86,7 +86,7 @@ class Ns_LCA_Counter:
         self.freq_table: dict[str, int | float | None] = {item: None for item in self.FREQ_ITEMS}
 
         word_data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
-        logging.debug(f"Loading {word_data_path}...")
+        logging.debug("Loading %s...", word_data_path)
         word_data = Ns_IO.load_pickle_lzma(word_data_path)
         self.word_classifier = {
             "ud": word_classifiers.Ns_UD_Word_Classifier,
@@ -182,53 +182,53 @@ class Ns_LCA_Counter:
 
             if self.word_classifier.is_("noun", lemma, pos):
                 self.count_table["noun"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a noun')
+                logging.debug('Counted "%s" as a noun', lemma)
 
                 self.count_table["lex"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a lexical word')
+                logging.debug('Counted "%s" as a lexical word', lemma)
 
                 is_lexical = True
 
             elif self.word_classifier.is_("adj", lemma, pos):
                 self.count_table["adj"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as an adjective')
+                logging.debug('Counted "%s" as an adjective', lemma)
 
                 self.count_table["lex"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a lexical word')
+                logging.debug('Counted "%s" as a lexical word', lemma)
 
                 is_lexical = True
 
             elif self.word_classifier.is_("adv", lemma, pos):
                 self.count_table["adv"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as an adverb')
+                logging.debug('Counted "%s" as an adverb', lemma)
 
                 self.count_table["lex"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a lexical word')
+                logging.debug('Counted "%s" as a lexical word', lemma)
 
                 is_lexical = True
 
             elif self.word_classifier.is_("verb", lemma, pos):
                 self.count_table["verb"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a verb')
+                logging.debug('Counted "%s" as a verb', lemma)
 
                 self.count_table["lex"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a lexical word')
+                logging.debug('Counted "%s" as a lexical word', lemma)
 
                 is_lexical = True
                 is_verb = True
 
             if self.word_classifier.is_("sword", lemma, pos):
                 self.count_table["sword"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a sophisticated word')
+                logging.debug('Counted "%s" as a sophisticated word', lemma)
 
                 is_sophisticated = True
 
             if is_lexical and is_sophisticated:
                 self.count_table["slex"].append(lemma)
-                logging.debug(f'Counted "{lemma}" as a sophisticated lexical word')
+                logging.debug('Counted "%s" as a sophisticated lexical word', lemma)
                 if is_verb:
                     self.count_table["sverb"].append(lemma)
-                    logging.debug(f'Counted "{lemma}" as a sophisticated verb')
+                    logging.debug('Counted "%s" as a sophisticated verb', lemma)
 
     def determine_freqs(self, *, section_size: int | None = None) -> None:
         if section_size is None:

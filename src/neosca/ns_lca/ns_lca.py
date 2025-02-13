@@ -28,9 +28,9 @@ class Ns_LCA:
     ) -> None:
         assert wordlist in ("bnc", "anc")
         assert tagset in ("ud", "ptb")
-        logging.debug(f"Using {wordlist.upper()} wordlist")
+        logging.debug("Using %s wordlist", wordlist.upper())
         self.wordlist = wordlist
-        logging.debug(f"Using {tagset.upper()} POS tagset")
+        logging.debug("Using %s POS tagset", tagset.upper())
         assert tagset in ("ud", "ptb")
         self.tagset: Literal["ud", "ptb"] = tagset
 
@@ -105,11 +105,11 @@ class Ns_LCA:
             total = len(subfiles)
             counter = self.init_new_counter()
             for i, subfile in enumerate(subfiles, 1):
-                logging.info(f'Processing "{subfile}" ({i}/{total})...')
+                logging.info('Processing "%s" (%d/%d)...', subfile, i, total)
                 child_counter = self.run_on_file_or_subfiles(subfile)
                 counter += child_counter
         else:
-            raise ValueError(f"file_or_subfiles {file_or_subfiles} is neither str nor list")
+            raise ValueError("file_or_subfiles %s is neither str nor list", file_or_subfiles)
         return counter
 
     def run_on_file_or_subfiles_list(

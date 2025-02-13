@@ -51,18 +51,18 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 return f.read()
 
         try:
-            logging.info(f"Attempting to read {path} with {cls.previous_encoding} encoding...")
+            logging.info("Attempting to read %s with %s encoding...", path, cls.previous_encoding)
             with open(path, encoding=cls.previous_encoding) as f:
                 content = f.read()
         except UnicodeDecodeError:
-            logging.info(f"Attempt failed. Guessing the encoding of {path}...")
+            logging.info("Attempt failed. Guessing the encoding of %s...", path)
             with open(path, "rb") as f:
                 bytes_ = f.read()
 
             encoding = detect(bytes_)["encoding"]
             assert isinstance(encoding, str), f"Got invalid encoding for {path}: {encoding}"
 
-            logging.info(f"Decoding the byte string with {encoding} encoding...")
+            logging.info("Decoding the byte string with %s encoding...", encoding)
             content = bytes_.decode(encoding=encoding)
             cls.previous_encoding = encoding
 
@@ -218,9 +218,9 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             # File path
             if os_path.isfile(path):
                 if cls.not_supports(path):
-                    logging.warning(f"{path} is of unsupported filetype. Skipping.")
+                    logging.warning("%s is of unsupported filetype. Skipping.", path)
                     continue
-                logging.debug(f"Adding {path} to input file list")
+                logging.debug("Adding %s to input file list", path)
                 verified_ifile_list.append(path)
             # Dir path
             elif os_path.isdir(path):
@@ -233,7 +233,7 @@ class Ns_IO(metaclass=Ns_IO_Meta):
             elif glob.glob(path):
                 verified_ifile_list.extend(glob.glob(path))
             else:
-                logging.critical(f"No such file as\n\n{path}")
+                logging.critical("No such file as\n\n%s", path)
                 sys.exit(1)
         verified_ifile_list = [
             path for path in verified_ifile_list if not os_path.basename(path).startswith(cls.HIDDEN_PREFIXES)
@@ -316,7 +316,7 @@ class Ns_Cache:
         if empty:
             return cache_path, False
 
-        logging.info(f"Found cache: {cache_path} exists, and is non-empty and newer than {file_path}.")
+        logging.info("Found cache: %s exists, and is non-empty and newer than %s.", cache_path, file_path)
         return cache_path, True
 
     @classmethod
@@ -371,7 +371,7 @@ class Ns_Cache:
 
     @classmethod
     def register_cache_name(cls, file_path: str) -> str:
-        logging.debug(f"Registering cache path for {file_path}...")
+        logging.debug("Registering cache path for %s...", file_path)
         cache_stem = Path(file_path).stem
         cache_stem = Ns_IO.ensure_unique_filestem(
             cache_stem, tuple(map(cls._name2stem, cls.fpath_cname.values()))
@@ -384,7 +384,7 @@ class Ns_Cache:
 
     @classmethod
     def delete_cache_entries(cls, deleted_cache_paths: Iterable[str]) -> None:
-        logging.debug(f"Deleting cache entries from {CACHE_INFO_PATH}...")
+        logging.debug("Deleting cache entries from %s...", CACHE_INFO_PATH)
         deleted_cache_names = tuple(map(cls._path2name, deleted_cache_paths))
         cls.fpath_cname = {k: v for k, v in cls.fpath_cname.items() if v not in deleted_cache_names}
         if not cls.info_changed:
@@ -393,7 +393,7 @@ class Ns_Cache:
     @classmethod
     def save_cache_info(cls) -> None:
         if cls.info_changed:
-            logging.debug(f"Saving cache information to {CACHE_INFO_PATH}...")
+            logging.debug("Saving cache information to %s...", CACHE_INFO_PATH)
             Ns_IO.dump_json(cls.fpath_cname, CACHE_INFO_PATH)
         else:
             logging.debug("No new cache information to save.")

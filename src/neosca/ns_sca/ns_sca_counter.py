@@ -39,12 +39,8 @@ class Ns_SCA_Structure:
         self.description = description
 
         # no need to check "W" because it uses regex
-        if name != "W":
-            count_non_none = sum(1 for attr in (tregex_pattern, value_source) if attr is not None)
-            if count_non_none != 1:
-                raise ValueError(
-                    "Exactly one of (tregex_pattern, value_source) should be provided AND non-empty."
-                )
+        if name != "W" and not ((tregex_pattern is None) ^ (value_source is None)):
+            raise ValueError("Only one of (tregex_pattern, value_source) should be provided AND non-empty.")
 
         self.tregex_pattern = tregex_pattern
         self.value_source = value_source
@@ -67,7 +63,7 @@ class Ns_SCA_Structure:
         return self.tregex_pattern is not None
 
     def is_terminal(self) -> bool:
-        # Note that we currently have only two definition types, value_source
+        # Note that currently there are only two definition types, value_source
         # and tregex_pattern. When new types are added, not having value source
         # may do NOT necessarily mean a terminal node.
         return not self.has_value_source()
@@ -194,7 +190,7 @@ class Ns_SCA_Counter:
 
         if user_structure_defs is not None:
             user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
-            logging.debug(f"User definded snames: {user_snames}")
+            logging.debug("User definded snames: %s", user_snames)
 
             for kwargs in user_structure_defs:
                 user_sname_structure_map[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
@@ -211,7 +207,7 @@ class Ns_SCA_Counter:
         self.selected_measures: list[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
-        logging.debug(f"Selected measures: {self.selected_measures}")
+        logging.debug("Selected measures: %s", self.selected_measures)
 
     @classmethod
     def check_user_structure_def(cls, user_structure_defs: list[dict[str, str]]) -> set[str]:
@@ -234,7 +230,7 @@ class Ns_SCA_Counter:
                 raise ValueError(f'Duplicated structure definition "{sname}".')
 
             user_defined_snames.add(sname)
-        logging.debug(f"User defined snames: {user_defined_snames}")
+        logging.debug("User defined snames: %s", user_defined_snames)
         return user_defined_snames
 
     @classmethod
@@ -246,7 +242,7 @@ class Ns_SCA_Counter:
             all_measures = Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
             all_measures = set(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys())
-        logging.debug(f"All measures: {all_measures}")
+        logging.debug("All measures: %s", all_measures)
 
         for m in selected_measures:
             if m not in all_measures:
@@ -314,8 +310,9 @@ class Ns_SCA_Counter:
             raise CircularDefinitionError(f"Circular definition: {circular_definition}")
         else:
             logging.debug(
-                "[Tregex] Circular definition check passed: descendant"
-                f" {descendant_sname} not in ancestors {ancestor_snames}"
+                "Circular definition check passed: descendant %s not in ancestors %s",
+                descendant_sname,
+                ancestor_snames,
             )
 
     @classmethod
@@ -382,7 +379,7 @@ class Ns_SCA_Counter:
             f" Searching for {sname}"
             + (f" ({structure.description})..." if structure.description is not None else "...")
         )
-        logging.debug(f" Searching for {tregex_pattern}")
+        logging.debug(" Searching for %s", tregex_pattern)
         matched_subtrees = self.search_sname(sname, forest)
         self.set_value(sname, len(matched_subtrees))
         self.set_matches(sname, matched_subtrees)
@@ -409,7 +406,7 @@ class Ns_SCA_Counter:
     ) -> None:
         value = self.get_value(sname)
         if value is not None:
-            logging.debug(f"[Tregex] {sname} has already been set as {value}, skipping...")
+            logging.debug("%s has already been set as %s, skipping...", sname, value)
             return
 
         if sname == "W":
@@ -463,14 +460,14 @@ class Ns_SCA_Counter:
             # Structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern
             if structure.value_source is not None:
-                logging.debug(f"Skip combining {sname} as it is defined by value_source.")
+                logging.debug("Skip combining %s as it is defined by value_source.", sname)
                 continue
 
             this_value = self.get_value(sname) or 0
             that_value = other.get_value(sname) or 0
             value = this_value + that_value
             new.set_value(sname, value)
-            logging.debug(f"Combined {sname}: {this_value} + {that_value} = {value}")
+            logging.debug("Combined %s: %s + %s = %s", sname, this_value, that_value, value)
 
             matches: list[str] = self.get_matches(sname) + other.get_matches(sname)
             new.set_matches(sname, matches)

@@ -276,7 +276,7 @@ class Ns_Main_Cli:
             options.is_use_cache = False
 
         if options.text is not None:
-            logging.debug(f"CLI text: {options.text}")
+            logging.debug("CLI text: %s", options.text)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list: list[list[str]] = []
@@ -312,12 +312,12 @@ class Ns_Main_Cli:
                 return False, f"no such file as\n\n{user_config}"
             if not user_config.endswith(".json"):
                 return False, f'"{user_config}" does not seem like a json file.'
-            logging.debug(f"Using configuration file {user_config}")
+            logging.debug("Using configuration file %s", user_config)
         else:
             default_config_file = "nsca.json"
             if os_path.isfile(default_config_file):
                 user_config = default_config_file
-                logging.debug(f"Using configuration file {user_config}")
+                logging.debug("Using configuration file %s", user_config)
             else:
                 logging.debug("No configuration file found")
 
@@ -354,7 +354,7 @@ class Ns_Main_Cli:
             options.ofile_freq = f"neosca_lca_results.{options.oformat_freq}"
 
         if options.text is not None:
-            logging.debug(f"CLI text: {options.text}")
+            logging.debug("CLI text: %s", options.text)
 
         if options.subfiles_list is None:
             self.verified_subfiles_list = []

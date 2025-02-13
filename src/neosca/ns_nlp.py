@@ -81,7 +81,7 @@ class Ns_NLP_Stanza:
             setattr(doc, attr, existing_processors | filtered_processors)
 
         if cache_path is not None:
-            logging.debug(f"Caching document to {cache_path}...")
+            logging.debug("Caching document to %s...", cache_path)
             Ns_IO.dump_bytes(lzma.compress(cls.doc2serialized(doc)), cache_path)
 
         return doc
@@ -99,7 +99,7 @@ class Ns_NLP_Stanza:
 
         # Use cache
         if is_use_cache and is_cache_available:
-            logging.info(f"Loading cache: {cache_path}.")
+            logging.info("Loading cache: %s.", cache_path)
             doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
             return doc
 
