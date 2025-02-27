@@ -17,8 +17,8 @@ class AbstractCollinsHeadFinder(HeadFinder):
 
         # automatically build defaultLeftRule, defaultRightRule
         if categoriesToAvoid:
-            self.defaultLeftRule = ["leftexcept"] + list(categoriesToAvoid)
-            self.defaultRightRule = ["rightexcept"] + list(categoriesToAvoid)
+            self.defaultLeftRule = ["leftexcept", *list(categoriesToAvoid)]
+            self.defaultRightRule = ["rightexcept", *list(categoriesToAvoid)]
         else:
             self.defaultLeftRule = ["left"]
             self.defaultRightRule = ["right"]

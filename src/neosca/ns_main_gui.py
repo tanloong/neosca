@@ -50,8 +50,8 @@ class Ns_Main_Gui(QMainWindow):
         self.setWindowIcon(QIcon(str(ICON_PATH)))
         qss = Ns_QSS.read_qss_file(QSS_PATH)
         qss += f"""\n* {{
-         font-family: {Ns_Settings.value('Appearance/font-family')};
-         font-size: {Ns_Settings.value('Appearance/font-size')}pt;
+         font-family: {Ns_Settings.value("Appearance/font-family")};
+         font-size: {Ns_Settings.value("Appearance/font-size")}pt;
          }}"""
         self.setStyleSheet(qss)
         self.setup_menu()

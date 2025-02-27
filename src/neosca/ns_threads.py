@@ -58,7 +58,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             self.model.item_left_shifted.emit((rowno, 0, file_name))
             for colno in range(1, self.model.columnCount()):
                 sname = self.model.horizontalHeaderItem(colno).text()
-                assert (value := counter.get_value(sname)) is not None
+                value = counter.get_value(sname)
+                assert value is not None
 
                 item = QStandardItem()
                 # https://stackoverflow.com/a/20469423/20732031

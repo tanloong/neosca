@@ -10,6 +10,7 @@ import sys
 import tokenize
 from collections import OrderedDict
 from copy import deepcopy
+from typing import ClassVar
 
 from ..ns_about import __title__
 from ..ns_consts import DATA_DIR
@@ -130,11 +131,11 @@ class Ns_SCA_Structure:
 
 class Ns_SCA_Counter:
     BUILTIN_DATA = Ns_IO.load_json(DATA_DIR / "l2sca_structures.json")
-    BUILTIN_STRUCTURE_DEFS: dict[str, Ns_SCA_Structure] = {}
+    BUILTIN_STRUCTURE_DEFS: ClassVar[dict[str, Ns_SCA_Structure]] = {}
     for kwargs in BUILTIN_DATA["structures"]:
         BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
 
-    DEFAULT_MEASURES: list[str] = [
+    DEFAULT_MEASURES: ClassVar[list[str]] = [
         "W",
         "S",
         "VP",
@@ -160,7 +161,7 @@ class Ns_SCA_Counter:
         "CN/C",
     ]
 
-    SNAME_SEARCHER_MAPPING = {
+    SNAME_SEARCHER_MAPPING: ClassVar = {
         "S": l2sca.S,
         "VP1": l2sca.VP1,
         "VP2": l2sca.VP2,
@@ -411,7 +412,7 @@ class Ns_SCA_Counter:
 
         if sname == "W":
             logging.info(' Searching for "words"')
-            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", forest))
+            value = len(re.findall(r"\([A-Z]+\$? [^()—–-]+\)", forest))  # noqa: RUF001
             self.set_value(sname, value)
             return
 

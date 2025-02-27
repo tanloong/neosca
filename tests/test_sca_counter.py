@@ -68,7 +68,7 @@ class TestStructureCounter(BaseTmpl):
             ],
         }
         counter = Ns_SCA_Counter(**kwargs_with_user_defs_without_selected_measures)
-        self.assertEqual(counter.selected_measures, Ns_SCA_Counter.DEFAULT_MEASURES + ["A", "B"])
+        self.assertEqual(counter.selected_measures, [*Ns_SCA_Counter.DEFAULT_MEASURES, "A", "B"])
 
         kwargs_with_user_defs_with_selected_measures = {
             "selected_measures": ["VP", "A", "B"],

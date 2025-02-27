@@ -50,7 +50,7 @@ def _setenv_unix(env_var: str, paths: list[str], is_refresh: bool = False) -> No
     shell = os.environ.get("SHELL")
     if shell is None:
         logging.warning(
-            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current" " shell."
+            "Failed to permanently append {path} to {env_var}.\nReason: can't detect current shell."
         )
     else:
         shell_rcfile = {
@@ -66,8 +66,7 @@ def _setenv_unix(env_var: str, paths: list[str], is_refresh: bool = False) -> No
         rcfile = shell_rcfile.get(os_path.basename(shell), None)
         if rcfile is None:
             logging.warning(
-                "Failed to permanently set environment variables.\nReason: can't detect rc"
-                f" file for {shell}."
+                f"Failed to permanently set environment variables.\nReason: can't detect rc file for {shell}."
             )
         else:
             new_paths = '"' + '":"'.join(paths) + '"'

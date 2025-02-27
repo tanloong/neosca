@@ -9,7 +9,7 @@ import sys
 from collections import OrderedDict
 from collections.abc import Sequence
 from math import sqrt as _sqrt
-from typing import Literal
+from typing import ClassVar, Literal
 
 from ..ns_consts import DATA_DIR
 from ..ns_io import Ns_IO
@@ -18,11 +18,11 @@ from ..ns_utils import chunks, safe_div, safe_log
 
 
 class Ns_LCA_Counter:
-    WORDLIST_DATAFILE_MAP = {
+    WORDLIST_DATAFILE_MAP: ClassVar[dict[str, str]] = {
         "bnc": "bnc_all_filtered.pickle.lzma",
         "anc": "anc_all_count.pickle.lzma",
     }
-    COUNT_ITEMS = {
+    COUNT_ITEMS: ClassVar[dict[str, str]] = {
         "word": "word",
         "sword": "sophisticated word",
         "lex": "lexical word",
@@ -33,7 +33,7 @@ class Ns_LCA_Counter:
         "adv": "adverb",
         "noun": "noun",
     }
-    FREQ_ITEMS = {
+    FREQ_ITEMS: ClassVar[dict[str, str]] = {
         "LD": "lexical density",
         "LS1": "lexical sophistication-I",
         "LS2": "lexical sophistication-II",
@@ -61,7 +61,7 @@ class Ns_LCA_Counter:
         "AdvV": "adverb variation",
         "ModV": "modifier variation",
     }
-    DEFAULT_MEASURES: list[str] = [
+    DEFAULT_MEASURES: ClassVar[list[str]] = [
         *(item + suffix for item in COUNT_ITEMS for suffix in ("types", "tokens")),
         *FREQ_ITEMS,
     ]
@@ -319,7 +319,8 @@ class Ns_LCA_Counter:
             else:
                 assert False, f"Unknown key: {key}"
         elif key in self.FREQ_ITEMS:
-            assert (value := self.freq_table[key]) is not None
+            value = self.freq_table[key]
+            assert value is not None
             return round(value, precision)
         else:
             raise ValueError(f"Unknown key: {key}")

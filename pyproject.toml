@@ -75,6 +75,7 @@ select = [
     "B", # flake8-bugbear
     "SIM", # flake8-simplify
     "I", # isort
+    "RUF", # ruff specific rules
 ]
 ignore = [
     "E501",

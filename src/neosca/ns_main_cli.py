@@ -383,9 +383,9 @@ class Ns_Main_Cli:
         else:
             options, ifile_list = self.args_parser.parse_known_args(argv[1:])
 
-        assert not (
-            options.is_quiet and options.is_verbose
-        ), "logging cannot be quiet and verbose at the same time"
+        assert not (options.is_quiet and options.is_verbose), (
+            "logging cannot be quiet and verbose at the same time"
+        )
         if options.is_quiet:
             logging.basicConfig(format="%(message)s", level=logging.CRITICAL)
         elif options.is_verbose:
