@@ -26,9 +26,74 @@ class TestLCACounter(BaseTmpl):
         for item in c.FREQ_ITEMS:
             self.assertIn(item, c.DEFAULT_MEASURES)
 
-    def test_msttr(self):
+    def test_ndw_first_z(self):
+        n = 500
         # fake words
-        words = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(1000))
+        words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
+        for size in range(1, n):
+            ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=size)
+            self.assertGreaterEqual(ndw_first_z, 1)
+            self.assertLessEqual(ndw_first_z, n)
+
+        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z([], section_size=50)
+        self.assertEqual(ndw_first_z, 0)
+
+        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=n)
+        self.assertEqual(ndw_first_z, len(set(words)))
+        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=n + 1)
+        self.assertEqual(ndw_first_z, len(set(words)))
+
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_first_z, words, section_size=0)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_first_z, words, section_size=-1)
+
+    def test_ndw_erz(self):
+        n = 500
+        # fake words
+        words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
+        for size in range(1, n):
+            ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=size, trials=10)
+            self.assertGreaterEqual(ndw_erz, 1)
+            self.assertLessEqual(ndw_erz, n)
+
+        ndw_erz = Ns_LCA_Counter.get_ndw_erz([], section_size=50, trials=10)
+        self.assertEqual(ndw_erz, 0)
+
+        ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=n, trials=10)
+        self.assertEqual(ndw_erz, len(set(words)))
+        ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=n + 1, trials=10)
+        self.assertEqual(ndw_erz, len(set(words)))
+
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=0, trials=10)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=-1, trials=10)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=50, trials=-1)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=50, trials=0)
+
+    def test_ndw_esz(self):
+        n = 500
+        # fake words
+        words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
+        for size in range(1, n):
+            ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=size, trials=10)
+            self.assertGreaterEqual(ndw_esz, 1)
+            self.assertLessEqual(ndw_esz, n)
+
+        ndw_esz = Ns_LCA_Counter.get_ndw_esz([], section_size=50, trials=10)
+        self.assertEqual(ndw_esz, 0)
+
+        ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=n, trials=10)
+        self.assertEqual(ndw_esz, len(set(words)))
+        ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=n + 1, trials=10)
+        self.assertEqual(ndw_esz, len(set(words)))
+
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=0, trials=10)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=-1, trials=10)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=50, trials=-1)
+        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=50, trials=0)
+
+    def test_msttr(self):
+        n = 1000
+        # fake words
+        words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
         msttr = Ns_LCA_Counter.get_msttr(words, section_size=50)
         self.assertGreater(msttr, 0)
         self.assertLessEqual(msttr, 1)
@@ -36,17 +101,18 @@ class TestLCACounter(BaseTmpl):
         msttr = Ns_LCA_Counter.get_msttr([], section_size=50)
         self.assertEqual(msttr, 0)
 
-        msttr = Ns_LCA_Counter.get_msttr(words, section_size=len(words))
+        msttr = Ns_LCA_Counter.get_msttr(words, section_size=n)
         self.assertEqual(msttr, len(set(words)) / len(words))
-        msttr = Ns_LCA_Counter.get_msttr(words, section_size=len(words) + 1)
+        msttr = Ns_LCA_Counter.get_msttr(words, section_size=n + 1)
         self.assertEqual(msttr, len(set(words)) / len(words))
 
         self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=0)
         self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=-1)
 
     def test_mattr(self):
+        n = 1000
         # fake words
-        words = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(1000))
+        words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
         mattr = Ns_LCA_Counter.get_mattr(words, window_size=50)
         self.assertGreater(mattr, 0)
         self.assertLessEqual(mattr, 1)
@@ -54,9 +120,9 @@ class TestLCACounter(BaseTmpl):
         mattr = Ns_LCA_Counter.get_mattr([], window_size=50)
         self.assertEqual(mattr, 0)
 
-        mattr = Ns_LCA_Counter.get_mattr(words, window_size=len(words))
+        mattr = Ns_LCA_Counter.get_mattr(words, window_size=n)
         self.assertEqual(mattr, len(set(words)) / len(words))
-        mattr = Ns_LCA_Counter.get_mattr(words, window_size=len(words) + 1)
+        mattr = Ns_LCA_Counter.get_mattr(words, window_size=n + 1)
         self.assertEqual(mattr, len(set(words)) / len(words))
 
         self.assertRaises(ValueError, Ns_LCA_Counter.get_mattr, words, window_size=0)

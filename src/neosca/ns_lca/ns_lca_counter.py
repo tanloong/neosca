@@ -100,36 +100,45 @@ class Ns_LCA_Counter:
     @classmethod
     def get_ndw_first_z(cls, lemma_sequence: Sequence[str], *, section_size: int):
         """NDW for first 'section_size' words in a sample"""
+        if section_size < 1:
+            raise ValueError("Segment size must be a positive integer")
+
         if len(lemma_sequence) < section_size:
             return len(set(lemma_sequence))
         return len(set(lemma_sequence[:section_size]))
 
     @classmethod
-    def get_ndw_erz(cls, lemma_sequence: Sequence[str], *, section_size: int, trials):
+    def get_ndw_erz(cls, lemma_sequence: Sequence[str], *, section_size: int, trials: int):
         """NDW expected random 'section_size' words, 10 trials by default"""
+        if section_size < 1:
+            raise ValueError("Segment size must be a positive integer")
+        if trials < 1:
+            raise ValueError("Trials must be a positive integer")
+
         if len(lemma_sequence) < section_size:
             return len(set(lemma_sequence))
         ndw_erz: int = 0
         for _ in range(trials):
-            erz_lemma_lst = random.sample(lemma_sequence, section_size)
-
-            ndw_erz_types = set(erz_lemma_lst)
-            ndw_erz += len(ndw_erz_types)
-        return ndw_erz / 10
+            erz_lemmas = random.sample(lemma_sequence, section_size)
+            ndw_erz += len(set(erz_lemmas))
+        return ndw_erz / trials
 
     @classmethod
-    def get_ndw_esz(cls, lemma_sequence: Sequence[str], *, section_size: int, trials):
+    def get_ndw_esz(cls, lemma_sequence: Sequence[str], *, section_size: int, trials: int):
         """NDW expected random sequences of 'section_size' words, 10 trials by default"""
+        if section_size < 1:
+            raise ValueError("Segment size must be a positive integer")
+        if trials < 1:
+            raise ValueError("Trials must be a positive integer")
+
         if len(lemma_sequence) < section_size:
             return len(set(lemma_sequence))
         ndw_esz: int = 0
         for _ in range(trials):
             start_word = random.randint(0, len(lemma_sequence) - section_size)
             esz_lemma_lst = lemma_sequence[start_word : start_word + section_size]
-
-            ndw_esz_types = set(esz_lemma_lst)
-            ndw_esz += len(ndw_esz_types)
-        return ndw_esz / 10
+            ndw_esz += len(set(esz_lemma_lst))
+        return ndw_esz / trials
 
     @classmethod
     def get_msttr(cls, lemma_sequence: Sequence[str], *, section_size: int):

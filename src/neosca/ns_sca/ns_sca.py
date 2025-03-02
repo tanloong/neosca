@@ -159,7 +159,7 @@ class Ns_SCA:
 
     # }}}
     def dump_values(self) -> None:  # {{{
-        logging.debug("Writting counts and/or frequencies...")
+        logging.debug("Writing counts and/or frequencies...")
 
         if len(self.counters) == 0:
             raise ValueError("empty counter list")

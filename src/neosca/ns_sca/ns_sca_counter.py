@@ -369,6 +369,7 @@ class Ns_SCA_Counter:
                 raise InvalidSourceError(f'Unexpected token: "{token_string}"')
         # Append "+ 0" to force tokens evaluated as number if value_source contains just name of another Structure
         tokens.extend(((tokenize.PLUS, "+"), (tokenize.NUMBER, "0")))
+        logging.debug("Executing value source: %s", " ".join(t[1] for t in tokens))
         return eval(tokenize.untokenize(tokens)), matches
 
     def determine_value_from_tregex_pattern(self, sname: str, forest: str):
@@ -377,10 +378,10 @@ class Ns_SCA_Counter:
         assert tregex_pattern is not None
 
         logging.info(
-            f" Searching for {sname}"
-            + (f" ({structure.description})..." if structure.description is not None else "...")
+            "Searching for %s%s...",
+            sname,
+            f" ({structure.description})" if structure.description is not None else "",
         )
-        logging.debug(" Searching for %s", tregex_pattern)
         matched_subtrees = self.search_sname(sname, forest)
         self.set_value(sname, len(matched_subtrees))
         self.set_matches(sname, matched_subtrees)
@@ -391,7 +392,7 @@ class Ns_SCA_Counter:
         assert value_source is not None, f"value_source for {sname} is None."
 
         logging.info(
-            f" Calculating {sname} "
+            f"Calculating {sname} "
             + (f"({structure.description}) " if structure.description is not None else "")
             + f"= {value_source}..."
         )
