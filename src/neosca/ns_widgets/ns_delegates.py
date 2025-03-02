@@ -6,12 +6,12 @@ from PyQt5.QtGui import QBrush, QColor, QPainter, QPolygonF
 from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 from typing_extensions import override
 
-from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_settings import NsSettings
 from ..ns_utils import bring_to_front
 from ..ns_widgets import ns_dialogs
 
 
-class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
+class NsStyledItemDelegateTriangle(QStyledItemDelegate):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.triangle_rgb = "#737373"
@@ -23,7 +23,7 @@ class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
         if index.data(Qt.ItemDataRole.UserRole):
             painter.save()
             painter.setBrush(QBrush(QColor(self.triangle_rgb)))
-            triangle_leg_length = option.rect.height() * Ns_Settings.value(
+            triangle_leg_length = option.rect.height() * NsSettings.value(
                 "Appearance/triangle-height-ratio", type=float
             )
             points = QPolygonF(
@@ -37,11 +37,11 @@ class Ns_StyledItemDelegate_Triangle(QStyledItemDelegate):
             painter.restore()
 
 
-class Ns_StyledItemDelegate_Matches(Ns_StyledItemDelegate_Triangle):
+class NsStyledItemDelegateMatches(NsStyledItemDelegateTriangle):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.position_dialog_mappings: dict[tuple[int, int], ns_dialogs.Ns_Dialog_TextEdit_Matches] = {}
+        self.position_dialog_mappings: dict[tuple[int, int], ns_dialogs.NsDialogTextEditMatches] = {}
 
     @override
     def createEditor(self, parent, option, index):  # type: ignore
@@ -51,13 +51,13 @@ class Ns_StyledItemDelegate_Matches(Ns_StyledItemDelegate_Triangle):
         if position in self.position_dialog_mappings:
             bring_to_front(self.position_dialog_mappings[position])
         else:
-            dialog = ns_dialogs.Ns_Dialog_TextEdit_Matches(parent, index=index)
+            dialog = ns_dialogs.NsDialogTextEditMatches(parent, index=index)
             self.position_dialog_mappings[position] = dialog
             dialog.finished.connect(lambda: self.position_dialog_mappings.pop(position))
             dialog.show()
 
 
-class Ns_StyledItemDelegate_File(Ns_StyledItemDelegate_Triangle):
+class NsStyledItemDelegateFile(NsStyledItemDelegateTriangle):
     def __init__(self, parent=None):
         super().__init__(parent)
 

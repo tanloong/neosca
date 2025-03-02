@@ -11,13 +11,13 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_settings import NsSettings
 from ..ns_settings.ns_settings_default import available_import_types
-from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from ..ns_widgets.ns_widgets import Ns_LineEdit_Path
+from ..ns_settings.ns_widget_settings_abstract import NsWidgetSettingsAbstract
+from ..ns_widgets.ns_widgets import NsLineEditPath
 
 
-class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
+class NsWidgetSettingsImport(NsWidgetSettingsAbstract):
     name: str = "Import"
 
     def __init__(self, main=None):
@@ -28,7 +28,7 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_files(self) -> None:
-        self.lineedit_path = Ns_LineEdit_Path()
+        self.lineedit_path = NsLineEditPath()
         self.combobox_type = QComboBox()
         self.combobox_type.addItems(available_import_types)
         self.checkbox_include_files_in_subfolders = QCheckBox("Include files in subfolders")
@@ -43,10 +43,10 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         self.groupbox_files.setLayout(gridlayout_files)
 
     def load_settings(self) -> None:
-        self.lineedit_path.setText(Ns_Settings.value(f"{self.name}/default-path"))
-        self.combobox_type.setCurrentText(Ns_Settings.value(f"{self.name}/default-type"))
+        self.lineedit_path.setText(NsSettings.value(f"{self.name}/default-path"))
+        self.combobox_type.setCurrentText(NsSettings.value(f"{self.name}/default-type"))
         self.checkbox_include_files_in_subfolders.setChecked(
-            Ns_Settings.value(f"{self.name}/include-files-in-subfolders", type=bool)
+            NsSettings.value(f"{self.name}/include-files-in-subfolders", type=bool)
         )
 
     def verify_settings(self) -> bool:
@@ -76,8 +76,8 @@ class Ns_Widget_Settings_Import(Ns_Widget_Settings_Abstract):
         return True
 
     def apply_settings(self) -> None:
-        Ns_Settings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
-        Ns_Settings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())
-        Ns_Settings.setValue(
+        NsSettings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
+        NsSettings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())
+        NsSettings.setValue(
             f"{self.name}/include-files-in-subfolders", self.checkbox_include_files_in_subfolders.isChecked()
         )

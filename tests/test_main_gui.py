@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QFileDialog
 
 from neosca import ns_main_gui
 from neosca.ns_about import __title__
-from neosca.ns_io import Ns_IO
+from neosca.ns_io import NsIO
 
 from .base_tmpl import BaseTmpl, temp_files
 
@@ -16,7 +16,7 @@ from .base_tmpl import BaseTmpl, temp_files
 class TestMain(BaseTmpl):
     @classmethod
     def setUpClass(cls):
-        cls.gui = ns_main_gui.Ns_Main_Gui()
+        cls.gui = ns_main_gui.NsMainGUI()
 
     def test_tabbar(self):
         self.assertEqual(self.gui.tabwidget.count(), 2)
@@ -59,7 +59,7 @@ class TestMain(BaseTmpl):
 
     def test_menu_file_open_folder(self):
         affixes: tuple[tuple[str, str], ...] = tuple(
-            product(("", *Ns_IO.HIDDEN_PREFIXES), map(lambda s: f".{s}", Ns_IO.SUPPORTED_EXTENSIONS))
+            product(("", *NsIO.HIDDEN_PREFIXES), map(lambda s: f".{s}", NsIO.SUPPORTED_EXTENSIONS))
         )
         with (
             temp_files(affixes) as temp_dir,
@@ -69,5 +69,5 @@ class TestMain(BaseTmpl):
             self.gui.menu_files_open_folder()
             file_paths = mock_add_file_paths.call_args.args[0]
         # Test hidden files are excluded
-        self.assertTrue(all(not os_path.basename(p).startswith(Ns_IO.HIDDEN_PREFIXES) for p in file_paths))
+        self.assertTrue(all(not os_path.basename(p).startswith(NsIO.HIDDEN_PREFIXES) for p in file_paths))
         self.assertTrue(file_paths)

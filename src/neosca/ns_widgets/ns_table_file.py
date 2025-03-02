@@ -7,22 +7,23 @@ from pathlib import Path
 from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt
 from PyQt5.QtGui import QCursor, QDragEnterEvent, QDropEvent, QStandardItem
 from PyQt5.QtWidgets import QAbstractItemView, QMenu, QTableView
+from typing_extensions import override
 
-from ..ns_io import Ns_IO
-from ..ns_settings.ns_settings import Ns_Settings
-from ..ns_widgets.ns_delegates import Ns_StyledItemDelegate_File
-from ..ns_widgets.ns_dialogs import Ns_Dialog_Table, Ns_Dialog_Table_Subfiles
-from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
-from ..ns_widgets.ns_standarditemmodel_file import Ns_StandardItemModel_File
-from ..ns_widgets.ns_tableview import Ns_TableView
+from ..ns_io import NsIO
+from ..ns_settings.ns_settings import NsSettings
+from ..ns_widgets.ns_delegates import NsStyledItemDelegateFile
+from ..ns_widgets.ns_dialogs import NsDialogTable, NsDialogTableSubfiles
+from ..ns_widgets.ns_standarditemmodel import NsStandardItemModel
+from ..ns_widgets.ns_standarditemmodel_file import NsStandardItemModelFile
+from ..ns_widgets.ns_tableview import NsTableview
 
 
-class Ns_Table_File(Ns_TableView):
+class NsTableFile(NsTableview):
     def __init__(self, main):
-        self._model = Ns_StandardItemModel_File(main)
+        self._model = NsStandardItemModelFile(main)
         super().__init__(main, self._model, disable_on_empty=False)
 
-        self.setItemDelegate(Ns_StyledItemDelegate_File(self))
+        self.setItemDelegate(NsStyledItemDelegateFile(self))
         self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setCornerButtonEnabled(True)
@@ -45,31 +46,34 @@ class Ns_Table_File(Ns_TableView):
         self.menu.aboutToShow.connect(self.on_about_to_show)
         self.customContextMenuRequested.connect(self.show_menu)
 
+    @override
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         else:
             super().dragEnterEvent(event)
 
+    @override
     def dragMoveEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         else:
             super().dragMoveEvent(event)
 
+    @override
     def dropEvent(self, event: QDropEvent) -> None:
         if not event.mimeData().hasUrls():
             super().dropEvent(event)
             return
 
         file_paths = []
-        is_recursive = Ns_Settings.value("Import/include-files-in-subfolders", type=bool)
+        is_recursive = NsSettings.value("Import/include-files-in-subfolders", type=bool)
         for url in event.mimeData().urls():
             if not (path := url.toLocalFile()):
                 continue
 
             if os_path.isdir(path):
-                file_paths.extend(Ns_IO.find_files(path, is_recursive))
+                file_paths.extend(NsIO.find_files(path, is_recursive))
             elif os_path.isfile(path):
                 file_paths.append(path)
 
@@ -200,7 +204,7 @@ class Ns_Table_File(Ns_TableView):
         name_index: QModelIndex = self.selectionModel().selectedRows(column=0)[0]
         path_index: QModelIndex = self.selectionModel().selectedRows(column=1)[0]
 
-        Ns_Dialog_Table_Subfiles(self, name_index, path_index).open()
+        NsDialogTableSubfiles(self, name_index, path_index).open()
 
     def remove_file_paths(self) -> None:
         # https://stackoverflow.com/questions/5927499/how-to-get-selected-rows-in-qtableview
@@ -233,7 +237,7 @@ class Ns_Table_File(Ns_TableView):
         unique_file_paths_to_add: set[str] = set(file_paths_to_add)
         already_added_file_paths: set[str] = set(self._model.yield_flat_file_paths())
         file_paths_dup: set[str] = unique_file_paths_to_add & already_added_file_paths
-        file_paths_unsupported: set[str] = set(filter(Ns_IO.not_supports, unique_file_paths_to_add))
+        file_paths_unsupported: set[str] = set(filter(NsIO.not_supports, unique_file_paths_to_add))
         file_paths_empty: set[str] = set(filter(lambda p: not os_path.getsize(p), unique_file_paths_to_add))
         file_paths_ok: set[str] = (
             unique_file_paths_to_add
@@ -247,7 +251,7 @@ class Ns_Table_File(Ns_TableView):
             already_added_file_stems = list(self._model.yield_flat_file_names())
             for file_path in sorted(file_paths_ok):
                 file_stem = Path(file_path).stem
-                file_stem = Ns_IO.ensure_unique_filestem(file_stem, already_added_file_stems)
+                file_stem = NsIO.ensure_unique_filestem(file_stem, already_added_file_stems)
                 already_added_file_stems.append(file_stem)
                 rowno = self._model.rowCount()
                 self._model.set_row_left_shifted(rowno, (file_stem, file_path))
@@ -258,7 +262,7 @@ class Ns_Table_File(Ns_TableView):
             self.main.statusBar().showMessage(f"Added {num} {noun}")
 
         if file_paths_dup or file_paths_unsupported or file_paths_empty:
-            model_err_files = Ns_StandardItemModel(
+            model_err_files = NsStandardItemModel(
                 self, hor_labels=("Error Type", "File Path"), show_empty_row=False
             )
             for reason, file_paths in (
@@ -268,9 +272,9 @@ class Ns_Table_File(Ns_TableView):
             ):
                 for file_path in sorted(file_paths):
                     model_err_files.appendRow((QStandardItem(reason), QStandardItem(file_path)))
-            tableview_err_files = Ns_TableView(self, model=model_err_files)
+            tableview_err_files = NsTableview(self, model=model_err_files)
 
-            dialog = Ns_Dialog_Table(
+            dialog = NsDialogTable(
                 self,
                 title="Error Adding Files",
                 text="Failed to add the following files.",

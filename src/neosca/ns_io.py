@@ -21,7 +21,7 @@ from .ns_consts import CACHE_DIR, CACHE_INFO_PATH
 from .ns_utils import Ns_Procedure_Result
 
 
-class Ns_IO_Meta(type):
+class NsIOMeta(type):
     def __new__(cls, name, bases, dict_):
         dict_["SUPPORTED_EXTENSIONS"] = tuple(
             attr.removeprefix("read_") for attr in dict_ if attr.startswith("read_")
@@ -29,7 +29,7 @@ class Ns_IO_Meta(type):
         return super().__new__(cls, name, bases, dict_)
 
 
-class Ns_IO(metaclass=Ns_IO_Meta):
+class NsIO(metaclass=NsIOMeta):
     # Type checker does not detect definition in Ns_IO_Meta, so declare here to
     # silence the "access unknown member warning"
     SUPPORTED_EXTENSIONS: tuple[str, ...] = tuple()
@@ -271,22 +271,22 @@ class Ns_IO(metaclass=Ns_IO_Meta):
                 os_path.join(dir_path, file_name)
                 for dir_path, _, file_names in os.walk(folder_path)
                 for file_name in file_names
-                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
+                if not file_name.startswith(NsIO.HIDDEN_PREFIXES)
             )
         else:
             file_paths.extend(
                 os_path.join(folder_path, file_name)
                 for file_name in next(os.walk(folder_path))[2]
-                if not file_name.startswith(Ns_IO.HIDDEN_PREFIXES)
+                if not file_name.startswith(NsIO.HIDDEN_PREFIXES)
             )
         return file_paths
 
 
-class Ns_Cache:
+class NsCache:
     CACHE_EXTENSION = ".pickle.lzma"
     # fpath_cname: { "/absolute/path/to/foo.txt": "foo.pickle.lzma", ... }
     fpath_cname: dict[str, str] = (
-        Ns_IO.load_json(CACHE_INFO_PATH)
+        NsIO.load_json(CACHE_INFO_PATH)
         if CACHE_INFO_PATH.exists() and os_path.getsize(CACHE_INFO_PATH) > 0
         else {}
     )
@@ -316,7 +316,7 @@ class Ns_Cache:
         if empty:
             return cache_path, False
 
-        logging.info("Found cache: %s exists, and is non-empty and newer than %s.", cache_path, file_path)
+        logging.info("Found cache: %s exists, and is non-empty and newer than %s", cache_path, file_path)
         return cache_path, True
 
     @classmethod
@@ -330,8 +330,8 @@ class Ns_Cache:
 
     @classmethod
     def yield_cname_cpath_csize_fpath(cls) -> Generator[tuple[str, str, str, str], None, None]:
-        for file_path, cache_name in Ns_Cache.fpath_cname.items():
-            cache_path = Ns_Cache._name2path(cache_name)
+        for file_path, cache_name in NsCache.fpath_cname.items():
+            cache_path = NsCache._name2path(cache_name)
             if not os_path.exists(cache_path):
                 continue
             cache_size = cls._size_fmt(os_path.getsize(cache_path))
@@ -373,7 +373,7 @@ class Ns_Cache:
     def register_cache_name(cls, file_path: str) -> str:
         logging.debug("Registering cache path for %s...", file_path)
         cache_stem = Path(file_path).stem
-        cache_stem = Ns_IO.ensure_unique_filestem(
+        cache_stem = NsIO.ensure_unique_filestem(
             cache_stem, tuple(map(cls._name2stem, cls.fpath_cname.values()))
         )
         cache_name = cls._stem2name(cache_stem)
@@ -394,6 +394,6 @@ class Ns_Cache:
     def save_cache_info(cls) -> None:
         if cls.info_changed:
             logging.debug("Saving cache information to %s...", CACHE_INFO_PATH)
-            Ns_IO.dump_json(cls.fpath_cname, CACHE_INFO_PATH)
+            NsIO.dump_json(cls.fpath_cname, CACHE_INFO_PATH)
         else:
             logging.debug("No new cache information to save.")

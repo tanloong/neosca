@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget
 QSSMapping = dict[str, str | dict[str, str]]
 
 
-class Ns_QSS:
+class NsQSS:
     def __init__(self):
         pass
 

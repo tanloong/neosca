@@ -1,12 +1,12 @@
 from unittest import mock
 
-from neosca.ns_main_cli import Ns_Main_Cli
+from neosca.ns_main_cli import NsMainCLI
 
 from .base_tmpl import BaseTmpl
 
 
 class TestMain(BaseTmpl):
-    cli = Ns_Main_Cli()
+    cli = NsMainCLI()
 
     @mock.patch("sys.version_info")
     def test_check_python(self, mock_version_info):

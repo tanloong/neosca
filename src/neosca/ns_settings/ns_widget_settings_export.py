@@ -11,13 +11,13 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_settings.ns_settings import NsSettings
 from ..ns_settings.ns_settings_default import available_export_types
-from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from ..ns_widgets.ns_widgets import Ns_LineEdit_Path, Ns_MessageBox_Question
+from ..ns_settings.ns_widget_settings_abstract import NsWidgetSettingsAbstract
+from ..ns_widgets.ns_widgets import NsLineEditPath, NsMessageboxQuestion
 
 
-class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
+class NsWidgetSettingsExport(NsWidgetSettingsAbstract):
     name: str = "Export"
 
     def __init__(self, main=None):
@@ -28,7 +28,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
         self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
 
     def setup_tables(self) -> None:
-        self.lineedit_path = Ns_LineEdit_Path()
+        self.lineedit_path = NsLineEditPath()
         self.combobox_type = QComboBox()
         self.combobox_type.addItems(available_export_types)
 
@@ -41,8 +41,8 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
         self.groupbox_tables.setLayout(gridlayout_tables)
 
     def load_settings(self) -> None:
-        self.lineedit_path.setText(Ns_Settings.value(f"{self.name}/default-path"))
-        self.combobox_type.setCurrentText(Ns_Settings.value(f"{self.name}/default-type"))
+        self.lineedit_path.setText(NsSettings.value(f"{self.name}/default-path"))
+        self.combobox_type.setCurrentText(NsSettings.value(f"{self.name}/default-type"))
 
     def verify_settings(self) -> bool:
         return self.verify_settings_tables()
@@ -61,7 +61,7 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
             ).open()
             return False
         if not os_path.isdir(path):
-            messagebox = Ns_MessageBox_Question(
+            messagebox = NsMessageboxQuestion(
                 self,
                 "Path Not Found",
                 f'The specified directory "{path}" could not be found. Do you want to create the directory?',
@@ -77,5 +77,5 @@ class Ns_Widget_Settings_Export(Ns_Widget_Settings_Abstract):
         return True
 
     def apply_settings(self) -> None:
-        Ns_Settings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
-        Ns_Settings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())
+        NsSettings.setValue(f"{self.name}/default-path", self.lineedit_path.text())
+        NsSettings.setValue(f"{self.name}/default-type", self.combobox_type.currentText())

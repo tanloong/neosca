@@ -12,12 +12,12 @@ from math import sqrt as _sqrt
 from typing import ClassVar, Literal
 
 from ..ns_consts import DATA_DIR
-from ..ns_io import Ns_IO
+from ..ns_io import NsIO
 from ..ns_lca import word_classifiers
 from ..ns_utils import chunks, safe_div, safe_log
 
 
-class Ns_LCA_Counter:
+class NsLCACounter:
     WORDLIST_DATAFILE_MAP: ClassVar[dict[str, str]] = {
         "bnc": "bnc_all_filtered.pickle.lzma",
         "anc": "anc_all_count.pickle.lzma",
@@ -87,10 +87,10 @@ class Ns_LCA_Counter:
 
         word_data_path = DATA_DIR / self.WORDLIST_DATAFILE_MAP[wordlist]
         logging.debug("Loading %s...", word_data_path)
-        word_data = Ns_IO.load_pickle_lzma(word_data_path)
+        word_data = NsIO.load_pickle_lzma(word_data_path)
         self.word_classifier = {
-            "ud": word_classifiers.Ns_UD_Word_Classifier,
-            "ptb": word_classifiers.Ns_PTB_Word_Classifier,
+            "ud": word_classifiers.NsUDWordClassifier,
+            "ptb": word_classifiers.NsPTBWordClassifier,
         }[tagset](word_data=word_data, easy_word_threshold=easy_word_threshold)
 
         self.section_size = section_size
@@ -375,10 +375,10 @@ class Ns_LCA_Counter:
             else:
                 sys.stdout.write(f"{matches_id}\n\n{res}\n")
 
-    def __add__(self, other: "Ns_LCA_Counter") -> "Ns_LCA_Counter":
+    def __add__(self, other: "NsLCACounter") -> "NsLCACounter":
         logging.debug("Combining counters...")
         new_file_path = self.file_path + "+" + other.file_path if self.file_path else other.file_path
-        new = Ns_LCA_Counter(new_file_path)
+        new = NsLCACounter(new_file_path)
         for item in new.COUNT_ITEMS:
             new.count_table[item] = self.count_table[item] + other.count_table[item]
         new.determine_freqs()

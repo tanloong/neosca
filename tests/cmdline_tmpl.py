@@ -74,9 +74,9 @@ class CmdlineTmpl(BaseTmpl):
             if expected_output_file:
                 if isinstance(expected_output_file, list):
                     for f in expected_output_file:
-                        self.assertFileExists(f)
+                        self.assert_file_exists(f)
                 elif isinstance(expected_output_file, str):
-                    self.assertFileExists(expected_output_file)
+                    self.assert_file_exists(expected_output_file)
 
             if expected_stdout is not None:
                 self.assertRegex(result.stdout.decode("utf-8"), expected_stdout)

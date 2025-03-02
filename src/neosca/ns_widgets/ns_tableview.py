@@ -13,20 +13,21 @@ from PyQt5.QtWidgets import (
     QTableView,
     QWidget,
 )
+from typing_extensions import override
 
 from ..ns_consts import DESKTOP_PATH, QSS_PATH
-from ..ns_qss import Ns_QSS
-from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_qss import NsQSS
+from ..ns_settings.ns_settings import NsSettings
 from ..ns_settings.ns_settings_default import available_export_types
-from ..ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_sortfilterproxymodel import NsSortFilterProxyModel
+from ..ns_widgets.ns_standarditemmodel import NsStandardItemModel
 
 
-class Ns_TableView(QTableView):
+class NsTableview(QTableView):
     def __init__(
         self,
         main,
-        model: Ns_StandardItemModel | Ns_SortFilterProxyModel,
+        model: NsStandardItemModel | NsSortFilterProxyModel,
         *,
         has_hor_header: bool = True,
         has_ver_header: bool = False,
@@ -36,9 +37,9 @@ class Ns_TableView(QTableView):
         super().__init__(main, **kwargs)
         self.main = main
         self.setModel(model)
-        if isinstance(model, Ns_StandardItemModel):
+        if isinstance(model, NsStandardItemModel):
             self.source_model = model
-        elif isinstance(model, Ns_SortFilterProxyModel):
+        elif isinstance(model, NsSortFilterProxyModel):
             self.source_model = model.sourceModel()
             self.setSortingEnabled(True)
         else:
@@ -71,7 +72,7 @@ class Ns_TableView(QTableView):
         self.resizeRowsToContents()
         self.resizeColumnsToContents()
 
-    # Override
+    @override
     def setIndexWidget(self, index: QModelIndex | QPersistentModelIndex, widget: QWidget) -> None:
         super().setIndexWidget(index, widget)
         if not self.isEnabled():
@@ -138,7 +139,7 @@ class Ns_TableView(QTableView):
             caption="Export Table",
             directory=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
-            initialFilter=Ns_Settings.value("Export/default-type"),
+            initialFilter=NsSettings.value("Export/default-type"),
         )
         if not file_path:
             return
@@ -165,7 +166,7 @@ class Ns_TableView(QTableView):
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
                 dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
 
-                font_size = Ns_Settings.value("Appearance/font-size", type=int)
+                font_size = NsSettings.value("Appearance/font-size", type=int)
 
                 # 1. Horizontal header text and alignment
                 if self.has_hor_header:
@@ -182,18 +183,18 @@ class Ns_TableView(QTableView):
 
                 # 3. Both header background and font
                 # 3.0.1 Get header background
-                horizon_bacolor: str | None = Ns_QSS.get_value(
+                horizon_bacolor: str | None = NsQSS.get_value(
                     stylesheet, "QHeaderView::section:horizontal", "background-color"
                 )
-                vertical_bacolor: str | None = Ns_QSS.get_value(
+                vertical_bacolor: str | None = NsQSS.get_value(
                     stylesheet, "QHeaderView::section:vertical", "background-color"
                 )
                 # 3.0.2 Get header font, currently only consider color and boldness
                 #  https://www.codespeedy.com/change-font-color-of-excel-cells-using-openpyxl-in-python/
                 #  https://doc.qt.io/qt-6/stylesheet-reference.html#font-weight
-                header_font_color = Ns_QSS.get_value(stylesheet, "QHeaderView::section", "color")
+                header_font_color = NsQSS.get_value(stylesheet, "QHeaderView::section", "color")
                 header_font_color = header_font_color.lstrip("#") if header_font_color is not None else "000000"
-                header_font_weight = Ns_QSS.get_value(stylesheet, "QHeaderView::section", "font-weight")
+                header_font_weight = NsQSS.get_value(stylesheet, "QHeaderView::section", "font-weight")
                 header_is_bold = (header_font_weight == "bold") if header_font_weight is not None else False
                 # 3.1 Horizontal header background and font
                 if self.has_hor_header:
@@ -238,7 +239,7 @@ class Ns_TableView(QTableView):
                 # 4. Cells
                 for rowno in range(row_count):
                     for colno in range(col_count):
-                        if isinstance(model, (Ns_SortFilterProxyModel, QSortFilterProxyModel)):
+                        if isinstance(model, (NsSortFilterProxyModel, QSortFilterProxyModel)):
                             mapped_index = model.mapToSource(model.index(rowno, colno))
                             item = mapped_index.model().item(mapped_index.row(), mapped_index.column())
                             item_data = mapped_index.data()
@@ -321,7 +322,7 @@ class Ns_TableView(QTableView):
             caption="Export Table",
             directory=str(DESKTOP_PATH / filename),
             filter=";;".join(available_export_types),
-            initialFilter=Ns_Settings.value("Export/default-type"),
+            initialFilter=NsSettings.value("Export/default-type"),
         )
         if not file_path:
             return
@@ -344,7 +345,7 @@ class Ns_TableView(QTableView):
                 dpi_horizontal = QApplication.primaryScreen().logicalDotsPerInchX()
                 dpi_vertical = QApplication.primaryScreen().logicalDotsPerInchY()
 
-                font_size = Ns_Settings.value("Appearance/font-size", type=int)
+                font_size = NsSettings.value("Appearance/font-size", type=int)
 
                 # Number of matches is much more than that of files. There are
                 # 2000 matches across different structures for a 19KB test
@@ -408,7 +409,7 @@ class Ns_TableView(QTableView):
                 #     for ws in workbook.worksheets:
                 #         for cell in ws[get_column_letter(1)]:
                 #             cell.fill = PatternFill(fill_type="solid", fgColor=horizon_bacolor)
-                vertical_bacolor: str | None = Ns_QSS.get_value(
+                vertical_bacolor: str | None = NsQSS.get_value(
                     stylesheet, "QHeaderView::section:vertical", "background-color"
                 )
                 if vertical_bacolor is not None:
@@ -420,7 +421,7 @@ class Ns_TableView(QTableView):
                 # Header font
                 for ws in workbook.worksheets:
                     for cell in ws[get_column_letter(1)]:
-                        cell.font = Font(size=Ns_Settings.value("Appearance/font-size", type=int))
+                        cell.font = Font(size=NsSettings.value("Appearance/font-size", type=int))
 
                 # Freeze panes
                 for ws in workbook.worksheets:

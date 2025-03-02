@@ -11,10 +11,10 @@ from typing import Any, Literal
 from stanza import Document
 
 from .ns_consts import STANZA_MODEL_DIR
-from .ns_io import Ns_Cache, Ns_IO
+from .ns_io import NsCache, NsIO
 
 
-class Ns_NLP_Stanza:
+class NsNLPStanza:
     # Stores all processors needed in the whole application
     processors: tuple = ("tokenize", "mwt", "pos", "lemma", "constituency")
 
@@ -82,7 +82,7 @@ class Ns_NLP_Stanza:
 
         if cache_path is not None:
             logging.debug("Caching document to %s...", cache_path)
-            Ns_IO.dump_bytes(lzma.compress(cls.doc2serialized(doc)), cache_path)
+            NsIO.dump_bytes(lzma.compress(cls.doc2serialized(doc)), cache_path)
 
         return doc
 
@@ -95,20 +95,20 @@ class Ns_NLP_Stanza:
         is_cache: bool = True,
         is_use_cache: bool = True,
     ) -> Document:
-        cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
+        cache_path, is_cache_available = NsCache.get_cache_path(file_path)
 
         # Use cache
         if is_use_cache and is_cache_available:
-            logging.info("Loading cache: %s.", cache_path)
-            doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
+            logging.info("Loading cache: %s", cache_path)
+            doc: Document = NsNLPStanza.serialized2doc(NsIO.load_lzma(cache_path))
             return doc
 
         # Use raw text
-        text = Ns_IO.load_file(file_path)
+        text = NsIO.load_file(file_path)
         if not is_cache:
             cache_path = None
         try:
-            doc: Document = Ns_NLP_Stanza.text2doc(text, processors, cache_path)
+            doc: Document = NsNLPStanza.text2doc(text, processors, cache_path)
         except BaseException:
             # If cache is generated at current run, remove it as it is potentially broken
             if cache_path is not None and os_path.exists(cache_path) and not is_cache_available:

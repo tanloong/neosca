@@ -7,7 +7,7 @@ import os.path as os_path
 import random
 import string
 
-from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
+from neosca.ns_lca.ns_lca_counter import NsLCACounter
 
 from .base_tmpl import BaseTmpl
 
@@ -18,7 +18,7 @@ class TestLCACounter(BaseTmpl):
         self.testdir_data_lempos = os_path.join(self.testdir_data, "lempos")
 
     def test_default_measures(self):
-        c = Ns_LCA_Counter()
+        c = NsLCACounter()
         self.assertEqual(len(c.DEFAULT_MEASURES), len(c.COUNT_ITEMS) * 2 + len(c.FREQ_ITEMS))
         for item in c.COUNT_ITEMS:
             for suffix in ("types", "tokens"):
@@ -31,102 +31,102 @@ class TestLCACounter(BaseTmpl):
         # fake words
         words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
         for size in range(1, n):
-            ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=size)
+            ndw_first_z = NsLCACounter.get_ndw_first_z(words, section_size=size)
             self.assertGreaterEqual(ndw_first_z, 1)
             self.assertLessEqual(ndw_first_z, n)
 
-        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z([], section_size=50)
+        ndw_first_z = NsLCACounter.get_ndw_first_z([], section_size=50)
         self.assertEqual(ndw_first_z, 0)
 
-        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=n)
+        ndw_first_z = NsLCACounter.get_ndw_first_z(words, section_size=n)
         self.assertEqual(ndw_first_z, len(set(words)))
-        ndw_first_z = Ns_LCA_Counter.get_ndw_first_z(words, section_size=n + 1)
+        ndw_first_z = NsLCACounter.get_ndw_first_z(words, section_size=n + 1)
         self.assertEqual(ndw_first_z, len(set(words)))
 
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_first_z, words, section_size=0)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_first_z, words, section_size=-1)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_first_z, words, section_size=0)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_first_z, words, section_size=-1)
 
     def test_ndw_erz(self):
         n = 500
         # fake words
         words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
         for size in range(1, n):
-            ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=size, trials=10)
+            ndw_erz = NsLCACounter.get_ndw_erz(words, section_size=size, trials=10)
             self.assertGreaterEqual(ndw_erz, 1)
             self.assertLessEqual(ndw_erz, n)
 
-        ndw_erz = Ns_LCA_Counter.get_ndw_erz([], section_size=50, trials=10)
+        ndw_erz = NsLCACounter.get_ndw_erz([], section_size=50, trials=10)
         self.assertEqual(ndw_erz, 0)
 
-        ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=n, trials=10)
+        ndw_erz = NsLCACounter.get_ndw_erz(words, section_size=n, trials=10)
         self.assertEqual(ndw_erz, len(set(words)))
-        ndw_erz = Ns_LCA_Counter.get_ndw_erz(words, section_size=n + 1, trials=10)
+        ndw_erz = NsLCACounter.get_ndw_erz(words, section_size=n + 1, trials=10)
         self.assertEqual(ndw_erz, len(set(words)))
 
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=0, trials=10)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=-1, trials=10)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=50, trials=-1)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_erz, words, section_size=50, trials=0)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_erz, words, section_size=0, trials=10)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_erz, words, section_size=-1, trials=10)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_erz, words, section_size=50, trials=-1)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_erz, words, section_size=50, trials=0)
 
     def test_ndw_esz(self):
         n = 500
         # fake words
         words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
         for size in range(1, n):
-            ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=size, trials=10)
+            ndw_esz = NsLCACounter.get_ndw_esz(words, section_size=size, trials=10)
             self.assertGreaterEqual(ndw_esz, 1)
             self.assertLessEqual(ndw_esz, n)
 
-        ndw_esz = Ns_LCA_Counter.get_ndw_esz([], section_size=50, trials=10)
+        ndw_esz = NsLCACounter.get_ndw_esz([], section_size=50, trials=10)
         self.assertEqual(ndw_esz, 0)
 
-        ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=n, trials=10)
+        ndw_esz = NsLCACounter.get_ndw_esz(words, section_size=n, trials=10)
         self.assertEqual(ndw_esz, len(set(words)))
-        ndw_esz = Ns_LCA_Counter.get_ndw_esz(words, section_size=n + 1, trials=10)
+        ndw_esz = NsLCACounter.get_ndw_esz(words, section_size=n + 1, trials=10)
         self.assertEqual(ndw_esz, len(set(words)))
 
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=0, trials=10)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=-1, trials=10)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=50, trials=-1)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_ndw_esz, words, section_size=50, trials=0)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_esz, words, section_size=0, trials=10)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_esz, words, section_size=-1, trials=10)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_esz, words, section_size=50, trials=-1)
+        self.assertRaises(ValueError, NsLCACounter.get_ndw_esz, words, section_size=50, trials=0)
 
     def test_msttr(self):
         n = 1000
         # fake words
         words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
-        msttr = Ns_LCA_Counter.get_msttr(words, section_size=50)
+        msttr = NsLCACounter.get_msttr(words, section_size=50)
         self.assertGreater(msttr, 0)
         self.assertLessEqual(msttr, 1)
 
-        msttr = Ns_LCA_Counter.get_msttr([], section_size=50)
+        msttr = NsLCACounter.get_msttr([], section_size=50)
         self.assertEqual(msttr, 0)
 
-        msttr = Ns_LCA_Counter.get_msttr(words, section_size=n)
+        msttr = NsLCACounter.get_msttr(words, section_size=n)
         self.assertEqual(msttr, len(set(words)) / len(words))
-        msttr = Ns_LCA_Counter.get_msttr(words, section_size=n + 1)
+        msttr = NsLCACounter.get_msttr(words, section_size=n + 1)
         self.assertEqual(msttr, len(set(words)) / len(words))
 
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=0)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_msttr, words, section_size=-1)
+        self.assertRaises(ValueError, NsLCACounter.get_msttr, words, section_size=0)
+        self.assertRaises(ValueError, NsLCACounter.get_msttr, words, section_size=-1)
 
     def test_mattr(self):
         n = 1000
         # fake words
         words: tuple[str, ...] = tuple("".join(random.choices(string.ascii_letters, k=4)) for _ in range(n))
-        mattr = Ns_LCA_Counter.get_mattr(words, window_size=50)
+        mattr = NsLCACounter.get_mattr(words, window_size=50)
         self.assertGreater(mattr, 0)
         self.assertLessEqual(mattr, 1)
 
-        mattr = Ns_LCA_Counter.get_mattr([], window_size=50)
+        mattr = NsLCACounter.get_mattr([], window_size=50)
         self.assertEqual(mattr, 0)
 
-        mattr = Ns_LCA_Counter.get_mattr(words, window_size=n)
+        mattr = NsLCACounter.get_mattr(words, window_size=n)
         self.assertEqual(mattr, len(set(words)) / len(words))
-        mattr = Ns_LCA_Counter.get_mattr(words, window_size=n + 1)
+        mattr = NsLCACounter.get_mattr(words, window_size=n + 1)
         self.assertEqual(mattr, len(set(words)) / len(words))
 
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_mattr, words, window_size=0)
-        self.assertRaises(ValueError, Ns_LCA_Counter.get_mattr, words, window_size=-1)
+        self.assertRaises(ValueError, NsLCACounter.get_mattr, words, window_size=0)
+        self.assertRaises(ValueError, NsLCACounter.get_mattr, words, window_size=-1)
 
     def test_results(self):
         lempos_paths = glob.glob(f"{self.testdir_data_lempos}/*.lempos")
@@ -138,7 +138,7 @@ class TestLCACounter(BaseTmpl):
             with open(lempos_path, encoding="utf-8") as f:
                 lempos_tuples = [tuple(line.strip().split("_")) for line in f.readlines() if line.strip()]
                 lempos_tuples = [(tup[0].lower(), tup[1]) for tup in lempos_tuples]
-                c = Ns_LCA_Counter(file_path=lempos_path, tagset="ptb")
+                c = NsLCACounter(file_path=lempos_path, tagset="ptb")
                 c.determine_all_values(lempos_tuples)  # type: ignore
                 counters.append(c)
                 lempos_tuples_list.append(lempos_tuples)
@@ -162,15 +162,15 @@ class TestLCACounter(BaseTmpl):
                 assert False, "Found no corresponding expected result"
 
         # Test combination
-        c = Ns_LCA_Counter(tagset="ptb")
+        c = NsLCACounter(tagset="ptb")
         c.determine_all_values(
             lempos_tuples=tuple(t for lempos_tuples in lempos_tuples_list for t in lempos_tuples)  # type: ignore
         )
-        c_parent = Ns_LCA_Counter()
+        c_parent = NsLCACounter()
         for counter in counters:
             c_parent = c_parent + counter
 
-        for item in Ns_LCA_Counter.DEFAULT_MEASURES:
+        for item in NsLCACounter.DEFAULT_MEASURES:
             if item in ("NDW-ER50", "NDW-ES50"):
                 continue
             logging.info(f"Comparing {item}...")

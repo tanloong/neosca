@@ -2,29 +2,29 @@
 
 from PyQt5.QtWidgets import QGridLayout, QMainWindow, QWidget
 
-from ..ns_lca.ns_lca_counter import Ns_LCA_Counter
-from ..ns_threads import Ns_Worker_LCA_Generate_Table, create_thread
+from ..ns_lca.ns_lca_counter import NsLCACounter
+from ..ns_threads import NsWorkerLCAGenerateTable, create_thread
 from ..ns_utils import ns_find_main
-from .ns_buttons import Ns_PushButton
-from .ns_delegates import Ns_StyledItemDelegate_Matches
-from .ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from .ns_standarditemmodel import Ns_StandardItemModel
-from .ns_tableview import Ns_TableView
+from .ns_buttons import NsPushButton
+from .ns_delegates import NsStyledItemDelegateMatches
+from .ns_sortfilterproxymodel import NsSortFilterProxyModel
+from .ns_standarditemmodel import NsStandardItemModel
+from .ns_tableview import NsTableview
 
 
-class Ns_Widget_LCA(QWidget):
+class NsWidgetLCA(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.button_generate_table_lca = Ns_PushButton("Generate table", False)
-        self.button_export_table_lca = Ns_PushButton("Export table...", False)
-        self.button_export_matches_lca = Ns_PushButton("Export matches...", False)
-        self.button_clear_table_lca = Ns_PushButton("Clear table", False)
+        self.button_generate_table_lca = NsPushButton("Generate table", False)
+        self.button_export_table_lca = NsPushButton("Export table...", False)
+        self.button_export_matches_lca = NsPushButton("Export matches...", False)
+        self.button_clear_table_lca = NsPushButton("Clear table", False)
 
-        self.model_lca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_LCA_Counter.DEFAULT_MEASURES))
-        proxy_model_lca = Ns_SortFilterProxyModel(self, self.model_lca)
-        tableview_lca = Ns_TableView(self, model=proxy_model_lca)
-        tableview_lca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
+        self.model_lca = NsStandardItemModel(self, hor_labels=("File", *NsLCACounter.DEFAULT_MEASURES))
+        proxy_model_lca = NsSortFilterProxyModel(self, self.model_lca)
+        tableview_lca = NsTableview(self, model=proxy_model_lca)
+        tableview_lca.setItemDelegate(NsStyledItemDelegateMatches(self))
 
         # Bind
         self.button_generate_table_lca.clicked.connect(self.on_generate_table_lca)
@@ -69,6 +69,6 @@ class Ns_Widget_LCA(QWidget):
 
     def on_generate_table_lca(self) -> None:
         main: QMainWindow = ns_find_main(self)
-        worker = Ns_Worker_LCA_Generate_Table(main=main, model=self.model_lca)
+        worker = NsWorkerLCAGenerateTable(main=main, model=self.model_lca)
         self.thread_generate_table_lca = create_thread(main, worker)
         self.thread_generate_table_lca.start()

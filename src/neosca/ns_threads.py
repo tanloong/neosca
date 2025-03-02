@@ -6,16 +6,16 @@ from PyQt5.QtCore import QObject, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QMainWindow
 
-from .ns_lca.ns_lca import Ns_LCA
-from .ns_lca.ns_lca_counter import Ns_LCA_Counter
-from .ns_sca.ns_sca import Ns_SCA
-from .ns_sca.ns_sca_counter import Ns_SCA_Counter
-from .ns_settings.ns_settings import Ns_Settings
-from .ns_widgets.ns_dialogs import Ns_Dialog_Processing_With_Elapsed_Time, Ns_Dialog_TextEdit_Err
-from .ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from .ns_lca.ns_lca import NsLCA
+from .ns_lca.ns_lca_counter import NsLCACounter
+from .ns_sca.ns_sca import NsSCA
+from .ns_sca.ns_sca_counter import NsSCACounter
+from .ns_settings.ns_settings import NsSettings
+from .ns_widgets.ns_dialogs import NsDialogProcessingWithElapsedTime, NsDialogTextEditErr
+from .ns_widgets.ns_standarditemmodel import NsStandardItemModel
 
 
-class Ns_Worker(QObject):
+class NsWorker(QObject):
     finished = pyqtSignal()
 
     def __init__(self, *args, main, **kwargs) -> None:
@@ -26,8 +26,8 @@ class Ns_Worker(QObject):
         raise NotImplementedError()
 
 
-class Ns_Worker_SCA_Generate_Table(Ns_Worker):
-    def __init__(self, *args, main, model: Ns_StandardItemModel, **kwargs) -> None:
+class NsWorkerSCAGenerateTable(NsWorker):
+    def __init__(self, *args, main, model: NsStandardItemModel, **kwargs) -> None:
         super().__init__(*args, main=main, **kwargs)
         self.model = model
 
@@ -37,8 +37,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
 
         init_kwargs = {
             "selected_measures": None,
-            "is_cache": Ns_Settings.value("Miscellaneous/cache", type=bool),
-            "is_use_cache": Ns_Settings.value("Miscellaneous/use-cache", type=bool),
+            "is_cache": NsSettings.value("Miscellaneous/cache", type=bool),
+            "is_use_cache": NsSettings.value("Miscellaneous/use-cache", type=bool),
             "is_skip_parsing": False,
             "is_stdout": False,
             "is_save_values": False,
@@ -46,11 +46,11 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
             "config": None,
         }
 
-        sca_instance = Ns_SCA(**init_kwargs)
+        sca_instance = NsSCA(**init_kwargs)
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths, strict=False)):
             # TODO: add handling of --no-parse, --no-query, ...
-            counter: Ns_SCA_Counter = sca_instance.run_on_file_or_subfiles(file_path)
+            counter: NsSCACounter = sca_instance.run_on_file_or_subfiles(file_path)
 
             if has_trailing_rows:
                 has_trailing_rows = self.model.removeRows(rowno, self.model.rowCount() - rowno)
@@ -72,8 +72,8 @@ class Ns_Worker_SCA_Generate_Table(Ns_Worker):
         self.finished.emit()
 
 
-class Ns_Worker_LCA_Generate_Table(Ns_Worker):
-    def __init__(self, *args, main, model: Ns_StandardItemModel, **kwargs) -> None:
+class NsWorkerLCAGenerateTable(NsWorker):
+    def __init__(self, *args, main, model: NsStandardItemModel, **kwargs) -> None:
         super().__init__(*args, main=main, **kwargs)
         self.model = model
 
@@ -82,18 +82,18 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         file_paths: Generator[str, None, None] = self.main.table_file.yield_file_paths()
 
         init_kwargs = {
-            "wordlist": Ns_Settings.value("Lexical Complexity Analyzer/wordlist"),
-            "tagset": Ns_Settings.value("Lexical Complexity Analyzer/tagset"),
-            "is_cache": Ns_Settings.value("Miscellaneous/cache", type=bool),
-            "is_use_cache": Ns_Settings.value("Miscellaneous/use-cache", type=bool),
+            "wordlist": NsSettings.value("Lexical Complexity Analyzer/wordlist"),
+            "tagset": NsSettings.value("Lexical Complexity Analyzer/tagset"),
+            "is_cache": NsSettings.value("Miscellaneous/cache", type=bool),
+            "is_use_cache": NsSettings.value("Miscellaneous/use-cache", type=bool),
             "is_stdout": False,
             "is_save_values": False,
             "is_save_matches": False,
         }
-        lca_instance = Ns_LCA(**init_kwargs)
+        lca_instance = NsLCA(**init_kwargs)
         has_trailing_rows: bool = True
         for rowno, (file_name, file_path) in enumerate(zip(file_names, file_paths, strict=False)):
-            counter: Ns_LCA_Counter = lca_instance.run_on_file_or_subfiles(file_path)
+            counter: NsLCACounter = lca_instance.run_on_file_or_subfiles(file_path)
 
             if has_trailing_rows:
                 has_trailing_rows = self.model.removeRows(rowno, self.model.rowCount() - rowno)
@@ -114,10 +114,10 @@ class Ns_Worker_LCA_Generate_Table(Ns_Worker):
         self.finished.emit()
 
 
-class Ns_Thread(QThread):
+class NsThread(QThread):
     err_occurs = pyqtSignal(Exception)
 
-    def __init__(self, worker: Ns_Worker):
+    def __init__(self, worker: NsWorker):
         super().__init__()
         self.worker = worker
         # https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
@@ -138,12 +138,12 @@ class Ns_Thread(QThread):
     #     self.wait()
 
 
-def create_thread(main: QMainWindow, worker: Ns_Worker) -> Ns_Thread:
-    dialog = Ns_Dialog_Processing_With_Elapsed_Time(main)
+def create_thread(main: QMainWindow, worker: NsWorker) -> NsThread:
+    dialog = NsDialogProcessingWithElapsedTime(main)
 
-    thread = Ns_Thread(worker)
+    thread = NsThread(worker)
     thread.started.connect(dialog.open)
     thread.finished.connect(dialog.accept)
-    thread.err_occurs.connect(lambda ex: Ns_Dialog_TextEdit_Err(main, ex=ex).open())
+    thread.err_occurs.connect(lambda ex: NsDialogTextEditErr(main, ex=ex).open())
 
     return thread

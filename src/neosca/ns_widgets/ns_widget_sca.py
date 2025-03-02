@@ -2,29 +2,29 @@
 
 from PyQt5.QtWidgets import QGridLayout, QMainWindow, QWidget
 
-from ..ns_sca.ns_sca_counter import Ns_SCA_Counter
-from ..ns_threads import Ns_Worker_SCA_Generate_Table, create_thread
+from ..ns_sca.ns_sca_counter import NsSCACounter
+from ..ns_threads import NsWorkerSCAGenerateTable, create_thread
 from ..ns_utils import ns_find_main
-from .ns_buttons import Ns_PushButton
-from .ns_delegates import Ns_StyledItemDelegate_Matches
-from .ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from .ns_standarditemmodel import Ns_StandardItemModel
-from .ns_tableview import Ns_TableView
+from .ns_buttons import NsPushButton
+from .ns_delegates import NsStyledItemDelegateMatches
+from .ns_sortfilterproxymodel import NsSortFilterProxyModel
+from .ns_standarditemmodel import NsStandardItemModel
+from .ns_tableview import NsTableview
 
 
-class Ns_Widget_SCA(QWidget):
+class NsWidgetSCA(QWidget):
     def __init__(self, parent=None, *, with_button_pdb: bool = False):
         super().__init__(parent)
 
-        self.button_generate_table_sca = Ns_PushButton("Generate table", False)
-        self.button_export_table_sca = Ns_PushButton("Export table...", False)
-        self.button_export_matches_sca = Ns_PushButton("Export matches...", False)
-        self.button_clear_table_sca = Ns_PushButton("Clear table", False)
+        self.button_generate_table_sca = NsPushButton("Generate table", False)
+        self.button_export_table_sca = NsPushButton("Export table...", False)
+        self.button_export_matches_sca = NsPushButton("Export matches...", False)
+        self.button_clear_table_sca = NsPushButton("Clear table", False)
 
-        self.model_sca = Ns_StandardItemModel(self, hor_labels=("File", *Ns_SCA_Counter.DEFAULT_MEASURES))
-        proxy_model_sca = Ns_SortFilterProxyModel(self, self.model_sca)
-        tableview_sca = Ns_TableView(self, model=proxy_model_sca)
-        tableview_sca.setItemDelegate(Ns_StyledItemDelegate_Matches(self))
+        self.model_sca = NsStandardItemModel(self, hor_labels=("File", *NsSCACounter.DEFAULT_MEASURES))
+        proxy_model_sca = NsSortFilterProxyModel(self, self.model_sca)
+        tableview_sca = NsTableview(self, model=proxy_model_sca)
+        tableview_sca.setItemDelegate(NsStyledItemDelegateMatches(self))
 
         # Bind
         self.button_generate_table_sca.clicked.connect(self.on_generate_table_sca)
@@ -52,7 +52,7 @@ class Ns_Widget_SCA(QWidget):
         ):
             layout_sca.addWidget(btn, 1, btn_no)
         if with_button_pdb:
-            button_pdb = Ns_PushButton("Run Pdb")
+            button_pdb = NsPushButton("Run Pdb")
             button_pdb.clicked.connect(self.run_pdb)
             btn_no += 1
             layout_sca.addWidget(button_pdb, 1, btn_no)
@@ -92,6 +92,6 @@ class Ns_Widget_SCA(QWidget):
 
     def on_generate_table_sca(self) -> None:
         main: QMainWindow = ns_find_main(self)
-        worker = Ns_Worker_SCA_Generate_Table(main=main, model=self.model_sca)
+        worker = NsWorkerSCAGenerateTable(main=main, model=self.model_sca)
         self.thread_generate_table_sca = create_thread(main, worker)
         self.thread_generate_table_sca.start()

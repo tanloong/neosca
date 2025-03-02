@@ -6,7 +6,7 @@ from .ns_platform_info import IS_WINDOWS
 
 
 # https://github.com/gaogaotiantian/viztracer/blob/c83323b9656605c25ca31727530d633262a8eb5f/src/viztracer/util.py#L20
-class _bcolors:
+class _bcolors:  # noqa: N801
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"

@@ -76,11 +76,15 @@ select = [
     "SIM", # flake8-simplify
     "I", # isort
     "RUF", # ruff specific rules
+    "N", # pep8-naming
 ]
 ignore = [
     "E501",
     "B011",
     "UP038", # 'isinstance(x, int | float)' causes slower code
+    "N802", # function name should be lowercase
+    "N803", # Argument name `daughterTrees` should be lowercase
+    "N806", # Variable `headIdx` in function should be lowercase
 ]
 
 [tool.ruff.lint.flake8-type-checking]

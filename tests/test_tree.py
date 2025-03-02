@@ -94,9 +94,9 @@ class TestTree(BaseTmpl):
         tree = next(Tree.fromstring(self.tree_string))
         self.assertEqual(len(tree), len(tree.children))
 
-    def test_numChildren(self):
+    def test_num_children(self):
         tree = next(Tree.fromstring(self.tree_string))
-        self.assertEqual(tree.numChildren(), len(tree.children))
+        self.assertEqual(tree.num_children(), len(tree.children))
 
     def test_sister_index(self):
         tree = Tree()  # label=None, children=[], parent=None
@@ -109,12 +109,12 @@ class TestTree(BaseTmpl):
         tree_VP = tree_S.children.pop()
         self.assertEqual(-1, tree_VP.get_sister_index())
 
-    def test_isLeaf(self):
+    def test_is_leaf(self):
         tree = Tree()
-        self.assertTrue(tree.isLeaf())
+        self.assertTrue(tree.is_leaf())
 
         tree.children.append(Tree())
-        self.assertFalse(tree.isLeaf())
+        self.assertFalse(tree.is_leaf())
 
     def test_left_sisters(self):
         self.assertIsNone(self.t[0].left_sisters())
@@ -143,14 +143,14 @@ class TestTree(BaseTmpl):
     def test_root(self):
         child = self.t[0]
         grandchild = self.t[0, 0]
-        self.assertIs(child.getRoot(), self.t)
-        self.assertIs(grandchild.getRoot(), self.t)
+        self.assertIs(child.get_root(), self.t)
+        self.assertIs(grandchild.get_root(), self.t)
 
-    def test_preorder_iter(self):
+    def test_visit(self):
         # fmt: off
         expected = ["ROOT", "S", "NP", "EX", "There", "VP", "VBD", "was", "NP", "NP", "DT", "no", "NN", "possibility", "PP", "IN", "of", "S", "VP", "VBG", "taking", "NP", "DT", "a", "NN", "walk", "NP", "DT", "that", "NN", "day", ".", "."]
         # fmt: on
-        observed = [node.label for node in self.t.preorder_iter()]
+        observed = [node.label for node in self.t.visit()]
         self.assertListEqual(observed, expected)
 
     def test_get_terminal_labels(self):
@@ -166,9 +166,9 @@ class TestTree(BaseTmpl):
         self.assertListEqual(observed, expected)
 
     def test_get_leaves(self):
-        nodes = self.t.getLeaves()
+        nodes = self.t.get_leaves()
         for node in nodes:
-            self.assertTrue(node.isLeaf())
+            self.assertTrue(node.is_leaf())
 
     def test_height(self):
         t = Tree()
@@ -190,7 +190,7 @@ class TestTree(BaseTmpl):
         # Building deep tree
         t = next(Tree.fromstring(s))
         # Querying deep tree
-        t.getLeaves()
+        t.get_leaves()
         t.height()
         t.get_terminal_labels()
         t.get_tagged_terminal_labels()

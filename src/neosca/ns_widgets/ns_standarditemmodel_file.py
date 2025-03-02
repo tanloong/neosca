@@ -5,10 +5,10 @@ from typing import Any
 
 from PyQt5.QtCore import QModelIndex, Qt
 
-from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_standarditemmodel import NsStandardItemModel
 
 
-class Ns_StandardItemModel_File(Ns_StandardItemModel):
+class NsStandardItemModelFile(NsStandardItemModel):
     def __init__(self, main) -> None:
         super().__init__(main, hor_labels=("Name", "Path"), show_empty_row=True)
         self.data_cleared.connect(lambda: self.main.enable_button_generate_table(False))

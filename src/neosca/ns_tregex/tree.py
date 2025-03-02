@@ -1,7 +1,5 @@
 # translated from [CoreNLP](https://github.com/stanfordnlp/CoreNLP/blob/139893242878ecacde79b2ba1d0102b855526610/src/edu/stanford/nlp/trees/Tree.java)
 
-# TODO use camel case to match java tregex's convention
-
 import re
 from collections import deque
 from collections.abc import Generator, Iterator
@@ -9,7 +7,7 @@ from io import StringIO
 from itertools import chain as _chain
 from typing import TYPE_CHECKING, Optional
 
-from ..ns_tregex.peekable import peekable
+from ..ns_tregex.peekable import Peekable
 
 if TYPE_CHECKING:
     from .head_finder import HeadFinder
@@ -113,10 +111,10 @@ class Tree:
             return None
         return self.label.split("-")[0]
 
-    def isLeaf(self) -> bool:
+    def is_leaf(self) -> bool:
         return not self.children
 
-    def numChildren(self) -> int:
+    def num_children(self) -> int:
         return len(self.children)
 
     def is_unary_rewrite(self) -> bool:
@@ -126,13 +124,13 @@ class Tree:
 
         return Whether the node heads a unary rewrite
         """
-        return self.numChildren() == 1
+        return self.num_children() == 1
 
     def is_preterminal(self) -> bool:
         """
         A preterminal is defined to be a node with one child which is itself a leaf.
         """
-        return self.numChildren() == 1 and self.children[0].isLeaf()
+        return self.num_children() == 1 and self.children[0].is_leaf()
 
     def is_prepreterminal(self) -> bool:
         """
@@ -143,7 +141,7 @@ class Tree:
 
         return true if the node is a prepreterminal; false otherwise
         """
-        if self.numChildren() == 0:
+        if self.num_children() == 0:
             return False
         return all(child.is_preterminal() for child in self.children)
 
@@ -157,7 +155,7 @@ class Tree:
         return True if the node is phrasal; False otherwise
         """
         kids = self.children
-        return not (kids is None or len(kids) == 0 or (len(kids) == 1 and kids[0].isLeaf()))
+        return not (kids is None or len(kids) == 0 or (len(kids) == 1 and kids[0].is_leaf()))
 
     def is_binary(self) -> bool:
         """
@@ -165,14 +163,14 @@ class Tree:
         happens if the tree and all of its descendants are either nodes with
         exactly two children, or are preterminals or leaves.
         """
-        if self.isLeaf() or self.is_preterminal():
+        if self.is_leaf() or self.is_preterminal():
             return True
         kids = self.children
         if len(kids) != 2:
             return False
         return kids[0].is_binary() and kids[1].is_binary()
 
-    def firstChild(self) -> Optional["Tree"]:
+    def first_child(self) -> Optional["Tree"]:
         """
         Returns the first child of a tree, or None if none.
 
@@ -183,7 +181,7 @@ class Tree:
             return None
         return kids[0]
 
-    def lastChild(self) -> Optional["Tree"]:
+    def last_child(self) -> Optional["Tree"]:
         """
         Returns the last child of a tree, or None if none.
 
@@ -200,7 +198,7 @@ class Tree:
         is 1; the height of a tree containing only leaves is 2; and the height
         of any other tree is one plus the maximum of its children's heights.
         """
-        if self.isLeaf():
+        if self.is_leaf():
             return 1
 
         stack, ret = [self], 0
@@ -220,7 +218,7 @@ class Tree:
         param parent  The parent of this tree
         return The head tree leaf if any, else null
         """
-        if self.isLeaf():
+        if self.is_leaf():
             return self
 
         head: Tree | None = hf.determineHead(self)
@@ -237,7 +235,7 @@ class Tree:
 
         return a List of the data in the tree's leaves.
         """
-        return [leaf.label for leaf in self.getLeaves()]
+        return [leaf.label for leaf in self.get_leaves()]
 
     def get_tagged_terminal_labels(self, divider: str = "/") -> list[str]:
         """
@@ -253,12 +251,12 @@ class Tree:
         return a List of the data in the tree's leaves.
         """
         ret = []
-        for node in self.preorder_iter():
+        for node in self.visit():
             if node.is_preterminal():
-                ret.append(f"{node.firstChild().label}{divider}{node.label}")  # type: ignore
+                ret.append(f"{node.first_child().label}{divider}{node.label}")  # type: ignore
         return ret
 
-    def leftEdge(self) -> int:
+    def left_edge(self) -> int:
         """
         note: return 0 for the leftmost node
         """
@@ -268,36 +266,36 @@ class Tree:
             nonlocal i
             if t is t1:
                 return True
-            elif t1.isLeaf():
+            elif t1.is_leaf():
                 j = len(t1.get_terminal_labels())
                 i += j
                 return False
             else:
                 return any(left_edge_helper(t, kid) for kid in t1.children)
 
-        if left_edge_helper(self, self.getRoot()):
+        if left_edge_helper(self, self.get_root()):
             return i
         else:
             raise RuntimeError("Tree is not a descendant of root.")
 
-    def rightEdge(self) -> int:
+    def right_edge(self) -> int:
         """
         note: return 1 for the leftmost node
         """
-        i = len(self.getRoot().get_terminal_labels())
+        i = len(self.get_root().get_terminal_labels())
 
         def right_edge_helper(t: "Tree", t1: "Tree") -> bool:
             nonlocal i
             if t is t1:
                 return True
-            elif t1.isLeaf():
+            elif t1.is_leaf():
                 j = len(t1.get_terminal_labels())
                 i -= j
                 return False
             else:
                 return any(right_edge_helper(t, kid) for kid in reversed(t1.children))
 
-        if right_edge_helper(self, self.getRoot()):
+        if right_edge_helper(self, self.get_root()):
             return i
         else:
             raise RuntimeError("Tree is not a descendant of root.")
@@ -350,7 +348,7 @@ class Tree:
         stack_parent: deque[Tree] = deque()
         current_tree = None
 
-        token_g = peekable(token_re.findall(string))
+        token_g = Peekable(token_re.findall(string))
         while (token := next(token_g, None)) is not None:
             if token == OPEN_PAREN:
                 label = None if token_g.peek() == OPEN_PAREN else next(token_g, None)
@@ -399,73 +397,11 @@ class Tree:
             root.parent = None
         return root
 
-    def getRoot(self) -> "Tree":
+    def get_root(self) -> "Tree":
         root_ = self
         while root_.parent is not None:
             root_ = root_.parent
         return root_
-
-    def iter_upto_root(self) -> Generator["Tree", None, None]:
-        """
-        iterate up the tree from the current node to the root node.
-
-        borrowed from anytree:
-        https://github.com/c0fec0de/anytree/blob/27ff97eed4c09b4f0eb9ae61b45dd30b794a135c/anytree/node/nodemixin.py#L294
-        """
-        node = self
-        while node.parent is not None:
-            yield node
-            node = node.parent
-
-    @property
-    def path(self):
-        """
-        return a path of nodes from root node down to `self`
-
-        borrowed from anytree:
-        https://github.com/c0fec0de/anytree/blob/27ff97eed4c09b4f0eb9ae61b45dd30b794a135c/anytree/node/nodemixin.py#L277
-        """
-        # use "reversed" because pyright complains about using "sorted"
-        # convert to tuple to ensure unchangabel hereafter
-        return tuple(reversed(list(self.iter_upto_root())))
-
-    def walk_to(self, other: "Tree") -> tuple[tuple["Tree"], "Tree", tuple["Tree"]]:
-        """
-        walk from `start` node to `end` node.
-
-        returns (upwards, common, downwards):
-            `upwards` is a list of nodes to go upward to.
-            `common` the nearest sharing ancestor of `start` and `end`.
-            `downwards` is a list of nodes to go downward to.
-
-        modified from anytree:
-        https://github.com/c0fec0de/anytree/blob/27ff97eed4c09b4f0eb9ae61b45dd30b794a135c/anytree/walker.py#L8
-        """
-        path_start = self.path
-        path_end = other.path
-        if self.getRoot() is not other.getRoot():
-            raise ValueError("start and end are not part of the same tree.")
-
-        # common
-        common = tuple(
-            node_start
-            for node_start, node_end in zip(path_start, path_end, strict=False)
-            if node_start is node_end
-        )
-        assert common[0] is self.getRoot()
-        len_common = len(common)
-
-        # upwards
-        if self is common[-1]:
-            upwards: tuple[Tree] = tuple()  # type:ignore
-        else:
-            upwards: tuple[Tree] = tuple(reversed(path_start[len_common:]))  # type:ignore
-        # down
-        if other is common[-1]:
-            down: tuple[Tree] = tuple()  # type:ignore
-        else:
-            down: tuple[Tree] = path_end[len_common:]  # type:ignore
-        return upwards, common[-1], down
 
     def left_sisters(self) -> list | None:
         sister_index_ = self.get_sister_index()
@@ -486,7 +422,10 @@ class Tree:
     def tostring(self) -> str:
         return repr(self)
 
-    def preorder_iter(self) -> Generator["Tree", None, None]:
+    def visit(self) -> Generator["Tree", None, None]:
+        """
+        iterate in pre-order
+        """
         if not self:
             raise ValueError("Trying to iterate an empty tree")
 
@@ -494,10 +433,10 @@ class Tree:
         iterator: Iterator = iter(self.children)
         while (node := next(iterator, None)) is not None:
             yield node
-            if not node.isLeaf():
+            if not node.is_leaf():
                 iterator = _chain(node.children, iterator)
 
-    def getLeaves(self, lst: list | None = None) -> list["Tree"]:
+    def get_leaves(self, lst: list | None = None) -> list["Tree"]:
         """
         Gets the leaves of the tree.  All leaves nodes are returned as a list
         ordered by the natural left to right order of the tree.  None values,
@@ -505,32 +444,10 @@ class Tree:
 
         return a list of the leaves.
         """
-        return [node for node in self.preorder_iter() if node.isLeaf()]
+        return [node for node in self.visit() if node.is_leaf()]
 
     def span_string(self) -> str:
         """
         Return String of leaves spanned by this tree
         """
-        return " ".join(leaf.tostring() for leaf in self.getLeaves() if leaf is not None)
-
-    def get_num_edges(self):
-        """
-        Return total number of edges across all nodes
-        """
-        if self.isLeaf():
-            # print(f"{self.label=}\t1\t1")
-            return 1, 1
-
-        ns, weights = zip(*(kid.get_num_edges() for kid in self.children), strict=False)
-        descendant_n = sum(ns)
-        descendant_weight = max(weights)
-
-        if self.parent is None or self.parent.numChildren() == 1:
-            # print(f"{self.label=}\t{descendant_n=}\t{descendant_weight=}")
-            return descendant_n, descendant_weight
-
-        ret_weight = descendant_weight + 1
-        ret_n = descendant_n + ret_weight
-
-        # print(f"{self.label=}\t{ret_n=}\t{ret_weight=}")
-        return ret_n, ret_weight
+        return " ".join(leaf.tostring() for leaf in self.get_leaves() if leaf is not None)

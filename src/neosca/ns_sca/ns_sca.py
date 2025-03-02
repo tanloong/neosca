@@ -3,12 +3,12 @@
 import logging
 import sys
 
-from ..ns_io import Ns_IO
-from ..ns_sca.ns_sca_counter import Ns_SCA_Counter
+from ..ns_io import NsIO
+from ..ns_sca.ns_sca_counter import NsSCACounter
 from ..ns_utils import Ns_Procedure_Result
 
 
-class Ns_SCA:
+class NsSCA:
     def __init__(  # {{{
         self,
         ofile_freq: str = "result.csv",
@@ -40,9 +40,9 @@ class Ns_SCA:
         logging.debug("User defined snames: %s", self.user_snames)
 
         if selected_measures is not None:
-            Ns_SCA_Counter.check_undefined_measure(selected_measures, self.user_snames)
+            NsSCACounter.check_undefined_measure(selected_measures, self.user_snames)
 
-        self.counters: list[Ns_SCA_Counter] = []
+        self.counters: list[NsSCACounter] = []
 
     # }}}
     def load_user_config(self, config: str | None) -> tuple[dict, list[dict], set[str] | None]:  # {{{
@@ -51,9 +51,9 @@ class Ns_SCA:
         user_snames: set[str] | None = None
 
         if config is not None:
-            user_data = Ns_IO.load_json(config)
+            user_data = NsIO.load_json(config)
             user_structure_defs = user_data["structures"]
-            user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
+            user_snames = NsSCACounter.check_user_structure_def(user_structure_defs)
 
         return user_data, user_structure_defs, user_snames
 
@@ -62,10 +62,10 @@ class Ns_SCA:
         if self.is_skip_parsing:  # Assume input as parse trees
             return text
 
-        from ..ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import NsNLPStanza
 
-        forest = Ns_NLP_Stanza.get_constituency_forest(
-            Ns_NLP_Stanza.text2doc(text, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
+        forest = NsNLPStanza.get_constituency_forest(
+            NsNLPStanza.text2doc(text, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
         )
         return forest
 
@@ -73,12 +73,12 @@ class Ns_SCA:
     def get_forest_frm_file(self, file_path: str) -> str:  # {{{
         if self.is_skip_parsing:
             # Assume input as parse trees, e.g., (ROOT (S (NP) (VP)))
-            return Ns_IO.load_file(file_path)
+            return NsIO.load_file(file_path)
 
-        from ..ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import NsNLPStanza
 
-        return Ns_NLP_Stanza.get_constituency_forest(
-            Ns_NLP_Stanza.file2doc(
+        return NsNLPStanza.get_constituency_forest(
+            NsNLPStanza.file2doc(
                 file_path,
                 processors=("tokenize", "pos", "constituency"),
                 is_cache=self.is_cache,
@@ -92,7 +92,7 @@ class Ns_SCA:
             self.counters.clear()
 
         forest: str = self.get_forest_frm_text(text)
-        counter = Ns_SCA_Counter(
+        counter = NsSCACounter(
             file_path,
             selected_measures=self.selected_measures,
             user_structure_defs=self.user_structure_defs,
@@ -108,12 +108,12 @@ class Ns_SCA:
     # }}}
     def run_on_file_or_subfiles(  # {{{
         self, file_or_subfiles: str | list[str]
-    ) -> Ns_SCA_Counter:
+    ) -> NsSCACounter:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
             # Parse
             forest = self.get_forest_frm_file(file_path)
-            counter = Ns_SCA_Counter(
+            counter = NsSCACounter(
                 file_path,
                 selected_measures=self.selected_measures,
                 user_structure_defs=self.user_structure_defs,
@@ -123,7 +123,7 @@ class Ns_SCA:
         elif isinstance(file_or_subfiles, list):
             subfiles = file_or_subfiles
             total = len(subfiles)
-            counter = Ns_SCA_Counter(
+            counter = NsSCACounter(
                 selected_measures=self.selected_measures,
                 user_structure_defs=self.user_structure_defs,
             )
@@ -191,7 +191,7 @@ class Ns_SCA:
 
     @classmethod
     def list_fields(cls) -> Ns_Procedure_Result:
-        counter = Ns_SCA_Counter()
+        counter = NsSCACounter()
         for s_name in counter.selected_measures:
             print(f"{s_name}: {counter.get_structure(s_name).description}")
         return True, None

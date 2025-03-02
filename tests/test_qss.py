@@ -3,14 +3,14 @@
 from PyQt5.QtWidgets import QWidget
 
 from neosca.ns_consts import QSS_PATH
-from neosca.ns_qss import Ns_QSS
+from neosca.ns_qss import NsQSS
 
 from .base_tmpl import BaseTmpl
 
 
 class TestQSS(BaseTmpl):
     def test_str_to_mapping(self):
-        func = Ns_QSS.str_to_mapping
+        func = NsQSS.str_to_mapping
 
         # Every value be followed by a ";"
         mapping = {"font-size": "11pt;", "QTableView": {"color": "black;"}}
@@ -70,8 +70,8 @@ class TestQSS(BaseTmpl):
         )
 
     def test_mapping_to_str(self):
-        to_string = Ns_QSS.mapping_to_str
-        to_mapping = Ns_QSS.str_to_mapping
+        to_string = NsQSS.mapping_to_str
+        to_mapping = NsQSS.str_to_mapping
 
         self.assertEqual(to_string({"font-size": "11pt;"}), to_string(to_mapping("font-size: 11pt;")))
         self.assertEqual(to_string({"font-size": "11pt"}), to_string(to_mapping("font-size: 11pt;")))
@@ -90,18 +90,18 @@ class TestQSS(BaseTmpl):
                      QHeaderView::section:vertical { background-color: #737373; }
                      QHeaderView::section { color: #FFFFFF; font-weight: bold; }"""
         self.assertEqual(
-            Ns_QSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color"), "#5C88C5"
+            NsQSS.get_value(qss_str, "QHeaderView::section:horizontal", "background-color"), "#5C88C5"
         )
         self.assertEqual(
-            Ns_QSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
+            NsQSS.get_value(qss_str, "QHeaderView::section:vertical", "background-color"), "#737373"
         )
-        self.assertEqual(Ns_QSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
+        self.assertEqual(NsQSS.get_value(qss_str, "QHeaderView::section", "color"), "#FFFFFF")
 
     def test_set_value(self):
         w = QWidget()
-        qss = Ns_QSS.read_qss_file(QSS_PATH)
+        qss = NsQSS.read_qss_file(QSS_PATH)
         w.setStyleSheet(qss)
 
         font_size = 20
-        Ns_QSS.update(w, {"*": {"font-size": f"{font_size}pt;"}})
-        self.assertEqual(Ns_QSS.get_value(w.styleSheet(), "*", "font-size"), f"{font_size}pt")
+        NsQSS.update(w, {"*": {"font-size": f"{font_size}pt;"}})
+        self.assertEqual(NsQSS.get_value(w.styleSheet(), "*", "font-size"), f"{font_size}pt")

@@ -17,19 +17,20 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QWidget,
 )
+from typing_extensions import override
 
 from ..ns_singleton import QSingleton
 
 
 # https://github.com/BLKSerene/Wordless/blob/fa743bcc2a366ec7a625edc4ed6cfc355b7cd22e/wordless/wl_widgets/wl_layouts.py#L108
-class Ns_ScrollArea(QScrollArea):
+class NsScrollArea(QScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWidgetResizable(True)
         self.setBackgroundRole(QPalette.ColorRole.Light)
 
 
-class Ns_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
+class NsFileSystemModel(QFileSystemModel, metaclass=QSingleton):
     def __init__(self, parent=None):
         super().__init__(parent)
         # > Do not add file watchers to the paths. This reduces overhead when using the
@@ -45,9 +46,9 @@ class Ns_FileSystemModel(QFileSystemModel, metaclass=QSingleton):
             self.has_set_root = True
 
 
-class Ns_LineEdit(QLineEdit):
+class NsLineEdit(QLineEdit):
     """This class emits the custom "focused" signal and is specifically used
-    in Ns_LineEdit_Path to tell Ns_FileSystemModel to start querying. The
+    in NsLineEditPath to tell NsFileSystemModel to start querying. The
     querying should only start at the first emit and all subsequent emits are
     ignored. We prefer the custom "focused" signal over the built-in
     "textEdited" because it has much less frequent emits."""
@@ -57,23 +58,23 @@ class Ns_LineEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    # Override
+    @override
     def focusInEvent(self, e: QFocusEvent):
         super().focusInEvent(e)
         self.focused.emit()
 
 
-class Ns_LineEdit_Path(QWidget):
+class NsLineEditPath(QWidget):
     # https://stackoverflow.com/a/20796318/20732031
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        filesystem_model = Ns_FileSystemModel()
+        filesystem_model = NsFileSystemModel()
         completer_lineedit_files = QCompleter()
         completer_lineedit_files.setModel(filesystem_model)
         completer_lineedit_files.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
         completer_lineedit_files.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.lineedit = Ns_LineEdit()
+        self.lineedit = NsLineEdit()
         self.lineedit.focused.connect(filesystem_model.start_querying)
         self.lineedit.setCompleter(completer_lineedit_files)
         self.lineedit.setClearButtonEnabled(True)
@@ -100,7 +101,6 @@ class Ns_LineEdit_Path(QWidget):
             return
         self.lineedit.setText(folder_path)
 
-    # Override
     def setFocus(self) -> None:
         self.lineedit.setFocus()
 
@@ -108,7 +108,7 @@ class Ns_LineEdit_Path(QWidget):
         self.lineedit.selectAll()
 
 
-class Ns_Combobox_Editable(QComboBox):
+class NsComboboxEditable(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         # https://stackoverflow.com/questions/45393507/pyqt4-avoid-adding-the-items-to-the-qcombobox
@@ -116,14 +116,14 @@ class Ns_Combobox_Editable(QComboBox):
         self.setEditable(True)
 
 
-class Ns_Combobox_Font(QFontComboBox):
+class NsComboboxFont(QFontComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
 
 
-class Ns_MessageBox_Question(QMessageBox):
-    """Use Ns_MessageBox_Question.exec() == QMessageBox.StandardButton.Yes"""
+class NsMessageboxQuestion(QMessageBox):
+    """Use NsMessageboxQuestion.exec() == QMessageBox.StandardButton.Yes"""
 
     def __init__(
         self,
@@ -142,7 +142,7 @@ class Ns_MessageBox_Question(QMessageBox):
             self.setCheckBox(checkbox)
 
 
-class Ns_TextEdit_ReadOnly(QTextEdit):
+class NsTexteditReadonly(QTextEdit):
     def __init__(self, *, text: str = "", parent=None):
         super().__init__(text, parent)
         self.setReadOnly(True)

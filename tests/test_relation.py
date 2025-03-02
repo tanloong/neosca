@@ -15,7 +15,7 @@ class TestRelation(BaseTmpl):
         return super().setUp()
 
     def test_dominates(self):
-        nodes = self.compare_search_with_satisfies(self.t, rel.DOMINATES)
+        nodes = self.compare_search_with_satisfies(self.t, rel.Dominates)
         observed = [node.label for node in nodes]
         # fmt: off
         expected = ["S", "NP", "EX", "There", "VP", "VBD", "was", "NP", "NP", "DT", "no", "NN", "possibility", "PP", "IN", "of", "S", "VP", "VBG", "taking", "NP", "DT", "a", "NN", "walk", "NP", "DT", "that", "NN", "day", ".", "."]
@@ -23,7 +23,7 @@ class TestRelation(BaseTmpl):
         self.assertListEqual(observed, expected)
 
     def test_ancestor_of_leaf(self):
-        nodes = self.compare_search_with_satisfies(self.t, rel.ANCESTOR_OF_LEAF)
+        nodes = self.compare_search_with_satisfies(self.t, rel.AncestorOfLeaf)
         observed = [node.label for node in nodes]
         # fmt: off
         expected = ["There", "was", "no", "possibility", "of", "taking", "a", "walk", "that", "day", "."]
@@ -31,7 +31,7 @@ class TestRelation(BaseTmpl):
         self.assertListEqual(observed, expected)
 
     def compare_search_with_satisfies(self, t: Tree, cls_) -> list[Tree]:
-        nodes = list(cls_.searchNodeIterator(t))
+        nodes = list(cls_.search_node_iterator(t))
         for node in nodes:
             self.assertTrue(cls_.satisfies(t, node))
         return nodes

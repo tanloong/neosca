@@ -37,7 +37,7 @@ class BaseTmpl(TestCase):
         logging.info(f"{self.id()} finish")
         gc.collect()
 
-    def assertFileExists(self, path, timeout=None, msg=None):
+    def assert_file_exists(self, path, timeout=None, msg=None):
         err_msg = f"file {path} does not exist!"
         if msg is not None:
             err_msg = f"file {path} does not exist! {msg}"
@@ -54,11 +54,11 @@ class BaseTmpl(TestCase):
                 else:
                     time.sleep(0.5)
 
-    def assertFileNotExist(self, path):
+    def assert_file_not_exist(self, path):
         if os_path.exists(path):
             raise AssertionError(f"file {path} does exist!")
 
-    def assertTrueTimeout(self, func, timeout):
+    def assert_true_timeout(self, func, timeout):
         start = time.time()
         while True:
             try:

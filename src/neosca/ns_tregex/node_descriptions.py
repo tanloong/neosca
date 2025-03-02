@@ -10,7 +10,7 @@ from typing_extensions import override
 from ..ns_tregex.tree import Tree
 
 
-class Named_Nodes:
+class NamedNodes:
     def __init__(self, name: str | None, nodes: list[Tree] | None, strins_repr: str = "") -> None:
         self.name = name
         self.nodes = nodes
@@ -23,15 +23,15 @@ class Named_Nodes:
         self.nodes = new_nodes
 
 
-class Node_Description(NamedTuple):
-    op: "Node_Op"
+class NodeDescription(NamedTuple):
+    op: "NodeOp"
     value: str
 
 
-class Node_Descriptions:
+class NodeDescriptions:
     def __init__(
         self,
-        node_descriptions: list[Node_Description],
+        node_descriptions: list[NodeDescription],
         *,
         is_negated: bool = False,
         use_basic_cat: bool = False,
@@ -43,7 +43,7 @@ class Node_Descriptions:
         self.name: str | None = None
         self.strins_repr = "".join(desc.value for desc in self.descriptions)
 
-    def __iter__(self) -> Iterator[Node_Description]:
+    def __iter__(self) -> Iterator[NodeDescription]:
         return iter(self.descriptions)
 
     def __repr__(self) -> str:
@@ -58,7 +58,7 @@ class Node_Descriptions:
     def set_strins_repr(self, s: str):
         self.strins_repr = s
 
-    def add_description(self, other_description: Node_Description) -> None:
+    def add_description(self, other_description: NodeDescription) -> None:
         self.descriptions.append(other_description)
 
     def toggle_negated(self) -> None:
@@ -73,13 +73,13 @@ class Node_Descriptions:
                 return True
         return False
 
-    def searchNodeIterator(self, t: Tree) -> Generator[Tree, None, None]:
-        for node in t.preorder_iter():
+    def search_node_iterator(self, t: Tree) -> Generator[Tree, None, None]:
+        for node in t.visit():
             if self.satisfy(node):
                 yield node
 
 
-class Node_Op(ABC):
+class NodeOp(ABC):
     @classmethod
     @abstractmethod
     def satisfies(
@@ -107,7 +107,7 @@ class Node_Op(ABC):
         )
 
 
-class Node_Text(Node_Op):
+class NodeText(NodeOp):
     @classmethod
     @override
     def satisfies(
@@ -122,7 +122,7 @@ class Node_Text(Node_Op):
             return (value == expect) != is_negated
 
 
-class Node_Regex(Node_Op):
+class NodeRegex(NodeOp):
     @classmethod
     @override
     def satisfies(
@@ -158,7 +158,7 @@ class Node_Regex(Node_Op):
             return (re.search(value, expect) is not None) != is_negated
 
 
-class Node_Any(Node_Op):
+class NodeAny(NodeOp):
     @classmethod
     @override
     def satisfies(
@@ -172,7 +172,7 @@ class Node_Any(Node_Op):
         return not is_negated
 
 
-class Node_Root(Node_Op):
+class NodeRoot(NodeOp):
     @classmethod
     @override
     def satisfies(

@@ -13,13 +13,13 @@ from PyQt5.QtWidgets import (
     QSpinBox,
 )
 
-from ..ns_qss import Ns_QSS
-from ..ns_settings.ns_settings import Ns_Settings
-from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
-from ..ns_widgets.ns_widgets import Ns_Combobox_Font
+from ..ns_qss import NsQSS
+from ..ns_settings.ns_settings import NsSettings
+from ..ns_settings.ns_widget_settings_abstract import NsWidgetSettingsAbstract
+from ..ns_widgets.ns_widgets import NsComboboxFont
 
 
-class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
+class NsWidgetSettingsAppearance(NsWidgetSettingsAbstract):
     name: str = "Appearance"
 
     def __init__(self, main):
@@ -43,7 +43,7 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
 
     def setup_font(self) -> None:
         self.database = QFontDatabase()
-        self.combobox_family = Ns_Combobox_Font()
+        self.combobox_family = NsComboboxFont()
         self.spinbox_point_size = QSpinBox()
         self.spinbox_point_size.setSuffix(" pt")
         self.checkbox_italic = QCheckBox("Italic")
@@ -94,24 +94,24 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
 
     def load_settings_scaling(self) -> None:
         key = f"{self.name}/scaling"
-        self.combobox_scaling.setCurrentText(Ns_Settings.value(key))
+        self.combobox_scaling.setCurrentText(NsSettings.value(key))
 
     def load_settings_font(self) -> None:
-        family = Ns_Settings.value(f"{self.name}/font-family")
+        family = NsSettings.value(f"{self.name}/font-family")
         self.combobox_family.setCurrentText(family)
         # If previously set font doesn't has italic or bold style, disable the according checkbox
         self.set_italic_bold_enabled(family)
-        self.checkbox_italic.setChecked(Ns_Settings.value(f"{self.name}/font-italic", type=bool))
-        self.checkbox_bold.setChecked(Ns_Settings.value(f"{self.name}/font-bold", type=bool))
+        self.checkbox_italic.setChecked(NsSettings.value(f"{self.name}/font-italic", type=bool))
+        self.checkbox_bold.setChecked(NsSettings.value(f"{self.name}/font-bold", type=bool))
         self.spinbox_point_size.setRange(
-            Ns_Settings.value(f"{self.name}/font-size-min", type=int),
-            Ns_Settings.value(f"{self.name}/font-size-max", type=int),
+            NsSettings.value(f"{self.name}/font-size-min", type=int),
+            NsSettings.value(f"{self.name}/font-size-max", type=int),
         )
-        self.spinbox_point_size.setValue(Ns_Settings.value(f"{self.name}/font-size", type=int))
+        self.spinbox_point_size.setValue(NsSettings.value(f"{self.name}/font-size", type=int))
 
     def load_settings_tables(self) -> None:
         key = f"{self.name}/triangle-height-ratio"
-        self.doublespinbox_triangle_height_ratio.setValue(Ns_Settings.value(key, type=float))
+        self.doublespinbox_triangle_height_ratio.setValue(NsSettings.value(key, type=float))
 
     def verify_settings(self) -> bool:
         return self.verify_settings_scaling() and self.verify_settings_font() and self.verify_settings_tables()
@@ -158,26 +158,26 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
 
     def apply_settings_scaling(self) -> None:
         key = f"{self.name}/scaling"
-        Ns_Settings.setValue(key, self.combobox_scaling.currentText())
+        NsSettings.setValue(key, self.combobox_scaling.currentText())
 
     def apply_settings_font(self) -> None:
         key = f"{self.name}/font-family"
         family = self.combobox_family.currentText()
-        Ns_Settings.setValue(key, family)
+        NsSettings.setValue(key, family)
 
         key = f"{self.name}/font-size"
         size = self.spinbox_point_size.value()
-        Ns_Settings.setValue(key, size)
+        NsSettings.setValue(key, size)
 
         key = f"{self.name}/font-italic"
         is_italic = self.checkbox_italic.isChecked()
-        Ns_Settings.setValue(key, is_italic)
+        NsSettings.setValue(key, is_italic)
 
         key = f"{self.name}/font-bold"
         is_bold = self.checkbox_bold.isChecked()
-        Ns_Settings.setValue(key, is_bold)
+        NsSettings.setValue(key, is_bold)
 
-        Ns_QSS.update(
+        NsQSS.update(
             self.main,
             {
                 "*": {
@@ -192,4 +192,4 @@ class Ns_Widget_Settings_Appearance(Ns_Widget_Settings_Abstract):
     def apply_settings_table(self) -> None:
         key = f"{self.name}/triangle-height-ratio"
         ratio = self.doublespinbox_triangle_height_ratio.value()
-        Ns_Settings.setValue(key, ratio)
+        NsSettings.setValue(key, ratio)

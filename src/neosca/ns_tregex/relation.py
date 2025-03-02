@@ -11,7 +11,7 @@ from ..ns_tregex.collins_head_finder import CollinsHeadFinder
 
 if TYPE_CHECKING:
     from ..ns_tregex.head_finder import HeadFinder
-    from ..ns_tregex.node_descriptions import Node_Descriptions
+    from ..ns_tregex.node_descriptions import NodeDescriptions
     from ..ns_tregex.tree import Tree
 
 # reference: https://nlp.stanford.edu/nlp/javadoc/javanlp-3.5.0/edu/stanford/nlp/trees/tregex/TregexPattern.html
@@ -31,11 +31,11 @@ class Relation(ABC):
 
     @classmethod
     @abstractmethod
-    def searchNodeIterator(cls, *args, **kwargs) -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, *args, **kwargs) -> Generator["Tree", None, None]:
         raise NotImplementedError
 
 
-class DOMINATES(Relation):
+class Dominates(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -51,30 +51,30 @@ class DOMINATES(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         iterator = iter(t.children)
         while (node := next(iterator, None)) is not None:
             yield node
-            if not node.isLeaf():
+            if not node.is_leaf():
                 iterator = _chain(node.children, iterator)
 
 
-class DOMINATED_BY(Relation):
+class DominatedBy(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return DOMINATES.satisfies(t2, t1)
+        return Dominates.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         while parent_ is not None:
             yield parent_
             parent_ = parent_.parent
 
 
-class ONLY_CHILD_OF(Relation):
+class OnlyChildOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -83,26 +83,26 @@ class ONLY_CHILD_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
-        if parent_ is not None and parent_.numChildren() == 1:
+        if parent_ is not None and parent_.num_children() == 1:
             yield parent_
 
 
-class HAS_ONLY_CHILD(Relation):
+class HasOnlyChild(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return ONLY_CHILD_OF.satisfies(t2, t1)
+        return OnlyChildOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        if not t.isLeaf() and t.numChildren() == 1:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        if not t.is_leaf() and t.num_children() == 1:
             yield t.children[0]
 
 
-class LAST_CHILD_OF_PARENT(Relation):
+class LastChildOfParent(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -111,27 +111,27 @@ class LAST_CHILD_OF_PARENT(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
-        if parent_ is not None and parent_.lastChild() is t:
+        if parent_ is not None and parent_.last_child() is t:
             yield parent_
 
 
-class PARENT_OF_LAST_CHILD(Relation):
+class ParentOfLastChild(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return LAST_CHILD_OF_PARENT.satisfies(t2, t1)
+        return LastChildOfParent.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid = t.lastChild()
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        kid = t.last_child()
         if kid is not None:
             yield kid
 
 
-class LEFTMOST_CHILD_OF(Relation):
+class LeftmostChildOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -140,97 +140,97 @@ class LEFTMOST_CHILD_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
-        if parent_ is not None and parent_.firstChild() is t:
+        if parent_ is not None and parent_.first_child() is t:
             yield parent_
 
 
-class HAS_LEFTMOST_CHILD(Relation):
+class HasLeftmostChild(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return LEFTMOST_CHILD_OF.satisfies(t2, t1)
+        return LeftmostChildOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid = t.firstChild()
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        kid = t.first_child()
         if kid is not None:
             yield kid
 
 
-class HAS_RIGHTMOST_DESCENDANT(Relation):
+class HasRightmostDescendant(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        if t1.isLeaf():
+        if t1.is_leaf():
             return False
         lastChild = t1.children[-1]
-        return lastChild is t2 or HAS_RIGHTMOST_DESCENDANT.satisfies(lastChild, t2)
+        return lastChild is t2 or HasRightmostDescendant.satisfies(lastChild, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid = t.lastChild()
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        kid = t.last_child()
         while kid is not None:
             yield kid
-            kid = kid.lastChild()
+            kid = kid.last_child()
 
 
-class RIGHTMOST_DESCENDANT_OF(Relation):
+class RightmostDescendantOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return HAS_RIGHTMOST_DESCENDANT.satisfies(t2, t1)
+        return HasRightmostDescendant.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         current = t
         parent_ = t.parent
-        while parent_ is not None and parent_.lastChild() is current:
+        while parent_ is not None and parent_.last_child() is current:
             yield parent_
             current = parent_
             parent_ = parent_.parent
 
 
-class HAS_LEFTMOST_DESCENDANT(Relation):
+class HasLeftmostDescendant(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        if t1.isLeaf():
+        if t1.is_leaf():
             return False
         first_child = t1.children[0]
-        return first_child is t2 or HAS_LEFTMOST_DESCENDANT.satisfies(first_child, t2)
+        return first_child is t2 or HasLeftmostDescendant.satisfies(first_child, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        kid: Tree | None = t.firstChild()
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        kid: Tree | None = t.first_child()
         while kid is not None:
             yield kid
-            kid = kid.firstChild()
+            kid = kid.first_child()
 
 
-class LEFTMOST_DESCENDANT_OF(Relation):
+class LeftmostDescendantOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return HAS_LEFTMOST_DESCENDANT.satisfies(t2, t1)
+        return HasLeftmostDescendant.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         current = t
         parent_ = t.parent
-        while parent_ is not None and parent_.firstChild() is current:
+        while parent_ is not None and parent_.first_child() is current:
             yield parent_
             current = parent_
             parent_ = parent_.parent
 
 
-class LEFT_SISTER_OF(Relation):
+class LeftSisterOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -248,7 +248,7 @@ class LEFT_SISTER_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             for child in reversed(parent_.children):
@@ -258,15 +258,15 @@ class LEFT_SISTER_OF(Relation):
                 yield child
 
 
-class RIGHT_SISTER_OF(Relation):
+class RightSisterOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return LEFT_SISTER_OF.satisfies(t2, t1)
+        return LeftSisterOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             for child in parent_.children:
@@ -275,7 +275,7 @@ class RIGHT_SISTER_OF(Relation):
                 yield child
 
 
-class IMMEDIATE_LEFT_SISTER_OF(Relation):
+class ImmediateLeftSisterOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -293,25 +293,25 @@ class IMMEDIATE_LEFT_SISTER_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             for i, child in enumerate(parent_.children):  # noqa: B007
                 if child is t:
                     break
-            if i + 1 < parent_.numChildren():  # type:ignore
+            if i + 1 < parent_.num_children():  # type:ignore
                 yield parent_.children[i + 1]  # type:ignore
 
 
-class IMMEDIATE_RIGHT_SISTER_OF(Relation):
+class ImmediateRightSisterOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return IMMEDIATE_LEFT_SISTER_OF.satisfies(t2, t1)
+        return ImmediateLeftSisterOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             for i, child in enumerate(parent_.children):  # noqa: B007
@@ -321,7 +321,7 @@ class IMMEDIATE_RIGHT_SISTER_OF(Relation):
                 yield parent_.children[i - 1]  # type:ignore
 
 
-class PARENT_OF(Relation):
+class ParentOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -329,36 +329,36 @@ class PARENT_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         yield from t.children
 
 
-class CHILD_OF(Relation):
+class ChildOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return PARENT_OF.satisfies(t2, t1)
+        return ParentOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             yield parent_
 
 
-class SISTER_OF(Relation):
+class SisterOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
         if t1 is t2 or t1.parent is None:
             return False
         parent_ = t1.parent
-        return PARENT_OF.satisfies(parent_, t2)
+        return ParentOf.satisfies(parent_, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
         if parent_ is not None:
             for sister in parent_.children:
@@ -375,58 +375,58 @@ class EQUALS(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         yield t
 
 
-class PARENT_EQUALS(Relation):
+class ParentEquals(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
         if t1 is t2:
             return True
-        return PARENT_OF.satisfies(t1, t2)
+        return ParentOf.satisfies(t1, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         yield t
         yield from t.children
 
 
-class UNARY_PATH_ANCESTOR_OF(Relation):
+class UnaryPathAncestorOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        if t1.isLeaf() or t1.numChildren() > 1:
+        if t1.is_leaf() or t1.num_children() > 1:
             return False
         only_child = t1.children[0]
         if only_child is t2:
             return True
         else:
-            return UNARY_PATH_ANCESTOR_OF.satisfies(only_child, t2)
+            return UnaryPathAncestorOf.satisfies(only_child, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         next = t
-        while next.numChildren() == 1:
+        while next.num_children() == 1:
             kid = next.children[0]
             yield kid
             next = kid
 
 
-class UNARY_PATH_DESCEDANT_OF(Relation):
+class UnaryPathDescedantOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return UNARY_PATH_ANCESTOR_OF.satisfies(t2, t1)
+        return UnaryPathAncestorOf.satisfies(t2, t1)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         parent_ = t.parent
-        while parent_ is not None and parent_.numChildren() == 1:
+        while parent_ is not None and parent_.num_children() == 1:
             yield parent_
             parent_ = parent_.parent
 
@@ -437,10 +437,10 @@ class HEADS(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree", headFinder: Optional["HeadFinder"] = None) -> bool:
-        if t2.isLeaf():
+        if t2.is_leaf():
             return False
         elif t2.is_preterminal():
-            return t2.firstChild() is t1
+            return t2.first_child() is t1
         else:
             if headFinder is None:
                 headFinder = cls.hf
@@ -454,7 +454,7 @@ class HEADS(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(
+    def search_node_iterator(
         cls, t: "Tree", headFinder: Optional["HeadFinder"] = None
     ) -> Generator["Tree", None, None]:
         if headFinder is None:
@@ -465,7 +465,7 @@ class HEADS(Relation):
             parent_ = parent_.parent
 
 
-class HEADED_BY(Relation):
+class HeadedBy(Relation):
     hf = CollinsHeadFinder()
 
     @classmethod
@@ -475,19 +475,19 @@ class HEADED_BY(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(
+    def search_node_iterator(
         cls, t: "Tree", headFinder: Optional["HeadFinder"] = None
     ) -> Generator["Tree", None, None]:
         if headFinder is None:
             headFinder = cls.hf
-        if not t.isLeaf():
+        if not t.is_leaf():
             head = headFinder.determineHead(t)
             while head is not None:
                 yield head
                 head = headFinder.determineHead(head)
 
 
-class IMMEDIATELY_HEADS(Relation):
+class ImmediatelyHeads(Relation):
     hf = CollinsHeadFinder()
 
     @classmethod
@@ -499,7 +499,7 @@ class IMMEDIATELY_HEADS(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(
+    def search_node_iterator(
         cls, t: "Tree", headFinder: Optional["HeadFinder"] = None
     ) -> Generator["Tree", None, None]:
         parent_ = t.parent
@@ -510,20 +510,20 @@ class IMMEDIATELY_HEADS(Relation):
                 yield parent_
 
 
-class IMMEDIATELY_HEADED_BY(Relation):
+class ImmediatelyHeadedBy(Relation):
     hf = CollinsHeadFinder()
 
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree", headFinder: Optional["HeadFinder"] = None) -> bool:
-        return IMMEDIATELY_HEADS.satisfies(t2, t1, headFinder)
+        return ImmediatelyHeads.satisfies(t2, t1, headFinder)
 
     @classmethod
     @override
-    def searchNodeIterator(
+    def search_node_iterator(
         cls, t: "Tree", headFinder: Optional["HeadFinder"] = None
     ) -> Generator["Tree", None, None]:
-        if t.isLeaf():
+        if t.is_leaf():
             return
         if headFinder is None:
             headFinder = cls.hf
@@ -536,11 +536,11 @@ class PRECEDES(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return t1.rightEdge() <= t2.leftEdge()
+        return t1.right_edge() <= t2.left_edge()
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         searchStack: list[Tree] = []
         current: Tree | None = t
         parent_: Tree | None = t.parent
@@ -557,15 +557,15 @@ class PRECEDES(Relation):
             searchStack.extend(reversed(next.children))
 
 
-class IMMEDIATELY_PRECEDES(Relation):
+class ImmediatelyPrecedes(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return t1.rightEdge() == t2.leftEdge()
+        return t1.right_edge() == t2.left_edge()
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         current: Tree | None = None
         parent_: Tree | None = t
         while True:
@@ -573,7 +573,7 @@ class IMMEDIATELY_PRECEDES(Relation):
             parent_ = parent_.parent  # type: ignore
             if parent_ is None:
                 return
-            if parent_.lastChild() is not current:
+            if parent_.last_child() is not current:
                 break
         for i, kid in enumerate(parent_.children):  # noqa: B007
             if kid is current:
@@ -582,20 +582,20 @@ class IMMEDIATELY_PRECEDES(Relation):
         next = parent_.children[i + 1]  # type:ignore
         while True:
             yield next  # type:ignore
-            if next.isLeaf():  # type:ignore
+            if next.is_leaf():  # type:ignore
                 break
-            next = next.firstChild()  # type:ignore
+            next = next.first_child()  # type:ignore
 
 
 class FOLLOWS(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return t2.rightEdge() <= t1.leftEdge()
+        return t2.right_edge() <= t1.left_edge()
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         searchStack: list[Tree] = []
         current: Tree | None = t
         parent_: Tree | None = t.parent
@@ -612,15 +612,15 @@ class FOLLOWS(Relation):
             searchStack.extend(reversed(next.children))
 
 
-class IMMEDIATELY_FOLLOWS(Relation):
+class ImmediatelyFollows(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return t2.rightEdge() == t1.leftEdge()
+        return t2.right_edge() == t1.left_edge()
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         current: Tree | None = None
         parent_: Tree | None = t
         while True:
@@ -628,7 +628,7 @@ class IMMEDIATELY_FOLLOWS(Relation):
             parent_ = parent_.parent  # type: ignore
             if parent_ is None:
                 return
-            if parent_.firstChild() is not current:
+            if parent_.first_child() is not current:
                 break
         for i, kid in enumerate(parent_.children):  # noqa: B007
             if kid is current:
@@ -637,44 +637,44 @@ class IMMEDIATELY_FOLLOWS(Relation):
         next = parent_.children[i - 1]  # type:ignore
         while True:
             yield next  # type:ignore
-            if next.isLeaf():  # type:ignore
+            if next.is_leaf():  # type:ignore
                 break
-            next = next.lastChild()  # type:ignore
+            next = next.last_child()  # type:ignore
 
 
-class ANCESTOR_OF_LEAF(Relation):
+class AncestorOfLeaf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
-        return t1 is not t2 and t2.isLeaf() and DOMINATES.satisfies(t1, t2)
+        return t1 is not t2 and t2.is_leaf() and Dominates.satisfies(t1, t2)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
         iterator = iter(t.children)
         while (node := next(iterator, None)) is not None:
-            if node.isLeaf():
+            if node.is_leaf():
                 yield node
             else:
                 iterator = _chain(node.children, iterator)
 
 
-class UNBROKEN_CATEGORY_DOMINATES(Relation):
+class UnbrokenCategoryDominates(Relation):
     @classmethod
     @override
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
         # TODO passing in rel_arg is expansive, may be passing in node_descriptions is better?
         for kid in t1.children:
             if kid is t2:
                 return True
             else:
-                if descs.satisfy(kid) and UNBROKEN_CATEGORY_DOMINATES.satisfies(kid, t2, descs):
+                if descs.satisfy(kid) and UnbrokenCategoryDominates.satisfies(kid, t2, descs):
                     return True
         return False
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
         # TODO might need to implement a TregexMatcher class like java tregex
         # https://github.com/stanfordnlp/CoreNLP/blob/f8838d2639589f684cbaa58964cb29db5f23df7f/src/edu/stanford/nlp/trees/tregex/Relation.java#L1525
         iterator = iter(t.children)
@@ -686,15 +686,15 @@ class UNBROKEN_CATEGORY_DOMINATES(Relation):
                 iterator = _chain(node.children, iterator)
 
 
-class UNBROKEN_CATEGORY_IS_DOMINATED_BY(Relation):
+class UnbrokenCategoryIsDominatedBy(Relation):
     @classmethod
     @override
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
-        return UNBROKEN_CATEGORY_DOMINATES.satisfies(t2, t1, descs)
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+        return UnbrokenCategoryDominates.satisfies(t2, t1, descs)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
         parent_ = t.parent
         while True:
             if parent_ is None:
@@ -705,21 +705,21 @@ class UNBROKEN_CATEGORY_IS_DOMINATED_BY(Relation):
             parent_ = parent_.parent
 
 
-class UNBROKEN_CATEGORY_PRECEDES(Relation):
+class UnbrokenCategoryPrecedes(Relation):
     @classmethod
     @override
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
         parent_ = t1.parent
         if parent_ is None:  # if t1 is root
             return False
         i = t1.get_sister_index()
-        while i == (parent_.numChildren() - 1) and parent_.parent is not None:
+        while i == (parent_.num_children() - 1) and parent_.parent is not None:
             t1 = parent_
             parent_ = parent_.parent
             i = t1.get_sister_index()
 
         # ensure i >= 0 because Tree.get_sister_index() might return -1
-        if i >= 0 and (i + 1) < parent_.numChildren():
+        if i >= 0 and (i + 1) < parent_.num_children():
             immediate_follower = parent_.children[i + 1]
         else:
             return False
@@ -727,7 +727,7 @@ class UNBROKEN_CATEGORY_PRECEDES(Relation):
         if immediate_follower is t2:
             return True
         else:
-            if descs.satisfy(immediate_follower) and UNBROKEN_CATEGORY_PRECEDES.satisfies(
+            if descs.satisfy(immediate_follower) and UnbrokenCategoryPrecedes.satisfies(
                 immediate_follower, t2, descs
             ):
                 return True
@@ -735,31 +735,31 @@ class UNBROKEN_CATEGORY_PRECEDES(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
-        iterator: Iterator = IMMEDIATELY_PRECEDES.searchNodeIterator(t)
+    def search_node_iterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+        iterator: Iterator = ImmediatelyPrecedes.search_node_iterator(t)
         while (node := next(iterator, None)) is not None:
             yield node
             if descs.satisfy(node):
-                iterator = _chain(IMMEDIATELY_PRECEDES.searchNodeIterator(node), iterator)
+                iterator = _chain(ImmediatelyPrecedes.search_node_iterator(node), iterator)
 
 
-class UNBROKEN_CATEGORY_FOLLOWS(Relation):
+class UnbrokenCategoryFollows(Relation):
     @classmethod
     @override
-    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "Node_Descriptions") -> bool:
-        return UNBROKEN_CATEGORY_PRECEDES.satisfies(t2, t1, descs)
+    def satisfies(cls, t1: "Tree", t2: "Tree", descs: "NodeDescriptions") -> bool:
+        return UnbrokenCategoryPrecedes.satisfies(t2, t1, descs)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", descs: "Node_Descriptions") -> Generator["Tree", None, None]:
-        iterator: Iterator = IMMEDIATELY_FOLLOWS.searchNodeIterator(t)
+    def search_node_iterator(cls, t: "Tree", descs: "NodeDescriptions") -> Generator["Tree", None, None]:
+        iterator: Iterator = ImmediatelyFollows.search_node_iterator(t)
         while (node := next(iterator, None)) is not None:
             yield node
             if descs.satisfy(node):
-                iterator = _chain(IMMEDIATELY_FOLLOWS.searchNodeIterator(node), iterator)
+                iterator = _chain(ImmediatelyFollows.search_node_iterator(node), iterator)
 
 
-class PATTERN_SPLITTER(Relation):
+class PatternSplitter(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree") -> bool:
@@ -767,12 +767,12 @@ class PATTERN_SPLITTER(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree") -> Generator["Tree", None, None]:
-        root = t.getRoot()
-        return root.preorder_iter()
+    def search_node_iterator(cls, t: "Tree") -> Generator["Tree", None, None]:
+        root = t.get_root()
+        return root.visit()
 
 
-class ITH_CHILD_OF(Relation):
+class IthChildOf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree", child_num: int) -> bool:
@@ -791,33 +791,33 @@ class ITH_CHILD_OF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", child_num: int) -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree", child_num: int) -> Generator["Tree", None, None]:
         if child_num == 0:
             raise ValueError("Error -- no such thing as zeroth child!")
         parent_ = t.parent
         if parent_ is None:
             return
-        if abs(child_num) > parent_.numChildren():
+        if abs(child_num) > parent_.num_children():
             return
         kids = parent_.children
         if (child_num > 0 and kids[child_num - 1] is t) or (child_num < 0 and kids[child_num] is t):
             yield parent_
 
 
-class HAS_ITH_CHILD(Relation):
+class HasIthChild(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree", child_num: int) -> bool:
-        return ITH_CHILD_OF.satisfies(t2, t1, child_num)
+        return IthChildOf.satisfies(t2, t1, child_num)
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", child_num: int) -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree", child_num: int) -> Generator["Tree", None, None]:
         if child_num == 0:
             raise ValueError("Error -- no such thing as zeroth child!")
-        if t.isLeaf():
+        if t.is_leaf():
             return
-        if abs(child_num) > t.numChildren():
+        if abs(child_num) > t.num_children():
             return
         if child_num > 0:
             yield t.children[child_num - 1]
@@ -825,19 +825,19 @@ class HAS_ITH_CHILD(Relation):
             yield t.children[child_num]
 
 
-class ANCESTOR_OF_ITH_LEAF(Relation):
+class AncestorOfIthLeaf(Relation):
     @classmethod
     @override
     def satisfies(cls, t1: "Tree", t2: "Tree", leaf_num: int) -> bool:
         if leaf_num == 0:
             raise ValueError("Error -- no such thing as zeroth leaf!")
 
-        if t1 is t2 or not t2.isLeaf():
+        if t1 is t2 or not t2.is_leaf():
             return False
 
         # this is kind of lazy if it somehow became a performance limitation, a
         # recursive search would be faster
-        leaves = t1.getLeaves()
+        leaves = t1.get_leaves()
         if len(leaves) < abs(leaf_num):
             return False
         index = leaf_num - 1 if leaf_num > 0 else len(leaves) + leaf_num
@@ -845,12 +845,12 @@ class ANCESTOR_OF_ITH_LEAF(Relation):
 
     @classmethod
     @override
-    def searchNodeIterator(cls, t: "Tree", leaf_num: int) -> Generator["Tree", None, None]:
+    def search_node_iterator(cls, t: "Tree", leaf_num: int) -> Generator["Tree", None, None]:
         if leaf_num == 0:
             raise ValueError("Error -- no such thing as zeroth leaf!")
-        if t.isLeaf():
+        if t.is_leaf():
             return
-        leaves = t.getLeaves()
+        leaves = t.get_leaves()
         if len(leaves) >= abs(leaf_num):
             if leaf_num > 0:
                 yield leaves[leaf_num - 1]
@@ -874,7 +874,7 @@ class AbstractRelationData(ABC):
         self.strins_repr = s
 
     @abstractmethod
-    def searchNodeIterator(self, this_node: "Tree"):
+    def search_node_iterator(self, this_node: "Tree"):
         raise NotImplementedError()
 
     @abstractmethod
@@ -887,8 +887,8 @@ class RelationData(AbstractRelationData):
         super().__init__(strins_repr, op)
 
     @override
-    def searchNodeIterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
-        return self.op.searchNodeIterator(this_node)
+    def search_node_iterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
+        return self.op.search_node_iterator(this_node)
 
     @override
     def satisfies(self, this_node: "Tree", that_node: "Tree") -> bool:
@@ -901,14 +901,14 @@ class RelationWithStrArgData(AbstractRelationData):
         strins_repr: str,
         op: Relation,
         *,
-        arg: "Node_Descriptions",
+        arg: "NodeDescriptions",
     ) -> None:
         super().__init__(strins_repr, op)
         self.arg = arg
 
     @override
-    def searchNodeIterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
-        return self.op.searchNodeIterator(this_node, self.arg)
+    def search_node_iterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
+        return self.op.search_node_iterator(this_node, self.arg)
 
     @override
     def satisfies(self, this_node: "Tree", that_node: "Tree") -> bool:
@@ -927,8 +927,8 @@ class RelationWithNumArgData(AbstractRelationData):
         self.arg = arg
 
     @override
-    def searchNodeIterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
-        return self.op.searchNodeIterator(this_node, self.arg)
+    def search_node_iterator(self, this_node: "Tree") -> Generator["Tree", None, None]:
+        return self.op.search_node_iterator(this_node, self.arg)
 
     @override
     def satisfies(self, this_node: "Tree", that_node: "Tree") -> bool:

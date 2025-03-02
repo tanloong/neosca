@@ -24,31 +24,31 @@ from PyQt5.QtWidgets import (
 
 from ..ns_about import __email__, __title__, __version__, __year__
 from ..ns_consts import ACKS_PATH, CACHE_DIR, CITING_PATH, ICON_PATH
-from ..ns_io import Ns_Cache, Ns_IO
-from ..ns_settings.ns_settings import Ns_Settings
+from ..ns_io import NsCache, NsIO
+from ..ns_settings.ns_settings import NsSettings
 from ..ns_widgets.ns_labels import (
-    Ns_Label_Html,
-    Ns_Label_Html_Centered,
-    Ns_Label_Html_VBottom,
-    Ns_Label_Html_VTop,
-    Ns_Label_Html_WordWrapped,
-    Ns_Label_WordWrapped,
+    NsLabelHtml,
+    NsLabelHtmlCentered,
+    NsLabelHTMLVBottom,
+    NsLabelHTMLVTop,
+    NsLabelHTMLWordWrapped,
+    NsLabelWordWrapped,
 )
-from ..ns_widgets.ns_sortfilterproxymodel import Ns_SortFilterProxyModel
-from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
-from ..ns_widgets.ns_tableview import Ns_TableView
-from ..ns_widgets.ns_widgets import Ns_MessageBox_Question, Ns_TextEdit_ReadOnly
+from ..ns_widgets.ns_sortfilterproxymodel import NsSortFilterProxyModel
+from ..ns_widgets.ns_standarditemmodel import NsStandardItemModel
+from ..ns_widgets.ns_tableview import NsTableview
+from ..ns_widgets.ns_widgets import NsMessageboxQuestion, NsTexteditReadonly
 
 
-class Ns_Dialog_Meta(type(QDialog)):  # type: ignore
+class NsDialogMeta(type(QDialog)):  # type: ignore
     def __call__(self, *args, **kwargs):
         obj = super().__call__(*args, **kwargs)
-        # Set size after initialization, be it the Ns_Dialog itself or its subclasses
+        # Set size after initialization, be it the NsDialog itself or its subclasses
         obj.set_size()
         return obj
 
 
-class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
+class NsDialog(QDialog, metaclass=NsDialogMeta):
     class ButtonAlignmentFlag(Enum):
         AlignLeft = 0
         AlignRight = 2
@@ -84,7 +84,7 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
         self.setLayout(self.grid_layout)
 
     def set_size(self):
-        # Called in Ns_Dialog_Meta
+        # Called in NsDialogMeta
 
         # https://github.com/BLKSerene/Wordless/blob/main/wordless/wl_dialogs/wl_dialogs.py#L28
         if self.resizable:
@@ -122,7 +122,7 @@ class Ns_Dialog(QDialog, metaclass=Ns_Dialog_Meta):
         self.layout_content.setRowStretch(row, strech)
 
 
-class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
+class NsDialogProcessingWithElapsedTime(NsDialog):
     started = pyqtSignal()
     # Use this to get the place holder, e.g. 0:00:00
     time_format_re = re.compile(r"[^:]")
@@ -148,7 +148,7 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         self.label_status = QLabel("Processing...")
         self.str_time_elapsed_zero = self.str_time_elapsed_tmpl % self.time_format_re.sub("0", time_format)
         self.label_time_elapsed = QLabel(self.str_time_elapsed_zero)
-        self.label_please_wait = Ns_Label_WordWrapped("The process can take some time, please be patient.")
+        self.label_please_wait = NsLabelWordWrapped("The process can take some time, please be patient.")
 
         self.addWidget(self.label_status, 0, 0)
         self.addWidget(self.label_time_elapsed, 0, 1, alignment=Qt.AlignmentFlag.AlignRight)
@@ -206,10 +206,10 @@ class Ns_Dialog_Processing_With_Elapsed_Time(Ns_Dialog):
         return super().exec()
 
 
-class Ns_Dialog_TextEdit(Ns_Dialog):
+class NsDialogTextEdit(NsDialog):
     def __init__(self, main, title: str = "", text: str = "", **kwargs) -> None:
         super().__init__(main, title=title, resizable=True, **kwargs)
-        self.textedit = Ns_TextEdit_ReadOnly(text=text)
+        self.textedit = NsTexteditReadonly(text=text)
         # https://stackoverflow.com/questions/74852753/indent-while-line-wrap-on-qtextedit-with-pyside6-pyqt6
         indentation: int = self.fontMetrics().horizontalAdvance("abcd")
         self.fmt_textedit = QTextBlockFormat()
@@ -222,8 +222,8 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
         buttonbox_close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         buttonbox_close.rejected.connect(self.reject)
 
-        self.addButtons(button_copy, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
-        self.addButtons(buttonbox_close, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight)
+        self.addButtons(button_copy, alignment=NsDialog.ButtonAlignmentFlag.AlignLeft)
+        self.addButtons(buttonbox_close, alignment=NsDialog.ButtonAlignmentFlag.AlignRight)
 
     def setText(self, text: str) -> None:
         self.textedit.setText(text)
@@ -254,12 +254,12 @@ class Ns_Dialog_TextEdit(Ns_Dialog):
         return super().exec()
 
 
-class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
+class NsDialogTextEditMatches(NsDialogTextEdit):
     def __init__(self, main, index, **kwargs):
         super().__init__(main, title="Matches", width=600, height=600, **kwargs)
 
         model = index.model()
-        if isinstance(model, (Ns_SortFilterProxyModel, QSortFilterProxyModel)):
+        if isinstance(model, (NsSortFilterProxyModel, QSortFilterProxyModel)):
             index = model.mapToSource(index)
 
         self.file_name = index.model().index(index.row(), 0).data()
@@ -267,17 +267,17 @@ class Ns_Dialog_TextEdit_Matches(Ns_Dialog_TextEdit):
         self.matched_subtrees: list[str] = index.data(Qt.ItemDataRole.UserRole)
         self.setText("\n".join(self.matched_subtrees))
 
-        self.label_summary = Ns_Label_WordWrapped(
+        self.label_summary = NsLabelWordWrapped(
             f'{len(self.matched_subtrees)} occurrences of "{self.sname}" in "{self.file_name}"'
         )
         self.addWidget(self.label_summary)
 
 
-class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
+class NsDialogTextEditCiting(NsDialogTextEdit):
     def __init__(self, main, **kwargs):
         super().__init__(main, title="Citing", width=600, height=600, **kwargs)
-        self.style_citation_mapping = Ns_IO.load_json(CITING_PATH)
-        self.label_citing = Ns_Label_WordWrapped(
+        self.style_citation_mapping = NsIO.load_json(CITING_PATH)
+        self.label_citing = NsLabelWordWrapped(
             f"If you use {__title__} in your research, please cite as follows."
         )
         self.setText(next(iter(self.style_citation_mapping.values())))
@@ -294,7 +294,7 @@ class Ns_Dialog_TextEdit_Citing(Ns_Dialog_TextEdit):
         self.setColumnStretch(1, 1)
 
 
-class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
+class NsDialogTextEditErr(NsDialogTextEdit):
     def __init__(self, main, ex: Exception, **kwargs) -> None:
         super().__init__(main, title="Error", width=800, height=600, **kwargs)
         # https://stackoverflow.com/a/35712784/20732031
@@ -304,18 +304,18 @@ class Ns_Dialog_TextEdit_Err(Ns_Dialog_TextEdit):
         )
         self.setText(trace_back + meta_data)
 
-        self.label_desc = Ns_Label_Html_WordWrapped(
+        self.label_desc = NsLabelHTMLWordWrapped(
             f"An error occurred. Please send the following error messages to <a href='mailto:{__email__}'>{__email__}</a> to contact the author for support."
         )
         self.addWidget(self.label_desc)
 
 
-class Ns_Dialog_Table(Ns_Dialog):
+class NsDialogTable(NsDialog):
     def __init__(
         self,
         main,
         title: str,
-        tableview: Ns_TableView,
+        tableview: NsTableview,
         text: str | None = None,
         html: str | None = None,
         width: int = 600,
@@ -324,19 +324,19 @@ class Ns_Dialog_Table(Ns_Dialog):
         disable_default_botright_buttons: bool = False,
     ) -> None:
         super().__init__(main, title=title, width=width, height=height, resizable=True)
-        self.tableview: Ns_TableView = tableview
+        self.tableview: NsTableview = tableview
         assert (text is not None) ^ (html is not None), "Must provide either text or html, but not both"
         if text is not None:
-            self.layout_content.addWidget(Ns_Label_WordWrapped(text), 0, 0)
+            self.layout_content.addWidget(NsLabelWordWrapped(text), 0, 0)
         if html is not None:
-            self.layout_content.addWidget(Ns_Label_Html_WordWrapped(html), 0, 0)
+            self.layout_content.addWidget(NsLabelHTMLWordWrapped(html), 0, 0)
         self.layout_content.addWidget(tableview, self.rowCount(), 0)
 
         # Bottom left buttons
         if export_filename is not None:
             self.button_export_table = QPushButton("Export table...")
             self.button_export_table.clicked.connect(lambda: self.tableview.export_table(export_filename))
-            self.addButtons(self.button_export_table, alignment=Ns_Dialog.ButtonAlignmentFlag.AlignLeft)
+            self.addButtons(self.button_export_table, alignment=NsDialog.ButtonAlignmentFlag.AlignLeft)
 
         # Bottom right buttons
         if not disable_default_botright_buttons:
@@ -345,22 +345,22 @@ class Ns_Dialog_Table(Ns_Dialog):
             self.addButtons(buttonbox_close, alignment=self.ButtonAlignmentFlag.AlignRight)
 
 
-class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
+class NsDialogTableAcknowledgments(NsDialogTable):
     def __init__(self, main) -> None:
-        ack_data = Ns_IO.load_json(ACKS_PATH)
+        ack_data = NsIO.load_json(ACKS_PATH)
         acknowledgment = ack_data["acknowledgment"]
         projects = ack_data["projects"]
-        model_ack = Ns_StandardItemModel(
+        model_ack = NsStandardItemModel(
             main, hor_labels=("Name", "Version", "Authors", "License"), show_empty_row=False
         )
         model_ack.setRowCount(len(projects))
-        tableview_ack = Ns_TableView(main, model=model_ack)
+        tableview_ack = NsTableview(main, model=model_ack)
         for rowno, project in enumerate(projects):
             cols = (
-                Ns_Label_Html(f"<a href='{project['homepage']}'>{project['name']}</a>"),
-                Ns_Label_Html_Centered(project["version"]),
-                Ns_Label_Html(project["authors"]),
-                Ns_Label_Html_Centered(
+                NsLabelHtml(f"<a href='{project['homepage']}'>{project['name']}</a>"),
+                NsLabelHtmlCentered(project["version"]),
+                NsLabelHtml(project["authors"]),
+                NsLabelHtmlCentered(
                     f"<a href='{project['license_file']}'>{project['license']}</a>"
                     if project["license_file"]
                     else f"{project['license']}"
@@ -373,7 +373,7 @@ class Ns_Dialog_Table_Acknowledgments(Ns_Dialog_Table):
         )
 
 
-class Ns_Dialog_About(Ns_Dialog):
+class NsDialogAbout(NsDialog):
     def __init__(self, main) -> None:
         import textwrap
 
@@ -391,8 +391,8 @@ class Ns_Dialog_About(Ns_Dialog):
         )
         label_icon = QLabel()
         label_icon.setPixmap(QIcon(str(ICON_PATH)).pixmap(QSize(64, 64)))
-        label_name = Ns_Label_Html_VTop(f"<h1>{__title__}</h1>")
-        label_version = Ns_Label_Html_VBottom(f"v{__version__}")
+        label_name = NsLabelHTMLVTop(f"<h1>{__title__}</h1>")
+        label_version = NsLabelHTMLVBottom(f"v{__version__}")
         textbrowser = QTextBrowser()
         textbrowser.setOpenExternalLinks(True)
         textbrowser.setHtml(text)
@@ -409,12 +409,12 @@ class Ns_Dialog_About(Ns_Dialog):
         self.addButtons(buttonbox_close, alignment=self.ButtonAlignmentFlag.AlignRight)
 
 
-class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
+class NsDialogTableCache(NsDialogTable):
     def __init__(self, main) -> None:
-        self.model_cache = Ns_StandardItemModel(
+        self.model_cache = NsStandardItemModel(
             main, hor_labels=("Cache Name", "Cache Size", "Source Path"), show_empty_row=False
         )
-        for cache_name, cache_path, cache_size, file_path in Ns_Cache.yield_cname_cpath_csize_fpath():
+        for cache_name, cache_path, cache_size, file_path in NsCache.yield_cname_cpath_csize_fpath():
             rowno = self.model_cache.rowCount()
             item = QStandardItem()
             item.setData(cache_name, Qt.ItemDataRole.DisplayRole)
@@ -422,7 +422,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             self.model_cache.set_item_left_shifted(rowno, 0, item)
             self.model_cache.set_item_right_shifted(rowno, 1, cache_size)
             self.model_cache.set_item_left_shifted(rowno, 2, file_path)
-        self.tableview_cache = Ns_TableView(main, model=self.model_cache)
+        self.tableview_cache = NsTableview(main, model=self.model_cache)
         self.tableview_cache.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
         self.tableview_cache.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
 
@@ -444,7 +444,7 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             self.button_delete_all,
             self.button_cancel,
             self.button_delete_selected,
-            alignment=Ns_Dialog.ButtonAlignmentFlag.AlignRight,
+            alignment=NsDialog.ButtonAlignmentFlag.AlignRight,
         )
 
         # Bind
@@ -475,10 +475,10 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
 
         len_cache_paths = len(cache_paths)
         key = "Miscellaneous/dont-warn-on-cache-deletion"
-        if not Ns_Settings.value(key, type=bool):
+        if not NsSettings.value(key, type=bool):
             checkbox = QCheckBox("Don't warn on cache deletion")
-            checkbox.stateChanged.connect(lambda: Ns_Settings.setValue(key, checkbox.isChecked()))
-            messagebox = Ns_MessageBox_Question(
+            checkbox.stateChanged.connect(lambda: NsSettings.setValue(key, checkbox.isChecked()))
+            messagebox = NsMessageboxQuestion(
                 self,
                 "Confirm Deletion",
                 f"Are you sure you want to delete the selected {len_cache_paths} cache files?",
@@ -493,23 +493,23 @@ class Ns_Dialog_Table_Cache(Ns_Dialog_Table):
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Error deleting file: {e}")
 
-        Ns_Cache.delete_cache_entries(cache_paths)
+        NsCache.delete_cache_entries(cache_paths)
 
         noun = "cache file" if len_cache_paths == 1 else "cache files"
         self.main.statusBar().showMessage(f"Deleted {len_cache_paths} {noun}")
         self.accept()
 
 
-class Ns_Dialog_Table_Subfiles(Ns_Dialog_Table):
+class NsDialogTableSubfiles(NsDialogTable):
     def __init__(self, main, name_index: QModelIndex, path_index: QModelIndex) -> None:
-        self.model_subfiles = Ns_StandardItemModel(main, hor_labels=("Name", "Path"), show_empty_row=False)
+        self.model_subfiles = NsStandardItemModel(main, hor_labels=("Name", "Path"), show_empty_row=False)
 
         names_retained = name_index.data(Qt.ItemDataRole.UserRole)
         paths_retained = path_index.data(Qt.ItemDataRole.UserRole)
         for rowno, row in enumerate(zip(names_retained, paths_retained, strict=False)):
             self.model_subfiles.set_row_left_shifted(rowno, row)
 
-        self.tableview_subfiles = Ns_TableView(main, model=self.model_subfiles)
+        self.tableview_subfiles = NsTableview(main, model=self.model_subfiles)
         self.tableview_subfiles.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
         self.tableview_subfiles.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
 

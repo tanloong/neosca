@@ -4,7 +4,7 @@ import string
 from abc import ABC, abstractmethod
 
 
-class Ns_Abstract_Word_Classifier(ABC):
+class NsAbstractWordClassifier(ABC):
     def __init__(self, *, word_data: dict, easy_word_threshold: int = 2000) -> None:
         self.word_dict = word_data["word_dict"]
         self.adj_dict = word_data["adj_dict"]
@@ -44,7 +44,7 @@ class Ns_Abstract_Word_Classifier(ABC):
         raise NotImplementedError
 
 
-class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
+class NsUDWordClassifier(NsAbstractWordClassifier):
     # Universal POS tags: https://universaldependencies.org/u/pos/
     def is_misc(self, lemma: str, pos: str) -> bool:
         if lemma.isspace():
@@ -90,7 +90,7 @@ class Ns_UD_Word_Classifier(Ns_Abstract_Word_Classifier):
         return lemma not in self.easy_words and pos != "NUM"
 
 
-class Ns_PTB_Word_Classifier(Ns_Abstract_Word_Classifier):
+class NsPTBWordClassifier(NsAbstractWordClassifier):
     def is_misc(self, lemma: str, pos: str) -> bool:
         if lemma.isspace():
             return True

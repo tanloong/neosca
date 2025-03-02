@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 from PyQt5.QtCore import QSortFilterProxyModel, Qt
+from typing_extensions import override
 
-from ..ns_widgets.ns_standarditemmodel import Ns_StandardItemModel
+from ..ns_widgets.ns_standarditemmodel import NsStandardItemModel
 
 
-class Ns_SortFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, main, source_model: Ns_StandardItemModel):
+class NsSortFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, main, source_model: NsStandardItemModel):
         super().__init__(main)
         self.main = main
         self.source_model = source_model
@@ -15,11 +16,12 @@ class Ns_SortFilterProxyModel(QSortFilterProxyModel):
         self.setDynamicSortFilter(False)
 
     # Override to sepcify the return type
-    def sourceModel(self) -> Ns_StandardItemModel:
+    @override
+    def sourceModel(self) -> NsStandardItemModel:
         return self.source_model
 
-    # Override
     # https://www.qtcentre.org/threads/22120-No-Sort-Vertical-Header?p=107720#post107720
+    @override
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole):
         if orientation != Qt.Orientation.Vertical or role != Qt.ItemDataRole.DisplayRole:
             return super().headerData(section, orientation, role)

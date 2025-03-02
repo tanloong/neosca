@@ -8,7 +8,7 @@ from ..ns_consts import SETTING_PATH
 from ..ns_settings.ns_settings_default import settings_default
 
 
-class Ns_Settings:
+class NsSettings:
     # Although QSettings can auto synchronize changes across all instances,
     #  we use this class to keep a single object in the whole application.
     # Don't instanciate this class, just use its classmethods.

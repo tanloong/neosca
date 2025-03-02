@@ -15,13 +15,13 @@ from typing import ClassVar
 from ..ns_about import __title__
 from ..ns_consts import DATA_DIR
 from ..ns_exceptions import CircularDefinitionError, InvalidSourceError, StructureNotFoundError
-from ..ns_io import Ns_IO
+from ..ns_io import NsIO
 from ..ns_sca import l2sca
 from ..ns_tregex.tree import Tree
 from ..ns_utils import safe_div
 
 
-class Ns_SCA_Structure:
+class NsSCAStructure:
     def __init__(
         self,
         name: str,
@@ -129,11 +129,11 @@ class Ns_SCA_Structure:
         raise NotImplementedError
 
 
-class Ns_SCA_Counter:
-    BUILTIN_DATA = Ns_IO.load_json(DATA_DIR / "l2sca_structures.json")
-    BUILTIN_STRUCTURE_DEFS: ClassVar[dict[str, Ns_SCA_Structure]] = {}
+class NsSCACounter:
+    BUILTIN_DATA = NsIO.load_json(DATA_DIR / "l2sca_structures.json")
+    BUILTIN_STRUCTURE_DEFS: ClassVar[dict[str, NsSCAStructure]] = {}
     for kwargs in BUILTIN_DATA["structures"]:
-        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
+        BUILTIN_STRUCTURE_DEFS[kwargs["name"]] = NsSCAStructure(**kwargs)
 
     DEFAULT_MEASURES: ClassVar[list[str]] = [
         "W",
@@ -186,25 +186,25 @@ class Ns_SCA_Counter:
     ) -> None:
         self.ifile = ifile
 
-        user_sname_structure_map: dict[str, Ns_SCA_Structure] = {}
+        user_sname_structure_map: dict[str, NsSCAStructure] = {}
         user_snames: set[str] | None = None
 
         if user_structure_defs is not None:
-            user_snames = Ns_SCA_Counter.check_user_structure_def(user_structure_defs)
+            user_snames = NsSCACounter.check_user_structure_def(user_structure_defs)
             logging.debug("User definded snames: %s", user_snames)
 
             for kwargs in user_structure_defs:
-                user_sname_structure_map[kwargs["name"]] = Ns_SCA_Structure(**kwargs)
+                user_sname_structure_map[kwargs["name"]] = NsSCAStructure(**kwargs)
 
-        self.sname_structure_map: dict[str, Ns_SCA_Structure] = deepcopy(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS)
+        self.sname_structure_map: dict[str, NsSCAStructure] = deepcopy(NsSCACounter.BUILTIN_STRUCTURE_DEFS)
         self.sname_structure_map.update(user_sname_structure_map)
 
-        default_measures = Ns_SCA_Counter.DEFAULT_MEASURES + [
-            sname for sname in user_sname_structure_map if sname not in Ns_SCA_Counter.DEFAULT_MEASURES
+        default_measures = NsSCACounter.DEFAULT_MEASURES + [
+            sname for sname in user_sname_structure_map if sname not in NsSCACounter.DEFAULT_MEASURES
         ]
 
         if selected_measures is not None:
-            Ns_SCA_Counter.check_undefined_measure(selected_measures, user_snames)
+            NsSCACounter.check_undefined_measure(selected_measures, user_snames)
         self.selected_measures: list[str] = (
             selected_measures if selected_measures is not None else default_measures
         )
@@ -213,7 +213,7 @@ class Ns_SCA_Counter:
     @classmethod
     def check_user_structure_def(cls, user_structure_defs: list[dict[str, str]]) -> set[str]:
         """
-        check duplicated definition
+        check duplicate definition
             e.g., [{"name": "A", "tregex_pattern":"a"}, {"name": "A", "tregex_pattern":"a"}]
         check empty definition
             e.g., [{"name": "A", "tregex_pattern":""}]
@@ -240,16 +240,16 @@ class Ns_SCA_Counter:
     ) -> None:
         # check undefined selected_measure
         if user_defined_snames is not None:
-            all_measures = Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
+            all_measures = NsSCACounter.BUILTIN_STRUCTURE_DEFS.keys() | user_defined_snames
         else:
-            all_measures = set(Ns_SCA_Counter.BUILTIN_STRUCTURE_DEFS.keys())
+            all_measures = set(NsSCACounter.BUILTIN_STRUCTURE_DEFS.keys())
         logging.debug("All measures: %s", all_measures)
 
         for m in selected_measures:
             if m not in all_measures:
                 raise ValueError(f"{m} has not been defined.")
 
-    def get_structure(self, structure_name: str) -> Ns_SCA_Structure:
+    def get_structure(self, structure_name: str) -> NsSCAStructure:
         try:
             structure = self.sname_structure_map[structure_name]
         except KeyError:
@@ -324,7 +324,7 @@ class Ns_SCA_Counter:
         matches = []
         last_node = None
         for tree in Tree.fromstring(forest):
-            for node in cls.SNAME_SEARCHER_MAPPING[sname].searchNodeIterator(tree):
+            for node in cls.SNAME_SEARCHER_MAPPING[sname].search_node_iterator(tree):
                 if node is last_node:
                     # Mimic Tregex's -o option
                     # https://github.com/stanfordnlp/CoreNLP/blob/efc66a9cf49fecba219dfaa4025315ad966285cc/src/edu/stanford/nlp/trees/tregex/TregexPattern.java#L885
@@ -453,11 +453,11 @@ class Ns_SCA_Counter:
             else:
                 sys.stdout.write(f"{matches_id}\n{meta_data}\n\n{res}\n")
 
-    def __add__(self, other: "Ns_SCA_Counter") -> "Ns_SCA_Counter":
+    def __add__(self, other: "NsSCACounter") -> "NsSCACounter":
         logging.debug("Combining counters...")
         new_ifile = self.ifile + "+" + other.ifile if self.ifile else other.ifile
         new_selected_measures = list(dict.fromkeys(self.selected_measures + other.selected_measures))
-        new = Ns_SCA_Counter(new_ifile, selected_measures=new_selected_measures)
+        new = NsSCACounter(new_ifile, selected_measures=new_selected_measures)
         for sname, structure in new.sname_structure_map.items():
             # Structures defined by value_source should be re-calculated after
             # adding up structures defined by tregex_pattern

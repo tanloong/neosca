@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 from neosca.ns_consts import DATA_DIR
-from neosca.ns_io import Ns_IO
-from neosca.ns_lca.ns_lca_counter import Ns_LCA_Counter
-from neosca.ns_lca.word_classifiers import Ns_PTB_Word_Classifier, Ns_UD_Word_Classifier
+from neosca.ns_io import NsIO
+from neosca.ns_lca.ns_lca_counter import NsLCACounter
+from neosca.ns_lca.word_classifiers import NsPTBWordClassifier, NsUDWordClassifier
 
 from .base_tmpl import BaseTmpl
 
@@ -11,9 +11,9 @@ from .base_tmpl import BaseTmpl
 class TestWordClassifier(BaseTmpl):
     def setUp(self):
         super().setUp()
-        word_data = Ns_IO.load_pickle_lzma(DATA_DIR / Ns_LCA_Counter.WORDLIST_DATAFILE_MAP["bnc"])
-        self.ptb = Ns_PTB_Word_Classifier(word_data=word_data)
-        self.ud = Ns_UD_Word_Classifier(word_data=word_data)
+        word_data = NsIO.load_pickle_lzma(DATA_DIR / NsLCACounter.WORDLIST_DATAFILE_MAP["bnc"])
+        self.ptb = NsPTBWordClassifier(word_data=word_data)
+        self.ud = NsUDWordClassifier(word_data=word_data)
 
     def test_misc(self):
         ud_tests = (

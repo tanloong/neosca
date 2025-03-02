@@ -3,7 +3,7 @@
 from PyQt5.QtWidgets import QGridLayout, QWidget
 
 
-class Ns_Widget_Settings_Abstract(QWidget):
+class NsWidgetSettingsAbstract(QWidget):
     name: str = ""
 
     def __init__(self, main):

@@ -3,7 +3,7 @@ import os
 import os.path as os_path
 import re
 
-from neosca.ns_main_cli import Ns_Main_Cli
+from neosca.ns_main_cli import NsMainCLI
 
 from .cmdline_tmpl import CmdlineTmpl
 
@@ -12,7 +12,7 @@ cli_text = "This is a test."
 
 class TestCommandLine(CmdlineTmpl):
     def setUp(self):
-        self.ui = Ns_Main_Cli()
+        self.ui = NsMainCLI()
         super().setUp()
 
     def test_no_file(self):

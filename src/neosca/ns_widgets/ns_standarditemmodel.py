@@ -7,10 +7,10 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QMessageBox
 
-from ..ns_widgets.ns_widgets import Ns_MessageBox_Question
+from ..ns_widgets.ns_widgets import NsMessageboxQuestion
 
 
-class Ns_StandardItemModel(QStandardItemModel):
+class NsStandardItemModel(QStandardItemModel):
     data_cleared = pyqtSignal()
     rows_added = pyqtSignal()
     data_exported = pyqtSignal()
@@ -106,7 +106,7 @@ class Ns_StandardItemModel(QStandardItemModel):
         if not confirm or self.has_been_exported:
             return self._clear_data()
         else:
-            messagebox = Ns_MessageBox_Question(
+            messagebox = NsMessageboxQuestion(
                 self.main,
                 "Clear Table",
                 "The table has not been exported yet and all the data will be lost. Continue?",

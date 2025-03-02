@@ -2,11 +2,11 @@
 
 from PyQt5.QtWidgets import QGridLayout, QGroupBox, QRadioButton
 
-from ..ns_settings.ns_settings import Ns_Settings
-from ..ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
+from ..ns_settings.ns_settings import NsSettings
+from ..ns_settings.ns_widget_settings_abstract import NsWidgetSettingsAbstract
 
 
-class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
+class NsWidgetSettingsLCA(NsWidgetSettingsAbstract):
     name: str = "Lexical Complexity Analyzer"
 
     def __init__(self, main):
@@ -46,7 +46,7 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
 
     def load_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"
-        value = Ns_Settings.value(key)
+        value = NsSettings.value(key)
         if value == "bnc":
             self.radiobutton_wordlist_bnc.setChecked(True)
             self.radiobutton_wordlist_anc.setChecked(False)
@@ -58,7 +58,7 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
 
     def load_settings_tagset(self) -> None:
         key = f"{self.name}/tagset"
-        value = Ns_Settings.value(key)
+        value = NsSettings.value(key)
         if value == "ud":
             self.radiobutton_tagset_ud.setChecked(True)
             self.radiobutton_tagset_ptb.setChecked(False)
@@ -84,17 +84,17 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
     def apply_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"
         if self.radiobutton_wordlist_bnc.isChecked():
-            Ns_Settings.setValue(key, "bnc")
+            NsSettings.setValue(key, "bnc")
         elif self.radiobutton_wordlist_anc.isChecked():
-            Ns_Settings.setValue(key, "anc")
+            NsSettings.setValue(key, "anc")
         else:
             assert False, "Invalid wordlist setting"
 
     def apply_settings_tagset(self) -> None:
         key = f"{self.name}/tagset"
         if self.radiobutton_tagset_ud.isChecked():
-            Ns_Settings.setValue(key, "ud")
+            NsSettings.setValue(key, "ud")
         elif self.radiobutton_tagset_ptb.isChecked():
-            Ns_Settings.setValue(key, "ptb")
+            NsSettings.setValue(key, "ptb")
         else:
             assert False, "Invalid tagset setting"

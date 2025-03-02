@@ -7,14 +7,14 @@ from collections.abc import Callable
 
 from .ns_about import __title__, __version__
 from .ns_consts import CACHE_DIR
-from .ns_io import Ns_Cache, Ns_IO
-from .ns_lca.ns_lca import Ns_LCA
+from .ns_io import NsCache, NsIO
+from .ns_lca.ns_lca import NsLCA
 from .ns_print import color_print
-from .ns_sca.ns_sca import Ns_SCA
+from .ns_sca.ns_sca import NsSCA
 from .ns_utils import Ns_Procedure_Result
 
 
-class Ns_Main_Cli:
+class NsMainCLI:
     def __init__(self) -> None:
         self.cwd = os.getcwd()
         self.args_parser: argparse.ArgumentParser = self.create_args_parser()
@@ -81,8 +81,8 @@ class Ns_Main_Cli:
         sca_parser.add_argument(
             "--ftype",
             dest="ifile_types",
-            choices=Ns_IO.SUPPORTED_EXTENSIONS,
-            default=Ns_IO.SUPPORTED_EXTENSIONS,
+            choices=NsIO.SUPPORTED_EXTENSIONS,
+            default=NsIO.SUPPORTED_EXTENSIONS,
             nargs="+",
             help=(
                 "Analyze files of the specified type(s). If not set, the program will process"
@@ -170,7 +170,7 @@ class Ns_Main_Cli:
         #     ),
         # )
         self.__add_log_levels(sca_parser)
-        sca_parser.set_defaults(func=self.parse_sca_args, analyzer_class=Ns_SCA)
+        sca_parser.set_defaults(func=self.parse_sca_args, analyzer_class=NsSCA)
         return sca_parser
 
     def create_lca_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -261,7 +261,7 @@ class Ns_Main_Cli:
             help="Save the matched words.",
         )
         self.__add_log_levels(lca_parser)
-        lca_parser.set_defaults(func=self.parse_lca_args, analyzer_class=Ns_LCA)
+        lca_parser.set_defaults(func=self.parse_lca_args, analyzer_class=NsLCA)
         return lca_parser
 
     def create_gui_parser(self, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -281,12 +281,12 @@ class Ns_Main_Cli:
         if options.subfiles_list is None:
             self.verified_subfiles_list: list[list[str]] = []
         else:
-            self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
+            self.verified_subfiles_list = NsIO.get_verified_subfiles_list(options.subfiles_list)
 
         self.odir_matched = "neosca_sca_matches"
         if options.ofile_freq is not None:
             self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
-            ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
+            ofile_freq_ext = NsIO.suffix(options.ofile_freq, strip_dot=True)
             if ofile_freq_ext not in ("csv", "json"):
                 return (
                     False,
@@ -339,7 +339,7 @@ class Ns_Main_Cli:
         self.odir_matched = "neosca_lca_matches"
         if options.ofile_freq is not None:
             self.odir_matched = os_path.splitext(options.ofile_freq)[0] + "_matches"
-            ofile_freq_ext = Ns_IO.suffix(options.ofile_freq, strip_dot=True)
+            ofile_freq_ext = NsIO.suffix(options.ofile_freq, strip_dot=True)
             if ofile_freq_ext not in ("csv", "json"):
                 return (
                     False,
@@ -359,7 +359,7 @@ class Ns_Main_Cli:
         if options.subfiles_list is None:
             self.verified_subfiles_list = []
         else:
-            self.verified_subfiles_list = Ns_IO.get_verified_subfiles_list(options.subfiles_list)
+            self.verified_subfiles_list = NsIO.get_verified_subfiles_list(options.subfiles_list)
 
         self.init_kwargs = {
             "wordlist": options.wordlist,
@@ -393,7 +393,7 @@ class Ns_Main_Cli:
         else:
             logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-        self.verified_ifiles = Ns_IO.get_verified_ifile_list(ifile_list)
+        self.verified_ifiles = NsIO.get_verified_ifile_list(ifile_list)
 
         if (func := getattr(options, "func", None)) is not None:
             func(options)
@@ -415,7 +415,7 @@ class Ns_Main_Cli:
             )
 
     def exit_routine(self) -> None:
-        Ns_Cache.save_cache_info()
+        NsCache.save_cache_info()
 
         if self.options.is_quiet or self.options.is_stdout:
             return
@@ -441,13 +441,13 @@ class Ns_Main_Cli:
         if msg_num > 0:
             logging.info("Done.")
 
-    def run_tmpl(func: Callable):  # type:ignore
+    def run_tmpl(func: Callable):  # type: ignore # noqa: N805
         def wrapper(self, *args, **kwargs):
             sucess, err_msg = self.check_python()
             if not sucess:
                 return sucess, err_msg
             if not self.options.is_stdout:
-                sucess, err_msg = Ns_IO.is_writable(self.options.ofile_freq)
+                sucess, err_msg = NsIO.is_writable(self.options.ofile_freq)
                 if not sucess:
                     return sucess, err_msg
             func(self, *args, **kwargs)
@@ -505,7 +505,7 @@ class Ns_Main_Cli:
 
 
 def main_cli() -> None:
-    ui = Ns_Main_Cli()
+    ui = NsMainCLI()
     success, err_msg = ui.parse_args(sys.argv)
     if not success:
         logging.critical(err_msg)

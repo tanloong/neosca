@@ -17,7 +17,7 @@ from collections import deque
 _marker = object()
 
 
-class peekable:
+class Peekable:
     """Wrap an iterator to allow lookahead and prepending elements.
 
     Call :meth:`peek` on the result to get the value that will be returned

@@ -4,11 +4,11 @@ import logging
 import sys
 from typing import Literal
 
-from ..ns_lca.ns_lca_counter import Ns_LCA_Counter
+from ..ns_lca.ns_lca_counter import NsLCACounter
 from ..ns_utils import Ns_Procedure_Result
 
 
-class Ns_LCA:
+class NsLCA:
     def __init__(
         self,
         wordlist: str = "bnc",
@@ -47,21 +47,21 @@ class Ns_LCA:
         self.is_save_matches = is_save_matches
         self.is_save_values = is_save_values
 
-        self.counters: list[Ns_LCA_Counter] = []
+        self.counters: list[NsLCACounter] = []
 
     def get_lempos_frm_text(self, text: str, /, cache_path: str | None = None) -> tuple[tuple[str, str], ...]:
-        from ..ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import NsNLPStanza
 
-        return Ns_NLP_Stanza.get_lemma_and_pos(
-            Ns_NLP_Stanza.text2doc(text, processors=("tokenize", "pos", "lemma"), cache_path=cache_path),
+        return NsNLPStanza.get_lemma_and_pos(
+            NsNLPStanza.text2doc(text, processors=("tokenize", "pos", "lemma"), cache_path=cache_path),
             tagset=self.tagset,
         )
 
     def get_lempos_frm_file(self, file_path: str, /) -> tuple[tuple[str, str], ...]:
-        from ..ns_nlp import Ns_NLP_Stanza
+        from ..ns_nlp import NsNLPStanza
 
-        return Ns_NLP_Stanza.get_lemma_and_pos(
-            Ns_NLP_Stanza.file2doc(
+        return NsNLPStanza.get_lemma_and_pos(
+            NsNLPStanza.file2doc(
                 file_path,
                 processors=("tokenize", "pos", "lemma"),
                 is_cache=self.is_cache,
@@ -70,8 +70,8 @@ class Ns_LCA:
             tagset=self.tagset,
         )
 
-    def init_new_counter(self, file_path: str = "") -> Ns_LCA_Counter:
-        return Ns_LCA_Counter(
+    def init_new_counter(self, file_path: str = "") -> NsLCACounter:
+        return NsLCACounter(
             file_path,
             wordlist=self.wordlist,
             tagset=self.tagset,
@@ -94,7 +94,7 @@ class Ns_LCA:
         if self.is_save_values:
             self.dump_values()
 
-    def run_on_file_or_subfiles(self, file_or_subfiles: str | list[str]) -> Ns_LCA_Counter:
+    def run_on_file_or_subfiles(self, file_or_subfiles: str | list[str]) -> NsLCACounter:
         if isinstance(file_or_subfiles, str):
             file_path = file_or_subfiles
             lempos_tuples = self.get_lempos_frm_file(file_path)
@@ -162,9 +162,9 @@ class Ns_LCA:
 
     @classmethod
     def list_fields(cls) -> Ns_Procedure_Result:
-        for short, long in Ns_LCA_Counter.COUNT_ITEMS.items():
+        for short, long in NsLCACounter.COUNT_ITEMS.items():
             for suffix in ("types", "tokens"):
                 print(f"{short}{suffix}: {long} {suffix}")
-        for short, long in Ns_LCA_Counter.FREQ_ITEMS.items():
+        for short, long in NsLCACounter.FREQ_ITEMS.items():
             print(f"{short}: {long}")
         return True, None
