@@ -65,14 +65,19 @@ class Ns_SCA:
             return text
 
         from neosca.ns_nlp import Ns_NLP_Stanza
+        from neosca.ns_settings.ns_settings import Ns_Settings
 
-        forest = Ns_NLP_Stanza.get_constituency_forest(text, cache_path=cache_path)
+        lang = Ns_Settings.value("Lexical Complexity Analyzer/language", "en")
+        forest = Ns_NLP_Stanza.get_constituency_forest(text, cache_path=cache_path, lang=lang)
         return forest
 
     # }}}
     def get_forest_frm_file(self, file_path: str) -> str:  # {{{
         from neosca.ns_nlp import Ns_NLP_Stanza
+        from neosca.ns_settings.ns_settings import Ns_Settings
         from stanza import Document
+
+        lang = Ns_Settings.value("Lexical Complexity Analyzer/language", "en")
 
         if self.is_skip_parsing:
             # Assume input as parse trees, e.g., (ROOT (S (NP) (VP)))
@@ -83,7 +88,7 @@ class Ns_SCA:
         if self.is_use_cache and is_cache_available:
             logging.info(f"Loading cache: {cache_path}.")
             doc: Document = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            return Ns_NLP_Stanza.get_constituency_forest(doc, cache_path=cache_path)
+            return Ns_NLP_Stanza.get_constituency_forest(doc, cache_path=cache_path, lang=lang)
 
         # Use raw text
         text = Ns_IO.load_file(file_path)

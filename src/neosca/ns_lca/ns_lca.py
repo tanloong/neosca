@@ -54,18 +54,22 @@ class Ns_LCA:
 
     def get_lempos_frm_text(self, text: str, /, cache_path: str | None = None) -> tuple[tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
+        from neosca.ns_settings.ns_settings import Ns_Settings
 
-        return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path)
+        lang = Ns_Settings.value("Lexical Complexity Analyzer/language", "en")
+        return Ns_NLP_Stanza.get_lemma_and_pos(text, tagset=self.tagset, cache_path=cache_path, lang=lang)
 
     def get_lempos_frm_file(self, file_path: str, /) -> tuple[tuple[str, str], ...]:
         from neosca.ns_nlp import Ns_NLP_Stanza
+        from neosca.ns_settings.ns_settings import Ns_Settings
 
+        lang = Ns_Settings.value("Lexical Complexity Analyzer/language", "en")
         cache_path, is_cache_available = Ns_Cache.get_cache_path(file_path)
         # Use cache
         if self.is_use_cache and is_cache_available:
             logging.info(f"Loading cache: {cache_path}.")
             doc = Ns_NLP_Stanza.serialized2doc(Ns_IO.load_lzma(cache_path))
-            return Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path)
+            return Ns_NLP_Stanza.get_lemma_and_pos(doc, tagset=self.tagset, cache_path=cache_path, lang=lang)
 
         # Use raw text
         text = Ns_IO.load_file(file_path)
