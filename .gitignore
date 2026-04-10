@@ -1,43 +1,43 @@
-# Byte-compiled / optimized / DLL files
-*__pycache__/
-*.ruff_cache/
+```
+# Compiled Python files
+*.pyc
+__pycache__/
 
-# packaging
+# Dependencies
+.venv/
+venv/
+node_modules/
+
+# Build/dist directories
 build/
 dist/
-*.egg-info
+*.egg-info/
 
-# data
-libs/
-cache/
+# Logs
+*.log
 
-# unit test / coverage report
-htmlcov/
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Coverage reports
 .coverage
-coverage.xml
+coverage/
+htmlcov/
 
-# mypy
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
 .mypy_cache/
-
-# miscellaneous
-.idea
-.vscode
-*.zip
-*.tar.gz
-*.parsed
-*.mp4
-*.matched
-*.ini
-doc
-note*
-test.py
-tmp
-examples/
-src/*.txt
-tests/*.java
-src/neosca_gui/data/stanza_resources
-data/stanza_resources
-*.DS_Store
-*._.
-corpus
-stanza_resources
+```

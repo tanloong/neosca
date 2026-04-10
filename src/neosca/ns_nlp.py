@@ -10,6 +10,7 @@ from stanza import Document
 
 from neosca.ns_consts import STANZA_MODEL_DIR
 from neosca.ns_io import Ns_IO
+from neosca.ns_settings.ns_settings_default import SUPPORTED_LANGUAGES
 
 
 class Ns_NLP_Stanza:
@@ -22,6 +23,10 @@ class Ns_NLP_Stanza:
 
         if lang is None:
             lang = "en"
+        if lang not in SUPPORTED_LANGUAGES:
+            raise ValueError(
+                f"Unsupported language: {lang}. Supported languages: {', '.join(SUPPORTED_LANGUAGES.keys())}"
+            )
         if model_dir is None:
             model_dir = str(STANZA_MODEL_DIR)
 
@@ -35,14 +40,18 @@ class Ns_NLP_Stanza:
             resources_url="stanford",
             download_method=None,
         )
+        cls.current_lang = lang
 
     @classmethod
-    def _nlp(cls, doc, processors: Sequence[str] | None = None) -> Document:
+    def _nlp(cls, doc, processors: Sequence[str] | None = None, lang: str | None = None) -> Document:
         assert isinstance(doc, (str, Document))
 
         attr = "pipeline"
         if not hasattr(cls, attr):
-            cls.initialize()
+            cls.initialize(lang=lang)
+        elif lang is not None and getattr(cls, "current_lang", None) != lang:
+            # Reinitialize pipeline if language changed
+            cls.initialize(lang=lang)
         assert hasattr(cls, attr)
 
         if processors is None:
@@ -58,6 +67,7 @@ class Ns_NLP_Stanza:
         doc: str | Document,
         processors: tuple | None = None,
         cache_path: str | None = None,
+        lang: str | None = None,
     ) -> Document:
         has_just_processed: bool = False
 
@@ -66,7 +76,7 @@ class Ns_NLP_Stanza:
 
         if isinstance(doc, str):
             logging.debug("Processing bare text...")
-            doc = cls._nlp(doc, processors=processors)
+            doc = cls._nlp(doc, processors=processors, lang=lang)
             has_just_processed = True
         else:
             attr = "processors"
@@ -76,7 +86,7 @@ class Ns_NLP_Stanza:
                 logging.debug(
                     f"Processing partially parsed document with additional processors {filtered_processors}"
                 )
-                doc = cls._nlp(doc, processors=tuple(filtered_processors))
+                doc = cls._nlp(doc, processors=tuple(filtered_processors), lang=lang)
                 setattr(doc, attr, existing_processors | filtered_processors)
                 has_just_processed = True
 
@@ -100,8 +110,9 @@ class Ns_NLP_Stanza:
         doc: str | Document,
         *,
         cache_path: str | None = None,
+        lang: str | None = None,
     ) -> str:
-        doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path)
+        doc = cls.nlp(doc, processors=("tokenize", "pos", "constituency"), cache_path=cache_path, lang=lang)
         return cls.doc2tree(doc)
 
     @classmethod
@@ -111,6 +122,7 @@ class Ns_NLP_Stanza:
         *,
         tagset: Literal["ud", "ptb"],
         cache_path: str | None = None,
+        lang: str | None = None,
     ) -> tuple[tuple[str, str], ...]:
         if tagset == "ud":
             pos_attr = "upos"
@@ -119,7 +131,7 @@ class Ns_NLP_Stanza:
         else:
             assert False, "Invalid tagset"
 
-        doc = cls.nlp(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path)
+        doc = cls.nlp(doc, processors=("tokenize", "pos", "lemma"), cache_path=cache_path, lang=lang)
         return tuple(
             # Foreign words could have word.lemma as None
             (word.lemma.lower() if word.lemma is not None else word.text.lower(), getattr(word, pos_attr))

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from PyQt5.QtWidgets import QGridLayout, QGroupBox, QRadioButton
+from PyQt5.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QRadioButton
 
 from neosca.ns_settings.ns_settings import Ns_Settings
+from neosca.ns_settings.ns_settings_default import SUPPORTED_LANGUAGES
 from neosca.ns_settings.ns_widget_settings_abstract import Ns_Widget_Settings_Abstract
 
 
@@ -11,12 +12,27 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
 
     def __init__(self, main):
         super().__init__(main)
+        self.setup_language()
         self.setup_wordlist()
         self.setup_tagset()
 
-        self.gridlayout.addWidget(self.groupbox_wordlist, 0, 0)
-        self.gridlayout.addWidget(self.groupbox_tagset, 1, 0)
+        self.gridlayout.addWidget(self.groupbox_language, 0, 0)
+        self.gridlayout.addWidget(self.groupbox_wordlist, 1, 0)
+        self.gridlayout.addWidget(self.groupbox_tagset, 2, 0)
         self.gridlayout.setRowStretch(self.gridlayout.rowCount(), 1)
+
+    def setup_language(self) -> None:
+        self.label_language = QLabel("Language:")
+        self.combobox_language = QComboBox()
+        for lang_code, lang_name in SUPPORTED_LANGUAGES.items():
+            self.combobox_language.addItem(lang_name, lang_code)
+        
+        layout_language = QGridLayout()
+        layout_language.addWidget(self.label_language, 0, 0)
+        layout_language.addWidget(self.combobox_language, 0, 1)
+
+        self.groupbox_language = QGroupBox("Language")
+        self.groupbox_language.setLayout(layout_language)
 
     def setup_wordlist(self) -> None:
         self.radiobutton_wordlist_bnc = QRadioButton("British National Corpus (BNC) wordlist")
@@ -41,8 +57,18 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
         self.groupbox_tagset.setLayout(layout_tagset)
 
     def load_settings(self) -> None:
+        self.load_settings_language()
         self.load_settings_wordlist()
         self.load_settings_tagset()
+
+    def load_settings_language(self) -> None:
+        key = f"{self.name}/language"
+        value = Ns_Settings.value(key, "en")
+        index = self.combobox_language.findData(value)
+        if index >= 0:
+            self.combobox_language.setCurrentIndex(index)
+        else:
+            self.combobox_language.setCurrentIndex(0)
 
     def load_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"
@@ -69,7 +95,10 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
             assert False, f"Invalid tagset setting: {value}"
 
     def verify_settings(self) -> bool:
-        return self.verify_settings_wordlist() and self.verify_settings_tagset()
+        return self.verify_settings_language() and self.verify_settings_wordlist() and self.verify_settings_tagset()
+
+    def verify_settings_language(self) -> bool:
+        return True
 
     def verify_settings_wordlist(self) -> bool:
         return True
@@ -78,8 +107,14 @@ class Ns_Widget_Settings_LCA(Ns_Widget_Settings_Abstract):
         return True
 
     def apply_settings(self) -> None:
+        self.apply_settings_language()
         self.apply_settings_wordlist()
         self.apply_settings_tagset()
+
+    def apply_settings_language(self) -> None:
+        key = f"{self.name}/language"
+        lang_code = self.combobox_language.currentData()
+        Ns_Settings.setValue(key, lang_code)
 
     def apply_settings_wordlist(self) -> None:
         key = f"{self.name}/wordlist"

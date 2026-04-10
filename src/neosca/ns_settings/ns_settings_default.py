@@ -30,6 +30,25 @@ else:
 
 available_import_types = ("All files (*)", "Text files (*.txt)", "Docx files (*.docx)", "Odt files (*.odt)")
 available_export_types = ("Excel Workbook (*.xlsx)", "CSV File (*.csv)", "TSV File (*.tsv)")
+
+# Supported European languages with Stanza models
+# https://stanfordnlp.github.io/stanza/available_models.html
+SUPPORTED_LANGUAGES = {
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "nl": "Dutch",
+    "pl": "Polish",
+    "ru": "Russian",
+    "sv": "Swedish",
+    "da": "Danish",
+    "no": "Norwegian",
+    "fi": "Finnish",
+}
+
 settings_default = {
     "Appearance/scaling": DEFAULT_SCALING,
     "Appearance/font-family": DEFAULT_FONT_FAMILY,
@@ -46,6 +65,7 @@ settings_default = {
     "Export/default-type": available_export_types[0],
     "Lexical Complexity Analyzer/wordlist": "bnc",
     "Lexical Complexity Analyzer/tagset": "ud",
+    "Lexical Complexity Analyzer/language": "en",
     "Miscellaneous/dont-warn-on-exit": False,
     "Miscellaneous/dont-warn-on-cache-deletion": False,
     "Miscellaneous/cache": True,
